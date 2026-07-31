@@ -47,7 +47,9 @@
   .lv-danger{background:#F3D9D9;color:#8F2C2C}
 
   .pane{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
-  .pane .cap{font-size:12px;font-weight:600;color:var(--ink-soft);padding:10px 14px;border-bottom:1px solid var(--line)}
+  .pane .cap{font-size:12px;font-weight:600;color:var(--ink-soft);padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .pane .cap .tag{font-size:10.5px;background:var(--rules-bg);color:var(--rules);padding:2px 8px;border-radius:20px;font-weight:600}
+  .input-image{width:100%;max-height:420px;object-fit:contain;display:block;background:#DDE2E6}
   .result-list{padding:6px 12px}
   .result-item{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)}
   .result-item:last-child{border-bottom:none}
@@ -97,6 +99,11 @@
     <div class="badge" id="summaryBadge">—</div>
   </div>
 
+  <div class="pane" id="inputImagePane" style="display:none">
+    <div class="cap">진단에 사용된 이미지 <span class="tag" id="inputImageTag"></span></div>
+    <img class="input-image" id="inputImage" alt="진단 입력 이미지">
+  </div>
+
   <div class="pane">
     <div class="cap">항목별 점수</div>
     <div class="result-list" id="resultList"></div>
@@ -139,6 +146,14 @@ window.addEventListener('load', function () {
 
   document.getElementById('pickedAddr').textContent = picked.addr || '주소 미상';
   document.getElementById('pickedCoord').textContent = `위도 ${picked.lat}, 경도 ${picked.lng}`;
+
+  const inputImageRaw = sessionStorage.getItem('auri_input_image');
+  if (inputImageRaw) {
+    const inputImage = JSON.parse(inputImageRaw);
+    document.getElementById('inputImagePane').style.display = 'block';
+    document.getElementById('inputImage').src = inputImage.dataUrl;
+    document.getElementById('inputImageTag').textContent = inputImage.source === 'upload' ? '업로드한 사진' : '캡처한 화면';
+  }
 
   const avg = Math.round(results.reduce(function (sum, r) { return sum + r.score; }, 0) / results.length);
   const lv = levelMeta(avg);

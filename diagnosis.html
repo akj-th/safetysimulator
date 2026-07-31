@@ -44,6 +44,18 @@
   .pane .cap .tag{font-size:10.5px;background:var(--rules-bg);color:var(--rules);padding:2px 8px;border-radius:20px;font-weight:600}
   #streetview{width:100%;height:430px;background:#DDE2E6}
 
+  .capture-row{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+  .btn-sm{font-family:inherit;font-size:12.5px;font-weight:600;border-radius:8px;padding:8px 12px;cursor:pointer;border:1px solid var(--line-2);background:var(--card-2);color:var(--ink);white-space:nowrap;transition:.15s}
+  .btn-sm:hover{border-color:var(--navy-soft);color:var(--navy)}
+  .btn-sm.retake{border-color:var(--line-2)}
+
+  .capture-status{margin:0 14px 12px;font-size:12px;color:var(--ink-soft);display:none;align-items:center;gap:10px;padding:8px 10px;background:var(--rules-bg);border-radius:9px}
+  .capture-status.on{display:flex}
+  .capture-status .thumb{width:44px;height:32px;object-fit:cover;border-radius:5px;border:1px solid var(--line);flex:none}
+  .capture-status .txt{flex:1;color:var(--rules);font-weight:600}
+  .capture-error{margin:0 14px 12px;font-size:12px;color:#8F2C2C;display:none;padding:8px 10px;background:#F3D9D9;border-radius:9px;line-height:1.5}
+  .capture-error.on{display:block}
+
   .result-list{padding:12px}
   .result-item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid var(--line)}
   .result-item:last-child{border-bottom:none}
@@ -90,6 +102,17 @@
     <div class="pane">
       <div class="cap">스트리트뷰 <span class="tag">진단 입력 이미지</span></div>
       <div id="streetview"></div>
+      <div class="capture-row">
+        <button class="btn-sm" id="captureBtn" onclick="captureStreetview()">📷 현재 화면 캡처</button>
+        <button class="btn-sm" onclick="document.getElementById('uploadInput').click()">📁 직접 찍은 사진 업로드</button>
+        <input type="file" id="uploadInput" accept="image/*" style="display:none">
+      </div>
+      <div class="capture-status" id="captureStatus">
+        <img class="thumb" id="captureThumb" alt="">
+        <span class="txt" id="captureText"></span>
+        <button class="btn-sm retake" onclick="clearInputImage()">다시 찍기</button>
+      </div>
+      <div class="capture-error" id="captureError"></div>
     </div>
     <div class="pane">
       <div class="cap">AI 진단 결과 <span class="tag">더미 데이터</span></div>
@@ -107,6 +130,70 @@
 </div>
 
 <script>
+let _pano = null;
+let _panoPov = { pan: 0, tilt: 0, fov: 100 };
+let inputImage = null; // { dataUrl, source: 'capture'|'upload', pov }
+
+/* 지금 보고 있는 파노라마 화면을 캡처해서 고정 이미지로 저장 */
+function captureStreetview() {
+  const container = document.getElementById('streetview');
+  const canvases = container.querySelectorAll('canvas');
+  hideCaptureError();
+
+  if (!canvases.length) {
+    showCaptureError('캡처할 화면을 찾지 못했습니다. 스트리트뷰가 완전히 로드된 뒤 다시 시도해 주세요.');
+    return;
+  }
+  let target = canvases[0];
+  canvases.forEach(function (c) { if (c.width * c.height > target.width * target.height) target = c; });
+
+  let dataUrl;
+  try {
+    dataUrl = target.toDataURL('image/jpeg', 0.92);
+  } catch (err) {
+    showCaptureError('이 브라우저 보안 정책 때문에 화면을 자동으로 캡처할 수 없습니다. 대신 Win+Shift+S(캡처 도구)로 화면을 캡처한 뒤 "직접 찍은 사진 업로드" 버튼으로 올려주세요.');
+    return;
+  }
+  setInputImage(dataUrl, 'capture');
+}
+
+function onUploadChange(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  hideCaptureError();
+  const reader = new FileReader();
+  reader.onload = function () { setInputImage(reader.result, 'upload'); };
+  reader.readAsDataURL(file);
+}
+
+function setInputImage(dataUrl, source) {
+  inputImage = { dataUrl: dataUrl, source: source, pov: _panoPov };
+  sessionStorage.setItem('auri_input_image', JSON.stringify(inputImage));
+
+  document.getElementById('captureThumb').src = dataUrl;
+  document.getElementById('captureText').textContent =
+    source === 'capture' ? '현재 화면이 진단 입력 이미지로 저장되었습니다.' : '업로드한 사진이 진단 입력 이미지로 저장되었습니다.';
+  document.getElementById('captureStatus').classList.add('on');
+}
+
+function clearInputImage() {
+  inputImage = null;
+  sessionStorage.removeItem('auri_input_image');
+  document.getElementById('captureStatus').classList.remove('on');
+  document.getElementById('uploadInput').value = '';
+}
+
+function showCaptureError(msg) {
+  const el = document.getElementById('captureError');
+  el.textContent = msg;
+  el.classList.add('on');
+}
+function hideCaptureError() {
+  document.getElementById('captureError').classList.remove('on');
+}
+
+document.getElementById('uploadInput').addEventListener('change', onUploadChange);
+
 const CATEGORIES = [
   '화재 안전', '시설물 붕괴·노후', '침수·수해', '감염병 확산', '범죄·치안', '교통사고', '폭염·한파'
 ];
@@ -168,9 +255,13 @@ window.addEventListener('load', function () {
 
   if (typeof naver === 'undefined' || !naver.maps) return;
   const position = new naver.maps.LatLng(Number(picked.lat), Number(picked.lng));
-  new naver.maps.Panorama('streetview', {
+  _pano = new naver.maps.Panorama('streetview', {
     position: position,
     pov: { pan: 0, tilt: 0, fov: 100 }
+  });
+  naver.maps.Event.addListener(_pano, 'pov_changed', function () {
+    const pov = _pano.getPov();
+    _panoPov = { pan: pov.pan, tilt: pov.tilt, fov: pov.fov };
   });
 });
 </script>
