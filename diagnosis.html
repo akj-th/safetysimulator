@@ -53,8 +53,9 @@
   .capture-status.on{display:flex}
   .capture-status .thumb{width:44px;height:32px;object-fit:cover;border-radius:5px;border:1px solid var(--line);flex:none}
   .capture-status .txt{flex:1;color:var(--rules);font-weight:600}
-  .capture-error{margin:0 14px 12px;font-size:12px;color:#8F2C2C;display:none;padding:8px 10px;background:#F3D9D9;border-radius:9px;line-height:1.5}
+  .capture-error{margin:0 14px 12px;font-size:12px;color:var(--ink-soft);display:none;padding:10px 12px;background:var(--rules-bg);border-radius:9px;line-height:1.6}
   .capture-error.on{display:block}
+  .capture-error .btn-sm{margin-top:8px;border-color:var(--rules);color:var(--rules);background:var(--card-2)}
 
   .result-list{padding:12px}
   .result-item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid var(--line)}
@@ -103,8 +104,8 @@
       <div class="cap">스트리트뷰 <span class="tag">진단 입력 이미지</span></div>
       <div id="streetview"></div>
       <div class="capture-row">
-        <button class="btn-sm" id="captureBtn" onclick="captureStreetview()">📷 현재 화면 캡처</button>
         <button class="btn-sm" onclick="document.getElementById('uploadInput').click()">📁 직접 찍은 사진 업로드</button>
+        <button class="btn-sm" id="captureBtn" onclick="captureStreetview()">📷 현재 화면 캡처 시도</button>
         <input type="file" id="uploadInput" accept="image/*" style="display:none">
       </div>
       <div class="capture-status" id="captureStatus">
@@ -112,7 +113,10 @@
         <span class="txt" id="captureText"></span>
         <button class="btn-sm retake" onclick="clearInputImage()">다시 찍기</button>
       </div>
-      <div class="capture-error" id="captureError"></div>
+      <div class="capture-error" id="captureError">
+        <span id="captureErrorText"></span><br>
+        <button class="btn-sm" onclick="document.getElementById('uploadInput').click()">📁 지금 사진 업로드하기</button>
+      </div>
     </div>
     <div class="pane">
       <div class="cap">AI 진단 결과 <span class="tag">더미 데이터</span></div>
@@ -141,7 +145,7 @@ function captureStreetview() {
   hideCaptureError();
 
   if (!canvases.length) {
-    showCaptureError('캡처할 화면을 찾지 못했습니다. 스트리트뷰가 완전히 로드된 뒤 다시 시도해 주세요.');
+    showCaptureError('이 스트리트뷰 화면은 자동 캡처가 되지 않는 방식이라 코드로 사진을 떠낼 수 없습니다. 대신 키보드에서 Win + Shift + S를 눌러 화면을 캡처한 뒤, 아래 버튼으로 그 사진을 올려주세요.');
     return;
   }
   let target = canvases[0];
@@ -151,7 +155,7 @@ function captureStreetview() {
   try {
     dataUrl = target.toDataURL('image/jpeg', 0.92);
   } catch (err) {
-    showCaptureError('이 브라우저 보안 정책 때문에 화면을 자동으로 캡처할 수 없습니다. 대신 Win+Shift+S(캡처 도구)로 화면을 캡처한 뒤 "직접 찍은 사진 업로드" 버튼으로 올려주세요.');
+    showCaptureError('이 브라우저 보안 정책 때문에 화면을 자동으로 캡처할 수 없습니다. 대신 키보드에서 Win + Shift + S를 눌러 화면을 캡처한 뒤, 아래 버튼으로 그 사진을 올려주세요.');
     return;
   }
   setInputImage(dataUrl, 'capture');
@@ -184,9 +188,8 @@ function clearInputImage() {
 }
 
 function showCaptureError(msg) {
-  const el = document.getElementById('captureError');
-  el.textContent = msg;
-  el.classList.add('on');
+  document.getElementById('captureErrorText').textContent = msg;
+  document.getElementById('captureError').classList.add('on');
 }
 function hideCaptureError() {
   document.getElementById('captureError').classList.remove('on');
