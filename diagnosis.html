@@ -45,6 +45,7 @@
   #streetview{width:100%;height:430px;background:#DDE2E6}
 
   .capture-row{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+  .capture-hint{font-size:11.5px;color:var(--ink-faint);padding:0 14px 10px;line-height:1.6}
   .btn-sm{font-family:inherit;font-size:12.5px;font-weight:600;border-radius:8px;padding:8px 12px;cursor:pointer;border:1px solid var(--line-2);background:var(--card-2);color:var(--ink);white-space:nowrap;transition:.15s}
   .btn-sm:hover{border-color:var(--navy-soft);color:var(--navy)}
   .btn-sm.retake{border-color:var(--line-2)}
@@ -105,9 +106,10 @@
       <div id="streetview"></div>
       <div class="capture-row">
         <button class="btn-sm" onclick="document.getElementById('uploadInput').click()">📁 직접 찍은 사진 업로드</button>
-        <button class="btn-sm" id="captureBtn" onclick="captureStreetview()">📷 현재 화면 캡처 시도</button>
+        <button class="btn-sm" id="captureBtn" onclick="captureStreetview()">📷 지금 보이는 화면 캡처</button>
         <input type="file" id="uploadInput" accept="image/*" style="display:none">
       </div>
+      <p class="capture-hint">캡처 버튼을 누르면 브라우저가 "화면 공유" 창을 띄웁니다 — 목록에서 <b>"현재 탭"</b>(또는 이 브라우저 탭)을 골라 공유를 누르면, 지금 보이는 화면이 그대로 사진으로 저장됩니다.</p>
       <div class="capture-status" id="captureStatus">
         <img class="thumb" id="captureThumb" alt="">
         <span class="txt" id="captureText"></span>
@@ -139,26 +141,66 @@ let _panoPov = { pan: 0, tilt: 0, fov: 100 };
 let inputImage = null; // { dataUrl, source: 'capture'|'upload', pov }
 
 /* 지금 보고 있는 파노라마 화면을 캡처해서 고정 이미지로 저장 */
-function captureStreetview() {
-  const container = document.getElementById('streetview');
-  const canvases = container.querySelectorAll('canvas');
+async function captureStreetview() {
   hideCaptureError();
+  const container = document.getElementById('streetview');
 
-  if (!canvases.length) {
-    showCaptureError('이 스트리트뷰 화면은 자동 캡처가 되지 않는 방식이라 코드로 사진을 떠낼 수 없습니다. 대신 키보드에서 Win + Shift + S를 눌러 화면을 캡처한 뒤, 아래 버튼으로 그 사진을 올려주세요.');
+  /* 1) 혹시 캔버스로 그려져 있으면 (빠른 방법으로) 바로 시도 */
+  const canvases = container.querySelectorAll('canvas');
+  if (canvases.length) {
+    let target = canvases[0];
+    canvases.forEach(function (c) { if (c.width * c.height > target.width * target.height) target = c; });
+    try {
+      setInputImage(target.toDataURL('image/jpeg', 0.92), 'capture');
+      return;
+    } catch (err) { /* 캔버스가 있어도 막혀 있으면 아래 화면공유 방식으로 계속 진행 */ }
+  }
+
+  /* 2) 캔버스가 없거나 막혀 있으면, 브라우저 "화면(탭) 공유" 기능으로 지금 보이는 그대로 캡처 */
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+    showCaptureError('이 브라우저는 화면 캡처 기능을 지원하지 않습니다. 대신 키보드에서 Win + Shift + S를 눌러 화면을 캡처한 뒤, 아래 버튼으로 그 사진을 올려주세요.');
     return;
   }
-  let target = canvases[0];
-  canvases.forEach(function (c) { if (c.width * c.height > target.width * target.height) target = c; });
 
-  let dataUrl;
+  let stream;
   try {
-    dataUrl = target.toDataURL('image/jpeg', 0.92);
+    stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { displaySurface: 'browser' },
+      preferCurrentTab: true,
+      selfBrowserSurface: 'include'
+    });
   } catch (err) {
-    showCaptureError('이 브라우저 보안 정책 때문에 화면을 자동으로 캡처할 수 없습니다. 대신 키보드에서 Win + Shift + S를 눌러 화면을 캡처한 뒤, 아래 버튼으로 그 사진을 올려주세요.');
+    showCaptureError('화면 공유가 취소됐습니다. 팝업이 뜨면 "현재 탭"을 선택하고 공유를 눌러주세요. 계속 안 되면 Win + Shift + S로 캡처한 뒤 아래 버튼으로 올려주세요.');
     return;
   }
-  setInputImage(dataUrl, 'capture');
+
+  try {
+    const video = document.createElement('video');
+    video.muted = true;
+    video.srcObject = stream;
+    await video.play();
+    /* 첫 프레임이 실제로 그려질 때까지 두 프레임 정도 기다림 */
+    await new Promise(function (resolve) { requestAnimationFrame(function () { requestAnimationFrame(resolve); }); });
+
+    const rect = container.getBoundingClientRect();
+    const scaleX = video.videoWidth / window.innerWidth;
+    const scaleY = video.videoHeight / window.innerHeight;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(rect.width * scaleX));
+    canvas.height = Math.max(1, Math.round(rect.height * scaleY));
+    canvas.getContext('2d').drawImage(
+      video,
+      rect.left * scaleX, rect.top * scaleY, rect.width * scaleX, rect.height * scaleY,
+      0, 0, canvas.width, canvas.height
+    );
+
+    setInputImage(canvas.toDataURL('image/jpeg', 0.92), 'capture');
+  } catch (err) {
+    showCaptureError('화면을 캡처하는 중 문제가 생겼습니다. Win + Shift + S로 캡처한 뒤 아래 버튼으로 올려주세요.');
+  } finally {
+    stream.getTracks().forEach(function (t) { t.stop(); });
+  }
 }
 
 function onUploadChange(e) {
