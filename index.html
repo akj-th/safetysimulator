@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>도시공간 안전 진단 — 위치 선택</title>
+
+<!-- ============================================================ -->
+<!-- [1] 네이버 지도 프로그램을 불러오는 줄                          -->
+<!--   아래 YOUR_NAVER_CLIENT_ID 자리에, 네이버 클라우드 플랫폼에서 -->
+<!--   발급받은 'Client ID' 값을 붙여넣으세요.                      -->
+<!--   · 파라미터 이름은 ncpKeyId 지만, 넣는 값은 Client ID 입니다. -->
+<!--   · submodules=geocoder 는 주소↔좌표 변환 기능을 켜는 것.      -->
+<!--   (카카오 때와 주소·파라미터가 다릅니다: 최신 네이버 방식)      -->
+<!-- ============================================================ -->
+<script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=ikev3q84lb&submodules=geocoder"></script>
+
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{
+    --bg:#E9E7E0; --card:#FBFAF6; --card-2:#FFFFFF;
+    --ink:#23211C; --ink-soft:#6B675E; --ink-faint:#9A968C;
+    --line:#DAD7CE; --line-2:#C7C3B8;
+    --navy:#2C3A47; --navy-soft:#5A6A78;
+    --rules:#2E6B54; --rules-bg:#E2EDE8;
+    --font:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    --mono:'SFMono-Regular',ui-monospace,Consolas,monospace;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 64px}
+
+  .eyebrow{font-size:12px;letter-spacing:.14em;color:var(--navy-soft);font-weight:600;text-transform:uppercase}
+  h1{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:6px}
+  .sub{font-size:14px;color:var(--ink-soft);margin-top:8px;max-width:660px}
+
+  .search-row{display:flex;gap:9px;margin:22px 0 14px}
+  .search-row input{flex:1;padding:11px 14px;border:1px solid var(--line-2);border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:var(--card-2);color:var(--ink)}
+  .search-row input:focus{border-color:var(--navy-soft)}
+  .btn{font-family:inherit;font-size:14px;font-weight:600;border-radius:9px;padding:11px 18px;cursor:pointer;border:1px solid var(--navy);background:var(--navy);color:#fff;white-space:nowrap;transition:.15s}
+  .btn:hover{background:#1f2a34}
+  .btn.rules{background:var(--rules);border-color:var(--rules)}
+  .btn.rules:hover{filter:brightness(.94)}
+
+  .panes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:800px){.panes{grid-template-columns:1fr}}
+  .pane{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .pane .cap{font-size:12px;font-weight:600;color:var(--ink-soft);padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .pane .cap .tag{font-size:10.5px;background:var(--rules-bg);color:var(--rules);padding:2px 8px;border-radius:20px;font-weight:600}
+  #map,#streetview{width:100%;height:430px;background:#DDE2E6;position:relative}
+
+  .map-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:#EDEBE4}
+  .map-fallback .ic{width:38px;height:38px;color:var(--navy-soft);margin-bottom:12px}
+  .map-fallback .t{font-size:14.5px;font-weight:600;color:var(--ink)}
+  .map-fallback .m{font-size:12.5px;color:var(--ink-soft);margin-top:6px;max-width:380px;line-height:1.6}
+  .map-fallback code{font-family:var(--mono);font-size:11.5px;background:#fff;padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
+
+  .picked{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+  .picked .dot{width:10px;height:10px;border-radius:50%;background:var(--ink-faint);flex:none}
+  .picked.on .dot{background:var(--rules)}
+  .picked .info{flex:1;min-width:0}
+  .picked .lab{font-size:11px;color:var(--ink-faint);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  .picked .addr{font-size:14.5px;font-weight:600;color:var(--ink);margin-top:2px}
+  .picked .coord{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-top:2px}
+
+  .hint{font-size:12.5px;color:var(--ink-faint);margin-top:14px;display:flex;align-items:center;gap:7px}
+  .hint svg{width:15px;height:15px;flex:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">7대 사회재난 다중취약 공간 진단 · AI 맞춤형 안전 솔루션</div>
+  <h1>진단할 위치를 지도에서 선택하세요</h1>
+  <p class="sub">주소를 검색하거나 지도를 직접 클릭해 취약이 의심되는 지점을 찍으면, 그 자리의 스트리트뷰가 오른쪽에 뜨고 이 위치가 진단 파이프라인의 출발점이 됩니다.</p>
+
+  <div class="search-row">
+    <input id="addr" type="text" placeholder="예: 인천 미추홀구 숭의동" onkeydown="if(event.key==='Enter') searchAddress()">
+    <button class="btn" onclick="searchAddress()">주소 검색</button>
+  </div>
+
+  <div class="panes">
+    <div class="pane">
+      <div class="cap">지도</div>
+      <div id="map">
+        <div class="map-fallback" id="mapFallback" style="display:none">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 20l-6-3V4l6 3m0 13l6-3m-6 3V7m6 10l6 3V7l-6-3m0 13V4m0 3L9 4"/></svg>
+          <div class="t">지도를 표시하려면 네이버 키가 필요합니다</div>
+          <div class="m">이 파일 맨 위 <code>YOUR_NAVER_CLIENT_ID</code> 자리에 발급받은 Client ID를 넣고, 네이버 클라우드 콘솔에 이 페이지 주소를 등록하면 지도가 나타납니다. (방법은 아래 안내 참고)</div>
+        </div>
+      </div>
+    </div>
+    <div class="pane">
+      <div class="cap">스트리트뷰 <span class="tag">진단 입력 이미지</span></div>
+      <div id="streetview"></div>
+    </div>
+  </div>
+
+  <div class="picked" id="picked">
+    <span class="dot"></span>
+    <div class="info">
+      <div class="lab">선택한 위치</div>
+      <div class="addr" id="pickedAddr">아직 선택되지 않았습니다</div>
+      <div class="coord" id="pickedCoord"></div>
+    </div>
+    <button class="btn rules" onclick="startDiagnosis()">이 위치로 진단 시작 →</button>
+  </div>
+
+  <div class="hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+    지도를 직접 클릭해도 그 지점이 선택되고, 오른쪽 스트리트뷰가 그 위치로 이동합니다.
+  </div>
+</div>
+
+<script>
+let _map, _pano, _marker;
+let picked = null; // { lat, lng, addr }
+const MICHUHOL = { lat: 37.4637, lng: 126.6503 }; // 인천 미추홀구 부근
+
+/* ============================================================ */
+/* [2] 페이지가 열리면 지도 + 스트리트뷰를 그려 넣는 부분          */
+/*   · 카카오는 지도 축척을 level 로 썼지만, 네이버는 zoom 입니다  */
+/*     (숫자가 클수록 더 확대).                                    */
+/*   · 카카오는 Geocoder를 new 해서 썼지만, 네이버는 아래 [3]처럼  */
+/*     naver.maps.Service 를 바로 호출합니다.                      */
+/* ============================================================ */
+window.addEventListener('load', function () {
+  if (typeof naver === 'undefined' || !naver.maps) {
+    document.getElementById('mapFallback').style.display = 'flex';
+    return;
+  }
+  const center = new naver.maps.LatLng(MICHUHOL.lat, MICHUHOL.lng);
+
+  _map = new naver.maps.Map('map', { center: center, zoom: 16 });
+
+  /* 스트리트뷰(파노라마): 처음엔 미추홀구 중심을 보여줌 */
+  _pano = new naver.maps.Panorama('streetview', {
+    position: center,
+    pov: { pan: 0, tilt: 0, fov: 100 }
+  });
+
+  /* 지도를 클릭하면 그 자리를 선택 */
+  naver.maps.Event.addListener(_map, 'click', function (e) {
+    selectPoint(e.coord);
+  });
+});
+
+/* ============================================================ */
+/* [3] 주소를 입력하면 좌표로 바꿔 그 위치로 옮겨주는 부분          */
+/*   naver.maps.Service.geocode 로 주소 → 좌표 변환             */
+/* ============================================================ */
+function searchAddress() {
+  const addr = document.getElementById('addr').value.trim();
+  if (!addr) return;
+  if (typeof naver === 'undefined' || !naver.maps || !naver.maps.Service) {
+    alert('지도가 아직 준비되지 않았습니다. 네이버 키를 확인하세요.');
+    return;
+  }
+  naver.maps.Service.geocode({ query: addr }, function (status, response) {
+    if (status !== naver.maps.Service.Status.OK) { alert('주소 검색에 실패했습니다.'); return; }
+    const list = response.v2.addresses;
+    if (!list || !list.length) { alert('주소를 찾을 수 없습니다. 다르게 입력해 보세요.'); return; }
+    const item = list[0];
+    const latlng = new naver.maps.LatLng(item.y, item.x);
+    _map.setCenter(latlng);
+    selectPoint(latlng, item.roadAddress || item.jibunAddress);
+  });
+}
+
+/* 한 지점을 선택 = 핀 꽂기 + 스트리트뷰 이동 + 좌표/주소 표시 */
+function selectPoint(latlng, knownAddr) {
+  if (_marker) _marker.setMap(null);
+  _marker = new naver.maps.Marker({ position: latlng, map: _map });
+
+  /* 스트리트뷰를 이 위치로 이동 (그 지점 거리 사진 표시) */
+  if (_pano) _pano.setPosition(latlng);
+
+  const lat = latlng.lat().toFixed(6);
+  const lng = latlng.lng().toFixed(6);
+  picked = { lat, lng, addr: knownAddr || '' };
+
+  document.getElementById('picked').classList.add('on');
+  document.getElementById('pickedCoord').textContent = `위도 ${lat}, 경도 ${lng}`;
+
+  if (knownAddr) {
+    document.getElementById('pickedAddr').textContent = knownAddr;
+  } else {
+    /* 좌표 → 주소 (클릭으로 찍었을 때) */
+    naver.maps.Service.reverseGeocode({
+      coords: latlng,
+      orders: [naver.maps.Service.OrderType.ROAD_ADDR, naver.maps.Service.OrderType.ADDR].join(',')
+    }, function (status, response) {
+      if (status !== naver.maps.Service.Status.OK) {
+        document.getElementById('pickedAddr').textContent = '주소 미상 (좌표로 진행)';
+        return;
+      }
+      const addr = response.v2.address;
+      const name = addr.roadAddress || addr.jibunAddress || '주소 미상';
+      picked.addr = name;
+      document.getElementById('pickedAddr').textContent = name;
+    });
+  }
+}
+
+/* "이 위치로 진단 시작" — 지금은 선택 확인까지. 다음 단계(진단)와 연결 예정 */
+function startDiagnosis() {
+  if (!picked) { alert('먼저 지도에서 위치를 선택하세요.'); return; }
+  alert(`선택된 위치로 진단을 시작합니다.\n\n${picked.addr || '주소 미상'}\n위도 ${picked.lat}, 경도 ${picked.lng}\n\n(이 좌표의 스트리트뷰가 다음 단계 'AI 진단'의 입력 이미지가 됩니다.)`);
+  /* 이후 클로드코드 단계에서: 이 좌표와 스트리트뷰 이미지를 시뮬레이터 1단계로 넘겨 파이프라인을 이어갑니다 */
+}
+</script>
+</body>
+</html>
