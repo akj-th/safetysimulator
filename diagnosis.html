@@ -322,7 +322,7 @@ function buildDummyResults(picked) {
    서버가 꺼져 있으면 더미 점수로 되돌아가므로 흐름은 끊기지 않습니다. */
 let _diagnosing = false;
 
-async function runDiagnosis(dataUrl) {
+async function runDiagnosis(dataUrl, retried) {
   if (_diagnosing) return;
   _diagnosing = true;
   setTag('판독 중…');
@@ -331,9 +331,13 @@ async function runDiagnosis(dataUrl) {
     'AI가 사진을 판독하고 있습니다. 20초 정도 걸립니다…</div>';
 
   try {
+    const headers = { 'Content-Type': 'application/json' };
+    const savedCode = localStorage.getItem('auri_access_code');
+    if (savedCode) headers['x-access-code'] = savedCode;
+
     const res = await fetch('/api/diagnose', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify({ imageDataUrl: dataUrl }),
     });
     /* 진단 서버가 아닌 곳(GitHub Pages, 파일 직접 열기 등)에서 열면
@@ -342,7 +346,20 @@ async function runDiagnosis(dataUrl) {
     if (!contentType.includes('application/json')) throw new Error('WRONG_ADDRESS');
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || '서버 오류');
+
+    /* 접속 암호를 쓰는 서버면 한 번만 물어보고 저장해 둡니다 */
+    if (res.status === 401 && data.needCode) {
+      localStorage.removeItem('auri_access_code');
+      if (retried) throw Object.assign(new Error('접속 암호가 올바르지 않습니다.'), { fromServer: true });
+      const code = prompt('AI 진단 접속 암호를 입력해 주세요.');
+      if (!code) throw Object.assign(new Error('접속 암호가 필요합니다.'), { fromServer: true });
+      localStorage.setItem('auri_access_code', code.trim());
+      _diagnosing = false;
+      return runDiagnosis(dataUrl, true);
+    }
+
+    /* 사용 한도 초과처럼 서버가 이유를 알려 준 경우는 그 문장을 그대로 보여 줍니다 */
+    if (!res.ok) throw Object.assign(new Error(data.error || '서버 오류'), { fromServer: true });
 
     const results = CATEGORIES.map(function (cat) {
       const c = data.categories[cat.key];
@@ -372,7 +389,9 @@ async function runDiagnosis(dataUrl) {
        ① 주소가 틀림(서버 아닌 곳에서 열림)  ② 주소는 맞는데 서버가 꺼져 있음 */
     const wrongAddress = err.message === 'WRONG_ADDRESS' || location.protocol === 'file:';
     showCaptureError(
-      wrongAddress
+      err.fromServer
+        ? err.message + ' 지금은 임시 점수를 표시합니다.'
+      : wrongAddress
         ? '이 페이지는 진단 서버가 아닌 곳에서 열렸습니다' +
           (location.protocol === 'file:' ? ' (파일을 직접 열기)' : ` (${location.origin})`) +
           '. AI 진단을 쓰려면 server 폴더에서 npm start 로 서버를 켠 뒤, ' +

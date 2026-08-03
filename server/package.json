@@ -5,7 +5,10 @@
   "type": "module",
   "description": "AI 안전진단 중계 서버 — API 키를 감추고 거리 이미지를 판독합니다",
   "scripts": {
-    "start": "node --env-file=.env server.js"
+    "start": "node --env-file-if-exists=.env server.js"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0"

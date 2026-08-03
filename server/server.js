@@ -24,6 +24,54 @@ const PORT = process.env.PORT || 8787;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SITE_ROOT = path.resolve(HERE, '..');   // HTML 파일들이 있는 폴더
 
+/* ── 요금 안전장치 ────────────────────────────────────────────────────
+   인터넷에 공개된 주소에 API 키가 붙어 있으므로, 누군가 반복 호출하면
+   그 요금이 그대로 청구됩니다. 아래 두 상한선이 그것을 막습니다.
+   숫자를 바꾸려면 배포 사이트의 환경변수에서 바꾸면 됩니다. */
+const DAILY_LIMIT = Number(process.env.DAILY_LIMIT || 200);        // 하루 전체 진단 횟수
+const HOURLY_LIMIT_PER_IP = Number(process.env.HOURLY_LIMIT_PER_IP || 20); // 한 사람당 1시간
+
+/* 접속 암호 (선택). 환경변수 ACCESS_CODE 를 정해 두면 그 암호를 아는
+   사람만 AI 진단을 쓸 수 있습니다. 비워 두면 누구나 쓸 수 있습니다. */
+const ACCESS_CODE = process.env.ACCESS_CODE || '';
+
+let _day = '';
+let _dayCount = 0;
+const _ipHits = new Map();
+
+function clientIp(req) {
+  // 배포 서비스는 실제 접속자 IP를 이 헤더에 담아 전달합니다
+  const fwd = req.headers['x-forwarded-for'];
+  return (fwd ? String(fwd).split(',')[0] : req.socket.remoteAddress || '').trim();
+}
+
+function checkQuota(req) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (today !== _day) { _day = today; _dayCount = 0; _ipHits.clear(); }
+
+  if (_dayCount >= DAILY_LIMIT) {
+    throw Object.assign(
+      new Error(`오늘 사용 가능한 진단 횟수(${DAILY_LIMIT}회)를 모두 썼습니다. 내일 다시 시도해 주세요.`),
+      { status: 429 }
+    );
+  }
+
+  const ip = clientIp(req);
+  const now = Date.now();
+  const hits = (_ipHits.get(ip) || []).filter(function (t) { return now - t < 3600000; });
+  if (hits.length >= HOURLY_LIMIT_PER_IP) {
+    throw Object.assign(
+      new Error(`1시간에 ${HOURLY_LIMIT_PER_IP}회까지만 진단할 수 있습니다. 잠시 후 다시 시도해 주세요.`),
+      { status: 429 }
+    );
+  }
+
+  hits.push(now);
+  _ipHits.set(ip, hits);
+  _dayCount++;
+  console.log(`  · 오늘 누적 ${_dayCount}/${DAILY_LIMIT}회`);
+}
+
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error('\n[오류] API 키가 없습니다.');
   console.error('server 폴더의 .env.example 파일을 .env 로 복사한 뒤,');
@@ -146,6 +194,12 @@ async function callAI(mediaType, base64Data) {
 
 /* ── 진단 요청 처리 ──────────────────────────────────────────────────── */
 async function handleDiagnose(req, res) {
+  // 접속 암호를 정해 둔 경우에만 확인합니다
+  if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) {
+    return sendJson(res, 401, { error: '접속 암호가 필요합니다.', needCode: true });
+  }
+  checkQuota(req);
+
   const body = await readJsonBody(req);
 
   // 브라우저가 보낸 "data:image/png;base64,AAAA..." 를 두 조각으로 나눕니다
@@ -238,8 +292,14 @@ async function serveStatic(req, res) {
 }
 
 const server = http.createServer(async function (req, res) {
+  /* 다른 주소(예: GitHub Pages)에서도 이 서버를 부를 수 있게 허용 */
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-access-code');
+
   try {
-    if (req.method === 'POST' && req.url === '/api/diagnose') {
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204).end();
+    } else if (req.method === 'POST' && req.url === '/api/diagnose') {
       await handleDiagnose(req, res);
     } else if (req.method === 'GET') {
       await serveStatic(req, res);
@@ -248,7 +308,7 @@ const server = http.createServer(async function (req, res) {
     }
   } catch (err) {
     console.error('[오류]', err.message);
-    if (!res.headersSent) sendJson(res, 500, { error: err.message });
+    if (!res.headersSent) sendJson(res, err.status || 500, { error: err.message });
   }
 });
 
@@ -256,6 +316,9 @@ server.listen(PORT, function () {
   console.log('');
   console.log('  AI 안전진단 서버가 켜졌습니다.');
   console.log(`  브라우저에서 이 주소를 여세요 →  http://localhost:${PORT}`);
+  console.log('');
+  console.log(`  요금 상한: 하루 ${DAILY_LIMIT}회 / 한 사람당 1시간 ${HOURLY_LIMIT_PER_IP}회`);
+  console.log(`  접속 암호: ${ACCESS_CODE ? '사용 중' : '없음 (누구나 사용 가능)'}`);
   console.log('');
   console.log('  (끄려면 이 창에서 Ctrl+C)');
   console.log('');
