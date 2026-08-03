@@ -105,6 +105,9 @@
     <div class="panel-head">
       <h2>AI 진단 결과</h2>
       <span class="tag pending" id="resultTag">대기 중</span>
+      <button class="btn-text" id="editBtn" style="display:none" onclick="startEdit()"></button>
+      <button class="btn-text" id="cancelBtn" style="display:none" onclick="cancelEdit()">취소</button>
+      <button class="btn-text" id="saveBtn" style="display:none" onclick="saveEdit()">저장</button>
     </div>
     <div class="result-list" id="resultList">
       <div class="empty">이미지를 확정하고 <b>AI 진단 실행</b>을 누르면 분야별 결과가 표시됩니다.</div>
@@ -245,7 +248,13 @@ function setTag(text, pending) {
   el.className = 'tag' + (pending ? ' pending' : '');
 }
 
+let _results = null;      // 지금 화면에 있는 진단 결과
+let _editing = false;
+
 function renderResults(results) {
+  _results = results;
+  _editing = false;
+
   document.getElementById('resultList').innerHTML = results.map(function (r) {
     let why = '';
     if (r.observed && r.observed.length) {
@@ -257,8 +266,10 @@ function renderResults(results) {
       <div class="result-item ${r.level.key}">
         <div class="result-row">
           <span class="name">${r.name}</span>
-          <span class="bar"><span class="bar-fill" style="width:${r.score}%"></span></span>
+          ${auriScaleHTML(r.level.step)}
+          <span class="step-num">${r.level.step}/9</span>
           <span class="badge">${r.level.label}</span>
+          ${r.edited ? '<span class="mark-edited">보정됨</span>' : ''}
         </div>
         ${why}
       </div>`;
@@ -266,7 +277,81 @@ function renderResults(results) {
 
   sessionStorage.setItem('auri_diagnosis_results', JSON.stringify(results));
   document.getElementById('resultFoot').style.display = 'flex';
+  showEditButtons(false);
   auriRenderSteps();   // 다음 단계 잠금 해제
+}
+
+/* ── 연구원 보정 ─────────────────────────────────────────────────
+   AI 결과를 기본값으로 두고, 전문가가 판단해 단계와 근거를 고칠 수 있게 합니다.
+   고친 항목은 "보정됨"으로 표시되어 감사 시 구분됩니다. */
+
+function showEditButtons(editing) {
+  const btn = document.getElementById('editBtn');
+  btn.innerHTML = AURI_ICON_EDIT + '수정';
+  btn.style.display = (!editing && _results) ? 'inline-flex' : 'none';
+  document.getElementById('saveBtn').style.display = editing ? 'inline-flex' : 'none';
+  document.getElementById('cancelBtn').style.display = editing ? 'inline-flex' : 'none';
+}
+
+function startEdit() {
+  if (!_results) return;
+  _editing = true;
+  showEditButtons(true);
+
+  document.getElementById('resultList').innerHTML = _results.map(function (r) {
+    const obs = (r.observed || []).join('\n');
+    return `
+      <div class="result-item ${r.level.key}" id="row-${r.key}">
+        <div class="edit-row">
+          <span class="name">${r.name}</span>
+          <input type="range" min="1" max="9" step="1" value="${r.level.step}"
+                 oninput="onSlide('${r.key}', this.value)">
+          <span class="step-num" id="num-${r.key}">${r.level.step}/9</span>
+          <span class="badge" id="badge-${r.key}">${r.level.label}</span>
+        </div>
+        <div class="edit-note">
+          <div class="lab">판독 근거 — 한 줄에 하나씩</div>
+          <textarea id="obs-${r.key}" placeholder="예: 가로등 없음">${obs}</textarea>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* 슬라이더를 움직이면 단계·판정·색이 즉시 따라옵니다 */
+function onSlide(key, value) {
+  const lv = auriLevel(auriStepToScore(value));
+  document.getElementById('row-' + key).className = 'result-item ' + lv.key;
+  document.getElementById('num-' + key).textContent = lv.step + '/9';
+  document.getElementById('badge-' + key).textContent = lv.label;
+}
+
+function cancelEdit() {
+  renderResults(_results);
+}
+
+function saveEdit() {
+  const updated = _results.map(function (r) {
+    const step = Number(document.querySelector(`#row-${r.key} input[type=range]`).value);
+    const text = document.getElementById('obs-' + r.key).value;
+    const observed = text.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+
+    const changed = step !== r.level.step ||
+                    observed.join('\n') !== (r.observed || []).join('\n');
+    const score = step === r.level.step ? r.score : auriStepToScore(step);
+
+    return Object.assign({}, r, {
+      score: score,
+      level: auriLevel(score),
+      observed: observed,
+      edited: r.edited || changed,
+    });
+  });
+
+  /* 점수가 바뀌면 처방도 다시 계산해야 하므로, 다음 단계 결과를 비웁니다 */
+  sessionStorage.removeItem('auri_prescriptions');
+
+  renderResults(updated);
+  setTag('연구원 보정 반영됨');
 }
 
 /* AI가 연결되지 않았을 때 흐름이 끊기지 않도록 쓰는 임시 점수 */

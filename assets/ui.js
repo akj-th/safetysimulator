@@ -60,6 +60,18 @@ function auriRenderSteps() {
   }).join('');
 }
 
+/* 9단계 눈금 그리기. 채워진 칸 수가 단계입니다. */
+function auriScaleHTML(step) {
+  let html = '';
+  for (let i = 1; i <= 9; i++) html += `<i class="${i <= step ? 'on' : ''}"></i>`;
+  return `<span class="scale">${html}</span>`;
+}
+
+/* 연필 아이콘 (수정 버튼용) */
+const AURI_ICON_EDIT =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">' +
+  '<path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';
+
 /* 상단 바(로고 + 단계)를 그립니다.
    각 화면에는 <header class="topbar" id="topbar"></header> 만 두면 됩니다.
 

@@ -22,10 +22,13 @@
   .input-image{width:100%; max-height:420px; object-fit:contain; display:block; background:#E8EBEE}
 
   .result-list{padding:6px 16px}
-  .result-item{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line)}
+  .result-item{padding:11px 0; border-bottom:1px solid var(--line)}
   .result-item:last-child{border-bottom:none}
-  .result-item .name{width:88px; flex:none; font-size:13px; font-weight:600}
-  .result-item .badge{width:44px; flex:none}
+  .result-row{display:flex; align-items:center; gap:12px}
+  .result-row .name{width:88px; flex:none; font-size:13px; font-weight:600}
+  .result-row .badge{width:44px; flex:none}
+  .result-why{margin-top:6px; padding-left:100px; font-size:12px; color:var(--ink-2); line-height:1.55}
+  @media(max-width:640px){ .result-why{padding-left:0} }
 
   .rx-list{padding:4px 16px}
   .rx-item{display:flex; gap:13px; padding:14px 0; border-bottom:1px solid var(--line); align-items:flex-start}
@@ -38,7 +41,6 @@
   .rx-cat{font-size:11.5px; color:var(--ink-3); font-weight:600; margin-left:7px}
   .rx-note{font-size:12.5px; color:var(--ink-2); margin-top:3px; line-height:1.6}
   .rx-basis{font-size:11px; color:var(--ink-3); margin-top:6px; font-family:var(--mono)}
-  .rx-empty{padding:30px; text-align:center; color:var(--ink-2); font-size:13px; line-height:1.7}
 </style>
 </head>
 <body data-step="3">
@@ -48,7 +50,7 @@
 <main class="wrap">
   <div class="page-head">
     <h1>종합 진단 리포트</h1>
-    <p class="sub">분야별 진단 점수를 표준 규칙표에 대입해, 주의·위험 판정이 나온 분야에 필요한 개선 시설물을 처방합니다. 모든 처방에는 근거가 된 판정과 규칙 번호가 함께 기록됩니다.</p>
+    <p class="sub">분야별 진단 점수를 표준 규칙표에 대입해, 주의·위험 판정이 나온 분야에 필요한 개선 시설물을 처방합니다. 점수와 시설물은 연구원이 직접 보정할 수 있으며, 손댄 내용은 따로 표시됩니다.</p>
   </div>
 
   <div class="picked" id="picked">
@@ -77,193 +79,150 @@
     <img class="input-image" id="inputImage" alt="진단 입력 이미지">
   </div>
 
+  <!-- 항목별 점수 (9단계 · 보정 가능) -->
   <div class="panel">
-    <div class="panel-head"><h2>항목별 점수</h2></div>
+    <div class="panel-head">
+      <h2>항목별 점수</h2>
+      <button class="btn-text" id="scoreEditBtn" onclick="startScoreEdit()"></button>
+      <button class="btn-text" id="scoreCancelBtn" style="display:none" onclick="cancelScoreEdit()">취소</button>
+      <button class="btn-text" id="scoreSaveBtn" style="display:none" onclick="saveScoreEdit()">저장</button>
+    </div>
     <div class="result-list" id="resultList"></div>
   </div>
 
+  <!-- 개선 시설물 처방 (수정 · 삭제 · 추가 가능) -->
   <div class="panel">
     <div class="panel-head">
       <h2>개선 시설물 처방</h2>
       <span class="tag">규칙 기반 엔진</span>
+      <button class="btn-text" id="rxEditBtn" onclick="AuriRx.start()"></button>
+      <button class="btn-text" id="rxCancelBtn" style="display:none" onclick="AuriRx.cancel()">취소</button>
+      <button class="btn-text" id="rxSaveBtn" style="display:none" onclick="AuriRx.save()">저장</button>
     </div>
     <div class="rx-list" id="rxList"></div>
     <div class="panel-foot">
+      <button class="btn ghost sm" id="rxAddBtn" style="display:none" onclick="AuriRx.add()">＋ 항목 추가</button>
       <a class="btn accent" href="visualize.html">개선 전/후 시각화</a>
     </div>
   </div>
 
   <p class="note">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-    처방은 "위험도 → 시설물" 규칙표를 그대로 대입한 결과이며, 이미지 생성 모델이 시설물을 고르지 않습니다. 표준 단가와 시공 근거는 과업4 매뉴얼 확정 후 이 규칙표에 연결됩니다.
+    처방은 "위험도 → 시설물" 규칙표를 그대로 대입한 결과이며, 이미지 생성 모델이 시설물을 고르지 않습니다. 연구원이 고친 항목에는 근거 줄에 그 사실이 기록됩니다. 표준 단가와 시공 근거는 과업4 매뉴얼 확정 후 규칙표에 연결됩니다.
   </p>
 </main>
 
 <script src="assets/ui.js"></script>
+<script src="assets/rules.js"></script>
+<script src="assets/rx-editor.js"></script>
 <script>
-function levelMeta(score) {
-  if (score < 34) return { key: 'lv-safe', label: '안전' };
-  if (score < 67) return { key: 'lv-caution', label: '주의' };
-  return { key: 'lv-danger', label: '위험' };
-}
+let _results = null;      // 분야별 점수
+let _rxDraft = null;      // 처방 편집 중인 임시 목록
 
-/* ────────────────────────────────────────────────────────────────
-   처방 규칙표 (과업4 "재난 예방 인프라 표준 설계 가이드라인" 초안)
+/* ── 항목별 점수 ────────────────────────────────────────────────── */
 
-   구조: 7대 분야별로 '위험' 판정일 때 / '주의' 판정일 때 넣을 시설물을 미리 정해 둠.
-   - danger   : 67점 이상 → 우선순위 '필수'
-   - caution  : 34~66점   → 우선순위 '권장'
-   - '안전'(33점 이하)은 처방 없음.
-
-   각 시설물의 id는 감사 추적용 규칙 번호입니다. 리포트에 근거로 함께 표시되므로
-   "왜 이 시설물이 나왔는가"를 진단 점수까지 거꾸로 따라갈 수 있습니다.
-   ※ 표준 단가·도면은 과업4 매뉴얼 확정 후 이 표에 필드로 추가할 예정.
-   ──────────────────────────────────────────────────────────────── */
-const RX_RULES = {
-  suicide: {
-    danger: [
-      { id: 'R-SUI-01', name: '옥상 출입 자동개폐장치', note: '고층 건축물 옥상 출입을 평시 통제하고 화재 시에만 자동 개방해, 투신 접근 경로를 차단합니다.' },
-      { id: 'R-SUI-02', name: '추락방지 안전펜스', note: '교량·옥상·고지대 난간의 높이와 형상을 보강해 넘어서기 어렵게 만듭니다.' }
-    ],
-    caution: [
-      { id: 'R-SUI-03', name: '생명존중 안전 사이니지', note: '상담 연결 정보와 문구를 시야에 노출해 위기 순간의 행동을 지연시킵니다.' }
-    ]
-  },
-  traffic: {
-    danger: [
-      { id: 'R-TRF-01', name: '바닥형 보행신호등', note: '보행자가 고개를 숙인 상태에서도 신호를 인지할 수 있게 해 횡단 중 사고를 줄입니다.' },
-      { id: 'R-TRF-02', name: '보행자 방호울타리', note: '차도와 보도를 물리적으로 분리해 차량 이탈 시 보행자 피해를 차단합니다.' }
-    ],
-    caution: [
-      { id: 'R-TRF-03', name: '고휘도 횡단보도 조명', note: '야간 횡단 보행자의 시인성을 확보해 운전자의 인지 거리를 늘립니다.' }
-    ]
-  },
-  fire: {
-    danger: [
-      { id: 'R-FIR-01', name: '스마트 소화전', note: '소방용수 위치와 수압을 원격 감시해, 화재 초기 대응 시간을 단축합니다.' },
-      { id: 'R-FIR-02', name: '소방차 진입로 노면표시', note: '불법 주정차로 인한 소방차 진입 지연을 예방합니다.' }
-    ],
-    caution: [
-      { id: 'R-FIR-03', name: '옥외 소화기함', note: '주민이 초기 진화에 즉시 대응할 수 있는 거점을 확보합니다.' }
-    ]
-  },
-  crime: {
-    danger: [
-      { id: 'R-CRM-01', name: 'CPTED 방범 CCTV·비상벨', note: '감시성을 확보하고 즉시 신고가 가능하게 해 범죄 기회를 줄입니다.' },
-      { id: 'R-CRM-02', name: '범죄예방 환경디자인 조명', note: '사각지대의 조도를 기준치까지 끌어올려 은폐 공간을 없앱니다.' }
-    ],
-    caution: [
-      { id: 'R-CRM-03', name: '시야 확보 정비 (벽면·식재)', note: '담장·수목으로 가려진 구간을 정비해 자연 감시가 되도록 합니다.' }
-    ]
-  },
-  life: {
-    danger: [
-      { id: 'R-LIF-01', name: '보행 안전 핸드레일', note: '경사로·계단 구간의 낙상 사고를 물리적으로 방지합니다.' },
-      { id: 'R-LIF-02', name: '미끄럼 방지 포장', note: '결빙·우천 시 전도 사고를 줄이는 노면 마감을 적용합니다.' }
-    ],
-    caution: [
-      { id: 'R-LIF-03', name: '보행로 단차 정비', note: '보도 턱과 요철을 제거해 보행 장애 요소를 없앱니다.' }
-    ]
-  },
-  industrial: {
-    danger: [
-      { id: 'R-IND-01', name: '작업구간 방호 펜스', note: '작업 동선과 보행 동선을 분리해 제3자 재해를 차단합니다.' },
-      { id: 'R-IND-02', name: '안전 사이니지·경고 표지', note: '위험 구역과 필수 보호구를 명확히 고지해 무방비 진입을 막습니다.' }
-    ],
-    caution: [
-      { id: 'R-IND-03', name: '하역·적재구역 노면표시', note: '작업 차량의 이동 구역을 지정해 혼재 작업의 충돌 위험을 낮춥니다.' }
-    ]
-  },
-  infection: {
-    danger: [
-      { id: 'R-INF-01', name: '스마트 클린 쉘터', note: '밀집 대기 공간에 환기·소독 설비를 갖춰 비말 전파 위험을 낮춥니다.' },
-      { id: 'R-INF-02', name: '옥외 손 위생 스테이션', note: '접촉 감염을 차단하는 상시 위생 거점을 확보합니다.' }
-    ],
-    caution: [
-      { id: 'R-INF-03', name: '개방형 대기공간 정비', note: '밀폐된 대기 공간을 자연 환기가 되는 구조로 개선합니다.' }
-    ]
-  }
-};
-
-/* 진단 점수 → 시설물 목록. 규칙표를 그대로 대입하기만 하는 결정론적 함수입니다.
-   같은 점수를 넣으면 언제나 같은 처방이 나옵니다. */
-function prescribe(results) {
-  const out = [];
-  results.forEach(function (r) {
-    const rule = RX_RULES[r.key];
-    if (!rule) return;
-
-    let bucket = null;
-    let priority = null;
-    if (r.level.key === 'lv-danger')       { bucket = rule.danger;  priority = { cls: 'must', label: '필수' }; }
-    else if (r.level.key === 'lv-caution') { bucket = rule.caution; priority = { cls: 'recommend', label: '권장' }; }
-    if (!bucket) return;
-
-    bucket.forEach(function (item) {
-      out.push({
-        id: item.id,
-        name: item.name,
-        note: item.note,
-        category: r.name,
-        score: r.score,
-        levelLabel: r.level.label,
-        priority: priority
-      });
-    });
-  });
-
-  /* 필수 → 권장 순, 같은 우선순위 안에서는 점수 높은 분야부터 */
-  out.sort(function (a, b) {
-    if (a.priority.cls !== b.priority.cls) return a.priority.cls === 'must' ? -1 : 1;
-    return b.score - a.score;
-  });
-  return out;
-}
-
-function renderPrescriptions(results) {
-  const list = document.getElementById('rxList');
-  const items = prescribe(results);
-
-  /* 규칙 엔진은 여기서 딱 한 번만 돌리고, 그 결과를 다음 단계(시각화·진단서)로 넘깁니다.
-     단계마다 다시 계산하면 서로 다른 처방이 나올 수 있어 감사 추적이 깨지기 때문입니다. */
-  sessionStorage.setItem('auri_prescriptions', JSON.stringify(items));
-
-  if (items.length === 0) {
-    /* 처방이 0건인 경우는 두 가지입니다.
-       (1) 정말 모든 분야가 '안전' 판정
-       (2) 예전 진단 항목이 브라우저에 남아 있어 규칙표와 매칭되지 않음
-       둘을 구분해 주지 않으면 (2)가 (1)로 잘못 보이므로 나눠서 안내합니다. */
-    const hasRisk = results.some(function (r) { return r.level.key !== 'lv-safe'; });
-    list.innerHTML = hasRisk
-      ? '<div class="rx-empty">저장된 진단 항목이 현재 규칙표(7대 사회재난)와 맞지 않습니다.<br>위치 선택부터 진단을 다시 실행해 주세요.</div>'
-      : '<div class="rx-empty">모든 분야가 &lsquo;안전&rsquo; 판정이라 별도로 처방된 시설물이 없습니다.</div>';
-    return;
-  }
-
-  list.innerHTML = items.map(function (it) {
+function renderResults() {
+  document.getElementById('resultList').innerHTML = _results.map(function (r) {
+    const why = (r.observed && r.observed.length)
+      ? `<div class="result-why">${r.observed.join(' · ')}</div>` : '';
     return `
-      <div class="rx-item">
-        <span class="rx-priority ${it.priority.cls}">${it.priority.label}</span>
-        <div class="rx-body">
-          <div class="rx-name">${it.name}<span class="rx-cat">${it.category}</span></div>
-          <div class="rx-note">${it.note}</div>
-          <div class="rx-basis">근거: ${it.category} ${it.score}점 · ${it.levelLabel} 판정 → 규칙 ${it.id}</div>
+      <div class="result-item ${r.level.key}">
+        <div class="result-row">
+          <span class="name">${r.name}</span>
+          ${auriScaleHTML(r.level.step)}
+          <span class="step-num">${r.level.step}/9</span>
+          <span class="badge">${r.level.label}</span>
+          ${r.edited ? '<span class="mark-edited">보정됨</span>' : ''}
+        </div>
+        ${why}
+      </div>`;
+  }).join('');
+
+  document.getElementById('scoreEditBtn').innerHTML = AURI_ICON_EDIT + '수정';
+  toggleScoreButtons(false);
+  renderSummary();
+}
+
+function toggleScoreButtons(editing) {
+  document.getElementById('scoreEditBtn').style.display = editing ? 'none' : 'inline-flex';
+  document.getElementById('scoreSaveBtn').style.display = editing ? 'inline-flex' : 'none';
+  document.getElementById('scoreCancelBtn').style.display = editing ? 'inline-flex' : 'none';
+}
+
+function startScoreEdit() {
+  toggleScoreButtons(true);
+  document.getElementById('resultList').innerHTML = _results.map(function (r) {
+    return `
+      <div class="result-item ${r.level.key}" id="row-${r.key}">
+        <div class="edit-row">
+          <span class="name">${r.name}</span>
+          <input type="range" min="1" max="9" step="1" value="${r.level.step}"
+                 oninput="onSlide('${r.key}', this.value)">
+          <span class="step-num" id="num-${r.key}">${r.level.step}/9</span>
+          <span class="badge" id="badge-${r.key}">${r.level.label}</span>
         </div>
       </div>`;
   }).join('');
 }
+
+function onSlide(key, value) {
+  const lv = auriLevel(auriStepToScore(value));
+  document.getElementById('row-' + key).className = 'result-item ' + lv.key;
+  document.getElementById('num-' + key).textContent = lv.step + '/9';
+  document.getElementById('badge-' + key).textContent = lv.label;
+}
+
+function cancelScoreEdit() { renderResults(); }
+
+function saveScoreEdit() {
+  _results = _results.map(function (r) {
+    const step = Number(document.querySelector(`#row-${r.key} input[type=range]`).value);
+    if (step === r.level.step) return r;
+    const score = auriStepToScore(step);
+    return Object.assign({}, r, { score: score, level: auriLevel(score), edited: true });
+  });
+  sessionStorage.setItem('auri_diagnosis_results', JSON.stringify(_results));
+  renderResults();
+  recomputePrescriptions();   // 점수가 바뀌면 처방도 다시 뽑습니다
+}
+
+function renderSummary() {
+  const avg = Math.round(_results.reduce(function (s, r) { return s + r.score; }, 0) / _results.length);
+  const lv = auriLevel(avg);
+  document.getElementById('summary').style.display = 'flex';
+  document.getElementById('summaryScore').innerHTML = `${avg}<span>/100</span>`;
+  document.getElementById('summaryText').textContent =
+    lv.key === 'lv-safe' ? '전반적으로 취약 요소가 적은 편입니다.' :
+    lv.key === 'lv-caution' ? '일부 항목에서 취약 요소가 발견되었습니다.' :
+    '여러 항목에서 취약 요소가 두드러집니다.';
+  const badge = document.getElementById('summaryBadge');
+  badge.textContent = lv.label;
+  badge.className = 'badge ' + lv.key;
+}
+
+/* ── 개선 시설물 처방 ───────────────────────────────────────────
+   목록 표시와 편집은 assets/rx-editor.js 가 담당합니다.
+   이 화면에서만 규칙 엔진을 돌리고, 시각화·진단서는 결과를 받아 씁니다. */
+function recomputePrescriptions() {
+  AuriRx.recompute();
+}
+/* ── 페이지 시작 ───────────────────────────────────────────────── */
 
 window.addEventListener('load', function () {
   const loc = sessionStorage.getItem('auri_picked_location');
   const resultsRaw = sessionStorage.getItem('auri_diagnosis_results');
 
   if (!loc || !resultsRaw) {
-    document.getElementById('pickedAddr').textContent = '진단 데이터가 없습니다. 위치 선택부터 다시 진행해 주세요.';
+    document.getElementById('pickedAddr').textContent = '진단 데이터가 없습니다. 앞 단계를 먼저 진행해 주세요.';
+    document.getElementById('resultList').innerHTML = '<div class="empty">진단 결과가 없습니다.</div>';
+    document.getElementById('rxList').innerHTML = '<div class="empty">진단 결과가 없어 처방을 만들 수 없습니다.</div>';
+    document.getElementById('scoreEditBtn').style.display = 'none';
+    document.getElementById('rxEditBtn').style.display = 'none';
     return;
   }
 
   const picked = JSON.parse(loc);
-  const results = JSON.parse(resultsRaw);
+  _results = JSON.parse(resultsRaw);
 
   document.getElementById('pickedAddr').textContent = picked.addr || '주소 미상';
   document.getElementById('pickedCoord').textContent = `위도 ${picked.lat}, 경도 ${picked.lng}`;
@@ -273,37 +232,22 @@ window.addEventListener('load', function () {
     const inputImage = JSON.parse(inputImageRaw);
     document.getElementById('inputImagePane').style.display = 'block';
     document.getElementById('inputImage').src = inputImage.dataUrl;
-    document.getElementById('inputImageTag').textContent = inputImage.source === 'upload' ? '업로드한 사진' : '캡처한 화면';
+    document.getElementById('inputImageTag').textContent =
+      inputImage.source === 'upload' ? '업로드한 사진' : '캡처한 화면';
   }
 
-  const avg = Math.round(results.reduce(function (sum, r) { return sum + r.score; }, 0) / results.length);
-  const lv = levelMeta(avg);
+  AuriRx.init({
+    listId: 'rxList',
+    editBtnId: 'rxEditBtn', saveBtnId: 'rxSaveBtn',
+    cancelBtnId: 'rxCancelBtn', addBtnId: 'rxAddBtn',
+    showNote: true,
+    onChange: function () { auriRenderSteps(); },   // 다음 단계 잠금 해제
+  });
 
-  const summaryEl = document.getElementById('summary');
-  summaryEl.style.display = 'flex';
-  document.getElementById('summaryScore').innerHTML = `${avg}<span>/100</span>`;
-  document.getElementById('summaryText').textContent =
-    lv.key === 'lv-safe' ? '전반적으로 취약 요소가 적은 편입니다.' :
-    lv.key === 'lv-caution' ? '일부 항목에서 취약 요소가 발견되었습니다.' :
-    '여러 항목에서 취약 요소가 두드러집니다.';
-  const badge = document.getElementById('summaryBadge');
-  badge.textContent = lv.label;
-  badge.className = `badge ${lv.key}`;
-
-  const list = document.getElementById('resultList');
-  list.innerHTML = results.map(function (r) {
-    return `
-      <div class="result-item ${r.level.key}">
-        <span class="name">${r.name}</span>
-        <span class="bar"><span class="bar-fill" style="width:${r.score}%"></span></span>
-        <span class="badge ${r.level.key}">${r.level.label}</span>
-      </div>`;
-  }).join('');
-
-  renderPrescriptions(results);
+  renderResults();
+  recomputePrescriptions();
 });
 </script>
 </body>
 </html>
-
 

@@ -70,9 +70,13 @@
     <div class="panel-head">
       <h2>이 이미지에 반영할 시설물</h2>
       <span class="tag">규칙 엔진 확정</span>
+      <button class="btn-text" id="rxEditBtn" onclick="AuriRx.start()"></button>
+      <button class="btn-text" id="rxCancelBtn" style="display:none" onclick="AuriRx.cancel()">취소</button>
+      <button class="btn-text" id="rxSaveBtn" style="display:none" onclick="AuriRx.save()">저장</button>
     </div>
     <div class="rx-list" id="rxList"></div>
     <div class="panel-foot">
+      <button class="btn ghost sm" id="rxAddBtn" style="display:none" onclick="AuriRx.add()">＋ 항목 추가</button>
       <button class="btn accent" id="genBtn" onclick="generateAfter()">개선 이미지 생성</button>
     </div>
   </div>
@@ -101,6 +105,8 @@
 </main>
 
 <script src="assets/ui.js"></script>
+<script src="assets/rules.js"></script>
+<script src="assets/rx-editor.js"></script>
 <script>
 /* 개선 이미지 생성 — 지금은 자리만 열어 둡니다.
    생성 모델을 붙일 때 이 함수 안에서 원본 이미지 + 시설물 목록을 서버로 보냅니다. */
@@ -137,24 +143,26 @@ window.addEventListener('load', function () {
       inputImage.source === 'upload' ? '업로드한 사진' : '캡처한 화면';
   }
 
-  /* 처방 목록 — 여기서 다시 계산하지 않고 리포트 단계의 결과를 그대로 받습니다 */
+  /* 처방 목록 — 여기서 규칙 엔진을 새로 돌리지 않고 리포트 단계의 결과를 받습니다.
+     다만 이 화면에서도 시설물을 수정·삭제·추가할 수 있고,
+     고친 내용은 리포트 화면과 같은 곳에 저장되어 서로 어긋나지 않습니다. */
   const items = rxRaw ? JSON.parse(rxRaw) : [];
-  if (items.length === 0) {
-    list.innerHTML = '<div class="empty">반영할 시설물이 없습니다.<br>종합 리포트를 먼저 열어 처방을 생성해 주세요.</div>';
-    document.getElementById('genBtn').disabled = true;
-    return;
-  }
 
-  list.innerHTML = items.map(function (it) {
-    return `
-      <div class="rx-item">
-        <span class="rx-priority ${it.priority.cls}">${it.priority.label}</span>
-        <div class="rx-body">
-          <div class="rx-name">${it.name}<span class="rx-cat">${it.category}</span></div>
-          <div class="rx-basis">근거: ${it.category} ${it.score}점 · ${it.levelLabel} 판정 → 규칙 ${it.id}</div>
-        </div>
-      </div>`;
-  }).join('');
+  AuriRx.init({
+    listId: 'rxList',
+    editBtnId: 'rxEditBtn', saveBtnId: 'rxSaveBtn',
+    cancelBtnId: 'rxCancelBtn', addBtnId: 'rxAddBtn',
+    showNote: false,
+    onChange: function (next) {
+      document.getElementById('genBtn').disabled = next.length === 0;
+    },
+  });
+  AuriRx.render(items);
+
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty">반영할 시설물이 없습니다.<br>종합 리포트를 먼저 열어 처방을 생성하거나, 수정을 눌러 직접 추가하세요.</div>';
+    document.getElementById('genBtn').disabled = true;
+  }
 });
 </script>
 </body>

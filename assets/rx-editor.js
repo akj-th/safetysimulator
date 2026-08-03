@@ -1,0 +1,170 @@
+/* ════════════════════════════════════════════════════════════════════
+   개선 시설물 목록 — 표시 + 편집(수정·삭제·추가)
+
+   리포트 화면과 시각화 화면이 같은 목록을 다루므로 이 파일을 함께 씁니다.
+   (rules.js 가 먼저 불러와져 있어야 합니다)
+   ════════════════════════════════════════════════════════════════════ */
+
+const AuriRx = {
+  opts: null,
+  draft: null,
+
+  /* 화면마다 버튼 id가 다르므로 여기서 알려 줍니다.
+     onChange: 목록이 바뀔 때마다 호출 (다음 단계 갱신 등에 사용) */
+  init(opts) {
+    this.opts = opts;
+    const edit = document.getElementById(opts.editBtnId);
+    if (edit) edit.innerHTML = AURI_ICON_EDIT + '수정';
+    this.toggle(false);
+  },
+
+  toggle(editing) {
+    const o = this.opts;
+    const show = function (id, on) {
+      const el = document.getElementById(id);
+      if (el) el.style.display = on ? 'inline-flex' : 'none';
+    };
+    show(o.editBtnId, !editing);
+    show(o.saveBtnId, editing);
+    show(o.cancelBtnId, editing);
+    show(o.addBtnId, editing);
+  },
+
+  current() {
+    return JSON.parse(sessionStorage.getItem('auri_prescriptions') || '[]');
+  },
+
+  /* 진단 점수 + 연구원 수정 → 최종 목록을 다시 계산하고 저장합니다 */
+  recompute() {
+    const results = JSON.parse(sessionStorage.getItem('auri_diagnosis_results') || '[]');
+    const items = auriPrescribe(results);
+    auriSavePrescriptions(items);
+    this.render(items);
+    if (this.opts.onChange) this.opts.onChange(items);
+    return items;
+  },
+
+  /* ── 보기 모드 ─────────────────────────────────────────────── */
+  render(items) {
+    const list = document.getElementById(this.opts.listId);
+    this.toggle(false);
+
+    if (!items.length) {
+      list.innerHTML = '<div class="empty">처방된 시설물이 없습니다.<br>수정을 눌러 직접 추가할 수 있습니다.</div>';
+      return;
+    }
+
+    list.innerHTML = items.map(function (it) {
+      const mark = it.custom ? '<span class="mark-edited">직접 추가</span>'
+                 : it.edited ? '<span class="mark-edited">수정됨</span>' : '';
+      const note = AuriRx.opts.showNote && it.note
+        ? `<div class="rx-note">${it.note}</div>` : '';
+      return `
+        <div class="rx-item">
+          <span class="rx-priority ${it.priority.cls}">${it.priority.label}</span>
+          <div class="rx-body">
+            <div class="rx-name">${it.name}<span class="rx-cat">${it.category}</span>${mark}</div>
+            ${note}
+            <div class="rx-basis">${auriRxBasis(it)}</div>
+          </div>
+        </div>`;
+    }).join('');
+  },
+
+  /* ── 편집 모드 ─────────────────────────────────────────────── */
+  start() {
+    this.draft = this.current().map(function (it) {
+      return Object.assign({}, it, { deleted: false });
+    });
+    this.toggle(true);
+    this.renderEditor();
+  },
+
+  renderEditor() {
+    const rows = this.draft.map(function (it, i) {
+      if (it.deleted) return '';
+      const safeName = (it.name || '').replace(/"/g, '&quot;');
+      return `
+        <div class="rx-item">
+          <div class="rx-edit">
+            <div class="line">
+              <input type="text" id="rx-name-${i}" value="${safeName}" placeholder="시설물 이름">
+              <select id="rx-pri-${i}">
+                <option value="must" ${it.priority.cls === 'must' ? 'selected' : ''}>필수</option>
+                <option value="recommend" ${it.priority.cls === 'recommend' ? 'selected' : ''}>권장</option>
+              </select>
+              <button class="btn-text danger" onclick="AuriRx.remove(${i})">삭제</button>
+            </div>
+            <textarea id="rx-note-${i}" placeholder="이 시설물이 왜 필요한지">${it.note || ''}</textarea>
+            <div class="rx-basis">${it.custom ? '연구원 직접 추가' : `${it.category} · 규칙 ${it.id}`}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    document.getElementById(this.opts.listId).innerHTML = rows.trim()
+      ? rows
+      : '<div class="empty">시설물이 모두 삭제되었습니다. 항목 추가로 직접 넣을 수 있습니다.</div>';
+  },
+
+  /* 입력창에 쳐 둔 값을 임시 목록으로 옮깁니다 (다시 그리기 전에 호출) */
+  sync() {
+    this.draft.forEach(function (it, i) {
+      if (it.deleted) return;
+      const nameEl = document.getElementById('rx-name-' + i);
+      if (!nameEl) return;
+      it.name = nameEl.value.trim();
+      it.note = document.getElementById('rx-note-' + i).value.trim();
+      it.priority = RX_PRIORITY[document.getElementById('rx-pri-' + i).value];
+    });
+  },
+
+  remove(i) {
+    this.sync();
+    this.draft[i].deleted = true;
+    this.renderEditor();
+  },
+
+  add() {
+    this.sync();
+    this.draft.push({
+      id: 'U-' + Date.now(),
+      name: '', note: '', category: '직접 지정',
+      priority: RX_PRIORITY.recommend, custom: true, deleted: false,
+    });
+    this.renderEditor();
+  },
+
+  cancel() {
+    this.render(this.current());
+  },
+
+  /* 연구원이 손댄 내용만 골라 저장합니다. 규칙표 원본과 같으면 기록하지 않습니다. */
+  save() {
+    this.sync();
+    const ov = { removed: [], edits: {}, added: [] };
+
+    this.draft.forEach(function (it) {
+      if (it.custom) {
+        if (!it.deleted && it.name) {
+          ov.added.push({
+            id: it.id, name: it.name, note: it.note,
+            category: it.category, priorityCls: it.priority.cls,
+          });
+        }
+        return;
+      }
+      if (it.deleted) { ov.removed.push(it.id); return; }
+
+      const origin = auriFindRule(it.id);
+      const e = {};
+      if (origin && it.name !== origin.name) e.name = it.name;
+      if (origin && it.note !== origin.note) e.note = it.note;
+      const originPri = (it.score !== null && auriLevel(it.score).key === 'lv-danger') ? 'must' : 'recommend';
+      if (it.priority.cls !== originPri) e.priorityCls = it.priority.cls;
+      if (Object.keys(e).length) ov.edits[it.id] = e;
+    });
+
+    auriSaveOverrides(ov);
+    this.recompute();
+  },
+};

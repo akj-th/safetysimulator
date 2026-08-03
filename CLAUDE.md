@@ -142,13 +142,42 @@
 3. `cd server` → `npm install @anthropic-ai/sdk` → `npm start`
 4. 브라우저에서 **http://localhost:8787** 접속 (GitHub Pages 주소가 아님)
 
+### 공통 파일 (`assets/`) — 여러 화면이 함께 씁니다
+
+| 파일 | 역할 |
+|---|---|
+| `ui.css` | 전 화면 디자인. **색·여백은 맨 위 `:root`만 고치면 전부 반영** |
+| `ui.js` | 상단 바(로고·단계 이동), 9단계 계산(`auriLevel`) |
+| `rules.js` | **처방 규칙표(과업4)** — checklist.js와 함께 담당자가 고치는 파일 |
+| `rx-editor.js` | 시설물 목록 표시·편집 (리포트·시각화가 공용) |
+| `logo.svg` | 로고. `logo.png`도 가능, 없으면 글자로 대체 |
+
+### 위험도 9단계
+
+화면에는 **9단계**로 세밀하게 보여 주고, 처방 규칙표는 **3구간**을 씁니다.
+경계가 맞물려 있어야 감사 추적이 유지됩니다 — 한쪽만 바꾸면 안 됩니다.
+
+| 9단계 | 3구간 | 점수 | 처방 |
+|---|---|---|---|
+| 1~3 | 안전 | 0~33 | 없음 |
+| 4~6 | 주의 | 34~66 | 권장 |
+| 7~9 | 위험 | 67~100 | 필수 |
+
+### 연구원 보정 (감사 추적의 핵심)
+
+AI 결과는 **기본값**이고 연구원이 고칠 수 있습니다. 고친 내용은 **덮어쓰지 않고 따로 보관**해서, 점수를 다시 조정해도 살아남고 "규칙이 뽑은 것 / 사람이 손댄 것"이 문서에 구분되어 남습니다.
+
+- 점수 보정 → `edited: true` → 화면·문서에 "연구원 보정" 표시
+- 시설물 수정·삭제·추가 → `auri_rx_overrides` 에 저장 → 규칙 엔진 결과와 병합
+
 **sessionStorage 키**
 - `auri_picked_location` — 선택 지점 `{addr, lat, lng}`
 - `auri_input_image` — 진단 입력 이미지 `{dataUrl, source}`
-- `auri_diagnosis_results` — 분야별 점수 `[{key, name, score, level, observed?, notVisible?, confidence?}]`
+- `auri_diagnosis_results` — 분야별 점수 `[{key, name, score, level, observed?, notVisible?, confidence?, edited?}]`
   ※ `observed` 이하는 AI 진단일 때만 있습니다(더미 점수에는 없음).
-- `auri_prescriptions` — 확정 시설물 `[{id, name, note, category, score, levelLabel, priority}]`
-  ※ 규칙 엔진은 3단계에서 **한 번만** 돌리고 4·5단계는 그 결과를 그대로 받습니다. 단계마다 다시 계산하면 처방이 달라져 감사 추적이 깨집니다.
+- `auri_rx_overrides` — 연구원이 손댄 내용 `{removed:[규칙번호], edits:{규칙번호:{...}}, added:[...]}`
+- `auri_prescriptions` — 최종 시설물 `[{id, name, note, category, score, levelLabel, priority, edited?, custom?}]`
+  ※ 규칙 엔진(`auriPrescribe`)은 3단계에서 **한 번만** 돌리고 4·5단계는 그 결과를 그대로 받습니다. 단계마다 다시 계산하면 처방이 달라져 감사 추적이 깨집니다.
 
 **다음 작업 (우선순위 순)**
 1. **AI 진단 정확도 검증** — 미추홀구 사진 5~10장으로 "사람이 본 것과 AI가 본 것"이 맞는지 확인하고 `checklist.js` 보정.
