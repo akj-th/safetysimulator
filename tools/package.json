@@ -1,0 +1,12 @@
+{
+  "name": "auri-gis-tools",
+  "private": true,
+  "type": "module",
+  "description": "119 응급신고 SHP를 격자 집계 JSON으로 바꾸는 변환 도구",
+  "scripts": {
+    "convert": "node convert-gis.js"
+  },
+  "dependencies": {
+    "proj4": "^2.21.0"
+  }
+}

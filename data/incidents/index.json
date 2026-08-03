@@ -1,0 +1,308 @@
+{
+  "cellSize": 100,
+  "categories": {
+    "suicide": "자살",
+    "traffic": "교통사고",
+    "fire": "화재",
+    "crime": "범죄",
+    "life": "생활안전",
+    "industrial": "산업재해",
+    "infection": "감염병"
+  },
+  "regions": [
+    {
+      "region": "ulsan",
+      "label": "울산광역시 남구",
+      "lat": 35.54053,
+      "lng": 129.29564,
+      "total": 39106
+    },
+    {
+      "region": "jeju",
+      "label": "제주특별자치도 제주시",
+      "lat": 33.47431,
+      "lng": 126.50603,
+      "total": 29902
+    },
+    {
+      "region": "bucheon",
+      "label": "경기도 부천시 원미구",
+      "lat": 37.50152,
+      "lng": 126.78752,
+      "total": 18824
+    },
+    {
+      "region": "gwanak",
+      "label": "서울특별시 관악구",
+      "lat": 37.47824,
+      "lng": 126.93843,
+      "total": 14322
+    },
+    {
+      "region": "michuhol",
+      "label": "인천광역시 미추홀구",
+      "lat": 37.45543,
+      "lng": 126.66706,
+      "total": 12439
+    },
+    {
+      "region": "pocheon",
+      "label": "경기도 포천시",
+      "lat": 37.91669,
+      "lng": 127.22323,
+      "total": 11908
+    },
+    {
+      "region": "dangjin",
+      "label": "충청남도 당진시",
+      "lat": 36.89579,
+      "lng": 126.67624,
+      "total": 10424
+    },
+    {
+      "region": "andong",
+      "label": "경상북도 안동시",
+      "lat": 36.57326,
+      "lng": 128.7193,
+      "total": 9637
+    },
+    {
+      "region": "bukgu",
+      "label": "광주광역시 북구",
+      "lat": 35.1892,
+      "lng": 126.90229,
+      "total": 9334
+    },
+    {
+      "region": "gongju",
+      "label": "충청남도 공주시",
+      "lat": 36.46903,
+      "lng": 127.0953,
+      "total": 9329
+    },
+    {
+      "region": "miryang",
+      "label": "경상남도 밀양시",
+      "lat": 35.47782,
+      "lng": 128.77178,
+      "total": 8743
+    },
+    {
+      "region": "naju",
+      "label": "전라남도 나주시",
+      "lat": 35.00228,
+      "lng": 126.72291,
+      "total": 8728
+    },
+    {
+      "region": "sejong",
+      "label": "세종특별자치시",
+      "lat": 36.54796,
+      "lng": 127.26823,
+      "total": 8538
+    },
+    {
+      "region": "hongcheon",
+      "label": "강원특별자치도 홍천군",
+      "lat": 37.72729,
+      "lng": 127.95565,
+      "total": 8524
+    },
+    {
+      "region": "mokpo",
+      "label": "전라남도 목포시",
+      "lat": 34.80469,
+      "lng": 126.40213,
+      "total": 8222
+    },
+    {
+      "region": "jeongeup",
+      "label": "전북특별자치도 정읍시",
+      "lat": 35.60414,
+      "lng": 126.87882,
+      "total": 8173
+    },
+    {
+      "region": "goheung",
+      "label": "전라남도 고흥군",
+      "lat": 34.59381,
+      "lng": 127.29027,
+      "total": 7625
+    },
+    {
+      "region": "yeongcheon",
+      "label": "경상북도 영천시",
+      "lat": 35.98545,
+      "lng": 128.928,
+      "total": 7540
+    },
+    {
+      "region": "geumcheon",
+      "label": "서울특별시 금천구",
+      "lat": 37.4641,
+      "lng": 126.89844,
+      "total": 7443
+    },
+    {
+      "region": "jecheon",
+      "label": "충청북도 제천시",
+      "lat": 37.09459,
+      "lng": 128.17411,
+      "total": 7421
+    },
+    {
+      "region": "jjunggu",
+      "label": "대전광역시 중구",
+      "lat": 36.31344,
+      "lng": 127.4112,
+      "total": 7348
+    },
+    {
+      "region": "sacheon",
+      "label": "경상남도 사천시",
+      "lat": 35.02726,
+      "lng": 128.05231,
+      "total": 7215
+    },
+    {
+      "region": "ujunggu",
+      "label": "울산광역시 중구",
+      "lat": 35.56416,
+      "lng": 129.31977,
+      "total": 7208
+    },
+    {
+      "region": "namwon",
+      "label": "전북특별자치도 남원시",
+      "lat": 35.42156,
+      "lng": 127.41684,
+      "total": 6714
+    },
+    {
+      "region": "yeongju",
+      "label": "경상북도 영주시",
+      "lat": 36.84496,
+      "lng": 128.59955,
+      "total": 6660
+    },
+    {
+      "region": "seocheon",
+      "label": "충청남도 서천군",
+      "lat": 36.09357,
+      "lng": 126.69122,
+      "total": 5432
+    },
+    {
+      "region": "sasanggu",
+      "label": "부산광역시 사상구",
+      "lat": 35.15931,
+      "lng": 128.98712,
+      "total": 5132
+    },
+    {
+      "region": "hamyang",
+      "label": "경상남도 함양군",
+      "lat": 35.55053,
+      "lng": 127.73305,
+      "total": 4819
+    },
+    {
+      "region": "gangjin",
+      "label": "전라남도 강진군",
+      "lat": 34.61667,
+      "lng": 126.76868,
+      "total": 4638
+    },
+    {
+      "region": "namhae",
+      "label": "경상남도 남해군",
+      "lat": 34.82429,
+      "lng": 127.93863,
+      "total": 4604
+    },
+    {
+      "region": "jeongseon",
+      "label": "강원특별자치도 정선군",
+      "lat": 37.34658,
+      "lng": 128.74475,
+      "total": 4255
+    },
+    {
+      "region": "donggu",
+      "label": "부산광역시 동구",
+      "lat": 35.12867,
+      "lng": 129.04653,
+      "total": 4030
+    },
+    {
+      "region": "jangheung",
+      "label": "전라남도 장흥군",
+      "lat": 34.63612,
+      "lng": 126.92923,
+      "total": 3914
+    },
+    {
+      "region": "danyang",
+      "label": "충청북도 단양군",
+      "lat": 37.00355,
+      "lng": 128.36596,
+      "total": 3856
+    },
+    {
+      "region": "jindo",
+      "label": "전라남도 진도군",
+      "lat": 34.45012,
+      "lng": 126.24204,
+      "total": 3698
+    },
+    {
+      "region": "jinan",
+      "label": "전북특별자치도 진안군",
+      "lat": 35.81597,
+      "lng": 127.42532,
+      "total": 3197
+    },
+    {
+      "region": "jangsu",
+      "label": "전북특별자치도 장수군",
+      "lat": 35.6645,
+      "lng": 127.53792,
+      "total": 2967
+    },
+    {
+      "region": "cheongsong",
+      "label": "경상북도 청송군",
+      "lat": 36.37783,
+      "lng": 129.03838,
+      "total": 2874
+    },
+    {
+      "region": "gjunggu",
+      "label": "대구광역시 중구",
+      "lat": 35.86576,
+      "lng": 128.59037,
+      "total": 2782
+    },
+    {
+      "region": "taebaek",
+      "label": "강원특별자치도 태백시",
+      "lat": 37.15527,
+      "lng": 128.99333,
+      "total": 2436
+    },
+    {
+      "region": "ongjin",
+      "label": "인천광역시 옹진군",
+      "lat": 37.44491,
+      "lng": 126.03864,
+      "total": 2331
+    },
+    {
+      "region": "yeongdogu",
+      "label": "부산광역시 영도구",
+      "lat": 35.08239,
+      "lng": 129.06723,
+      "total": 1920
+    }
+  ]
+}

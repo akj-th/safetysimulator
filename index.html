@@ -59,13 +59,13 @@
   <div class="panel">
     <div class="panel-head">
       <h2>119 응급신고 이력 참고 레이어</h2>
-      <span class="tag pending">더미 데이터 · 실제 SHP 수신 후 교체</span>
+      <span class="tag" id="layerRegion">지역 확인 중</span>
     </div>
     <div class="panel-body">
       <div class="layer-chips" id="layerChips"></div>
       <p class="note" style="margin-top:13px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-        분야를 누르면 과거 응급신고 발생 지점이 지도 위에 겹쳐 표시됩니다. 여러 분야를 동시에 켤 수 있습니다. 지금 표시되는 좌표는 배치 패턴을 미리 확인하기 위한 가상 값입니다.
+        분야를 누르면 과거 응급신고 발생 지점이 지도 위에 겹쳐 표시됩니다. 여러 분야를 동시에 켤 수 있습니다. 원은 100×100m 격자 단위 누적 건수이며, 건수가 많을수록 크게 표시됩니다. 개인정보 항목은 제외된 집계값입니다.
       </p>
     </div>
   </div>
@@ -117,71 +117,93 @@ let picked = null;                 // { lat, lng, addr }
 const START_ADDRESS = '세종특별자치시 가름로 143';
 const START_FALLBACK = { lat: 36.5044, lng: 127.2589 };
 
-/* ── 119 응급신고 이력 레이어 (더미) ─────────────────────────────
-   다음 주 실제 SHP를 받으면 makeDummyIncidentPoints 자리를
-   실제 좌표를 읽는 코드로 바꿉니다. */
+/* ── 119 응급신고 이력 레이어 ────────────────────────────────────────
+   AURI에서 받은 3개년 발생 지점을 100×100m 격자 건수로 집계한 자료입니다.
+   개인정보 항목(신고일시·환자·주소 등)은 변환 단계에서 제외했습니다.
+   원본 → 집계 변환은 tools/convert-gis.js 가 담당합니다. */
 const INCIDENT_CATEGORIES = [
-  { key: 'life',       label: '생활손상·일상사고',      color: '#2a78d6' },
-  { key: 'violence',   label: '폭력상해의심 응급수요',   color: '#eb6834' },
-  { key: 'traffic',    label: '교통사고 응급피해',       color: '#1baf7a' },
-  { key: 'suicide',    label: '자살',                   color: '#eda100' },
-  { key: 'selfharm',   label: '자해·정신건강위기의심',   color: '#e87ba4' },
-  { key: 'industrial', label: '산업활동 관련 응급사고',  color: '#008300' },
-  { key: 'infection',  label: '감염의심 응급수요',       color: '#4a3aa7' },
-  { key: 'fire',       label: '화재관련 인명피해',       color: '#e34948' }
+  { key: 'suicide',    color: '#7B5EA7' },
+  { key: 'traffic',    color: '#2A78D6' },
+  { key: 'fire',       color: '#E34948' },
+  { key: 'crime',      color: '#E0761F' },
+  { key: 'life',       color: '#1BAF7A' },
+  { key: 'industrial', color: '#8A6D3B' },
+  { key: 'infection',  color: '#4A3AA7' },
 ];
+
+let _incidentIndex = null;    // 지역 목록
+let _loadedRegion = null;     // 지금 지도에 올라와 있는 지역
 let _incidentLayers = {};
 
-function seededRandom(seed) {
-  let t = seed >>> 0;
-  return function () {
-    t = (t + 0x6D2B79F5) >>> 0;
-    let r = Math.imul(t ^ (t >>> 15), 1 | t);
-    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
-    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-  };
-}
-function hashSeed(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) { h = (Math.imul(31, h) + str.charCodeAt(i)) | 0; }
-  return h;
-}
 function hexToRgba(hex, alpha) {
   const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-/* 분야별로 2~3개의 군집 주변에 점을 흩뿌려 그럴듯한 분포를 만듭니다 */
-function makeDummyIncidentPoints(center, seedKey) {
-  const rand = seededRandom(hashSeed(seedKey));
-  const clusterCount = 2 + Math.floor(rand() * 2);
-  const points = [];
-  for (let c = 0; c < clusterCount; c++) {
-    const clat = center.lat + (rand() - 0.5) * 0.03;
-    const clng = center.lng + (rand() - 0.5) * 0.03;
-    const n = 8 + Math.floor(rand() * 10);
-    for (let i = 0; i < n; i++) {
-      const jLat = ((rand() + rand() + rand() - 1.5) / 1.5) * 0.0035;
-      const jLng = ((rand() + rand() + rand() - 1.5) / 1.5) * 0.0035;
-      points.push({ lat: clat + jLat, lng: clng + jLng });
-    }
-  }
-  return points;
+/* 선택한 지점에서 가장 가까운 지역 자료를 고릅니다.
+   41개 지역을 한꺼번에 올리면 지도가 무거우므로 한 지역씩만 불러옵니다. */
+function nearestRegion(lat, lng) {
+  if (!_incidentIndex) return null;
+  let best = null, bestDist = Infinity;
+  _incidentIndex.regions.forEach(function (r) {
+    const d = Math.pow(r.lat - lat, 2) + Math.pow(r.lng - lng, 2);
+    if (d < bestDist) { bestDist = d; best = r; }
+  });
+  return best;
 }
 
-function initIncidentLayers(center) {
+async function loadIncidents(lat, lng) {
+  const host = document.getElementById('layerChips');
+  const tag = document.getElementById('layerRegion');
+
+  try {
+    if (!_incidentIndex) {
+      const res = await fetch('data/incidents/index.json');
+      if (!res.ok) throw new Error('목록을 불러오지 못했습니다');
+      _incidentIndex = await res.json();
+    }
+
+    const region = nearestRegion(lat, lng);
+    if (!region) throw new Error('가까운 지역 자료가 없습니다');
+    if (_loadedRegion === region.region) return;      // 이미 올라와 있음
+
+    tag.textContent = '불러오는 중';
+    const res = await fetch(`data/incidents/${region.region}.json`);
+    if (!res.ok) throw new Error(`${region.label} 자료를 불러오지 못했습니다`);
+    const data = await res.json();
+
+    _loadedRegion = region.region;
+    tag.textContent = `${region.label} · 3개년 ${region.total.toLocaleString()}건`;
+    buildIncidentLayers(data);
+  } catch (err) {
+    tag.textContent = '자료 없음';
+    host.innerHTML = `<span class="note" style="margin:0">${err.message}. 지도 표시는 정상 동작합니다.</span>`;
+  }
+}
+
+function buildIncidentLayers(data) {
+  /* 이전 지역 원들을 지도에서 걷어냅니다 */
+  Object.values(_incidentLayers).forEach(function (l) {
+    l.circles.forEach(function (c) { c.setMap(null); });
+  });
+  _incidentLayers = {};
+
   const host = document.getElementById('layerChips');
   host.innerHTML = '';
+
   INCIDENT_CATEGORIES.forEach(function (cat) {
-    const points = makeDummyIncidentPoints(center, cat.key);
-    const circles = points.map(function (p) {
+    const set = data.categories[cat.key];
+    if (!set || !set.points.length) return;
+
+    const circles = set.points.map(function (p) {
+      const lat = p[0], lng = p[1], n = p[2];
       return new naver.maps.Circle({
-        center: new naver.maps.LatLng(p.lat, p.lng),
-        radius: 45,
+        center: new naver.maps.LatLng(lat, lng),
+        radius: Math.min(120, 28 + Math.sqrt(n) * 16),   // 건수가 많을수록 크게
         fillColor: cat.color,
-        fillOpacity: 0.3,
+        fillOpacity: Math.min(0.55, 0.22 + n * 0.05),
         strokeWeight: 0,
-        clickable: false
+        clickable: false,
       });
     });
     _incidentLayers[cat.key] = { def: cat, circles: circles, active: false };
@@ -189,7 +211,8 @@ function initIncidentLayers(center) {
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'layer-chip';
-    chip.innerHTML = `<span class="dot" style="background:${cat.color}"></span>${cat.label} <span class="cnt">${points.length}건</span>`;
+    chip.innerHTML = `<span class="dot" style="background:${cat.color}"></span>${set.label} ` +
+                     `<span class="cnt">${set.total.toLocaleString()}건</span>`;
     chip.addEventListener('click', function () { toggleIncidentLayer(cat.key, chip); });
     host.appendChild(chip);
   });
@@ -209,7 +232,6 @@ function toggleIncidentLayer(key, chip) {
     chip.style.color = '';
   }
 }
-
 /* ── 시작 위치 결정 → 지도·스트리트뷰 띄우기 ──────────────────── */
 
 window.addEventListener('load', function () {
@@ -244,7 +266,7 @@ function startMap(center) {
 
   naver.maps.Event.addListener(_map, 'click', function (e) { selectPoint(e.coord); });
 
-  initIncidentLayers(center);
+  loadIncidents(center.lat, center.lng);
 }
 
 /* ── 주소 검색 ─────────────────────────────────────────────────── */
@@ -272,6 +294,7 @@ function selectPoint(latlng, knownAddr) {
   if (_marker) _marker.setMap(null);
   _marker = new naver.maps.Marker({ position: latlng, map: _map });
   if (_pano) _pano.setPosition(latlng);
+  loadIncidents(latlng.lat(), latlng.lng());
 
   const lat = latlng.lat().toFixed(6);
   const lng = latlng.lng().toFixed(6);
@@ -307,4 +330,5 @@ function startDiagnosis() {
 </script>
 </body>
 </html>
+
 
