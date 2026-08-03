@@ -239,8 +239,15 @@ function hideCaptureError() {
 
 document.getElementById('uploadInput').addEventListener('change', onUploadChange);
 
+/* CLAUDE.md에 정의된 공식 7대 사회재난 분야 (과업 범위 기준) */
 const CATEGORIES = [
-  '화재 안전', '시설물 붕괴·노후', '침수·수해', '감염병 확산', '범죄·치안', '교통사고', '폭염·한파'
+  { key: 'suicide',    label: '자살' },
+  { key: 'traffic',    label: '교통사고' },
+  { key: 'fire',       label: '화재' },
+  { key: 'crime',      label: '범죄' },
+  { key: 'life',       label: '생활안전' },
+  { key: 'industrial', label: '산업재해' },
+  { key: 'infection',  label: '감염병' }
 ];
 
 /* 좌표 기반 시드로 임의의(하지만 재방문 시 동일한) 더미 점수를 만드는 부분 */
@@ -267,10 +274,10 @@ function levelOf(score) {
 function renderDummyResults(picked) {
   const rand = seededRandom(hashSeed(`${picked.lat},${picked.lng}`));
   const list = document.getElementById('resultList');
-  const results = CATEGORIES.map(function (name) {
+  const results = CATEGORIES.map(function (cat) {
     const score = Math.round(rand() * 100);
     const lv = levelOf(score);
-    return { name: name, score: score, level: lv };
+    return { key: cat.key, name: cat.label, score: score, level: lv };
   });
 
   list.innerHTML = results.map(function (r) {
