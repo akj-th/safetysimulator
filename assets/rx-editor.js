@@ -83,18 +83,25 @@ const AuriRx = {
   renderEditor() {
     const rows = this.draft.map(function (it, i) {
       if (it.deleted) return '';
+      /* 목록에 없는 이름(규칙표에서 온 것이거나 이전에 직접 넣은 것)이면
+         "직접 입력"이 선택된 상태로 그리고, 아래 입력칸을 열어 둡니다. */
+      const isCustomName = !!it.name && !auriCatalogHas(it.name);
       const safeName = (it.name || '').replace(/"/g, '&quot;');
       return `
         <div class="rx-item">
           <div class="rx-edit">
             <div class="line">
-              <input type="text" id="rx-name-${i}" value="${safeName}" placeholder="시설물 이름">
+              <select class="grow" id="rx-name-${i}" onchange="AuriRx.onNameChange(${i})">
+                ${auriCatalogOptions(it.name)}
+              </select>
               <select id="rx-pri-${i}">
                 <option value="must" ${it.priority.cls === 'must' ? 'selected' : ''}>필수</option>
                 <option value="recommend" ${it.priority.cls === 'recommend' ? 'selected' : ''}>권장</option>
               </select>
               <button class="btn-text danger" onclick="AuriRx.remove(${i})">삭제</button>
             </div>
+            <input type="text" id="rx-custom-${i}" placeholder="시설물 이름 직접 입력"
+                   value="${isCustomName ? safeName : ''}" style="display:${isCustomName ? 'block' : 'none'}">
             <textarea id="rx-note-${i}" placeholder="이 시설물이 왜 필요한지">${it.note || ''}</textarea>
             <div class="rx-basis">${it.custom ? '연구원 직접 추가' : `${it.category} · 규칙 ${it.id}`}</div>
           </div>
@@ -106,13 +113,23 @@ const AuriRx = {
       : '<div class="empty">시설물이 모두 삭제되었습니다. 항목 추가로 직접 넣을 수 있습니다.</div>';
   },
 
+  /* 드롭다운에서 "직접 입력…"을 고르면 아래 입력칸을 엽니다 */
+  onNameChange(i) {
+    const sel = document.getElementById('rx-name-' + i);
+    const custom = document.getElementById('rx-custom-' + i);
+    const isCustom = sel.value === '__custom__';
+    custom.style.display = isCustom ? 'block' : 'none';
+    if (isCustom) custom.focus();
+  },
+
   /* 입력창에 쳐 둔 값을 임시 목록으로 옮깁니다 (다시 그리기 전에 호출) */
   sync() {
     this.draft.forEach(function (it, i) {
       if (it.deleted) return;
-      const nameEl = document.getElementById('rx-name-' + i);
-      if (!nameEl) return;
-      it.name = nameEl.value.trim();
+      const sel = document.getElementById('rx-name-' + i);
+      if (!sel) return;
+      const custom = document.getElementById('rx-custom-' + i);
+      it.name = sel.value === '__custom__' ? custom.value.trim() : sel.value;
       it.note = document.getElementById('rx-note-' + i).value.trim();
       it.priority = RX_PRIORITY[document.getElementById('rx-pri-' + i).value];
     });

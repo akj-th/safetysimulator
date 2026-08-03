@@ -79,6 +79,75 @@ const RX_RULES = {
   }
 };
 
+/* ────────────────────────────────────────────────────────────────────
+   시설물 목록 (드롭다운 선택용) — 초안
+
+   연구원이 처방을 직접 고치거나 추가할 때 고르는 표준 시설물 목록입니다.
+   위 RX_RULES 가 "자동으로 뽑히는 것"이라면, 이 목록은 "사람이 고를 수 있는 것"의
+   전체 범위입니다. 과업4 표준 설계 가이드라인이 확정되면 이 목록을 그 기준으로
+   맞추고, 각 항목에 표준단가·표준도면 번호를 붙이게 됩니다.
+
+   ※ 목록에 없는 시설물은 드롭다운 맨 아래 "직접 입력"으로 넣을 수 있습니다.
+   ──────────────────────────────────────────────────────────────────── */
+const RX_CATALOG = [
+  { group: '자살 예방', items: [
+    '옥상 출입 자동개폐장치', '추락방지 안전펜스', '교량 난간 증고·보강',
+    '생명존중 안전 사이니지', '위기상담 연결 SOS 전화기', '투신방지 그물망',
+  ]},
+  { group: '교통안전', items: [
+    '바닥형 보행신호등', '보행자 방호울타리', '차량진입억제용 볼라드',
+    '고휘도 횡단보도 조명', '스마트 횡단보도(보행자 감지)', '고원식 횡단보도',
+    '과속방지턱', '과속경고 전광표지', '도로반사경',
+    '노면 색깔유도선', '어린이보호구역 표지·노면표시', '불법주정차 단속 CCTV',
+    '보도 신설·확폭',
+  ]},
+  { group: '화재안전', items: [
+    '스마트 소화전', '옥외 소화기함', '비상소화장치함',
+    '소방차 진입로 노면표시', '소방차 전용구역 표시', '화재감지 IoT 센서',
+    '옥외 적치물 정비',
+  ]},
+  { group: '범죄예방 (CPTED)', items: [
+    'CPTED 방범 CCTV', '안심 비상벨(SOS)', '범죄예방 환경디자인 조명',
+    'LED 보안등 교체·증설', '안심 귀갓길 노면표시', '반사형 안전거울',
+    '시야 확보 정비(벽면·식재)', '노후 벽면 환경 정비', '스마트 안심 부스',
+  ]},
+  { group: '생활안전', items: [
+    '보행 안전 핸드레일', '미끄럼 방지 포장', '보행로 단차 정비',
+    '점자블록 정비', '배수시설(측구·맨홀) 정비', '노면 결빙방지 열선',
+    '보행자 우선도로 조성', '보행 장애물(입간판·적치물) 정비',
+  ]},
+  { group: '산업재해', items: [
+    '작업구간 방호 펜스', '안전 사이니지·경고 표지', '하역·적재구역 노면표시',
+    '가설 보행자 통로', '작업구간 경광등·유도등',
+  ]},
+  { group: '감염병', items: [
+    '스마트 클린 쉘터', '옥외 손 위생 스테이션', '개방형 대기공간 정비',
+    '대기공간 환기설비', '항균 손잡이·표면 마감',
+  ]},
+];
+
+function auriCatalogHas(name) {
+  return RX_CATALOG.some(function (g) { return g.items.indexOf(name) !== -1; });
+}
+
+/* 드롭다운에 넣을 <optgroup> 묶음을 만듭니다.
+   currentName 이 목록에 없으면 "직접 입력"이 선택된 상태로 그립니다. */
+function auriCatalogOptions(currentName) {
+  const known = RX_CATALOG.some(function (g) { return g.items.indexOf(currentName) !== -1; });
+  const esc = function (s) { return String(s).replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
+
+  let html = '<option value="">시설물을 선택하세요</option>';
+  RX_CATALOG.forEach(function (g) {
+    html += `<optgroup label="${esc(g.group)}">`;
+    g.items.forEach(function (name) {
+      html += `<option value="${esc(name)}"${name === currentName ? ' selected' : ''}>${esc(name)}</option>`;
+    });
+    html += '</optgroup>';
+  });
+  html += `<option value="__custom__"${!known && currentName ? ' selected' : ''}>직접 입력…</option>`;
+  return html;
+}
+
 const RX_PRIORITY = {
   must:      { cls: 'must',      label: '필수' },
   recommend: { cls: 'recommend', label: '권장' },

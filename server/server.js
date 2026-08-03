@@ -117,6 +117,47 @@ ${checklistText}
   안전 시설이 갖춰진 것이 확인되어야 낮은 점수입니다.`;
 }
 
+/* ── 재판독 지시문 ────────────────────────────────────────────────────
+   연구원이 "AI가 잘못 봤다"고 지적했을 때 쓰는 지시문입니다.
+
+   핵심: 지적한 사람은 현장과 이미지를 직접 확인한 전문가이므로,
+   AI의 이전 판독보다 그 지적을 우선합니다. AI가 자기 판단을 고집하면
+   이 기능 자체가 무의미해집니다. */
+function buildRevisePrompt(previous, note) {
+  const prevText = CATEGORIES.map(function (cat) {
+    const p = previous[cat.key] || {};
+    return `[${cat.label}] ${p.score}점\n  판독: ${(p.observed || []).join(' / ') || '없음'}`;
+  }).join('\n');
+
+  return `앞서 당신이 이 거리 이미지를 판독한 결과에 대해, 현장을 아는 연구원이
+잘못된 부분을 지적했습니다. 지적을 반영해 판독 결과를 다시 작성하세요.
+
+## 이전 판독 결과
+${prevText}
+
+## 연구원의 지적
+${note}
+
+## 재판독 규칙
+- **연구원의 지적이 당신의 이전 판독보다 우선합니다.** 지적받은 내용은 사실로
+  받아들이고, 그에 맞게 판독과 점수를 고치세요. 이전 판단을 옹호하지 마세요.
+- 잘못 본 대상이 있었다면, 그것을 근거로 매겼던 점수도 함께 다시 계산하세요.
+  (예: 없는 시설을 있다고 봤다면 점수가 올라가야 하고, 위험 요소를 잘못 봤다면
+   점수가 내려가야 합니다.)
+- **지적과 관련이 없는 분야는 이전 판독을 그대로 유지하세요.** 지적 한 줄 때문에
+  전체를 새로 쓰지 마세요.
+- 여전히 사진에 보이는 것만으로 판단합니다. 지적 내용을 넘어서는 추측은 하지 마세요.
+- observed 에는 고쳐진 최종 판독 내용을 적으세요.
+
+## 점수 기준 (0~100) — 점수가 높을수록 위험합니다
+${SCORING_GUIDE}
+
+## 분야별 체크리스트
+${CATEGORIES.map(function (cat) {
+  return `[${cat.label}] (key: ${cat.key})\n` + cat.items.map(function (i) { return `   - ${i}`; }).join('\n');
+}).join('\n\n')}`;
+}
+
 /* ── AI가 반드시 이 모양으로 답하도록 강제하는 틀 ─────────────────────
    이걸 지정해 두면 AI가 엉뚱한 형식으로 답할 수 없습니다. */
 const categorySchema = {
@@ -162,7 +203,7 @@ const RESULT_SCHEMA = {
 
 /* ── 실제 AI 호출 ──────────────────────────────────────────────────────
    ★ 폐쇄망 전환 시 이 함수 안쪽만 로컬 모델 호출로 바꾸면 됩니다. */
-async function callAI(mediaType, base64Data) {
+async function callAI(mediaType, base64Data, promptText) {
   const response = await anthropic.messages.create({
     model: 'claude-opus-5',
     max_tokens: 16000,
@@ -174,7 +215,7 @@ async function callAI(mediaType, base64Data) {
       role: 'user',
       content: [
         { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } },
-        { type: 'text', text: buildPrompt() },
+        { type: 'text', text: promptText },
       ],
     }],
   });
@@ -193,7 +234,7 @@ async function callAI(mediaType, base64Data) {
 }
 
 /* ── 진단 요청 처리 ──────────────────────────────────────────────────── */
-async function handleDiagnose(req, res) {
+async function handleDiagnose(req, res, isRevise) {
   // 접속 암호를 정해 둔 경우에만 확인합니다
   if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) {
     return sendJson(res, 401, { error: '접속 암호가 필요합니다.', needCode: true });
@@ -209,8 +250,19 @@ async function handleDiagnose(req, res) {
   }
   const [, mediaType, base64Data] = match;
 
-  console.log(`[진단 요청] ${mediaType}, ${Math.round(base64Data.length / 1024)}KB`);
-  const raw = await callAI(mediaType, base64Data);
+  let promptText;
+  if (isRevise) {
+    if (!body.note || !body.previous) {
+      return sendJson(res, 400, { error: '어디가 잘못되었는지 알려 주셔야 다시 판독할 수 있습니다.' });
+    }
+    console.log(`[재판독 요청] 지적: ${String(body.note).slice(0, 80)}`);
+    promptText = buildRevisePrompt(body.previous, body.note);
+  } else {
+    console.log(`[진단 요청] ${mediaType}, ${Math.round(base64Data.length / 1024)}KB`);
+    promptText = buildPrompt();
+  }
+
+  const raw = await callAI(mediaType, base64Data, promptText);
 
   // AI가 0~100을 벗어난 값을 줄 가능성에 대비해 안전하게 잘라 냅니다
   const categories = {};
@@ -300,7 +352,9 @@ const server = http.createServer(async function (req, res) {
     if (req.method === 'OPTIONS') {
       res.writeHead(204).end();
     } else if (req.method === 'POST' && req.url === '/api/diagnose') {
-      await handleDiagnose(req, res);
+      await handleDiagnose(req, res, false);
+    } else if (req.method === 'POST' && req.url === '/api/revise') {
+      await handleDiagnose(req, res, true);   // 연구원 지적을 반영한 재판독
     } else if (req.method === 'GET') {
       await serveStatic(req, res);
     } else {

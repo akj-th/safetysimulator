@@ -34,6 +34,22 @@
   .pending svg{width:14px; height:14px; flex:none; margin-top:3px}
   .doc-empty{padding:34px; text-align:center; color:var(--ink-2); font-size:13px; line-height:1.7}
 
+  /* 서식 4 — 개선 전/후 비교도 */
+  .ba-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media(max-width:700px){ .ba-grid{grid-template-columns:1fr} }
+  .ba-grid figure{margin:0}
+  .ba-grid img{width:100%; aspect-ratio:4/3; object-fit:cover; display:block;
+               border:1px solid var(--line-2); background:#E8EBEE}
+  .ba-grid figcaption{font-size:12px; font-weight:600; color:var(--ink-2); margin-top:7px; text-align:center}
+  .ba-none{
+    width:100%; aspect-ratio:4/3; border:1px solid var(--line-2);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    padding:20px; font-size:12.5px; color:var(--ink-3); line-height:1.65;
+    background:repeating-linear-gradient(45deg,#F5F6F8,#F5F6F8 11px,#EFF1F4 11px,#EFF1F4 22px);
+  }
+  .ba-list{font-size:12.5px; color:var(--ink-2); margin-top:16px; line-height:1.8}
+  .ba-list b{color:var(--ink)}
+
   /* 인쇄할 때는 화면용 장식을 걷어내고 서식만 남깁니다 */
   @media print{
     body{background:#fff}
@@ -76,6 +92,7 @@
         <div class="fld"><div class="k">진단 방법</div><div class="v">거리 이미지 기반 7대 사회재난 취약성 진단</div></div>
         <div class="fld"><div class="k">종합 위험도</div><div class="v" id="f1Avg">—</div></div>
         <div class="fld"><div class="k">중점 취약 분야</div><div class="v" id="f1Top">—</div></div>
+        <div class="fld" id="f1RevWrap" style="display:none"><div class="k">판독 보정 이력</div><div class="v" id="f1Rev"></div></div>
 
         <div class="doc-p" id="f1Body"></div>
 
@@ -131,6 +148,29 @@
         <div class="pending">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
           기대효과 문장은 아직 비어 있습니다. 정량 저감 효과는 근거 없이 쓰면 할루시네이션이 되므로, 지침서·통계에 연결한 뒤에 채웁니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>서식 4</h2><span class="tag">개선 전 / 개선 후 비교</span></div>
+      <div class="doc-body">
+        <div class="doc-title">개선 전·후 비교도</div>
+        <div class="ba-grid">
+          <figure>
+            <div id="docBeforeSlot"></div>
+            <figcaption>개선 전 — 현황</figcaption>
+          </figure>
+          <figure>
+            <div id="docAfterSlot"></div>
+            <figcaption>개선 후 — 시설물 반영</figcaption>
+          </figure>
+        </div>
+        <div class="ba-list" id="docFacilities"></div>
+
+        <div class="pending">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          개선 후 이미지는 4단계 시각화에서 생성한 결과를 그대로 가져옵니다. 생성 모델이 아직 연결되지 않아 지금은 자리만 표시됩니다.
         </div>
       </div>
     </div>
@@ -234,6 +274,37 @@ window.addEventListener('load', function () {
         </tr>`;
     }).join('');
   }
+
+  /* ── 판독 보정 이력 ────────────────────────────────────────────
+     AI가 잘못 본 것을 연구원이 지적해 다시 판독시킨 기록입니다.
+     "AI가 혼자 판단한 결과가 아니다"를 문서에 남기기 위한 항목입니다. */
+  const revLog = JSON.parse(sessionStorage.getItem('auri_revision_log') || '[]');
+  if (revLog.length) {
+    document.getElementById('f1RevWrap').style.display = 'flex';
+    document.getElementById('f1Rev').innerHTML =
+      `연구원 지적 ${revLog.length}건 반영<br>` +
+      revLog.map(function (r) { return `· ${r.note}`; }).join('<br>');
+  }
+
+  /* ── 서식 4: 개선 전/후 비교도 ─────────────────────────────── */
+  const beforeSlot = document.getElementById('docBeforeSlot');
+  const afterSlot = document.getElementById('docAfterSlot');
+
+  const inputRaw = sessionStorage.getItem('auri_input_image');
+  beforeSlot.innerHTML = inputRaw
+    ? `<img src="${JSON.parse(inputRaw).dataUrl}" alt="개선 전 현황">`
+    : '<div class="ba-none">진단 입력 이미지가 없습니다.</div>';
+
+  const afterRaw = sessionStorage.getItem('auri_after_image');
+  afterSlot.innerHTML = afterRaw
+    ? `<img src="${afterRaw}" alt="개선 후">`
+    : '<div class="ba-none">개선 후 이미지가 아직 생성되지 않았습니다.<br>4단계 시각화에서 생성하면 이 자리에 표시됩니다.</div>';
+
+  document.getElementById('docFacilities').innerHTML = items.length
+    ? '<b>비교도에 반영된 시설물</b><br>' + items.map(function (it) {
+        return `· ${it.name} — ${it.priority.label}${it.custom ? ' · 연구원 직접 추가' : ''}`;
+      }).join('<br>')
+    : '<b>반영 시설물 없음</b>';
 
   /* 서식 하단 작성일 */
   const dateEl = document.createElement('div');

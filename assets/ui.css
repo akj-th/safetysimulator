@@ -265,7 +265,8 @@ input[type=range]{
 /* 처방 항목 편집 */
 .rx-edit{display:flex; flex-direction:column; gap:8px; flex:1; min-width:0}
 .rx-edit .line{display:flex; gap:8px; align-items:center}
-.rx-edit select{width:auto; flex:none; padding:8px 10px}
+.rx-edit select{width:auto; flex:none; padding:8px 10px; font-family:inherit; background:var(--surface)}
+.rx-edit select.grow{flex:1; min-width:0}
 .rx-edit textarea{min-height:48px; font-size:12.5px}
 
 .mark-edited{

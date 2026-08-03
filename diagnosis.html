@@ -37,6 +37,13 @@
   @media(max-width:640px){ .result-why{padding-left:0} }
 
   .loading{padding:34px; text-align:center; font-size:13px; color:var(--ink-2)}
+
+  /* AI 판독을 사람이 바로잡는 칸 */
+  .revise-box{margin:0 16px 16px; padding:15px; background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-sm)}
+  .revise-box .lab{font-size:12.5px; font-weight:700; margin-bottom:8px}
+  .revise-box textarea{min-height:74px; font-size:12.5px; background:var(--surface)}
+  .revise-box .d{font-size:11.5px; color:var(--ink-3); margin-top:7px; line-height:1.6}
+  .revise-box .actions{display:flex; gap:8px; margin-top:12px}
 </style>
 </head>
 <body data-step="2">
@@ -112,7 +119,20 @@
     <div class="result-list" id="resultList">
       <div class="empty">이미지를 확정하고 <b>AI 진단 실행</b>을 누르면 분야별 결과가 표시됩니다.</div>
     </div>
+    <!-- AI가 잘못 본 것을 지적해 다시 판독시키는 곳 -->
+    <div class="revise-box" id="reviseBox" style="display:none">
+      <div class="lab">AI가 잘못 본 부분을 알려 주세요</div>
+      <textarea id="reviseNote" placeholder="예) 우측 건물 외부에 있는 것은 철제 계단이 아니라 철제 현관문입니다. 노면에 적힌 문구는 '어린이 보호구역'이 아니라 '일방통행'과 '거주자 우선주차'입니다."></textarea>
+      <div class="d">지적하신 내용을 사실로 받아들이고, 그 근거로 매겼던 점수까지 다시 계산합니다. 지적과 무관한 분야는 그대로 둡니다.</div>
+      <div class="actions">
+        <button class="btn accent sm" id="reviseSend" onclick="sendRevise()">AI에 반영 요청</button>
+        <button class="btn ghost sm" onclick="toggleRevise()">닫기</button>
+      </div>
+    </div>
+
     <div class="panel-foot" id="resultFoot" style="display:none">
+      <button class="btn-text" id="reviseToggle" onclick="toggleRevise()">결과에 오류가 있나요?</button>
+      <span style="flex:1"></span>
       <a class="btn accent" href="report.html">종합 리포트 보기</a>
     </div>
   </div>
@@ -269,6 +289,7 @@ function renderResults(results) {
           ${auriScaleHTML(r.level.step)}
           <span class="step-num">${r.level.step}/9</span>
           <span class="badge">${r.level.label}</span>
+          ${r.revised ? '<span class="mark-edited">재판독됨</span>' : ''}
           ${r.edited ? '<span class="mark-edited">보정됨</span>' : ''}
         </div>
         ${why}
@@ -377,87 +398,161 @@ function hashSeed(str) {
   return h;
 }
 
+/* ── 서버 호출 (진단·재판독 공통) ───────────────────────────────── */
+
+let _busy = false;
+
+async function callServer(path, payload, retried) {
+  const headers = { 'Content-Type': 'application/json' };
+  const savedCode = localStorage.getItem('auri_access_code');
+  if (savedCode) headers['x-access-code'] = savedCode;
+
+  const res = await fetch(path, { method: 'POST', headers: headers, body: JSON.stringify(payload) });
+
+  /* 진단 서버가 아닌 곳에서 열면 JSON 대신 HTML 404 페이지가 돌아옵니다 */
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) throw new Error('WRONG_ADDRESS');
+
+  const data = await res.json();
+
+  if (res.status === 401 && data.needCode) {
+    localStorage.removeItem('auri_access_code');
+    if (retried) throw Object.assign(new Error('접속 암호가 올바르지 않습니다.'), { fromServer: true });
+    const code = prompt('AI 진단 접속 암호를 입력해 주세요.');
+    if (!code) throw Object.assign(new Error('접속 암호가 필요합니다.'), { fromServer: true });
+    localStorage.setItem('auri_access_code', code.trim());
+    return callServer(path, payload, true);
+  }
+  if (!res.ok) throw Object.assign(new Error(data.error || '서버 오류'), { fromServer: true });
+  return data;
+}
+
+/* 서버가 준 점수표를 화면이 쓰는 모양으로 바꿉니다 */
+function toResults(data) {
+  return CATEGORIES.map(function (cat) {
+    const c = data.categories[cat.key];
+    return {
+      key: cat.key,
+      name: cat.label,
+      score: c.score,
+      level: auriLevel(c.score),
+      observed: c.observed,
+      notVisible: c.notVisible,
+      confidence: c.confidence,
+    };
+  });
+}
+
+function showServerError(err) {
+  const wrongAddress = err.message === 'WRONG_ADDRESS' || location.protocol === 'file:';
+  showCaptureError(
+    err.fromServer
+      ? err.message
+    : wrongAddress
+      ? '이 페이지는 진단 서버가 아닌 곳에서 열렸습니다' +
+        (location.protocol === 'file:' ? ' (파일 직접 열기)' : ` (${location.origin})`) +
+        '. AI 기능을 쓰려면 진단 서버가 실행 중인 주소로 접속해 주세요.'
+      : 'AI 진단 서버가 응답하지 않았습니다. (' + err.message + ')'
+  );
+}
+
 /* ── AI 진단 실행 ───────────────────────────────────────────────── */
 
-let _diagnosing = false;
-
-async function runDiagnosis(retried) {
-  if (_diagnosing) return;
+async function runDiagnosis() {
+  if (_busy) return;
   if (!inputImage) { showCaptureError('먼저 스트리트뷰를 캡처하거나 사진을 업로드해 주세요.'); return; }
 
-  _diagnosing = true;
+  _busy = true;
   document.getElementById('runBtn').disabled = true;
   setTag('판독 중', true);
   document.getElementById('resultList').innerHTML =
     '<div class="loading">AI가 사진을 판독하고 있습니다. 20초 정도 걸립니다.</div>';
 
   try {
-    const headers = { 'Content-Type': 'application/json' };
-    const savedCode = localStorage.getItem('auri_access_code');
-    if (savedCode) headers['x-access-code'] = savedCode;
-
-    const res = await fetch('/api/diagnose', {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify({ imageDataUrl: inputImage.dataUrl }),
-    });
-    /* 진단 서버가 아닌 곳에서 열면 JSON 대신 HTML 404 페이지가 돌아옵니다 */
-    const contentType = res.headers.get('content-type') || '';
-    if (!contentType.includes('application/json')) throw new Error('WRONG_ADDRESS');
-
-    const data = await res.json();
-
-    if (res.status === 401 && data.needCode) {
-      localStorage.removeItem('auri_access_code');
-      if (retried) throw Object.assign(new Error('접속 암호가 올바르지 않습니다.'), { fromServer: true });
-      const code = prompt('AI 진단 접속 암호를 입력해 주세요.');
-      if (!code) throw Object.assign(new Error('접속 암호가 필요합니다.'), { fromServer: true });
-      localStorage.setItem('auri_access_code', code.trim());
-      _diagnosing = false;
-      document.getElementById('runBtn').disabled = false;
-      return runDiagnosis(true);
-    }
-    if (!res.ok) throw Object.assign(new Error(data.error || '서버 오류'), { fromServer: true });
-
-    const results = CATEGORIES.map(function (cat) {
-      const c = data.categories[cat.key];
-      return {
-        key: cat.key,
-        name: cat.label,
-        score: c.score,
-        level: auriLevel(c.score),
-        observed: c.observed,
-        notVisible: c.notVisible,
-        confidence: c.confidence,
-      };
-    });
-
-    renderResults(results);
+    const data = await callServer('/api/diagnose', { imageDataUrl: inputImage.dataUrl });
+    renderResults(toResults(data));
     setTag(data.imageQuality === 'unusable' ? 'AI 판독 · 이미지 부적합' : 'AI 판독 결과');
     if (data.imageQuality === 'unusable') {
       showCaptureError('이 사진은 거리 이미지로 판독하기 어렵습니다. 다른 각도로 다시 캡처해 주세요.');
     }
   } catch (err) {
+    /* 서버가 없어도 흐름이 끊기지 않도록 임시 점수로 되돌립니다 */
     const raw = sessionStorage.getItem('auri_picked_location');
     if (raw) renderResults(buildDummyResults(JSON.parse(raw)));
     setTag('임시 점수', true);
-
-    const wrongAddress = err.message === 'WRONG_ADDRESS' || location.protocol === 'file:';
-    showCaptureError(
-      err.fromServer
-        ? err.message + ' 지금은 임시 점수를 표시합니다.'
-      : wrongAddress
-        ? '이 페이지는 진단 서버가 아닌 곳에서 열렸습니다' +
-          (location.protocol === 'file:' ? ' (파일 직접 열기)' : ` (${location.origin})`) +
-          '. AI 진단을 쓰려면 진단 서버가 실행 중인 주소로 접속해 주세요. 지금은 임시 점수를 표시합니다.'
-        : 'AI 진단 서버가 응답하지 않아 임시 점수를 표시했습니다. (' + err.message + ')'
-    );
+    showServerError(err);
   } finally {
-    _diagnosing = false;
+    _busy = false;
     document.getElementById('runBtn').disabled = false;
   }
 }
 
+/* ── 연구원 지적을 반영한 재판독 ────────────────────────────────────
+   AI는 사진을 잘못 읽는 일이 있습니다(철제 현관문을 계단으로 보는 식).
+   현장을 아는 연구원이 지적하면 그것을 사실로 받아들이고 다시 판독합니다. */
+
+function toggleRevise() {
+  const box = document.getElementById('reviseBox');
+  const opening = box.style.display === 'none';
+  box.style.display = opening ? 'block' : 'none';
+  document.getElementById('reviseToggle').textContent = opening ? '닫기' : '결과에 오류가 있나요?';
+  if (opening) document.getElementById('reviseNote').focus();
+}
+
+async function sendRevise() {
+  if (_busy) return;
+  const note = document.getElementById('reviseNote').value.trim();
+  if (!note) { showCaptureError('AI가 어디를 잘못 봤는지 적어 주세요.'); return; }
+  if (!inputImage || !_results) { showCaptureError('먼저 진단을 실행해 주세요.'); return; }
+
+  _busy = true;
+  document.getElementById('reviseSend').disabled = true;
+  setTag('재판독 중', true);
+  document.getElementById('resultList').innerHTML =
+    '<div class="loading">지적하신 내용을 반영해 다시 판독하고 있습니다.</div>';
+
+  const previous = {};
+  const before = {};
+  _results.forEach(function (r) {
+    previous[r.key] = { score: r.score, observed: r.observed || [] };
+    before[r.key] = r;
+  });
+
+  try {
+    const data = await callServer('/api/revise', {
+      imageDataUrl: inputImage.dataUrl, previous: previous, note: note,
+    });
+
+    const results = toResults(data).map(function (r) {
+      const b = before[r.key];
+      const changed = !b || b.score !== r.score ||
+                      (b.observed || []).join('|') !== (r.observed || []).join('|');
+      return Object.assign(r, {
+        edited: b && b.edited,
+        revised: (b && b.revised) || changed,
+      });
+    });
+
+    /* 무엇을 지적했는지 기록으로 남깁니다 — 진단서에서 근거로 인용됩니다 */
+    const log = JSON.parse(sessionStorage.getItem('auri_revision_log') || '[]');
+    log.push({ at: new Date().toISOString(), note: note });
+    sessionStorage.setItem('auri_revision_log', JSON.stringify(log));
+
+    sessionStorage.removeItem('auri_prescriptions');   // 점수가 바뀌었으니 처방을 다시 뽑습니다
+    renderResults(results);
+    setTag('연구원 지적 반영됨');
+    document.getElementById('reviseNote').value = '';
+    hideCaptureError();
+    toggleRevise();
+  } catch (err) {
+    renderResults(_results);          // 실패하면 이전 결과를 그대로 둡니다
+    setTag('재판독 실패', true);
+    showServerError(err);
+  } finally {
+    _busy = false;
+    document.getElementById('reviseSend').disabled = false;
+  }
+}
 /* ── 페이지 시작 ───────────────────────────────────────────────── */
 
 window.addEventListener('load', function () {
@@ -500,4 +595,5 @@ window.addEventListener('load', function () {
 </script>
 </body>
 </html>
+
 
