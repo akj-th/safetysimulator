@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>카카오 로드뷰 캡처 가능 여부 테스트</title>
+
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="assets/ui.css">
+<style>
+  #roadview{width:100%; height:min(50vh,460px); background:#E8EBEE}
+  .log{font-family:var(--mono); font-size:12.5px; line-height:1.9; padding:16px}
+  .log .ok{color:var(--safe); font-weight:700}
+  .log .no{color:var(--danger); font-weight:700}
+  .log .wait{color:var(--ink-3)}
+  .shot{padding:16px; border-top:1px solid var(--line)}
+  .shot img{max-width:100%; border:1px solid var(--line); border-radius:var(--r-sm); display:block}
+</style>
+</head>
+<body data-step="0">
+
+<main class="wrap">
+  <div class="page-head">
+    <h1>카카오 로드뷰 캡처 테스트</h1>
+    <p class="sub">카카오 로드뷰 화면을 화면공유 없이 곧바로 이미지로 저장할 수 있는지 확인합니다. 이 결과에 따라 지도 API 전환 여부를 정합니다.</p>
+  </div>
+
+  <div class="callout warn" id="keyWarn" style="margin-bottom:14px; display:none">
+    아래 파일의 <b>KAKAO_JS_KEY</b> 자리에 발급받은 JavaScript 키를 넣어 주세요.
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>로드뷰</h2><span class="tag neutral" id="posTag">세종 · 건축공간연구원 부근</span></div>
+    <div id="roadview"></div>
+    <div class="panel-foot">
+      <button class="btn accent" id="shotBtn" onclick="tryCapture()" disabled>캡처 시도</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>진단 결과</h2></div>
+    <div class="log" id="log"></div>
+    <div class="shot" id="shot" style="display:none">
+      <div style="font-size:12.5px; font-weight:700; margin-bottom:8px">캡처된 이미지</div>
+      <img id="shotImg" alt="캡처 결과">
+    </div>
+  </div>
+</main>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   ↓↓↓ 여기 한 곳에만 카카오 JavaScript 키를 붙여넣으세요 ↓↓↓
+   (JavaScript 키는 브라우저에 노출되는 게 정상입니다.
+    카카오 개발자 사이트의 "플랫폼 → Web" 도메인 등록으로 보호됩니다.)
+   ══════════════════════════════════════════════════════════════════ */
+const KAKAO_JS_KEY = 'faee6905e60b3241e660cd22781e1427';
+
+/* 테스트할 위치 — 건축공간연구원(세종 가름로 143) 부근 */
+const TEST_LAT = 36.5044;
+const TEST_LNG = 127.2589;
+
+const logEl = document.getElementById('log');
+function log(msg, state) {
+  const mark = state === 'ok' ? '<span class="ok">[성공]</span>'
+             : state === 'no' ? '<span class="no">[실패]</span>'
+             : '<span class="wait">[진행]</span>';
+  logEl.innerHTML += `${mark} ${msg}<br>`;
+}
+
+if (KAKAO_JS_KEY.indexOf('붙여넣') !== -1) {
+  document.getElementById('keyWarn').style.display = 'block';
+  log('키가 아직 입력되지 않았습니다. kakao-test.html 파일의 KAKAO_JS_KEY 를 채워 주세요.', 'no');
+} else {
+  loadSdk();
+}
+
+/* ① SDK 불러오기 — 키가 틀리거나 도메인 등록이 안 됐으면 여기서 실패합니다 */
+function loadSdk() {
+  /* 반드시 https 로 부릅니다. //dapi... 로 적으면 지금 페이지가 http 일 때
+     http 로 요청이 나가 실패합니다. */
+  const url = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false`;
+  log('카카오 지도 SDK 를 불러오는 중…');
+
+  const s = document.createElement('script');
+  s.src = url;
+  s.onload = function () {
+    log('SDK 파일 내려받기 완료', 'ok');
+    if (typeof kakao === 'undefined' || !kakao.maps) {
+      log('파일은 받았지만 SDK 가 준비되지 않았습니다. 키 종류를 확인해 주세요 ' +
+          '(REST API 키가 아니라 <b>JavaScript 키</b>여야 합니다).', 'no');
+      return;
+    }
+    kakao.maps.load(startRoadview);
+  };
+  s.onerror = function () {
+    log('SDK 를 불러오지 못했습니다.', 'no');
+    log('확인할 것 1 — 카카오 개발자 사이트 <b>플랫폼 → Web</b> 의 사이트 도메인에 ' +
+        `<b>${location.origin}</b> 만 넣으세요. 뒤에 <b>/kakao-test.html</b> 같은 경로가 붙으면 안 맞습니다.`);
+    log('확인할 것 2 — 발급한 키가 <b>JavaScript 키</b>인지 (REST API 키 아님)');
+    log(`확인할 것 3 — 아래 주소를 새 탭에서 열어 보세요. 카카오가 이유를 알려 줍니다:<br>` +
+        `&nbsp;&nbsp;<a href="${url}" target="_blank" style="color:var(--accent)">${url}</a>`);
+    log('확인할 것 4 — F12 → Console 탭에 카카오가 남긴 메시지가 있으면 그대로 알려 주세요.');
+  };
+  document.head.appendChild(s);
+}
+
+/* ② 로드뷰 띄우기 */
+function startRoadview() {
+  log('로드뷰를 띄우는 중…');
+  const container = document.getElementById('roadview');
+  const position = new kakao.maps.LatLng(TEST_LAT, TEST_LNG);
+  const roadview = new kakao.maps.Roadview(container);
+  const client = new kakao.maps.RoadviewClient();
+
+  /* 이 지점에서 가장 가까운 로드뷰를 찾습니다 (반경 100m) */
+  client.getNearestPanoId(position, 100, function (panoId) {
+    if (panoId === null) {
+      log('이 좌표 주변에 로드뷰가 없습니다. TEST_LAT / TEST_LNG 를 바꿔 다시 시도해 주세요.', 'no');
+      return;
+    }
+    roadview.setPanoId(panoId, position);
+  });
+
+  kakao.maps.event.addListener(roadview, 'init', function () {
+    log('로드뷰 표시 완료', 'ok');
+    inspect(container);
+    document.getElementById('shotBtn').disabled = false;
+    log('이제 <b>캡처 시도</b> 버튼을 눌러 주세요.');
+  });
+}
+
+/* ③ 로드뷰가 무엇으로 그려졌는지 살펴봅니다 */
+function inspect(container) {
+  const canvases = container.querySelectorAll('canvas');
+  const imgs = container.querySelectorAll('img');
+  log(`화면 구성: canvas ${canvases.length}개, img ${imgs.length}개`);
+  if (canvases.length === 0) {
+    log('canvas 가 없습니다. 이 경우 화면을 직접 이미지로 저장하는 방법이 없어, ' +
+        '지금 쓰는 화면공유 방식이 그대로 필요합니다.', 'no');
+  }
+}
+
+/* ④ 핵심 — 캡처가 실제로 되는지 */
+function tryCapture() {
+  const container = document.getElementById('roadview');
+  const canvases = container.querySelectorAll('canvas');
+
+  if (!canvases.length) {
+    log('캡처할 canvas 가 없습니다.', 'no');
+    return;
+  }
+
+  /* 가장 큰 canvas 를 고릅니다 */
+  let target = canvases[0];
+  canvases.forEach(function (c) {
+    if (c.width * c.height > target.width * target.height) target = c;
+  });
+  log(`가장 큰 canvas 크기: ${target.width} × ${target.height}`);
+
+  try {
+    const dataUrl = target.toDataURL('image/jpeg', 0.92);
+    if (dataUrl.length < 2000) {
+      log('저장은 됐지만 내용이 비어 있습니다. 실제로는 쓸 수 없는 결과입니다.', 'no');
+      return;
+    }
+    document.getElementById('shot').style.display = 'block';
+    document.getElementById('shotImg').src = dataUrl;
+    log(`캡처 성공 — ${Math.round(dataUrl.length / 1024)}KB. ` +
+        '<b>화면공유 없이 버튼 한 번으로 캡처가 가능합니다.</b> 카카오로 전환할 값어치가 있습니다.', 'ok');
+  } catch (err) {
+    log(`캡처 차단됨 — ${err.name}: ${err.message}`, 'no');
+    log('로드뷰 사진이 카카오 서버에서 오기 때문에 브라우저가 저장을 막는 경우입니다. ' +
+        '네이버와 같은 제약이므로, 전환해도 지금의 화면공유 방식이 그대로 필요합니다.', 'no');
+  }
+}
+</script>
+</body>
+</html>
