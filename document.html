@@ -1,99 +1,66 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>도시공간 안전 진단 — 행정 문서</title>
+<title>안전사업지구 진단 — 행정 문서</title>
 
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="assets/ui.css">
 <style>
-  :root{
-    --bg:#E9E7E0; --card:#FBFAF6; --card-2:#FFFFFF;
-    --ink:#23211C; --ink-soft:#6B675E; --ink-faint:#9A968C;
-    --line:#DAD7CE; --line-2:#C7C3B8;
-    --navy:#2C3A47; --navy-soft:#5A6A78;
-    --rules:#2E6B54; --rules-bg:#E2EDE8;
-    --font:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-    --mono:'SFMono-Regular',ui-monospace,Consolas,monospace;
-    --radius:12px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.6}
-  .wrap{max-width:900px;margin:0 auto;padding:28px 22px 64px}
+  .doc-body{padding:22px 24px; background:var(--surface)}
+  .doc-title{font-size:15px; font-weight:700; padding-bottom:10px; border-bottom:2px solid var(--ink); margin-bottom:16px}
 
-  .back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--navy-soft);text-decoration:none;font-weight:600;margin-bottom:14px}
-  .back:hover{color:var(--navy)}
-
-  .head-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
-  .eyebrow{font-size:12px;letter-spacing:.14em;color:var(--navy-soft);font-weight:600;text-transform:uppercase}
-  h1{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:6px}
-  .sub{font-size:14px;color:var(--ink-soft);margin-top:8px;max-width:660px}
-
-  .picked{display:flex;align-items:center;gap:14px;padding:14px 16px;margin:22px 0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
-  .picked .dot{width:10px;height:10px;border-radius:50%;background:var(--rules);flex:none}
-  .picked .info{flex:1;min-width:0}
-  .picked .lab{font-size:11px;color:var(--ink-faint);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-  .picked .addr{font-size:14.5px;font-weight:600;color:var(--ink);margin-top:2px}
-  .picked .coord{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-top:2px}
-
-  .pane{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
-  .pane .cap{font-size:12px;font-weight:600;color:var(--ink-soft);padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
-  .pane .cap .tag{font-size:10.5px;background:var(--rules-bg);color:var(--rules);padding:2px 8px;border-radius:20px;font-weight:600}
-  .pane .cap .tag.todo{background:#EEE9DF;color:var(--ink-soft)}
-  .doc-body{padding:18px 20px;background:var(--card-2)}
-
-  /* 서식 본문 — 실제 공문서처럼 보이도록 최소한의 문서 조판만 적용 */
-  .doc-title{font-size:15px;font-weight:700;color:var(--ink);padding-bottom:9px;border-bottom:2px solid var(--line-2);margin-bottom:14px}
-  .fld{display:flex;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .fld{display:flex; gap:14px; padding:8px 0; border-bottom:1px solid var(--line); font-size:13.5px}
   .fld:last-of-type{border-bottom:none}
-  .fld .k{width:120px;flex:none;font-weight:600;color:var(--ink-soft)}
-  .fld .v{flex:1;min-width:0;color:var(--ink)}
-  .doc-p{font-size:13.5px;color:var(--ink);margin-top:14px;line-height:1.85;text-align:justify}
-  .doc-p .blank{background:#EEE9DF;color:var(--ink-faint);border-radius:4px;padding:1px 8px;font-size:12.5px;font-weight:600}
+  .fld .k{width:120px; flex:none; font-weight:600; color:var(--ink-2)}
+  .fld .v{flex:1; min-width:0}
 
-  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
-  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
-  th{background:#F1EEE7;font-weight:700;color:var(--ink-soft);font-size:11.5px;letter-spacing:.02em}
-  td.num{text-align:right;font-family:var(--mono);color:var(--ink-soft)}
-  tr.sum td{background:#F1EEE7;font-weight:700;color:var(--ink)}
-  .rule-id{font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
+  .doc-p{font-size:13.5px; margin-top:16px; line-height:1.9; text-align:justify}
+  .doc-p .blank{background:#EFF1F4; color:var(--ink-3); border-radius:4px; padding:1px 8px; font-size:12.5px; font-weight:600}
 
-  .pending{padding:14px 16px;background:#F1EEE7;border-radius:9px;font-size:12.5px;color:var(--ink-soft);line-height:1.7;margin-top:14px;display:flex;gap:9px;align-items:flex-start}
-  .pending svg{width:15px;height:15px;flex:none;margin-top:3px}
-  .doc-empty{padding:30px;text-align:center;color:var(--ink-soft);font-size:13px;line-height:1.7}
+  table{width:100%; border-collapse:collapse; font-size:12.5px; margin-top:4px}
+  th,td{border:1px solid var(--line-2); padding:9px 11px; text-align:left; vertical-align:top}
+  th{background:var(--surface-2); font-weight:700; color:var(--ink-2); font-size:11.5px}
+  td.num{text-align:right; font-family:var(--mono); color:var(--ink-2)}
+  tr.sum td{background:var(--surface-2); font-weight:700; color:var(--ink)}
+  .rule-id{font-family:var(--mono); font-size:11px; color:var(--ink-3)}
 
-  .btn{font-family:inherit;font-size:13.5px;font-weight:600;border-radius:9px;padding:9px 16px;cursor:pointer;border:1px solid var(--rules);background:var(--rules);color:#fff;white-space:nowrap;transition:.15s;text-decoration:none;display:inline-block}
-  .btn:hover{filter:brightness(.94)}
-  .btn.ghost{background:var(--card-2);color:var(--rules)}
-
-  .placeholder-note{font-size:12.5px;color:var(--ink-faint);margin-top:14px;display:flex;align-items:flex-start;gap:7px;line-height:1.65}
-  .placeholder-note svg{width:15px;height:15px;flex:none;margin-top:3px}
+  .pending{
+    padding:13px 15px; background:var(--surface-2); border:1px solid var(--line);
+    border-radius:var(--r-sm); font-size:12.5px; color:var(--ink-2);
+    line-height:1.65; margin-top:16px; display:flex; gap:9px; align-items:flex-start;
+  }
+  .pending svg{width:14px; height:14px; flex:none; margin-top:3px}
+  .doc-empty{padding:34px; text-align:center; color:var(--ink-2); font-size:13px; line-height:1.7}
 
   /* 인쇄할 때는 화면용 장식을 걷어내고 서식만 남깁니다 */
   @media print{
     body{background:#fff}
-    .wrap{max-width:none;padding:0}
-    .back,.btn,.placeholder-note,.pending,.pane .cap{display:none}
-    .pane{border:none;background:#fff;margin-bottom:26px;break-inside:avoid}
+    .topbar, .page-head, .picked, .btn, .note, .pending, .panel-head{display:none !important}
+    .wrap{max-width:none; padding:0}
+    .panel{border:none; margin-bottom:26px; break-inside:avoid}
     .doc-body{padding:0}
   }
 </style>
 </head>
-<body>
-<div class="wrap">
-  <a class="back" href="visualize.html">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    시각화로 돌아가기
-  </a>
+<body data-step="5">
 
-  <div class="head-row">
-    <div>
-      <div class="eyebrow">7대 사회재난 다중취약 공간 진단 · AI 맞춤형 안전 솔루션</div>
-      <h1>안전사업지구 지정 신청 서식</h1>
-    </div>
-    <button class="btn ghost" onclick="window.print()">🖨 인쇄 / PDF 저장</button>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">ATELIER KJ<span>안전사업지구 진단 시뮬레이터</span></div>
+    <nav class="steps" id="steps"></nav>
   </div>
-  <p class="sub">진단 결과와 확정된 시설물을 안전사업지구 지정 서식에 맞춰 정리합니다. 표와 수치는 앞 단계 데이터에서 바로 채워지고, 서술형 문장은 폐쇄망 sLLM이 연결되면 이 자리에 생성됩니다.</p>
+</header>
+
+<main class="wrap">
+  <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; max-width:none; flex-wrap:wrap">
+    <div style="max-width:720px">
+      <h1>안전사업지구 지정 신청 서식</h1>
+      <p class="sub">진단 결과와 확정된 시설물을 지정 서식에 맞춰 정리합니다. 표와 수치는 앞 단계 데이터에서 바로 채워지고, 서술형 문장은 폐쇄망 sLLM이 연결되면 이 자리에 생성됩니다.</p>
+    </div>
+    <button class="btn ghost" onclick="window.print()">인쇄 / PDF 저장</button>
+  </div>
 
   <div class="picked" id="picked">
     <span class="dot"></span>
@@ -105,9 +72,8 @@
   </div>
 
   <div id="docs">
-    <!-- ① 지정 신청 사유서 -->
-    <div class="pane">
-      <div class="cap">서식 1 <span class="tag">지정 신청 사유서</span></div>
+    <div class="panel">
+      <div class="panel-head"><h2>서식 1</h2><span class="tag">지정 신청 사유서</span></div>
       <div class="doc-body">
         <div class="doc-title">안전사업지구 지정 신청 사유서</div>
         <div class="fld"><div class="k">대상지 위치</div><div class="v" id="f1Addr">—</div></div>
@@ -120,14 +86,13 @@
 
         <div class="pending">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          위 문단은 진단 수치를 문장 틀에 끼워 넣은 임시 문안입니다. 실제 납품본에서는 폐쇄망 sLLM이 행정 지침서를 참조(RAG)해 법정 재난안전 용어에 맞는 사유서를 생성합니다.
+          위 문단은 진단 수치를 문장 틀에 끼워 넣은 임시 문안입니다. 실제 납품본에서는 폐쇄망 sLLM이 행정 지침서를 참조해 법정 재난안전 용어에 맞는 사유서를 생성합니다.
         </div>
       </div>
     </div>
 
-    <!-- ② 예산 산출 근거 -->
-    <div class="pane">
-      <div class="cap">서식 2 <span class="tag">예산 산출 근거</span></div>
+    <div class="panel">
+      <div class="panel-head"><h2>서식 2</h2><span class="tag">예산 산출 근거</span></div>
       <div class="doc-body">
         <div class="doc-title">사업비 산출 내역</div>
         <table>
@@ -147,14 +112,13 @@
 
         <div class="pending">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          시설물 목록과 수량은 규칙 엔진이 확정한 실제 값입니다. 표준단가는 과업4 「표준 단가 매트릭스」가 확정되면 규칙표에 연결되어 자동 계산됩니다. (안전사업지구 예산 한도: 개소당 약 10억 원 내외)
+          시설물 목록과 수량은 규칙 엔진이 확정한 실제 값입니다. 표준단가는 과업4 표준 단가 매트릭스가 확정되면 규칙표에 연결되어 자동 계산됩니다. (안전사업지구 예산 한도: 개소당 약 10억 원 내외)
         </div>
       </div>
     </div>
 
-    <!-- ③ 기대효과 -->
-    <div class="pane">
-      <div class="cap">서식 3 <span class="tag">기대효과</span></div>
+    <div class="panel">
+      <div class="panel-head"><h2>서식 3</h2><span class="tag">기대효과</span></div>
       <div class="doc-body">
         <div class="doc-title">사업 시행 기대효과</div>
         <table>
@@ -171,18 +135,18 @@
 
         <div class="pending">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          기대효과 문장은 아직 비어 있습니다. 정량 저감 효과(예: 사고 발생률 감소율)는 근거 없이 쓰면 할루시네이션이 되므로, 지침서·통계에 연결한 뒤에 채웁니다.
+          기대효과 문장은 아직 비어 있습니다. 정량 저감 효과는 근거 없이 쓰면 할루시네이션이 되므로, 지침서·통계에 연결한 뒤에 채웁니다.
         </div>
       </div>
     </div>
   </div>
 
-  <div class="placeholder-note">
+  <p class="note">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
     이 문서의 모든 시설물 항목에는 규칙 번호가 붙어 있습니다. 감사 시 "이 예산 항목이 왜 필요한가"를 진단 점수까지 거꾸로 확인할 수 있도록 하기 위한 것입니다.
-  </div>
-</div>
-
+  </p>
+</main>
+<script src="assets/ui.js"></script>
 <script>
 function fmtDate(d) {
   return `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}.`;
@@ -195,9 +159,8 @@ window.addEventListener('load', function () {
 
   if (!loc || !resultsRaw) {
     document.getElementById('pickedAddr').textContent = '진단 데이터가 없습니다.';
-    document.querySelector('.back').setAttribute('href', 'index.html');
     document.getElementById('docs').innerHTML =
-      '<div class="pane"><div class="doc-empty">진단 데이터가 없습니다.<br>위치 선택 → 진단 → 종합 리포트 순서로 진행해 주세요.</div></div>';
+      '<div class="panel"><div class="doc-empty">진단 데이터가 없습니다.<br>위치 선택 → 진단 → 종합 리포트 순서로 진행해 주세요.</div></div>';
     return;
   }
 
@@ -286,3 +249,4 @@ window.addEventListener('load', function () {
 </script>
 </body>
 </html>
+

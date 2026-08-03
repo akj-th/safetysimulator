@@ -3,153 +3,152 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>도시공간 안전 진단 — AI 진단</title>
+<title>안전사업지구 진단 — AI 진단</title>
 
 <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=ikev3q84lb&submodules=geocoder,panorama"></script>
 
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="assets/ui.css">
 <style>
-  :root{
-    --bg:#E9E7E0; --card:#FBFAF6; --card-2:#FFFFFF;
-    --ink:#23211C; --ink-soft:#6B675E; --ink-faint:#9A968C;
-    --line:#DAD7CE; --line-2:#C7C3B8;
-    --navy:#2C3A47; --navy-soft:#5A6A78;
-    --rules:#2E6B54; --rules-bg:#E2EDE8;
-    --font:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-    --mono:'SFMono-Regular',ui-monospace,Consolas,monospace;
-    --radius:12px;
+  /* 스트리트뷰는 진단의 입력 자료이므로 화면 전체 폭으로 크게 봅니다 */
+  #streetview{width:100%; height:min(58vh,540px); min-height:360px; background:#E8EBEE}
+
+  .capture-hint{font-size:12px; color:var(--ink-3); padding:0 16px 13px; line-height:1.6}
+
+  .shot{display:flex; gap:16px; align-items:flex-start; padding:16px}
+  .shot img{
+    width:280px; flex:none; border-radius:var(--r-sm);
+    border:1px solid var(--line); display:block; background:#E8EBEE;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.6}
-  .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 64px}
+  .shot .meta{flex:1; min-width:0}
+  .shot .meta .t{font-size:13.5px; font-weight:600}
+  .shot .meta .d{font-size:12.5px; color:var(--ink-2); margin-top:5px; line-height:1.65}
+  .shot .meta .actions{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
+  @media(max-width:640px){ .shot{flex-direction:column} .shot img{width:100%} }
 
-  .back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--navy-soft);text-decoration:none;font-weight:600;margin-bottom:14px}
-  .back:hover{color:var(--navy)}
-
-  .eyebrow{font-size:12px;letter-spacing:.14em;color:var(--navy-soft);font-weight:600;text-transform:uppercase}
-  h1{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:6px}
-  .sub{font-size:14px;color:var(--ink-soft);margin-top:8px;max-width:660px}
-
-  .picked{display:flex;align-items:center;gap:14px;padding:14px 16px;margin:22px 0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
-  .picked .dot{width:10px;height:10px;border-radius:50%;background:var(--rules);flex:none}
-  .picked .info{flex:1;min-width:0}
-  .picked .lab{font-size:11px;color:var(--ink-faint);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-  .picked .addr{font-size:14.5px;font-weight:600;color:var(--ink);margin-top:2px}
-  .picked .coord{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-top:2px}
-
-  .panes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media(max-width:800px){.panes{grid-template-columns:1fr}}
-  .pane{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
-  .pane .cap{font-size:12px;font-weight:600;color:var(--ink-soft);padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
-  .pane .cap .tag{font-size:10.5px;background:var(--rules-bg);color:var(--rules);padding:2px 8px;border-radius:20px;font-weight:600}
-  #streetview{width:100%;height:430px;background:#DDE2E6}
-
-  .capture-row{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
-  .capture-hint{font-size:11.5px;color:var(--ink-faint);padding:0 14px 10px;line-height:1.6}
-  .btn-sm{font-family:inherit;font-size:12.5px;font-weight:600;border-radius:8px;padding:8px 12px;cursor:pointer;border:1px solid var(--line-2);background:var(--card-2);color:var(--ink);white-space:nowrap;transition:.15s}
-  .btn-sm:hover{border-color:var(--navy-soft);color:var(--navy)}
-  .btn-sm.retake{border-color:var(--line-2)}
-
-  .capture-status{margin:0 14px 12px;font-size:12px;color:var(--ink-soft);display:none;align-items:center;gap:10px;padding:8px 10px;background:var(--rules-bg);border-radius:9px}
-  .capture-status.on{display:flex}
-  .capture-status .thumb{width:44px;height:32px;object-fit:cover;border-radius:5px;border:1px solid var(--line);flex:none}
-  .capture-status .txt{flex:1;color:var(--rules);font-weight:600}
-  .capture-error{margin:0 14px 12px;font-size:12px;color:var(--ink-soft);display:none;padding:10px 12px;background:var(--rules-bg);border-radius:9px;line-height:1.6}
-  .capture-error.on{display:block}
-  .capture-error .btn-sm{margin-top:8px;border-color:var(--rules);color:var(--rules);background:var(--card-2)}
-
-  .result-list{padding:12px}
-  .result-item{padding:9px 8px;border-bottom:1px solid var(--line)}
+  .result-list{padding:6px 16px}
+  .result-item{padding:11px 0; border-bottom:1px solid var(--line)}
   .result-item:last-child{border-bottom:none}
-  .result-row{display:flex;align-items:center;gap:10px}
-  /* AI가 사진에서 실제로 확인한 것 — 점수의 근거 */
-  .result-why{margin-top:5px;font-size:11.5px;color:var(--ink-soft);line-height:1.5}
-  .result-why .dim{color:var(--ink-faint)}
-  .result-item .name{width:104px;flex:none;font-size:12.5px;font-weight:600;color:var(--ink)}
-  .result-item .bar{flex:1;height:7px;border-radius:20px;background:var(--line);overflow:hidden}
-  .result-item .bar-fill{height:100%;border-radius:20px}
-  .result-item .badge{width:44px;flex:none;text-align:center;font-size:10.5px;font-weight:700;padding:2px 0;border-radius:20px}
-  .lv-safe .bar-fill{background:var(--rules)}
-  .lv-safe .badge{background:var(--rules-bg);color:var(--rules)}
-  .lv-caution .bar-fill{background:#B9860B}
-  .lv-caution .badge{background:#F3E7CC;color:#8A6008}
-  .lv-danger .bar-fill{background:#B23B3B}
-  .lv-danger .badge{background:#F3D9D9;color:#8F2C2C}
+  .result-row{display:flex; align-items:center; gap:12px}
+  .result-row .name{width:88px; flex:none; font-size:13px; font-weight:600}
+  .result-row .badge{width:44px; flex:none}
+  .result-why{margin-top:6px; padding-left:100px; font-size:12px; color:var(--ink-2); line-height:1.55}
+  .result-why .dim{color:var(--ink-3)}
+  @media(max-width:640px){ .result-why{padding-left:0} }
 
-  .cta-row{display:flex;justify-content:flex-end;padding:12px 14px;border-top:1px solid var(--line)}
-  .btn{font-family:inherit;font-size:13.5px;font-weight:600;border-radius:9px;padding:9px 16px;cursor:pointer;border:1px solid var(--rules);background:var(--rules);color:#fff;white-space:nowrap;transition:.15s;text-decoration:none;display:inline-block}
-  .btn:hover{filter:brightness(.94)}
-
-  .placeholder-note{font-size:12.5px;color:var(--ink-faint);margin-top:14px;display:flex;align-items:center;gap:7px}
-  .placeholder-note svg{width:15px;height:15px;flex:none}
+  .loading{padding:34px; text-align:center; font-size:13px; color:var(--ink-2)}
 </style>
 </head>
-<body>
-<div class="wrap">
-  <a class="back" href="index.html">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    위치 다시 선택
-  </a>
+<body data-step="2">
 
-  <div class="eyebrow">7대 사회재난 다중취약 공간 진단 · AI 맞춤형 안전 솔루션</div>
-  <h1>선택한 위치의 진단 결과</h1>
-  <p class="sub">스트리트뷰를 캡처하거나 사진을 업로드하면, AI가 7대 사회재난 체크리스트에 따라 그 사진을 판독해 분야별 점수를 매깁니다. 점수 아래에는 "사진에서 무엇을 보고 그렇게 판단했는지"가 함께 표시됩니다.</p>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">ATELIER KJ<span>안전사업지구 진단 시뮬레이터</span></div>
+    <nav class="steps" id="steps"></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="page-head">
+    <h1>거리 이미지로 취약성을 진단합니다</h1>
+    <p class="sub">스트리트뷰에서 진단하려는 방향을 맞춘 뒤 화면을 캡처하거나, 현장에서 직접 찍은 사진을 올립니다. 이미지를 확정하고 진단을 실행하면 AI가 7대 사회재난 체크리스트에 따라 판독합니다.</p>
+  </div>
 
   <div class="picked" id="picked">
     <span class="dot"></span>
     <div class="info">
-      <div class="lab">선택한 위치</div>
+      <div class="lab">진단 위치</div>
       <div class="addr" id="pickedAddr">—</div>
       <div class="coord" id="pickedCoord"></div>
     </div>
   </div>
 
-  <div class="panes">
-    <div class="pane">
-      <div class="cap">스트리트뷰 <span class="tag">진단 입력 이미지</span></div>
-      <div id="streetview"></div>
-      <div class="capture-row">
-        <button class="btn-sm" onclick="document.getElementById('uploadInput').click()">📁 직접 찍은 사진 업로드</button>
-        <button class="btn-sm" id="captureBtn" onclick="captureStreetview()">📷 지금 보이는 화면 캡처</button>
-        <input type="file" id="uploadInput" accept="image/*" style="display:none">
-      </div>
-      <p class="capture-hint">캡처 버튼을 누르면 브라우저가 "화면 공유" 창을 띄웁니다 — 목록에서 <b>"현재 탭"</b>(또는 이 브라우저 탭)을 골라 공유를 누르면, 지금 보이는 화면이 그대로 사진으로 저장됩니다.</p>
-      <div class="capture-status" id="captureStatus">
-        <img class="thumb" id="captureThumb" alt="">
-        <span class="txt" id="captureText"></span>
-        <button class="btn-sm retake" onclick="clearInputImage()">다시 찍기</button>
-      </div>
-      <div class="capture-error" id="captureError">
-        <span id="captureErrorText"></span><br>
-        <button class="btn-sm" onclick="document.getElementById('uploadInput').click()">📁 지금 사진 업로드하기</button>
-      </div>
+  <!-- ① 스트리트뷰 (전체 폭) -->
+  <div class="panel">
+    <div class="panel-head">
+      <h2>스트리트뷰</h2>
+      <span class="tag neutral">진단할 방향을 맞춘 뒤 캡처하세요</span>
     </div>
-    <div class="pane">
-      <div class="cap">AI 진단 결과 <span class="tag" id="resultTag">대기 중</span></div>
-      <div class="result-list" id="resultList"></div>
-      <div class="cta-row">
-        <a class="btn" href="report.html">종합 리포트 보기 →</a>
+    <div id="streetview"></div>
+    <p class="capture-hint">캡처를 누르면 브라우저가 화면 공유 창을 띄웁니다. 목록에서 <b>현재 탭</b>을 선택하고 공유를 누르면 지금 보이는 화면이 그대로 저장됩니다.</p>
+    <div class="panel-foot">
+      <input type="file" id="uploadInput" accept="image/*" style="display:none">
+      <button class="btn ghost sm" onclick="document.getElementById('uploadInput').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        사진 업로드
+      </button>
+      <button class="btn sm" id="captureBtn" onclick="captureStreetview()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        화면 캡처
+      </button>
+    </div>
+  </div>
+
+  <div class="callout warn" id="captureError" style="display:none; margin-bottom:14px"></div>
+
+  <!-- ② 확정한 입력 이미지 + 진단 실행 -->
+  <div class="panel" id="shotPanel" style="display:none">
+    <div class="panel-head">
+      <h2>진단 입력 이미지</h2>
+      <span class="tag" id="shotTag"></span>
+    </div>
+    <div class="shot">
+      <img id="shotImg" alt="진단 입력 이미지">
+      <div class="meta">
+        <div class="t">이 이미지로 진단할까요?</div>
+        <div class="d">판독하려는 대상이 잘 보이는지 확인하세요. 마음에 들지 않으면 스트리트뷰 각도를 바꿔 다시 캡처하거나 다른 사진을 올릴 수 있습니다.</div>
+        <div class="actions">
+          <button class="btn accent" id="runBtn" onclick="runDiagnosis()">AI 진단 실행</button>
+          <button class="btn ghost" onclick="clearInputImage()">다시 선택</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="placeholder-note">
+  <!-- ③ 진단 결과 -->
+  <div class="panel">
+    <div class="panel-head">
+      <h2>AI 진단 결과</h2>
+      <span class="tag pending" id="resultTag">대기 중</span>
+    </div>
+    <div class="result-list" id="resultList">
+      <div class="empty">이미지를 확정하고 <b>AI 진단 실행</b>을 누르면 분야별 결과가 표시됩니다.</div>
+    </div>
+    <div class="panel-foot" id="resultFoot" style="display:none">
+      <a class="btn accent" href="report.html">종합 리포트 보기</a>
+    </div>
+  </div>
+
+  <p class="note">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
     AI는 사진에 실제로 보이는 것만으로 판단하며, 확인할 수 없는 항목은 추측하지 않습니다. 판독 기준은 server/checklist.js에 정리되어 있고, 그 파일을 고치면 진단 기준이 바뀝니다.
-  </div>
-</div>
+  </p>
+</main>
 
+<script src="assets/ui.js"></script>
 <script>
 let _pano = null;
-let _panoPov = { pan: 0, tilt: 0, fov: 100 };
-let inputImage = null; // { dataUrl, source: 'capture'|'upload', pov }
+let _panoPov = null;
+let inputImage = null;          // { dataUrl, source, pov }
 
-/* 지금 보고 있는 파노라마 화면을 캡처해서 고정 이미지로 저장 */
+/* CLAUDE.md에 정의된 공식 7대 사회재난 분야 */
+const CATEGORIES = [
+  { key: 'suicide',    label: '자살' },
+  { key: 'traffic',    label: '교통사고' },
+  { key: 'fire',       label: '화재' },
+  { key: 'crime',      label: '범죄' },
+  { key: 'life',       label: '생활안전' },
+  { key: 'industrial', label: '산업재해' },
+  { key: 'infection',  label: '감염병' }
+];
+
+/* ── 스트리트뷰 화면 캡처 ───────────────────────────────────────── */
+
 async function captureStreetview() {
   hideCaptureError();
   const container = document.getElementById('streetview');
 
-  /* 1) 혹시 캔버스로 그려져 있으면 (빠른 방법으로) 바로 시도 */
+  /* 1) 캔버스로 그려져 있으면 바로 시도 */
   const canvases = container.querySelectorAll('canvas');
   if (canvases.length) {
     let target = canvases[0];
@@ -157,12 +156,12 @@ async function captureStreetview() {
     try {
       setInputImage(target.toDataURL('image/jpeg', 0.92), 'capture');
       return;
-    } catch (err) { /* 캔버스가 있어도 막혀 있으면 아래 화면공유 방식으로 계속 진행 */ }
+    } catch (err) { /* 막혀 있으면 아래 화면공유 방식으로 계속 */ }
   }
 
-  /* 2) 캔버스가 없거나 막혀 있으면, 브라우저 "화면(탭) 공유" 기능으로 지금 보이는 그대로 캡처 */
+  /* 2) 브라우저 화면(탭) 공유로 지금 보이는 그대로 캡처 */
   if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-    showCaptureError('이 브라우저는 화면 캡처 기능을 지원하지 않습니다. 대신 키보드에서 Win + Shift + S를 눌러 화면을 캡처한 뒤, 아래 버튼으로 그 사진을 올려주세요.');
+    showCaptureError('이 브라우저는 화면 캡처를 지원하지 않습니다. 키보드에서 Win + Shift + S로 화면을 캡처한 뒤 사진 업로드 버튼으로 올려주세요.');
     return;
   }
 
@@ -174,7 +173,7 @@ async function captureStreetview() {
       selfBrowserSurface: 'include'
     });
   } catch (err) {
-    showCaptureError('화면 공유가 취소됐습니다. 팝업이 뜨면 "현재 탭"을 선택하고 공유를 눌러주세요. 계속 안 되면 Win + Shift + S로 캡처한 뒤 아래 버튼으로 올려주세요.');
+    showCaptureError('화면 공유가 취소됐습니다. 팝업이 뜨면 현재 탭을 선택하고 공유를 눌러주세요.');
     return;
   }
 
@@ -183,7 +182,6 @@ async function captureStreetview() {
     video.muted = true;
     video.srcObject = stream;
     await video.play();
-    /* 첫 프레임이 실제로 그려질 때까지 두 프레임 정도 기다림 */
     await new Promise(function (resolve) { requestAnimationFrame(function () { requestAnimationFrame(resolve); }); });
 
     const rect = container.getBoundingClientRect();
@@ -201,7 +199,7 @@ async function captureStreetview() {
 
     setInputImage(canvas.toDataURL('image/jpeg', 0.92), 'capture');
   } catch (err) {
-    showCaptureError('화면을 캡처하는 중 문제가 생겼습니다. Win + Shift + S로 캡처한 뒤 아래 버튼으로 올려주세요.');
+    showCaptureError('화면을 캡처하는 중 문제가 생겼습니다. Win + Shift + S로 캡처한 뒤 사진 업로드 버튼으로 올려주세요.');
   } finally {
     stream.getTracks().forEach(function (t) { t.stop(); });
   }
@@ -215,79 +213,45 @@ function onUploadChange(e) {
   reader.onload = function () { setInputImage(reader.result, 'upload'); };
   reader.readAsDataURL(file);
 }
+document.getElementById('uploadInput').addEventListener('change', onUploadChange);
 
+/* 이미지를 확정만 하고, 진단은 사용자가 버튼을 눌러야 시작합니다 */
 function setInputImage(dataUrl, source) {
   inputImage = { dataUrl: dataUrl, source: source, pov: _panoPov };
   sessionStorage.setItem('auri_input_image', JSON.stringify(inputImage));
 
-  document.getElementById('captureThumb').src = dataUrl;
-  document.getElementById('captureText').textContent =
-    source === 'capture' ? '현재 화면이 진단 입력 이미지로 저장되었습니다.' : '업로드한 사진이 진단 입력 이미지로 저장되었습니다.';
-  document.getElementById('captureStatus').classList.add('on');
-
-  /* 사진이 확보된 순간이 곧 진단 시작 시점입니다 */
-  runDiagnosis(dataUrl);
+  document.getElementById('shotPanel').style.display = 'block';
+  document.getElementById('shotImg').src = dataUrl;
+  document.getElementById('shotTag').textContent = source === 'upload' ? '업로드한 사진' : '캡처한 화면';
+  document.getElementById('shotPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function clearInputImage() {
   inputImage = null;
   sessionStorage.removeItem('auri_input_image');
-  document.getElementById('captureStatus').classList.remove('on');
+  document.getElementById('shotPanel').style.display = 'none';
   document.getElementById('uploadInput').value = '';
 }
 
 function showCaptureError(msg) {
-  document.getElementById('captureErrorText').textContent = msg;
-  document.getElementById('captureError').classList.add('on');
+  const el = document.getElementById('captureError');
+  el.textContent = msg;
+  el.style.display = 'block';
 }
 function hideCaptureError() {
-  document.getElementById('captureError').classList.remove('on');
+  document.getElementById('captureError').style.display = 'none';
 }
 
-document.getElementById('uploadInput').addEventListener('change', onUploadChange);
+/* ── 결과 그리기 ───────────────────────────────────────────────── */
 
-/* CLAUDE.md에 정의된 공식 7대 사회재난 분야 (과업 범위 기준) */
-const CATEGORIES = [
-  { key: 'suicide',    label: '자살' },
-  { key: 'traffic',    label: '교통사고' },
-  { key: 'fire',       label: '화재' },
-  { key: 'crime',      label: '범죄' },
-  { key: 'life',       label: '생활안전' },
-  { key: 'industrial', label: '산업재해' },
-  { key: 'infection',  label: '감염병' }
-];
-
-/* 좌표 기반 시드로 임의의(하지만 재방문 시 동일한) 더미 점수를 만드는 부분 */
-function seededRandom(seed) {
-  let t = seed >>> 0;
-  return function () {
-    t = (t + 0x6D2B79F5) >>> 0;
-    let r = Math.imul(t ^ (t >>> 15), 1 | t);
-    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
-    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-  };
-}
-function hashSeed(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) { h = (Math.imul(31, h) + str.charCodeAt(i)) | 0; }
-  return h;
-}
-function levelOf(score) {
-  if (score < 34) return { key: 'lv-safe', label: '안전' };
-  if (score < 67) return { key: 'lv-caution', label: '주의' };
-  return { key: 'lv-danger', label: '위험' };
+function setTag(text, pending) {
+  const el = document.getElementById('resultTag');
+  el.textContent = text;
+  el.className = 'tag' + (pending ? ' pending' : '');
 }
 
-/* 화면 위쪽 꼬리표 — 지금 보고 있는 점수가 무엇인지 알려 줍니다 */
-function setTag(text) {
-  document.getElementById('resultTag').textContent = text;
-}
-
-/* 점수표를 화면에 그리고, 다음 단계로 넘길 수 있게 저장합니다.
-   AI 결과든 더미든 이 함수 하나만 씁니다. */
 function renderResults(results) {
   document.getElementById('resultList').innerHTML = results.map(function (r) {
-    /* 판독 근거: AI가 사진에서 실제로 본 것. 더미 점수에는 없습니다. */
     let why = '';
     if (r.observed && r.observed.length) {
       why = `<div class="result-why">${r.observed.join(' · ')}` +
@@ -306,29 +270,46 @@ function renderResults(results) {
   }).join('');
 
   sessionStorage.setItem('auri_diagnosis_results', JSON.stringify(results));
+  document.getElementById('resultFoot').style.display = 'flex';
+  auriRenderSteps();   // 다음 단계 잠금 해제
 }
 
-/* AI가 아직 연결되지 않았을 때 쓰는 임시 점수 (좌표 기반, 재방문 시 동일) */
+/* AI가 연결되지 않았을 때 흐름이 끊기지 않도록 쓰는 임시 점수 */
 function buildDummyResults(picked) {
   const rand = seededRandom(hashSeed(`${picked.lat},${picked.lng}`));
   return CATEGORIES.map(function (cat) {
     const score = Math.round(rand() * 100);
-    return { key: cat.key, name: cat.label, score: score, level: levelOf(score) };
+    return { key: cat.key, name: cat.label, score: score, level: auriLevel(score) };
   });
 }
+function seededRandom(seed) {
+  let t = seed >>> 0;
+  return function () {
+    t = (t + 0x6D2B79F5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hashSeed(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) { h = (Math.imul(31, h) + str.charCodeAt(i)) | 0; }
+  return h;
+}
 
-/* ── 실제 AI 진단 ────────────────────────────────────────────────────
-   캡처하거나 업로드한 사진을 중계 서버로 보내고 점수표를 받아옵니다.
-   서버가 꺼져 있으면 더미 점수로 되돌아가므로 흐름은 끊기지 않습니다. */
+/* ── AI 진단 실행 ───────────────────────────────────────────────── */
+
 let _diagnosing = false;
 
-async function runDiagnosis(dataUrl, retried) {
+async function runDiagnosis(retried) {
   if (_diagnosing) return;
+  if (!inputImage) { showCaptureError('먼저 스트리트뷰를 캡처하거나 사진을 업로드해 주세요.'); return; }
+
   _diagnosing = true;
-  setTag('판독 중…');
+  document.getElementById('runBtn').disabled = true;
+  setTag('판독 중', true);
   document.getElementById('resultList').innerHTML =
-    '<div style="padding:22px;text-align:center;font-size:12.5px;color:var(--ink-soft)">' +
-    'AI가 사진을 판독하고 있습니다. 20초 정도 걸립니다…</div>';
+    '<div class="loading">AI가 사진을 판독하고 있습니다. 20초 정도 걸립니다.</div>';
 
   try {
     const headers = { 'Content-Type': 'application/json' };
@@ -338,16 +319,14 @@ async function runDiagnosis(dataUrl, retried) {
     const res = await fetch('/api/diagnose', {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify({ imageDataUrl: dataUrl }),
+      body: JSON.stringify({ imageDataUrl: inputImage.dataUrl }),
     });
-    /* 진단 서버가 아닌 곳(GitHub Pages, 파일 직접 열기 등)에서 열면
-       JSON 대신 HTML 404 페이지가 돌아옵니다. 그걸 먼저 걸러 냅니다. */
+    /* 진단 서버가 아닌 곳에서 열면 JSON 대신 HTML 404 페이지가 돌아옵니다 */
     const contentType = res.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) throw new Error('WRONG_ADDRESS');
 
     const data = await res.json();
 
-    /* 접속 암호를 쓰는 서버면 한 번만 물어보고 저장해 둡니다 */
     if (res.status === 401 && data.needCode) {
       localStorage.removeItem('auri_access_code');
       if (retried) throw Object.assign(new Error('접속 암호가 올바르지 않습니다.'), { fromServer: true });
@@ -355,10 +334,9 @@ async function runDiagnosis(dataUrl, retried) {
       if (!code) throw Object.assign(new Error('접속 암호가 필요합니다.'), { fromServer: true });
       localStorage.setItem('auri_access_code', code.trim());
       _diagnosing = false;
-      return runDiagnosis(dataUrl, true);
+      document.getElementById('runBtn').disabled = false;
+      return runDiagnosis(true);
     }
-
-    /* 사용 한도 초과처럼 서버가 이유를 알려 준 경우는 그 문장을 그대로 보여 줍니다 */
     if (!res.ok) throw Object.assign(new Error(data.error || '서버 오류'), { fromServer: true });
 
     const results = CATEGORIES.map(function (cat) {
@@ -367,7 +345,7 @@ async function runDiagnosis(dataUrl, retried) {
         key: cat.key,
         name: cat.label,
         score: c.score,
-        level: levelOf(c.score),
+        level: auriLevel(c.score),
         observed: c.observed,
         notVisible: c.notVisible,
         confidence: c.confidence,
@@ -380,45 +358,53 @@ async function runDiagnosis(dataUrl, retried) {
       showCaptureError('이 사진은 거리 이미지로 판독하기 어렵습니다. 다른 각도로 다시 캡처해 주세요.');
     }
   } catch (err) {
-    /* 서버가 꺼져 있는 경우가 대부분입니다 — 흐름이 끊기지 않도록 더미로 되돌립니다 */
     const raw = sessionStorage.getItem('auri_picked_location');
     if (raw) renderResults(buildDummyResults(JSON.parse(raw)));
-    setTag('더미 데이터');
+    setTag('임시 점수', true);
 
-    /* 원인이 둘로 나뉘므로 안내도 나눕니다.
-       ① 주소가 틀림(서버 아닌 곳에서 열림)  ② 주소는 맞는데 서버가 꺼져 있음 */
     const wrongAddress = err.message === 'WRONG_ADDRESS' || location.protocol === 'file:';
     showCaptureError(
       err.fromServer
         ? err.message + ' 지금은 임시 점수를 표시합니다.'
       : wrongAddress
         ? '이 페이지는 진단 서버가 아닌 곳에서 열렸습니다' +
-          (location.protocol === 'file:' ? ' (파일을 직접 열기)' : ` (${location.origin})`) +
-          '. AI 진단을 쓰려면 server 폴더에서 npm start 로 서버를 켠 뒤, ' +
-          '주소창에 http://localhost:8787 을 입력해 다시 접속해 주세요. 지금은 임시 점수를 표시합니다.'
-        : 'AI 진단 서버가 응답하지 않아 임시 점수를 표시했습니다. ' +
-          'server 폴더에서 npm start 가 실행 중인지 확인해 주세요. (' + err.message + ')'
+          (location.protocol === 'file:' ? ' (파일 직접 열기)' : ` (${location.origin})`) +
+          '. AI 진단을 쓰려면 진단 서버가 실행 중인 주소로 접속해 주세요. 지금은 임시 점수를 표시합니다.'
+        : 'AI 진단 서버가 응답하지 않아 임시 점수를 표시했습니다. (' + err.message + ')'
     );
   } finally {
     _diagnosing = false;
+    document.getElementById('runBtn').disabled = false;
   }
 }
+
+/* ── 페이지 시작 ───────────────────────────────────────────────── */
 
 window.addEventListener('load', function () {
   const raw = sessionStorage.getItem('auri_picked_location');
   if (!raw) {
-    document.getElementById('pickedAddr').textContent = '선택된 위치가 없습니다. 위치 선택 화면으로 돌아가 다시 선택해 주세요.';
+    document.getElementById('pickedAddr').textContent = '선택된 위치가 없습니다. 1단계에서 위치를 먼저 선택해 주세요.';
     return;
   }
   const picked = JSON.parse(raw);
-
   document.getElementById('pickedAddr').textContent = picked.addr || '주소 미상';
   document.getElementById('pickedCoord').textContent = `위도 ${picked.lat}, 경도 ${picked.lng}`;
 
-  /* 사진을 찍기 전까지는 임시 점수를 보여 줍니다.
-     캡처·업로드하는 순간 setInputImage()가 실제 AI 진단을 실행합니다. */
-  renderResults(buildDummyResults(picked));
-  setTag('더미 데이터 · 사진을 캡처하면 AI가 판독합니다');
+  /* 이전에 골라 둔 이미지가 있으면 되살립니다 */
+  const savedImage = sessionStorage.getItem('auri_input_image');
+  if (savedImage) {
+    const img = JSON.parse(savedImage);
+    inputImage = img;
+    document.getElementById('shotPanel').style.display = 'block';
+    document.getElementById('shotImg').src = img.dataUrl;
+    document.getElementById('shotTag').textContent = img.source === 'upload' ? '업로드한 사진' : '캡처한 화면';
+  }
+  /* 이전 진단 결과가 있으면 그대로 보여 줍니다 */
+  const savedResults = sessionStorage.getItem('auri_diagnosis_results');
+  if (savedResults) {
+    renderResults(JSON.parse(savedResults));
+    setTag('이전 진단 결과');
+  }
 
   if (typeof naver === 'undefined' || !naver.maps) return;
   const position = new naver.maps.LatLng(Number(picked.lat), Number(picked.lng));

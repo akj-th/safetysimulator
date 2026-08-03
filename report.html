@@ -1,97 +1,60 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>도시공간 안전 진단 — 종합 리포트</title>
+<title>안전사업지구 진단 — 종합 리포트</title>
 
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="assets/ui.css">
 <style>
-  :root{
-    --bg:#E9E7E0; --card:#FBFAF6; --card-2:#FFFFFF;
-    --ink:#23211C; --ink-soft:#6B675E; --ink-faint:#9A968C;
-    --line:#DAD7CE; --line-2:#C7C3B8;
-    --navy:#2C3A47; --navy-soft:#5A6A78;
-    --rules:#2E6B54; --rules-bg:#E2EDE8;
-    --font:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-    --mono:'SFMono-Regular',ui-monospace,Consolas,monospace;
-    --radius:12px;
+  .summary{
+    display:flex; align-items:center; gap:20px;
+    padding:20px 22px; margin-bottom:14px;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
   }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.6}
-  .wrap{max-width:900px;margin:0 auto;padding:28px 22px 64px}
-
-  .back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--navy-soft);text-decoration:none;font-weight:600;margin-bottom:14px}
-  .back:hover{color:var(--navy)}
-
-  .eyebrow{font-size:12px;letter-spacing:.14em;color:var(--navy-soft);font-weight:600;text-transform:uppercase}
-  h1{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:6px}
-  .sub{font-size:14px;color:var(--ink-soft);margin-top:8px;max-width:660px}
-
-  .picked{display:flex;align-items:center;gap:14px;padding:14px 16px;margin:22px 0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
-  .picked .dot{width:10px;height:10px;border-radius:50%;background:var(--rules);flex:none}
-  .picked .info{flex:1;min-width:0}
-  .picked .lab{font-size:11px;color:var(--ink-faint);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-  .picked .addr{font-size:14.5px;font-weight:600;color:var(--ink);margin-top:2px}
-  .picked .coord{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-top:2px}
-
-  .summary{display:flex;align-items:center;gap:18px;padding:22px 20px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px}
-  .summary .score{font-size:40px;font-weight:800;color:var(--navy);flex:none}
-  .summary .score span{font-size:16px;color:var(--ink-faint);font-weight:600}
+  .summary .score{font-size:34px; font-weight:700; letter-spacing:-.02em; flex:none}
+  .summary .score span{font-size:15px; color:var(--ink-3); font-weight:500}
   .summary .desc{flex:1}
-  .summary .desc .lab{font-size:11px;color:var(--ink-faint);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-  .summary .desc .t{font-size:15px;font-weight:700;margin-top:3px}
-  .summary .badge{flex:none;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px}
-  .lv-safe{background:var(--rules-bg);color:var(--rules)}
-  .lv-caution{background:#F3E7CC;color:#8A6008}
-  .lv-danger{background:#F3D9D9;color:#8F2C2C}
+  .summary .desc .lab{font-size:11px; color:var(--ink-3); font-weight:600}
+  .summary .desc .t{font-size:14.5px; font-weight:600; margin-top:2px}
 
-  .pane{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
-  .pane .cap{font-size:12px;font-weight:600;color:var(--ink-soft);padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
-  .pane .cap .tag{font-size:10.5px;background:var(--rules-bg);color:var(--rules);padding:2px 8px;border-radius:20px;font-weight:600}
-  .input-image{width:100%;max-height:420px;object-fit:contain;display:block;background:#DDE2E6}
-  .result-list{padding:6px 12px}
-  .result-item{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)}
+  .input-image{width:100%; max-height:420px; object-fit:contain; display:block; background:#E8EBEE}
+
+  .result-list{padding:6px 16px}
+  .result-item{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line)}
   .result-item:last-child{border-bottom:none}
-  .result-item .name{width:120px;flex:none;font-size:13px;font-weight:600;color:var(--ink)}
-  .result-item .bar{flex:1;height:7px;border-radius:20px;background:var(--line);overflow:hidden}
-  .result-item .bar-fill{height:100%;border-radius:20px}
-  .result-item .badge{width:44px;flex:none;text-align:center;font-size:10.5px;font-weight:700;padding:2px 0;border-radius:20px}
-  .lv-safe .bar-fill{background:var(--rules)}
-  .lv-caution .bar-fill{background:#B9860B}
-  .lv-danger .bar-fill{background:#B23B3B}
+  .result-item .name{width:88px; flex:none; font-size:13px; font-weight:600}
+  .result-item .badge{width:44px; flex:none}
 
-  .rx-list{padding:4px 12px}
-  .rx-item{display:flex;gap:12px;padding:13px 4px;border-bottom:1px solid var(--line)}
+  .rx-list{padding:4px 16px}
+  .rx-item{display:flex; gap:13px; padding:14px 0; border-bottom:1px solid var(--line); align-items:flex-start}
   .rx-item:last-child{border-bottom:none}
-  .rx-priority{flex:none;width:46px;height:fit-content;text-align:center;font-size:10.5px;font-weight:700;padding:3px 0;border-radius:20px}
-  .rx-priority.must{background:#F3D9D9;color:#8F2C2C}
-  .rx-priority.recommend{background:#F3E7CC;color:#8A6008}
-  .rx-body{flex:1;min-width:0}
-  .rx-name{font-size:13.5px;font-weight:700;color:var(--ink)}
-  .rx-cat{font-size:11px;color:var(--ink-faint);font-weight:600;margin-left:6px}
-  .rx-note{font-size:12px;color:var(--ink-soft);margin-top:3px;line-height:1.5}
-  .rx-basis{font-size:11px;color:var(--ink-faint);margin-top:5px;font-family:var(--mono)}
-  .rx-empty{padding:26px;text-align:center;color:var(--ink-soft);font-size:13px}
-
-  .cta-row{display:flex;justify-content:flex-end;padding:12px 14px;border-top:1px solid var(--line)}
-  .btn{font-family:inherit;font-size:13.5px;font-weight:600;border-radius:9px;padding:9px 16px;cursor:pointer;border:1px solid var(--rules);background:var(--rules);color:#fff;white-space:nowrap;transition:.15s;text-decoration:none;display:inline-block}
-  .btn:hover{filter:brightness(.94)}
-
-  .placeholder-note{font-size:12.5px;color:var(--ink-faint);margin-top:14px;display:flex;align-items:center;gap:7px}
-  .placeholder-note svg{width:15px;height:15px;flex:none}
+  .rx-priority{flex:none; width:44px; text-align:center; font-size:10.5px; font-weight:700; padding:3px 0; border-radius:5px}
+  .rx-priority.must{background:var(--danger-bg); color:var(--danger)}
+  .rx-priority.recommend{background:var(--caution-bg); color:var(--caution)}
+  .rx-body{flex:1; min-width:0}
+  .rx-name{font-size:13.5px; font-weight:700}
+  .rx-cat{font-size:11.5px; color:var(--ink-3); font-weight:600; margin-left:7px}
+  .rx-note{font-size:12.5px; color:var(--ink-2); margin-top:3px; line-height:1.6}
+  .rx-basis{font-size:11px; color:var(--ink-3); margin-top:6px; font-family:var(--mono)}
+  .rx-empty{padding:30px; text-align:center; color:var(--ink-2); font-size:13px; line-height:1.7}
 </style>
 </head>
-<body>
-<div class="wrap">
-  <a class="back" href="#" id="backLink">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    진단 결과로 돌아가기
-  </a>
+<body data-step="3">
 
-  <div class="eyebrow">7대 사회재난 다중취약 공간 진단 · AI 맞춤형 안전 솔루션</div>
-  <h1>종합 진단 리포트</h1>
-  <p class="sub">항목별 점수(더미 데이터)를 규칙표에 대입해 "주의·위험" 판정이 나온 분야에 필요한 개선 시설물을 자동으로 처방합니다. 점수 자체는 아직 더미지만, 점수 → 처방으로 이어지는 규칙 엔진은 실제로 작동합니다.</p>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">ATELIER KJ<span>안전사업지구 진단 시뮬레이터</span></div>
+    <nav class="steps" id="steps"></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="page-head">
+    <h1>종합 진단 리포트</h1>
+    <p class="sub">분야별 진단 점수를 표준 규칙표에 대입해, 주의·위험 판정이 나온 분야에 필요한 개선 시설물을 처방합니다. 모든 처방에는 근거가 된 판정과 규칙 번호가 함께 기록됩니다.</p>
+  </div>
 
   <div class="picked" id="picked">
     <span class="dot"></span>
@@ -111,30 +74,37 @@
     <div class="badge" id="summaryBadge">—</div>
   </div>
 
-  <div class="pane" id="inputImagePane" style="display:none">
-    <div class="cap">진단에 사용된 이미지 <span class="tag" id="inputImageTag"></span></div>
+  <div class="panel" id="inputImagePane" style="display:none">
+    <div class="panel-head">
+      <h2>진단에 사용된 이미지</h2>
+      <span class="tag" id="inputImageTag"></span>
+    </div>
     <img class="input-image" id="inputImage" alt="진단 입력 이미지">
   </div>
 
-  <div class="pane">
-    <div class="cap">항목별 점수</div>
+  <div class="panel">
+    <div class="panel-head"><h2>항목별 점수</h2></div>
     <div class="result-list" id="resultList"></div>
   </div>
 
-  <div class="pane">
-    <div class="cap">개선 시설물 처방 <span class="tag">규칙 기반 엔진</span></div>
+  <div class="panel">
+    <div class="panel-head">
+      <h2>개선 시설물 처방</h2>
+      <span class="tag">규칙 기반 엔진</span>
+    </div>
     <div class="rx-list" id="rxList"></div>
-    <div class="cta-row">
-      <a class="btn" href="visualize.html">개선 전/후 시각화 →</a>
+    <div class="panel-foot">
+      <a class="btn accent" href="visualize.html">개선 전/후 시각화</a>
     </div>
   </div>
 
-  <div class="placeholder-note">
+  <p class="note">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-    항목별 점수는 diagnosis.html의 더미 데이터이지만, 처방 로직 자체는 "위험도 → 시설물" 규칙표를 그대로 대입해 만든 실제 규칙 엔진입니다. 표준 단가·시공 근거는 과업4 매뉴얼 완성 후 이 규칙표에 연결될 예정입니다.
-  </div>
-</div>
+    처방은 "위험도 → 시설물" 규칙표를 그대로 대입한 결과이며, 이미지 생성 모델이 시설물을 고르지 않습니다. 표준 단가와 시공 근거는 과업4 매뉴얼 확정 후 이 규칙표에 연결됩니다.
+  </p>
+</main>
 
+<script src="assets/ui.js"></script>
 <script>
 function levelMeta(score) {
   if (score < 34) return { key: 'lv-safe', label: '안전' };
@@ -291,11 +261,9 @@ function renderPrescriptions(results) {
 window.addEventListener('load', function () {
   const loc = sessionStorage.getItem('auri_picked_location');
   const resultsRaw = sessionStorage.getItem('auri_diagnosis_results');
-  document.getElementById('backLink').href = 'diagnosis.html';
 
   if (!loc || !resultsRaw) {
     document.getElementById('pickedAddr').textContent = '진단 데이터가 없습니다. 위치 선택부터 다시 진행해 주세요.';
-    document.getElementById('backLink').href = 'index.html';
     return;
   }
 
@@ -342,3 +310,4 @@ window.addEventListener('load', function () {
 </script>
 </body>
 </html>
+

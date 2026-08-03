@@ -3,115 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>도시공간 안전 진단 — 위치 선택</title>
+<title>안전사업지구 진단 — 위치 선택</title>
 
-<!-- ============================================================ -->
-<!-- [1] 네이버 지도 프로그램을 불러오는 줄                          -->
-<!--   아래 YOUR_NAVER_CLIENT_ID 자리에, 네이버 클라우드 플랫폼에서 -->
-<!--   발급받은 'Client ID' 값을 붙여넣으세요.                      -->
-<!--   · 파라미터 이름은 ncpKeyId 지만, 넣는 값은 Client ID 입니다. -->
-<!--   · submodules=geocoder 는 주소↔좌표 변환 기능을 켜는 것.      -->
-<!--   (카카오 때와 주소·파라미터가 다릅니다: 최신 네이버 방식)      -->
-<!-- ============================================================ -->
+<!-- 네이버 지도. ncpKeyId 자리에 들어가는 값은 Client ID 입니다.
+     지도가 뜨려면 네이버 콘솔의 "Web 서비스 URL"에 이 페이지 주소가 등록돼 있어야 합니다. -->
 <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=ikev3q84lb&submodules=geocoder,panorama"></script>
 
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="assets/ui.css">
 <style>
-  :root{
-    --bg:#E9E7E0; --card:#FBFAF6; --card-2:#FFFFFF;
-    --ink:#23211C; --ink-soft:#6B675E; --ink-faint:#9A968C;
-    --line:#DAD7CE; --line-2:#C7C3B8;
-    --navy:#2C3A47; --navy-soft:#5A6A78;
-    --rules:#2E6B54; --rules-bg:#E2EDE8;
-    --font:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-    --mono:'SFMono-Regular',ui-monospace,Consolas,monospace;
-    --radius:12px;
+  .search-row{display:flex; gap:8px; margin-bottom:14px}
+
+  .layer-chips{display:flex; flex-wrap:wrap; gap:7px}
+  .layer-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 11px; border-radius:20px;
+    border:1px solid var(--line-2); background:var(--surface);
+    font-family:inherit; font-size:12px; font-weight:600; color:var(--ink-2);
+    cursor:pointer; transition:.12s;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.6}
-  .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 64px}
+  .layer-chip:hover{border-color:var(--ink-3)}
+  .layer-chip .dot{width:7px; height:7px; border-radius:50%; flex:none}
+  .layer-chip .cnt{color:var(--ink-3); font-weight:500}
 
-  .eyebrow{font-size:12px;letter-spacing:.14em;color:var(--navy-soft);font-weight:600;text-transform:uppercase}
-  h1{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:6px}
-  .sub{font-size:14px;color:var(--ink-soft);margin-top:8px;max-width:660px}
+  .panes{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px}
+  @media(max-width:860px){.panes{grid-template-columns:1fr}}
+  .panes .panel{margin-bottom:0}
+  #map, #streetview{width:100%; height:440px; background:#E8EBEE; position:relative}
 
-  .search-row{display:flex;gap:9px;margin:22px 0 14px}
-  .search-row input{flex:1;padding:11px 14px;border:1px solid var(--line-2);border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:var(--card-2);color:var(--ink)}
-  .search-row input:focus{border-color:var(--navy-soft)}
-  .btn{font-family:inherit;font-size:14px;font-weight:600;border-radius:9px;padding:11px 18px;cursor:pointer;border:1px solid var(--navy);background:var(--navy);color:#fff;white-space:nowrap;transition:.15s}
-  .btn:hover{background:#1f2a34}
-  .btn.rules{background:var(--rules);border-color:var(--rules)}
-  .btn.rules:hover{filter:brightness(.94)}
-
-  .layer-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:0 0 14px}
-  .layer-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px}
-  .layer-title{font-size:13px;font-weight:700;color:var(--ink)}
-  .layer-head .tag{font-size:10.5px;background:var(--rules-bg);color:var(--rules);padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
-  .layer-chips{display:flex;flex-wrap:wrap;gap:8px}
-  .layer-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:20px;border:1px solid var(--line-2);background:var(--card-2);font-family:inherit;font-size:12px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:.15s}
-  .layer-chip:hover{border-color:var(--navy-soft)}
-  .layer-chip .dot{width:8px;height:8px;border-radius:50%;flex:none}
-  .layer-chip .cnt{color:var(--ink-faint);font-weight:500}
-  .layer-note{font-size:11.5px;color:var(--ink-faint);margin-top:10px;line-height:1.6}
-
-  .panes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media(max-width:800px){.panes{grid-template-columns:1fr}}
-  .pane{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
-  .pane .cap{font-size:12px;font-weight:600;color:var(--ink-soft);padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
-  .pane .cap .tag{font-size:10.5px;background:var(--rules-bg);color:var(--rules);padding:2px 8px;border-radius:20px;font-weight:600}
-  #map,#streetview{width:100%;height:430px;background:#DDE2E6;position:relative}
-
-  .map-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:#EDEBE4}
-  .map-fallback .ic{width:38px;height:38px;color:var(--navy-soft);margin-bottom:12px}
-  .map-fallback .t{font-size:14.5px;font-weight:600;color:var(--ink)}
-  .map-fallback .m{font-size:12.5px;color:var(--ink-soft);margin-top:6px;max-width:380px;line-height:1.6}
-  .map-fallback code{font-family:var(--mono);font-size:11.5px;background:#fff;padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
-
-  .picked{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
-  .picked .dot{width:10px;height:10px;border-radius:50%;background:var(--ink-faint);flex:none}
-  .picked.on .dot{background:var(--rules)}
-  .picked .info{flex:1;min-width:0}
-  .picked .lab{font-size:11px;color:var(--ink-faint);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-  .picked .addr{font-size:14.5px;font-weight:600;color:var(--ink);margin-top:2px}
-  .picked .coord{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-top:2px}
-
-  .hint{font-size:12.5px;color:var(--ink-faint);margin-top:14px;display:flex;align-items:center;gap:7px}
-  .hint svg{width:15px;height:15px;flex:none}
+  .map-fallback{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding:26px;
+    background:var(--surface-2);
+  }
+  .map-fallback svg{width:32px; height:32px; color:var(--ink-3); margin-bottom:12px}
+  .map-fallback .t{font-size:14px; font-weight:600}
+  .map-fallback .m{font-size:12.5px; color:var(--ink-2); margin-top:6px; max-width:400px; line-height:1.65}
 </style>
 </head>
-<body>
-<div class="wrap">
-  <div class="eyebrow">7대 사회재난 다중취약 공간 진단 · AI 맞춤형 안전 솔루션</div>
-  <h1>진단할 위치를 지도에서 선택하세요</h1>
-  <p class="sub">주소를 검색하거나 지도를 직접 클릭해 취약이 의심되는 지점을 찍으면, 그 자리의 스트리트뷰가 오른쪽에 뜨고 이 위치가 진단 파이프라인의 출발점이 됩니다.</p>
+<body data-step="1">
 
-  <div class="search-row">
-    <input id="addr" type="text" placeholder="예: 인천 미추홀구 숭의동" onkeydown="if(event.key==='Enter') searchAddress()">
-    <button class="btn" onclick="searchAddress()">주소 검색</button>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">ATELIER KJ<span>안전사업지구 진단 시뮬레이터</span></div>
+    <nav class="steps" id="steps"></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="page-head">
+    <h1>진단할 위치를 선택합니다</h1>
+    <p class="sub">주소를 검색하거나 지도를 클릭해 취약이 의심되는 지점을 지정하면, 그 자리의 스트리트뷰가 함께 표시되고 이 위치가 진단의 출발점이 됩니다.</p>
   </div>
 
-  <div class="layer-panel">
-    <div class="layer-head">
-      <span class="layer-title">지도 참고 레이어 · 3개년 119 응급신고 이력 (8개 분야)</span>
-      <span class="tag">더미 데이터 — 실제 SHP 수신 후 교체 예정</span>
+  <div class="search-row">
+    <input id="addr" type="text" placeholder="주소 또는 건물명 검색" onkeydown="if(event.key==='Enter') searchAddress()">
+    <button class="btn ghost" onclick="searchAddress()">검색</button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>119 응급신고 이력 참고 레이어</h2>
+      <span class="tag pending">더미 데이터 · 실제 SHP 수신 후 교체</span>
     </div>
-    <div class="layer-chips" id="layerChips"></div>
-    <p class="layer-note">분야를 누르면 해당 유형의 과거 응급신고 발생 지점이 지도 위에 겹쳐 표시됩니다. 여러 분야를 동시에 켤 수 있습니다. (지금은 위치 패턴을 미리 확인하기 위한 가상 좌표이며, 실제 좌표가 아닙니다.)</p>
+    <div class="panel-body">
+      <div class="layer-chips" id="layerChips"></div>
+      <p class="note" style="margin-top:13px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        분야를 누르면 과거 응급신고 발생 지점이 지도 위에 겹쳐 표시됩니다. 여러 분야를 동시에 켤 수 있습니다. 지금 표시되는 좌표는 배치 패턴을 미리 확인하기 위한 가상 값입니다.
+      </p>
+    </div>
   </div>
 
   <div class="panes">
-    <div class="pane">
-      <div class="cap">지도</div>
+    <div class="panel">
+      <div class="panel-head"><h2>지도</h2></div>
       <div id="map">
         <div class="map-fallback" id="mapFallback" style="display:none">
-          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 20l-6-3V4l6 3m0 13l6-3m-6 3V7m6 10l6 3V7l-6-3m0 13V4m0 3L9 4"/></svg>
-          <div class="t">지도를 표시하려면 네이버 키가 필요합니다</div>
-          <div class="m">이 파일 맨 위 <code>YOUR_NAVER_CLIENT_ID</code> 자리에 발급받은 Client ID를 넣고, 네이버 클라우드 콘솔에 이 페이지 주소를 등록하면 지도가 나타납니다. (방법은 아래 안내 참고)</div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 20l-6-3V4l6 3m0 13l6-3m-6 3V7m6 10l6 3V7l-6-3m0 13V4m0 3L9 4"/></svg>
+          <div class="t">지도를 불러오지 못했습니다</div>
+          <div class="m">네이버 클라우드 콘솔의 <b>Web 서비스 URL</b>에 지금 접속한 주소가 등록되어 있어야 지도가 표시됩니다. 등록 직후에는 반영에 몇 분 걸릴 수 있습니다.</div>
         </div>
       </div>
     </div>
-    <div class="pane">
-      <div class="cap">스트리트뷰 <span class="tag">진단 입력 이미지</span></div>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>스트리트뷰</h2>
+        <span class="tag">진단 입력 이미지</span>
+      </div>
       <div id="streetview"></div>
     </div>
   </div>
@@ -123,34 +102,38 @@
       <div class="addr" id="pickedAddr">아직 선택되지 않았습니다</div>
       <div class="coord" id="pickedCoord"></div>
     </div>
-    <button class="btn rules" onclick="startDiagnosis()">이 위치로 진단 시작 →</button>
+    <button class="btn accent" onclick="startDiagnosis()">이 위치로 진단 시작</button>
   </div>
 
-  <div class="hint">
+  <p class="note">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-    지도를 직접 클릭해도 그 지점이 선택되고, 오른쪽 스트리트뷰가 그 위치로 이동합니다.
-  </div>
-</div>
+    지도를 직접 클릭해도 그 지점이 선택되며, 스트리트뷰가 해당 위치로 이동합니다.
+  </p>
+</main>
 
+<script src="assets/ui.js"></script>
 <script>
 let _map, _pano, _marker;
-let picked = null; // { lat, lng, addr }
-const MICHUHOL = { lat: 37.4637, lng: 126.6503 }; // 인천 미추홀구 부근
+let picked = null;                 // { lat, lng, addr }
 
-/* ============================================================ */
-/* [1.5] 119 응급신고 이력 레이어 — 다음 주 실제 SHP를 받기 전까지 */
-/*   쓸 더미(가상) 발생 포인트. 좌표는 미추홀 중심 주변에 임의로   */
-/*   흩뿌린 값이며, 실제 SHP가 오면 이 자리에서 fetch로 바꿔 낀다. */
-/* ============================================================ */
+/* 처음 지도가 열릴 때 보여 줄 위치 — 발주처인 건축공간연구원(AURI).
+   좌표는 아래 주소로 실제 조회해서 씁니다. 조회가 실패할 때만
+   FALLBACK 좌표를 쓰며, 이 값은 대략적인 위치입니다. */
+const START_ADDRESS = '세종특별자치시 가름로 143';
+const START_FALLBACK = { lat: 36.5044, lng: 127.2589 };
+
+/* ── 119 응급신고 이력 레이어 (더미) ─────────────────────────────
+   다음 주 실제 SHP를 받으면 makeDummyIncidentPoints 자리를
+   실제 좌표를 읽는 코드로 바꿉니다. */
 const INCIDENT_CATEGORIES = [
-  { key: 'life',       label: '생활손상·일상사고',        color: '#2a78d6' },
-  { key: 'violence',   label: '폭력상해의심 응급수요',     color: '#eb6834' },
-  { key: 'traffic',    label: '교통사고 응급피해',         color: '#1baf7a' },
-  { key: 'suicide',    label: '자살',                     color: '#eda100' },
-  { key: 'selfharm',   label: '자해·정신건강위기의심',     color: '#e87ba4' },
-  { key: 'industrial', label: '산업활동 관련 응급사고',    color: '#008300' },
-  { key: 'infection',  label: '감염의심 응급수요',         color: '#4a3aa7' },
-  { key: 'fire',       label: '화재관련 인명피해',         color: '#e34948' }
+  { key: 'life',       label: '생활손상·일상사고',      color: '#2a78d6' },
+  { key: 'violence',   label: '폭력상해의심 응급수요',   color: '#eb6834' },
+  { key: 'traffic',    label: '교통사고 응급피해',       color: '#1baf7a' },
+  { key: 'suicide',    label: '자살',                   color: '#eda100' },
+  { key: 'selfharm',   label: '자해·정신건강위기의심',   color: '#e87ba4' },
+  { key: 'industrial', label: '산업활동 관련 응급사고',  color: '#008300' },
+  { key: 'infection',  label: '감염의심 응급수요',       color: '#4a3aa7' },
+  { key: 'fire',       label: '화재관련 인명피해',       color: '#e34948' }
 ];
 let _incidentLayers = {};
 
@@ -173,7 +156,7 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-/* 분야별로 2~3개의 '핫스팟' 주변에 점을 흩뿌려 그럴듯한 군집 패턴을 만든다 */
+/* 분야별로 2~3개의 군집 주변에 점을 흩뿌려 그럴듯한 분포를 만듭니다 */
 function makeDummyIncidentPoints(center, seedKey) {
   const rand = seededRandom(hashSeed(seedKey));
   const clusterCount = 2 + Math.floor(rand() * 2);
@@ -191,17 +174,17 @@ function makeDummyIncidentPoints(center, seedKey) {
   return points;
 }
 
-/* 지도가 준비된 뒤, 분야별 더미 포인트를 원(circle) 오버레이로 만들고 칩 버튼을 그린다 */
-function initIncidentLayers() {
-  const chipContainer = document.getElementById('layerChips');
+function initIncidentLayers(center) {
+  const host = document.getElementById('layerChips');
+  host.innerHTML = '';
   INCIDENT_CATEGORIES.forEach(function (cat) {
-    const points = makeDummyIncidentPoints(MICHUHOL, cat.key);
+    const points = makeDummyIncidentPoints(center, cat.key);
     const circles = points.map(function (p) {
       return new naver.maps.Circle({
         center: new naver.maps.LatLng(p.lat, p.lng),
         radius: 45,
         fillColor: cat.color,
-        fillOpacity: 0.32,
+        fillOpacity: 0.3,
         strokeWeight: 0,
         clickable: false
       });
@@ -213,7 +196,7 @@ function initIncidentLayers() {
     chip.className = 'layer-chip';
     chip.innerHTML = `<span class="dot" style="background:${cat.color}"></span>${cat.label} <span class="cnt">${points.length}건</span>`;
     chip.addEventListener('click', function () { toggleIncidentLayer(cat.key, chip); });
-    chipContainer.appendChild(chip);
+    host.appendChild(chip);
   });
 }
 
@@ -232,45 +215,50 @@ function toggleIncidentLayer(key, chip) {
   }
 }
 
-/* ============================================================ */
-/* [2] 페이지가 열리면 지도 + 스트리트뷰를 그려 넣는 부분          */
-/*   · 카카오는 지도 축척을 level 로 썼지만, 네이버는 zoom 입니다  */
-/*     (숫자가 클수록 더 확대).                                    */
-/*   · 카카오는 Geocoder를 new 해서 썼지만, 네이버는 아래 [3]처럼  */
-/*     naver.maps.Service 를 바로 호출합니다.                      */
-/* ============================================================ */
+/* ── 시작 위치 결정 → 지도·스트리트뷰 띄우기 ──────────────────── */
+
 window.addEventListener('load', function () {
   if (typeof naver === 'undefined' || !naver.maps) {
     document.getElementById('mapFallback').style.display = 'flex';
     return;
   }
-  const center = new naver.maps.LatLng(MICHUHOL.lat, MICHUHOL.lng);
+  resolveStartPoint(function (center) { startMap(center); });
+});
 
-  _map = new naver.maps.Map('map', { center: center, zoom: 16 });
+/* 좌표를 코드에 적어 두지 않고 주소로 조회합니다 (조회 실패 시에만 대략 좌표 사용) */
+function resolveStartPoint(done) {
+  if (!naver.maps.Service) return done(START_FALLBACK);
+  naver.maps.Service.geocode({ query: START_ADDRESS }, function (status, response) {
+    if (status === naver.maps.Service.Status.OK &&
+        response.v2.addresses && response.v2.addresses.length) {
+      const item = response.v2.addresses[0];
+      return done({ lat: Number(item.y), lng: Number(item.x) });
+    }
+    done(START_FALLBACK);
+  });
+}
 
-  /* 스트리트뷰(파노라마): 처음엔 미추홀구 중심을 보여줌 */
+function startMap(center) {
+  const latlng = new naver.maps.LatLng(center.lat, center.lng);
+
+  _map = new naver.maps.Map('map', { center: latlng, zoom: 16 });
   _pano = new naver.maps.Panorama('streetview', {
-    position: center,
+    position: latlng,
     pov: { pan: 0, tilt: 0, fov: 100 }
   });
 
-  /* 지도를 클릭하면 그 자리를 선택 */
-  naver.maps.Event.addListener(_map, 'click', function (e) {
-    selectPoint(e.coord);
-  });
+  naver.maps.Event.addListener(_map, 'click', function (e) { selectPoint(e.coord); });
 
-  initIncidentLayers();
-});
+  initIncidentLayers(center);
+}
 
-/* ============================================================ */
-/* [3] 주소를 입력하면 좌표로 바꿔 그 위치로 옮겨주는 부분          */
-/*   naver.maps.Service.geocode 로 주소 → 좌표 변환             */
-/* ============================================================ */
+/* ── 주소 검색 ─────────────────────────────────────────────────── */
+
 function searchAddress() {
   const addr = document.getElementById('addr').value.trim();
   if (!addr) return;
   if (typeof naver === 'undefined' || !naver.maps || !naver.maps.Service) {
-    alert('지도가 아직 준비되지 않았습니다. 네이버 키를 확인하세요.');
+    alert('지도가 아직 준비되지 않았습니다.');
     return;
   }
   naver.maps.Service.geocode({ query: addr }, function (status, response) {
@@ -284,44 +272,40 @@ function searchAddress() {
   });
 }
 
-/* 한 지점을 선택 = 핀 꽂기 + 스트리트뷰 이동 + 좌표/주소 표시 */
+/* 한 지점 선택 = 핀 + 스트리트뷰 이동 + 주소 표시 */
 function selectPoint(latlng, knownAddr) {
   if (_marker) _marker.setMap(null);
   _marker = new naver.maps.Marker({ position: latlng, map: _map });
-
-  /* 스트리트뷰를 이 위치로 이동 (그 지점 거리 사진 표시) */
   if (_pano) _pano.setPosition(latlng);
 
   const lat = latlng.lat().toFixed(6);
   const lng = latlng.lng().toFixed(6);
-  picked = { lat, lng, addr: knownAddr || '' };
+  picked = { lat: lat, lng: lng, addr: knownAddr || '' };
 
   document.getElementById('picked').classList.add('on');
   document.getElementById('pickedCoord').textContent = `위도 ${lat}, 경도 ${lng}`;
 
   if (knownAddr) {
     document.getElementById('pickedAddr').textContent = knownAddr;
-  } else {
-    /* 좌표 → 주소 (클릭으로 찍었을 때) */
-    naver.maps.Service.reverseGeocode({
-      coords: latlng,
-      orders: [naver.maps.Service.OrderType.ROAD_ADDR, naver.maps.Service.OrderType.ADDR].join(',')
-    }, function (status, response) {
-      if (status !== naver.maps.Service.Status.OK) {
-        document.getElementById('pickedAddr').textContent = '주소 미상 (좌표로 진행)';
-        return;
-      }
-      const addr = response.v2.address;
-      const name = addr.roadAddress || addr.jibunAddress || '주소 미상';
-      picked.addr = name;
-      document.getElementById('pickedAddr').textContent = name;
-    });
+    return;
   }
+  naver.maps.Service.reverseGeocode({
+    coords: latlng,
+    orders: [naver.maps.Service.OrderType.ROAD_ADDR, naver.maps.Service.OrderType.ADDR].join(',')
+  }, function (status, response) {
+    if (status !== naver.maps.Service.Status.OK) {
+      document.getElementById('pickedAddr').textContent = '주소 미상 (좌표로 진행)';
+      return;
+    }
+    const a = response.v2.address;
+    const name = a.roadAddress || a.jibunAddress || '주소 미상';
+    picked.addr = name;
+    document.getElementById('pickedAddr').textContent = name;
+  });
 }
 
-/* "이 위치로 진단 시작" — 선택된 좌표/주소를 저장하고 진단 페이지로 이동 */
 function startDiagnosis() {
-  if (!picked) { alert('먼저 지도에서 위치를 선택하세요.'); return; }
+  if (!picked) { alert('먼저 지도에서 위치를 선택해 주세요.'); return; }
   sessionStorage.setItem('auri_picked_location', JSON.stringify(picked));
   window.location.href = 'diagnosis.html';
 }
