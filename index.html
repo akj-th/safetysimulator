@@ -65,7 +65,7 @@
       <div class="layer-chips" id="layerChips"></div>
       <p class="note" style="margin-top:13px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-        분야를 누르면 과거 응급신고 발생 지점이 지도 위에 겹쳐 표시됩니다. 여러 분야를 동시에 켤 수 있습니다. 원은 100×100m 격자 단위 누적 건수이며, 건수가 많을수록 크게 표시됩니다. 개인정보 항목은 제외된 집계값입니다.
+        분야를 누르면 과거 응급신고 발생 지점이 지도 위에 겹쳐 표시됩니다. 여러 분야를 동시에 켤 수 있습니다. 점 하나가 신고 1건의 실제 발생 지점입니다. 확대할수록 크게 표시되며, 개인정보 항목은 모두 제외되어 있습니다.
       </p>
     </div>
   </div>
@@ -181,11 +181,88 @@ async function loadIncidents(lat, lng) {
   }
 }
 
+/* 발생 지점을 캔버스에 직접 그리는 레이어.
+   울산처럼 지점이 3만 개가 넘는 지역이 있어, 지도 원(Circle) 객체를
+   지점마다 만들면 브라우저가 멈춥니다. 한 장의 캔버스에 한 번에 그립니다. */
+let IncidentLayer = null;
+
+function defineIncidentLayer() {
+  if (IncidentLayer) return;
+
+  IncidentLayer = function (points, color) {
+    this.color = color;
+    this.pts = points;
+    this.coords = points.map(function (p) { return new naver.maps.LatLng(p[0], p[1]); });
+    this.canvas = null;
+  };
+  IncidentLayer.prototype = new naver.maps.OverlayView();
+  IncidentLayer.prototype.constructor = IncidentLayer;
+
+  IncidentLayer.prototype.onAdd = function () {
+    const c = document.createElement('canvas');
+    c.style.position = 'absolute';
+    c.style.pointerEvents = 'none';   // 지도 클릭을 막지 않도록
+    this.canvas = c;
+    this.getPanes().overlayLayer.appendChild(c);
+  };
+
+  IncidentLayer.prototype.draw = function () {
+    const map = this.getMap();
+    if (!map || !this.canvas) return;
+
+    const proj = this.getProjection();
+    const size = map.getSize();
+    const bounds = map.getBounds();
+    const sw = bounds.getSW(), ne = bounds.getNE();
+
+    /* 캔버스를 지금 보이는 화면에 맞춰 놓습니다 */
+    const nw = new naver.maps.LatLng(ne.lat(), sw.lng());
+    const origin = proj.fromCoordToOffset(nw);
+    const cv = this.canvas;
+    cv.width = size.width;
+    cv.height = size.height;
+    cv.style.left = origin.x + 'px';
+    cv.style.top = origin.y + 'px';
+
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, cv.width, cv.height);
+
+    /* 확대할수록 점을 키우고 진하게 — 멀리서는 분포가, 가까이서는 개별 지점이 보이도록 */
+    const z = map.getZoom();
+    const base = Math.max(1.6, Math.min(7, Math.pow(1.45, z - 15) * 2.8));
+    const alpha = z >= 17 ? 0.62 : z >= 15 ? 0.52 : 0.44;
+    ctx.fillStyle = hexToRgba(this.color, alpha);
+
+    /* 화면 밖 지점은 좌표 변환도 하지 않고 건너뜁니다 */
+    const padLat = (ne.lat() - sw.lat()) * 0.05;
+    const padLng = (ne.lng() - sw.lng()) * 0.05;
+    const minLat = sw.lat() - padLat, maxLat = ne.lat() + padLat;
+    const minLng = sw.lng() - padLng, maxLng = ne.lng() + padLng;
+
+    for (let i = 0; i < this.pts.length; i++) {
+      const p = this.pts[i];
+      if (p[0] < minLat || p[0] > maxLat || p[1] < minLng || p[1] > maxLng) continue;
+
+      const o = proj.fromCoordToOffset(this.coords[i]);
+      /* 같은 좌표에 여러 건이면 조금 더 크게 */
+      const r = base * (1 + Math.min(0.7, (p[2] - 1) * 0.18));
+      ctx.beginPath();
+      ctx.arc(o.x - origin.x, o.y - origin.y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+
+  IncidentLayer.prototype.onRemove = function () {
+    if (this.canvas && this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas);
+    this.canvas = null;
+  };
+}
+
 function buildIncidentLayers(data) {
-  /* 이전 지역 원들을 지도에서 걷어냅니다 */
-  Object.values(_incidentLayers).forEach(function (l) {
-    l.circles.forEach(function (c) { c.setMap(null); });
-  });
+  defineIncidentLayer();
+
+  /* 이전 지역 레이어를 걷어냅니다 */
+  Object.values(_incidentLayers).forEach(function (l) { l.layer.setMap(null); });
   _incidentLayers = {};
 
   const host = document.getElementById('layerChips');
@@ -195,18 +272,11 @@ function buildIncidentLayers(data) {
     const set = data.categories[cat.key];
     if (!set || !set.points.length) return;
 
-    const circles = set.points.map(function (p) {
-      const lat = p[0], lng = p[1], n = p[2];
-      return new naver.maps.Circle({
-        center: new naver.maps.LatLng(lat, lng),
-        radius: Math.min(120, 28 + Math.sqrt(n) * 16),   // 건수가 많을수록 크게
-        fillColor: cat.color,
-        fillOpacity: Math.min(0.55, 0.22 + n * 0.05),
-        strokeWeight: 0,
-        clickable: false,
-      });
-    });
-    _incidentLayers[cat.key] = { def: cat, circles: circles, active: false };
+    _incidentLayers[cat.key] = {
+      def: cat,
+      layer: new IncidentLayer(set.points, cat.color),
+      active: false,
+    };
 
     const chip = document.createElement('button');
     chip.type = 'button';
@@ -219,12 +289,13 @@ function buildIncidentLayers(data) {
 }
 
 function toggleIncidentLayer(key, chip) {
-  const layer = _incidentLayers[key];
-  layer.active = !layer.active;
-  layer.circles.forEach(function (c) { c.setMap(layer.active ? _map : null); });
-  if (layer.active) {
-    chip.style.borderColor = layer.def.color;
-    chip.style.background = hexToRgba(layer.def.color, 0.12);
+  const entry = _incidentLayers[key];
+  entry.active = !entry.active;
+  entry.layer.setMap(entry.active ? _map : null);
+
+  if (entry.active) {
+    chip.style.borderColor = entry.def.color;
+    chip.style.background = hexToRgba(entry.def.color, 0.12);
     chip.style.color = 'var(--ink)';
   } else {
     chip.style.borderColor = '';
@@ -330,5 +401,6 @@ function startDiagnosis() {
 </script>
 </body>
 </html>
+
 
 

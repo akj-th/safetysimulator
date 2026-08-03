@@ -1,22 +1,17 @@
-/* ════════════════════════════════════════════════════════════════════
+﻿/* ════════════════════════════════════════════════════════════════════
    119 응급신고 SHP → 앱이 읽는 격자 집계 JSON
 
    실행:  node tools/convert-gis.js
 
    ── 무엇을 하는가 ──────────────────────────────────────────────────
    data/raw/points/*.shp 에서 **좌표와 사건분류 2가지만** 꺼내
-   100×100m 격자 단위 발생 건수로 집계한 뒤 data/incidents/ 에 저장합니다.
+   지역별 JSON으로 저장합니다. 발생 지점은 원본 좌표 그대로 씁니다.
 
    ── 개인정보를 다루지 않는다 ───────────────────────────────────────
    원본 속성표(.dbf)에는 신고일시·환자연령·성별·상병·지번주소 등
    98개 항목이 들어 있지만, 이 스크립트는 그중 **분류코드 한 칸만**
    읽습니다. 나머지 항목은 파일에서 꺼내지도 않으므로 결과물에
    개인정보가 남을 수 없습니다.
-
-   ── 왜 격자로 묶는가 ───────────────────────────────────────────────
-   · 개별 신고 지점이 드러나지 않습니다 (집계값만 남음)
-   · 시행계획서의 진단 단위(100×100m 격자)와 같은 기준이 됩니다
-   · 6.3GB → 수 MB 로 줄어 지도가 가벼워집니다
    ════════════════════════════════════════════════════════════════════ */
 
 import fs from 'node:fs';
@@ -28,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const RAW_DIR = path.resolve(HERE, '../data/raw/points');
 const OUT_DIR = path.resolve(HERE, '../data/incidents');
 
-const CELL_SIZE = 100;   // 격자 한 칸 = 100m
+/* 지점은 원본 좌표 그대로 씁니다 (격자로 뭉개지 않음) */
 
 /* 원본 좌표계: EPSG:5186 (Korea 2000 / 중부원점) — .prj 파일에서 확인한 값 */
 const EPSG5186 = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
@@ -141,33 +136,31 @@ function convertRegion(slug) {
     if (!key) key = CATEGORY_BY_KOREAN[dbf.read(i, '안전유')];
     if (!key) { skipped++; continue; }   // 분류가 비어 있는 건은 제외
 
-    const cx = Math.floor(p.x / CELL_SIZE);
-    const cy = Math.floor(p.y / CELL_SIZE);
-    const gk = `${key}|${cx}|${cy}`;
+    /* 발생 지점을 그대로 씁니다. 완전히 같은 좌표(같은 건물 등)만
+       한 점으로 합치고 건수를 함께 들고 갑니다 — 같은 픽셀을 여러 번
+       그리는 낭비를 없애기 위한 것이며, 위치를 뭉개지는 않습니다. */
+    const gk = `${key}|${p.x.toFixed(1)}|${p.y.toFixed(1)}`;
     grid[gk] = (grid[gk] || 0) + 1;
   }
   dbf.close();
 
-  /* 격자 중심점을 위경도로 바꿔 담습니다 */
+  /* 각 지점을 위경도로 바꿔 담습니다 */
   const categories = {};
   for (const gk in grid) {
-    const [key, cx, cy] = gk.split('|');
-    const mx = (Number(cx) + 0.5) * CELL_SIZE;
-    const my = (Number(cy) + 0.5) * CELL_SIZE;
-    const [lng, lat] = proj4(EPSG5186, WGS84, [mx, my]);
+    const [key, sx, sy] = gk.split('|');
+    const [lng, lat] = proj4(EPSG5186, WGS84, [Number(sx), Number(sy)]);
 
     if (!categories[key]) categories[key] = { label: CATEGORY_LABEL[key], total: 0, points: [] };
     categories[key].total += grid[gk];
-    categories[key].points.push([Number(lat.toFixed(5)), Number(lng.toFixed(5)), grid[gk]]);
+    categories[key].points.push([Number(lat.toFixed(6)), Number(lng.toFixed(6)), grid[gk]]);
   }
 
   const label = [...regionNames.entries()].sort(function (a, b) { return b[1] - a[1]; })[0];
   return {
     region: slug.replace(/_p$/, ''),
     label: label ? label[0] : null,      // 못 찾으면 null — 나중에 직접 채웁니다
-    cellSize: CELL_SIZE,
     unit: '건',
-    source: '119 응급신고 이력 (AURI 제공) · 개인정보 항목 제외, 100m 격자 집계',
+    source: '119 응급신고 이력 (AURI 제공) · 개인정보 항목 제외',
     totalRecords: count,
     skipped,
     categories,
@@ -209,12 +202,11 @@ for (const file of files) {
   });
 
   const kb = Math.round(fs.statSync(outPath).size / 1024);
-  console.log(`${String(total).padStart(7)}건 → 격자 ${String(cells).padStart(6)}칸  ${String(kb).padStart(5)}KB` +
+  console.log(`${String(total).padStart(7)}건 → 지점 ${String(cells).padStart(6)}개  ${String(kb).padStart(5)}KB` +
               (data.skipped ? `  (분류없음 ${data.skipped}건 제외)` : ''));
 }
 
 fs.writeFileSync(path.join(OUT_DIR, 'index.json'), JSON.stringify({
-  cellSize: CELL_SIZE,
   categories: CATEGORY_LABEL,
   regions: index.sort(function (a, b) { return b.total - a.total; }),
 }, null, 2));
@@ -228,3 +220,4 @@ if (unnamed.length) {
   console.log(`\n지역 이름을 원본에서 찾지 못한 곳 ${unnamed.length}개 (index.json에서 직접 채워야 합니다):`);
   console.log('  ' + unnamed.map(function (r) { return r.region; }).join(', '));
 }
+
