@@ -3,6 +3,21 @@
 *.env
 !.env.example
 
+# ★ AURI에서 받은 119 응급신고 원본 GIS 자료 — 외부 유출 불가
+#   시행계획서: "외부 유출 불가한 지자체 내부 보안 환경 전제"
+#   한 번 push되면 커밋 기록에 영구히 남으므로 통째로 차단합니다.
+data/raw/
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.sbn
+*.sbx
+*.tif
+*.tiff
+*.gpkg
+
 # 설치된 라이브러리 (npm install 로 언제든 다시 받을 수 있음)
 node_modules/
 
