@@ -62,11 +62,20 @@ body{
   display:flex; align-items:center; gap:32px;
   flex-wrap:wrap;
 }
+/* 로고 — assets/logo.svg (없으면 logo.png, 그것도 없으면 글자)
+   크기를 바꾸려면 아래 --logo-h 값만 고치면 됩니다. */
 .brand{
-  font-size:12.5px; font-weight:700; color:var(--ink);
-  padding:16px 0; white-space:nowrap;
+  display:flex; align-items:center; gap:10px;
+  padding:14px 0; white-space:nowrap;
+  text-decoration:none; color:var(--ink);
 }
-.brand span{color:var(--ink-3); font-weight:500; margin-left:7px}
+.brand-logo{height:var(--logo-h,22px); width:auto; display:block}
+.brand-text{font-size:12.5px; font-weight:700; letter-spacing:.01em}
+.brand-sub{
+  font-size:12.5px; color:var(--ink-3); font-weight:500;
+  padding-left:10px; border-left:1px solid var(--line);
+}
+@media(max-width:520px){ .brand-sub{display:none} }
 
 /* 단계 네비게이션 — 모든 화면에서 전체 단계가 보이고 이동 가능 */
 .steps{display:flex; align-items:stretch; gap:2px; margin-left:auto; flex-wrap:wrap}

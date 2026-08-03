@@ -60,4 +60,40 @@ function auriRenderSteps() {
   }).join('');
 }
 
-document.addEventListener('DOMContentLoaded', auriRenderSteps);
+/* 상단 바(로고 + 단계)를 그립니다.
+   각 화면에는 <header class="topbar" id="topbar"></header> 만 두면 됩니다.
+
+   로고는 assets/logo.svg 를 먼저 찾고, 없으면 assets/logo.png,
+   그것도 없으면 글자 로고로 자동 대체됩니다. */
+const AURI_BRAND_TEXT = 'ATELIER KJ';
+const AURI_BRAND_SUB = '안전사업지구 진단 시뮬레이터';
+
+function auriRenderTopbar() {
+  const host = document.getElementById('topbar');
+  if (!host) return;
+
+  host.innerHTML =
+    '<div class="topbar-inner">' +
+      '<a class="brand" href="index.html">' +
+        `<img class="brand-logo" src="assets/logo.svg" alt="${AURI_BRAND_TEXT}">` +
+        `<span class="brand-sub">${AURI_BRAND_SUB}</span>` +
+      '</a>' +
+      '<nav class="steps" id="steps"></nav>' +
+    '</div>';
+
+  const logo = host.querySelector('.brand-logo');
+  let tried = 0;
+  logo.addEventListener('error', function () {
+    tried++;
+    if (tried === 1) { logo.src = 'assets/logo.png'; return; }
+    const text = document.createElement('span');
+    text.className = 'brand-text';
+    text.textContent = AURI_BRAND_TEXT;
+    logo.replaceWith(text);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  auriRenderTopbar();
+  auriRenderSteps();
+});
