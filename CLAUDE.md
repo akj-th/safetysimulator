@@ -107,23 +107,44 @@
 | 단계 | 파일 | 상태 |
 |---|---|---|
 | 1. 입력 | `index.html` | **실제 작동** — 네이버 지도(NCP)로 지점 선택, 119 신고 참고 레이어 |
-| 2. 진단 | `diagnosis.html` | 껍데기 — 스트리트뷰 캡처·사진 업로드는 실제 작동, **점수는 더미**(좌표 시드 기반) |
+| 2. 진단 | `diagnosis.html` + `server/` | **실제 작동** — 캡처·업로드한 사진을 AI가 체크리스트로 판독. 서버가 꺼져 있으면 더미 점수로 자동 대체 |
 | 3. 처방 | `report.html` | **실제 작동** — 7대 분야 규칙표를 대입하는 결정론적 규칙 엔진 |
 | 4. 시각화 | `visualize.html` | 껍데기 — 개선 전 이미지만 표시, **개선 후 렌더링 미연결** |
 | 5. 진단서 | `document.html` | 껍데기 — 서식 3종 구조·표는 실제 데이터로 채워짐, **서술 문장 미생성** |
 
+### AI 진단 구조 (2단계)
+
+```
+브라우저(diagnosis.html)  →  중계 서버(server/)  →  AI
+                                ↑ API 키는 여기에만 보관
+```
+
+- **`server/checklist.js`** — 7대 분야별 "사진에서 무엇을 볼 것인가" 목록. **이 프로젝트에서 가장 중요한 파일**이며, 담당자가 계속 고쳐 나갑니다. 이 파일을 고치면 진단 기준이 바뀝니다.
+- **`server/server.js`** — 화면 파일을 띄워 주고, 사진을 AI에 넘겨 점수표를 받습니다.
+- AI는 점수뿐 아니라 **판독 근거(`observed`)와 확인 불가 항목(`notVisible`)**을 함께 돌려줍니다. "사진 → 판독 → 점수 → 시설물 → 예산"을 역추적하기 위한 것입니다.
+- 출력 형식(JSON)은 스키마로 강제하므로 형식이 어긋날 수 없습니다.
+- **폐쇄망 전환**: `server.js`의 `callAI()` 함수 안쪽만 로컬 sLLM 호출로 바꾸면 됩니다. **화면(HTML)은 수정 불필요.**
+
+**실행 방법**
+1. Node.js 설치 (20.6 이상) — https://nodejs.org
+2. `server/.env.example`을 `.env`로 복사하고 API 키 입력 (`.env`는 .gitignore로 차단됨)
+3. `cd server` → `npm install @anthropic-ai/sdk` → `npm start`
+4. 브라우저에서 **http://localhost:8787** 접속 (GitHub Pages 주소가 아님)
+
 **sessionStorage 키**
 - `auri_picked_location` — 선택 지점 `{addr, lat, lng}`
 - `auri_input_image` — 진단 입력 이미지 `{dataUrl, source}`
-- `auri_diagnosis_results` — 분야별 점수 `[{key, name, score, level}]`
+- `auri_diagnosis_results` — 분야별 점수 `[{key, name, score, level, observed?, notVisible?, confidence?}]`
+  ※ `observed` 이하는 AI 진단일 때만 있습니다(더미 점수에는 없음).
 - `auri_prescriptions` — 확정 시설물 `[{id, name, note, category, score, levelLabel, priority}]`
   ※ 규칙 엔진은 3단계에서 **한 번만** 돌리고 4·5단계는 그 결과를 그대로 받습니다. 단계마다 다시 계산하면 처방이 달라져 감사 추적이 깨집니다.
 
 **다음 작업 (우선순위 순)**
-1. **4단계 렌더링 품질 검증** ← 가장 위험한 가정. 결과가 나쁘면 구조가 바뀌므로 다른 세부작업보다 먼저.
-2. 2단계 진단을 실제 AI로 교체 (지금은 더미 점수).
-3. 규칙표에 표준단가 필드 추가 → 5단계 예산 산출 자동화 (과업4 매뉴얼 확정 후).
-4. 5단계 서술 문장 sLLM 연결 (과업3).
+1. **AI 진단 정확도 검증** — 미추홀구 사진 5~10장으로 "사람이 본 것과 AI가 본 것"이 맞는지 확인하고 `checklist.js` 보정.
+2. **4단계 렌더링 품질 검증** ← 가장 위험한 가정. 결과가 나쁘면 구조가 바뀌므로 다른 세부작업보다 먼저.
+3. 판독 근거(`observed`)를 3·5단계 문서에도 표시 — 처방 근거를 사진까지 역추적 가능하게.
+4. 규칙표에 표준단가 필드 추가 → 5단계 예산 산출 자동화 (과업4 매뉴얼 확정 후).
+5. 5단계 서술 문장 sLLM 연결 (과업3).
 
 ---
 

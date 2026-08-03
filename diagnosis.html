@@ -59,8 +59,12 @@
   .capture-error .btn-sm{margin-top:8px;border-color:var(--rules);color:var(--rules);background:var(--card-2)}
 
   .result-list{padding:12px}
-  .result-item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid var(--line)}
+  .result-item{padding:9px 8px;border-bottom:1px solid var(--line)}
   .result-item:last-child{border-bottom:none}
+  .result-row{display:flex;align-items:center;gap:10px}
+  /* AI가 사진에서 실제로 확인한 것 — 점수의 근거 */
+  .result-why{margin-top:5px;font-size:11.5px;color:var(--ink-soft);line-height:1.5}
+  .result-why .dim{color:var(--ink-faint)}
   .result-item .name{width:104px;flex:none;font-size:12.5px;font-weight:600;color:var(--ink)}
   .result-item .bar{flex:1;height:7px;border-radius:20px;background:var(--line);overflow:hidden}
   .result-item .bar-fill{height:100%;border-radius:20px}
@@ -89,7 +93,7 @@
 
   <div class="eyebrow">7대 사회재난 다중취약 공간 진단 · AI 맞춤형 안전 솔루션</div>
   <h1>선택한 위치의 진단 결과</h1>
-  <p class="sub">아래 항목별 점수는 실제 AI 분석이 연결되기 전까지 사용하는 임의(더미) 데이터입니다. 다음 단계 화면들을 이어서 만들 수 있도록 우선 채워 두었습니다.</p>
+  <p class="sub">스트리트뷰를 캡처하거나 사진을 업로드하면, AI가 7대 사회재난 체크리스트에 따라 그 사진을 판독해 분야별 점수를 매깁니다. 점수 아래에는 "사진에서 무엇을 보고 그렇게 판단했는지"가 함께 표시됩니다.</p>
 
   <div class="picked" id="picked">
     <span class="dot"></span>
@@ -121,7 +125,7 @@
       </div>
     </div>
     <div class="pane">
-      <div class="cap">AI 진단 결과 <span class="tag">더미 데이터</span></div>
+      <div class="cap">AI 진단 결과 <span class="tag" id="resultTag">대기 중</span></div>
       <div class="result-list" id="resultList"></div>
       <div class="cta-row">
         <a class="btn" href="report.html">종합 리포트 보기 →</a>
@@ -131,7 +135,7 @@
 
   <div class="placeholder-note">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-    항목별 점수·수준은 위치 좌표를 기반으로 만든 샘플 값이며, 실제 AI 진단 로직은 이후 단계에서 이 자리에 연결됩니다.
+    AI는 사진에 실제로 보이는 것만으로 판단하며, 확인할 수 없는 항목은 추측하지 않습니다. 판독 기준은 server/checklist.js에 정리되어 있고, 그 파일을 고치면 진단 기준이 바뀝니다.
   </div>
 </div>
 
@@ -220,6 +224,9 @@ function setInputImage(dataUrl, source) {
   document.getElementById('captureText').textContent =
     source === 'capture' ? '현재 화면이 진단 입력 이미지로 저장되었습니다.' : '업로드한 사진이 진단 입력 이미지로 저장되었습니다.';
   document.getElementById('captureStatus').classList.add('on');
+
+  /* 사진이 확보된 순간이 곧 진단 시작 시점입니다 */
+  runDiagnosis(dataUrl);
 }
 
 function clearInputImage() {
@@ -271,25 +278,98 @@ function levelOf(score) {
   return { key: 'lv-danger', label: '위험' };
 }
 
-function renderDummyResults(picked) {
-  const rand = seededRandom(hashSeed(`${picked.lat},${picked.lng}`));
-  const list = document.getElementById('resultList');
-  const results = CATEGORIES.map(function (cat) {
-    const score = Math.round(rand() * 100);
-    const lv = levelOf(score);
-    return { key: cat.key, name: cat.label, score: score, level: lv };
-  });
+/* 화면 위쪽 꼬리표 — 지금 보고 있는 점수가 무엇인지 알려 줍니다 */
+function setTag(text) {
+  document.getElementById('resultTag').textContent = text;
+}
 
-  list.innerHTML = results.map(function (r) {
+/* 점수표를 화면에 그리고, 다음 단계로 넘길 수 있게 저장합니다.
+   AI 결과든 더미든 이 함수 하나만 씁니다. */
+function renderResults(results) {
+  document.getElementById('resultList').innerHTML = results.map(function (r) {
+    /* 판독 근거: AI가 사진에서 실제로 본 것. 더미 점수에는 없습니다. */
+    let why = '';
+    if (r.observed && r.observed.length) {
+      why = `<div class="result-why">${r.observed.join(' · ')}` +
+            (r.confidence === 'low' ? ' <span class="dim">(확인 가능한 항목이 적어 신뢰도 낮음)</span>' : '') +
+            `</div>`;
+    }
     return `
       <div class="result-item ${r.level.key}">
-        <span class="name">${r.name}</span>
-        <span class="bar"><span class="bar-fill" style="width:${r.score}%"></span></span>
-        <span class="badge">${r.level.label}</span>
+        <div class="result-row">
+          <span class="name">${r.name}</span>
+          <span class="bar"><span class="bar-fill" style="width:${r.score}%"></span></span>
+          <span class="badge">${r.level.label}</span>
+        </div>
+        ${why}
       </div>`;
   }).join('');
 
   sessionStorage.setItem('auri_diagnosis_results', JSON.stringify(results));
+}
+
+/* AI가 아직 연결되지 않았을 때 쓰는 임시 점수 (좌표 기반, 재방문 시 동일) */
+function buildDummyResults(picked) {
+  const rand = seededRandom(hashSeed(`${picked.lat},${picked.lng}`));
+  return CATEGORIES.map(function (cat) {
+    const score = Math.round(rand() * 100);
+    return { key: cat.key, name: cat.label, score: score, level: levelOf(score) };
+  });
+}
+
+/* ── 실제 AI 진단 ────────────────────────────────────────────────────
+   캡처하거나 업로드한 사진을 중계 서버로 보내고 점수표를 받아옵니다.
+   서버가 꺼져 있으면 더미 점수로 되돌아가므로 흐름은 끊기지 않습니다. */
+let _diagnosing = false;
+
+async function runDiagnosis(dataUrl) {
+  if (_diagnosing) return;
+  _diagnosing = true;
+  setTag('판독 중…');
+  document.getElementById('resultList').innerHTML =
+    '<div style="padding:22px;text-align:center;font-size:12.5px;color:var(--ink-soft)">' +
+    'AI가 사진을 판독하고 있습니다. 20초 정도 걸립니다…</div>';
+
+  try {
+    const res = await fetch('/api/diagnose', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageDataUrl: dataUrl }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '서버 오류');
+
+    const results = CATEGORIES.map(function (cat) {
+      const c = data.categories[cat.key];
+      return {
+        key: cat.key,
+        name: cat.label,
+        score: c.score,
+        level: levelOf(c.score),
+        observed: c.observed,
+        notVisible: c.notVisible,
+        confidence: c.confidence,
+      };
+    });
+
+    renderResults(results);
+    setTag(data.imageQuality === 'unusable' ? 'AI 판독 · 이미지 부적합' : 'AI 판독 결과');
+    if (data.imageQuality === 'unusable') {
+      showCaptureError('이 사진은 거리 이미지로 판독하기 어렵습니다. 다른 각도로 다시 캡처해 주세요.');
+    }
+  } catch (err) {
+    /* 서버가 꺼져 있는 경우가 대부분입니다 — 흐름이 끊기지 않도록 더미로 되돌립니다 */
+    const raw = sessionStorage.getItem('auri_picked_location');
+    if (raw) renderResults(buildDummyResults(JSON.parse(raw)));
+    setTag('더미 데이터');
+    showCaptureError(
+      'AI 진단 서버에 연결하지 못해 임시 점수를 표시했습니다. ' +
+      'server 폴더에서 npm start 로 서버를 켠 뒤 http://localhost:8787 로 접속해 주세요. ' +
+      '(' + err.message + ')'
+    );
+  } finally {
+    _diagnosing = false;
+  }
 }
 
 window.addEventListener('load', function () {
@@ -303,7 +383,10 @@ window.addEventListener('load', function () {
   document.getElementById('pickedAddr').textContent = picked.addr || '주소 미상';
   document.getElementById('pickedCoord').textContent = `위도 ${picked.lat}, 경도 ${picked.lng}`;
 
-  renderDummyResults(picked);
+  /* 사진을 찍기 전까지는 임시 점수를 보여 줍니다.
+     캡처·업로드하는 순간 setInputImage()가 실제 AI 진단을 실행합니다. */
+  renderResults(buildDummyResults(picked));
+  setTag('더미 데이터 · 사진을 캡처하면 AI가 판독합니다');
 
   if (typeof naver === 'undefined' || !naver.maps) return;
   const position = new naver.maps.LatLng(Number(picked.lat), Number(picked.lng));

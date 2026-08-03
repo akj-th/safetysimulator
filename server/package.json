@@ -1,0 +1,10 @@
+{
+  "name": "auri-diagnosis-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AI 안전진단 중계 서버 — API 키를 감추고 거리 이미지를 판독합니다",
+  "scripts": {
+    "start": "node --env-file=.env server.js"
+  }
+}
