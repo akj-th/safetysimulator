@@ -336,6 +336,11 @@ async function runDiagnosis(dataUrl) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ imageDataUrl: dataUrl }),
     });
+    /* 진단 서버가 아닌 곳(GitHub Pages, 파일 직접 열기 등)에서 열면
+       JSON 대신 HTML 404 페이지가 돌아옵니다. 그걸 먼저 걸러 냅니다. */
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) throw new Error('WRONG_ADDRESS');
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || '서버 오류');
 
@@ -362,10 +367,18 @@ async function runDiagnosis(dataUrl) {
     const raw = sessionStorage.getItem('auri_picked_location');
     if (raw) renderResults(buildDummyResults(JSON.parse(raw)));
     setTag('더미 데이터');
+
+    /* 원인이 둘로 나뉘므로 안내도 나눕니다.
+       ① 주소가 틀림(서버 아닌 곳에서 열림)  ② 주소는 맞는데 서버가 꺼져 있음 */
+    const wrongAddress = err.message === 'WRONG_ADDRESS' || location.protocol === 'file:';
     showCaptureError(
-      'AI 진단 서버에 연결하지 못해 임시 점수를 표시했습니다. ' +
-      'server 폴더에서 npm start 로 서버를 켠 뒤 http://localhost:8787 로 접속해 주세요. ' +
-      '(' + err.message + ')'
+      wrongAddress
+        ? '이 페이지는 진단 서버가 아닌 곳에서 열렸습니다' +
+          (location.protocol === 'file:' ? ' (파일을 직접 열기)' : ` (${location.origin})`) +
+          '. AI 진단을 쓰려면 server 폴더에서 npm start 로 서버를 켠 뒤, ' +
+          '주소창에 http://localhost:8787 을 입력해 다시 접속해 주세요. 지금은 임시 점수를 표시합니다.'
+        : 'AI 진단 서버가 응답하지 않아 임시 점수를 표시했습니다. ' +
+          'server 폴더에서 npm start 가 실행 중인지 확인해 주세요. (' + err.message + ')'
     );
   } finally {
     _diagnosing = false;
