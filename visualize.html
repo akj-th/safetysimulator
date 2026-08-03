@@ -77,6 +77,11 @@
     <div class="rx-list" id="rxList"></div>
     <div class="panel-foot">
       <button class="btn ghost sm" id="rxAddBtn" style="display:none" onclick="AuriRx.add()">＋ 항목 추가</button>
+      <select id="modelSel" style="width:auto; flex:none" title="같은 사진으로 모델을 바꿔가며 비교해 보세요">
+        <option value="gemini-3-pro-image">Gemini 3 Pro · 고성능</option>
+        <option value="gemini-3.1-flash-image">Gemini 3.1 Flash · 빠름</option>
+        <option value="gemini-2.5-flash-image">Gemini 2.5 Flash</option>
+      </select>
       <button class="btn accent" id="genBtn" onclick="generateAfter()">개선 이미지 생성</button>
     </div>
   </div>
@@ -85,12 +90,17 @@
   <div class="panel" id="afterPanel" style="display:none">
     <div class="panel-head">
       <h2>개선 후</h2>
-      <span class="tag pending" id="afterTag">생성 예정</span>
+      <span class="tag pending" id="afterTag">생성 중</span>
     </div>
+    <img class="ba-img" id="afterImg" alt="개선 후 이미지" style="display:none">
     <div class="ba-blank" id="afterBlank">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
-      <div class="t">이미지 생성 모델이 아직 연결되지 않았습니다</div>
-      <div class="m">위 시설물 목록과 원본 이미지를 생성 모델에 넘겨 개선 후 모습을 만드는 자리입니다. 이 프로젝트에서 가장 먼저 검증해야 할 부분입니다.</div>
+      <div class="t" id="afterMsg">이미지를 만들고 있습니다</div>
+      <div class="m" id="afterSub">30초 정도 걸립니다. 원본을 그대로 두고 시설물만 넣도록 지시하고 있습니다.</div>
+    </div>
+    <div class="panel-foot" id="afterFoot" style="display:none">
+      <span class="note" style="margin:0; flex:1">한 번에 잘 안 나오는 것이 보통입니다. 마음에 들 때까지 다시 생성해 보세요.</span>
+      <button class="btn ghost sm" onclick="generateAfter()">다시 생성</button>
     </div>
   </div>
 
@@ -108,11 +118,78 @@
 <script src="assets/rules.js"></script>
 <script src="assets/rx-editor.js"></script>
 <script>
-/* 개선 이미지 생성 — 지금은 자리만 열어 둡니다.
-   생성 모델을 붙일 때 이 함수 안에서 원본 이미지 + 시설물 목록을 서버로 보냅니다. */
-function generateAfter() {
-  document.getElementById('afterPanel').style.display = 'block';
-  document.getElementById('afterPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+/* ── 개선 후 이미지 생성 ──────────────────────────────────────────
+   원본 사진 + 확정된 시설물 목록을 중계 서버로 보냅니다.
+   API 키는 서버에만 있으므로 여기서는 다루지 않습니다. */
+
+let _generating = false;
+
+async function generateAfter() {
+  if (_generating) return;
+
+  const inputRaw = sessionStorage.getItem('auri_input_image');
+  const items = JSON.parse(sessionStorage.getItem('auri_prescriptions') || '[]');
+  if (!inputRaw) { alert('원본 이미지가 없습니다. 진단 단계에서 사진을 먼저 확정해 주세요.'); return; }
+  if (!items.length) { alert('반영할 시설물이 없습니다.'); return; }
+
+  const panel = document.getElementById('afterPanel');
+  const img = document.getElementById('afterImg');
+  const blank = document.getElementById('afterBlank');
+
+  _generating = true;
+  panel.style.display = 'block';
+  img.style.display = 'none';
+  blank.style.display = 'flex';
+  document.getElementById('afterMsg').textContent = '이미지를 만들고 있습니다';
+  document.getElementById('afterSub').textContent =
+    '30초 정도 걸립니다. 원본을 그대로 두고 시설물만 넣도록 지시하고 있습니다.';
+  document.getElementById('afterTag').textContent = '생성 중';
+  document.getElementById('afterFoot').style.display = 'none';
+  document.getElementById('genBtn').disabled = true;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    const code = localStorage.getItem('auri_access_code');
+    if (code) headers['x-access-code'] = code;
+
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        imageDataUrl: JSON.parse(inputRaw).dataUrl,
+        facilities: items.map(function (it) { return it.name; }),
+        model: document.getElementById('modelSel').value,
+      }),
+    });
+
+    const type = res.headers.get('content-type') || '';
+    if (!type.includes('application/json')) throw new Error('진단 서버가 아닌 주소에서 열렸습니다.');
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '생성에 실패했습니다.');
+
+    img.src = data.dataUrl;
+    img.style.display = 'block';
+    blank.style.display = 'none';
+    document.getElementById('afterTag').textContent = data.model || '생성 완료';
+    document.getElementById('afterTag').className = 'tag';
+
+    /* 진단서 서식4(개선 전/후 비교도)가 이 이미지를 받아 씁니다 */
+    try {
+      sessionStorage.setItem('auri_after_image', data.dataUrl);
+    } catch {
+      console.warn('이미지가 커서 진단서로 넘기지 못했습니다.');
+    }
+  } catch (err) {
+    document.getElementById('afterMsg').textContent = '생성하지 못했습니다';
+    document.getElementById('afterSub').textContent = err.message;
+    document.getElementById('afterTag').textContent = '실패';
+  } finally {
+    _generating = false;
+    document.getElementById('afterFoot').style.display = 'flex';
+    document.getElementById('genBtn').disabled = false;
+  }
 }
 
 window.addEventListener('load', function () {

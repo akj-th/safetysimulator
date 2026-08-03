@@ -1,4 +1,4 @@
-/* ────────────────────────────────────────────────────────────────────────
+﻿/* ────────────────────────────────────────────────────────────────────────
    AI 진단 중계 서버
 
    하는 일 딱 두 가지:
@@ -234,6 +234,143 @@ async function callAI(mediaType, base64Data, promptText) {
 }
 
 /* ── 진단 요청 처리 ──────────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════
+   개선 후 이미지 생성 (4단계 시각화)
+
+   원본 거리 사진 + 확정된 시설물 목록 → 개선 후 이미지.
+
+   ★ 가장 중요한 것은 "원본을 안 건드리는 것"입니다.
+     개선 전/후인데 배경 건물이나 간판이 달라지면 행정 문서로 쓸 수 없습니다.
+     그래서 지시문의 절반이 "바꾸지 말라"는 내용입니다.
+   ════════════════════════════════════════════════════════════════════ */
+
+const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+
+/* 화면에서 골라 쓸 수 있는 모델들. 어느 쪽이 원본을 잘 보존하는지는
+   같은 사진으로 직접 비교해 봐야 알 수 있어 목록으로 열어 둡니다.
+   (아무 이름이나 받지 않도록 여기 적힌 것만 허용합니다) */
+const GEMINI_MODELS = [
+  'gemini-3-pro-image',
+  'gemini-3.1-flash-image',
+  'gemini-2.5-flash-image',
+];
+const GEMINI_MODEL = process.env.GEMINI_MODEL || GEMINI_MODELS[0];
+
+function buildGeneratePrompt(facilities) {
+  const list = facilities.map(function (f) { return `- ${f}`; }).join('\n');
+  return `You are producing an "after improvement" visualization for a Korean public safety
+report. The result is attached to an official document, so accuracy matters more
+than beauty.
+
+TASK
+Edit the provided street photograph by adding ONLY the safety facilities listed below.
+
+PRESERVE THE ORIGINAL — this is the most important requirement:
+- Buildings, windows, walls, signage, shop fronts, road markings, parked vehicles,
+  poles, sky, vegetation, lighting and camera angle must remain EXACTLY as they are.
+- Do not restyle, recolor, relight, sharpen, crop or re-render the scene.
+- Do not alter or invent any text, lettering, shop names or license plates.
+- If you cannot add a facility without changing the rest of the scene, leave it out.
+
+FACILITIES TO ADD
+${list}
+
+HOW TO ADD THEM
+- Place each facility where it would realistically be installed on this street.
+- Match the perspective, scale, shadows and lighting of the original photograph.
+- Use the ordinary Korean public design for these facilities.
+- Photorealistic. No labels, arrows, captions, callouts or watermarks.
+
+The scene is a Korean urban street.`;
+}
+
+async function callImageAI(mediaType, base64Data, facilities) {
+  const url = `${GEMINI_BASE}/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { inline_data: { mime_type: mediaType, data: base64Data } },
+          { text: buildGeneratePrompt(facilities) },
+        ],
+      }],
+      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+    }),
+  });
+
+  const body = await res.json().catch(function () { return null; });
+
+  if (!res.ok) {
+    const msg = (body && body.error && body.error.message) || `HTTP ${res.status}`;
+    /* 모델 이름이 바뀌었을 때를 대비해, 쓸 수 있는 모델을 함께 알려 줍니다 */
+    if (res.status === 404 || /model/i.test(msg)) {
+      const names = await listImageModels();
+      throw new Error(`${msg}\n지금 쓸 수 있는 이미지 모델: ${names.join(', ') || '조회 실패'}\n` +
+                      `(.env 의 GEMINI_MODEL 값으로 바꿔 지정할 수 있습니다. 현재: ${GEMINI_MODEL})`);
+    }
+    throw new Error(msg);
+  }
+
+  /* 응답에서 이미지 조각을 찾습니다 (형식이 조금 달라도 견디도록) */
+  const parts = (body && body.candidates && body.candidates[0] &&
+                 body.candidates[0].content && body.candidates[0].content.parts) || [];
+  for (const part of parts) {
+    const inline = part.inline_data || part.inlineData;
+    if (inline && inline.data) {
+      return {
+        dataUrl: `data:${inline.mime_type || inline.mimeType || 'image/png'};base64,${inline.data}`,
+        note: parts.map(function (p) { return p.text; }).filter(Boolean).join(' ').slice(0, 400),
+      };
+    }
+  }
+
+  const said = parts.map(function (p) { return p.text; }).filter(Boolean).join(' ');
+  throw new Error('이미지를 돌려받지 못했습니다.' + (said ? ` 모델 응답: ${said.slice(0, 300)}` : ''));
+}
+
+/* 쓸 수 있는 이미지 생성 모델 목록 — 오류 안내에 씁니다 */
+async function listImageModels() {
+  try {
+    const res = await fetch(`${GEMINI_BASE}/models?key=${GEMINI_KEY}&pageSize=200`);
+    const body = await res.json();
+    return (body.models || [])
+      .filter(function (m) { return /image/i.test(m.name); })
+      .map(function (m) { return m.name.replace('models/', ''); });
+  } catch { return []; }
+}
+
+async function handleGenerate(req, res) {
+  if (!GEMINI_KEY || GEMINI_KEY.indexOf('붙여넣') !== -1) {
+    return sendJson(res, 503, {
+      error: '이미지 생성 키가 설정되지 않았습니다. server/.env 의 GEMINI_API_KEY 를 채운 뒤 서버를 다시 켜 주세요.',
+    });
+  }
+  if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) {
+    return sendJson(res, 401, { error: '접속 암호가 필요합니다.', needCode: true });
+  }
+  checkQuota(req);
+
+  const body = await readJsonBody(req);
+  const match = /^data:(image\/[a-zA-Z+]+);base64,(.+)$/s.exec(body.imageDataUrl || '');
+  if (!match) return sendJson(res, 400, { error: '원본 이미지가 없습니다.' });
+
+  const facilities = (body.facilities || []).filter(Boolean);
+  if (!facilities.length) return sendJson(res, 400, { error: '반영할 시설물이 없습니다.' });
+
+  /* 화면에서 고른 모델. 목록에 없는 값이면 무시하고 기본값을 씁니다. */
+  const model = GEMINI_MODELS.includes(body.model) ? body.model : GEMINI_MODEL;
+
+  const [, mediaType, base64Data] = match;
+  console.log(`[이미지 생성] ${model} / 시설물 ${facilities.length}종: ${facilities.join(', ')}`);
+
+  const out = await callImageAI(mediaType, base64Data, facilities, model);
+  console.log(`  · 생성 완료 (${Math.round(out.dataUrl.length / 1024)}KB)`);
+  sendJson(res, 200, Object.assign({ model: model }, out));
+}
+
 async function handleDiagnose(req, res, isRevise) {
   // 접속 암호를 정해 둔 경우에만 확인합니다
   if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) {
@@ -355,6 +492,8 @@ const server = http.createServer(async function (req, res) {
       await handleDiagnose(req, res, false);
     } else if (req.method === 'POST' && req.url === '/api/revise') {
       await handleDiagnose(req, res, true);   // 연구원 지적을 반영한 재판독
+    } else if (req.method === 'POST' && req.url === '/api/generate') {
+      await handleGenerate(req, res);         // 개선 후 이미지 생성
     } else if (req.method === 'GET') {
       await serveStatic(req, res);
     } else {
@@ -373,7 +512,10 @@ server.listen(PORT, function () {
   console.log('');
   console.log(`  요금 상한: 하루 ${DAILY_LIMIT}회 / 한 사람당 1시간 ${HOURLY_LIMIT_PER_IP}회`);
   console.log(`  접속 암호: ${ACCESS_CODE ? '사용 중' : '없음 (누구나 사용 가능)'}`);
+  console.log(`  이미지 생성: ${(GEMINI_KEY && GEMINI_KEY.indexOf('붙여넣') === -1)
+    ? `사용 가능 (${GEMINI_MODEL})` : '키 없음 — server/.env 의 GEMINI_API_KEY 를 채워 주세요'}`);
   console.log('');
   console.log('  (끄려면 이 창에서 Ctrl+C)');
   console.log('');
 });
+
