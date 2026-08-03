@@ -60,6 +60,52 @@ function auriRenderSteps() {
   }).join('');
 }
 
+/* ── 진단 서버 호출 (진단·재판독·이미지 생성 공통) ──────────────────
+   접속 암호 처리와 오류 안내를 한 곳에서 합니다.
+   화면마다 따로 만들면 서로 다르게 동작해 혼란스러워집니다. */
+async function auriCallServer(path, payload, retried) {
+  const headers = { 'Content-Type': 'application/json' };
+  const saved = localStorage.getItem('auri_access_code');
+  if (saved) headers['x-access-code'] = saved;
+
+  let res;
+  try {
+    res = await fetch(path, { method: 'POST', headers: headers, body: JSON.stringify(payload) });
+  } catch (e) {
+    throw Object.assign(new Error('서버에 연결하지 못했습니다. 인터넷 연결이나 서버 상태를 확인해 주세요.'), { shown: true });
+  }
+
+  /* JSON이 아니면 원인을 상태 코드로 구분합니다.
+     404 = 주소가 틀림 / 5xx = 서버가 응답을 못 함(오래 걸려 끊긴 경우 포함) */
+  const type = res.headers.get('content-type') || '';
+  if (!type.includes('application/json')) {
+    if (res.status === 404 || location.protocol === 'file:') {
+      throw Object.assign(new Error(
+        '이 페이지는 진단 서버가 아닌 곳에서 열렸습니다' +
+        (location.protocol === 'file:' ? ' (파일 직접 열기)' : ` (${location.origin})`) +
+        '. 진단 서버가 실행 중인 주소로 접속해 주세요.'), { shown: true });
+    }
+    throw Object.assign(new Error(
+      `서버가 응답을 마치지 못했습니다 (HTTP ${res.status}). ` +
+      'AI 처리에 시간이 오래 걸리면 중간에 연결이 끊길 수 있습니다. 다시 시도해 주세요.'), { shown: true });
+  }
+
+  const data = await res.json();
+
+  /* 접속 암호를 쓰는 서버면 한 번만 물어보고 저장합니다 */
+  if (res.status === 401 && data.needCode) {
+    localStorage.removeItem('auri_access_code');
+    if (retried) throw Object.assign(new Error('접속 암호가 올바르지 않습니다.'), { shown: true });
+    const code = prompt('AI 기능 접속 암호를 입력해 주세요.');
+    if (!code) throw Object.assign(new Error('접속 암호가 필요합니다.'), { shown: true });
+    localStorage.setItem('auri_access_code', code.trim());
+    return auriCallServer(path, payload, true);
+  }
+
+  if (!res.ok) throw Object.assign(new Error(data.error || `서버 오류 (HTTP ${res.status})`), { shown: true });
+  return data;
+}
+
 /* 9단계 눈금 그리기. 채워진 칸 수가 단계입니다. */
 function auriScaleHTML(step) {
   let html = '';

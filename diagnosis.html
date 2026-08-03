@@ -398,35 +398,10 @@ function hashSeed(str) {
   return h;
 }
 
-/* ── 서버 호출 (진단·재판독 공통) ───────────────────────────────── */
+/* ── 서버 호출 ───────────────────────────────────────────────────
+   접속 암호 처리와 오류 안내는 assets/ui.js 의 auriCallServer 가 맡습니다. */
 
 let _busy = false;
-
-async function callServer(path, payload, retried) {
-  const headers = { 'Content-Type': 'application/json' };
-  const savedCode = localStorage.getItem('auri_access_code');
-  if (savedCode) headers['x-access-code'] = savedCode;
-
-  const res = await fetch(path, { method: 'POST', headers: headers, body: JSON.stringify(payload) });
-
-  /* 진단 서버가 아닌 곳에서 열면 JSON 대신 HTML 404 페이지가 돌아옵니다 */
-  const contentType = res.headers.get('content-type') || '';
-  if (!contentType.includes('application/json')) throw new Error('WRONG_ADDRESS');
-
-  const data = await res.json();
-
-  if (res.status === 401 && data.needCode) {
-    localStorage.removeItem('auri_access_code');
-    if (retried) throw Object.assign(new Error('접속 암호가 올바르지 않습니다.'), { fromServer: true });
-    const code = prompt('AI 진단 접속 암호를 입력해 주세요.');
-    if (!code) throw Object.assign(new Error('접속 암호가 필요합니다.'), { fromServer: true });
-    localStorage.setItem('auri_access_code', code.trim());
-    return callServer(path, payload, true);
-  }
-  if (!res.ok) throw Object.assign(new Error(data.error || '서버 오류'), { fromServer: true });
-  return data;
-}
-
 /* 서버가 준 점수표를 화면이 쓰는 모양으로 바꿉니다 */
 function toResults(data) {
   return CATEGORIES.map(function (cat) {
@@ -444,16 +419,7 @@ function toResults(data) {
 }
 
 function showServerError(err) {
-  const wrongAddress = err.message === 'WRONG_ADDRESS' || location.protocol === 'file:';
-  showCaptureError(
-    err.fromServer
-      ? err.message
-    : wrongAddress
-      ? '이 페이지는 진단 서버가 아닌 곳에서 열렸습니다' +
-        (location.protocol === 'file:' ? ' (파일 직접 열기)' : ` (${location.origin})`) +
-        '. AI 기능을 쓰려면 진단 서버가 실행 중인 주소로 접속해 주세요.'
-      : 'AI 진단 서버가 응답하지 않았습니다. (' + err.message + ')'
-  );
+  showCaptureError(err.message);
 }
 
 /* ── AI 진단 실행 ───────────────────────────────────────────────── */
@@ -469,7 +435,7 @@ async function runDiagnosis() {
     '<div class="loading">AI가 사진을 판독하고 있습니다. 20초 정도 걸립니다.</div>';
 
   try {
-    const data = await callServer('/api/diagnose', { imageDataUrl: inputImage.dataUrl });
+    const data = await auriCallServer('/api/diagnose', { imageDataUrl: inputImage.dataUrl });
     renderResults(toResults(data));
     setTag(data.imageQuality === 'unusable' ? 'AI 판독 · 이미지 부적합' : 'AI 판독 결과');
     if (data.imageQuality === 'unusable') {
@@ -519,7 +485,7 @@ async function sendRevise() {
   });
 
   try {
-    const data = await callServer('/api/revise', {
+    const data = await auriCallServer('/api/revise', {
       imageDataUrl: inputImage.dataUrl, previous: previous, note: note,
     });
 
@@ -595,5 +561,6 @@ window.addEventListener('load', function () {
 </script>
 </body>
 </html>
+
 
 

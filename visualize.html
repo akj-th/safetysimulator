@@ -149,25 +149,12 @@ async function generateAfter() {
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   try {
-    const headers = { 'Content-Type': 'application/json' };
-    const code = localStorage.getItem('auri_access_code');
-    if (code) headers['x-access-code'] = code;
-
-    const res = await fetch('/api/generate', {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify({
-        imageDataUrl: JSON.parse(inputRaw).dataUrl,
-        facilities: items.map(function (it) { return it.name; }),
-        model: document.getElementById('modelSel').value,
-      }),
+    /* 접속 암호와 오류 안내는 assets/ui.js 의 auriCallServer 가 처리합니다 */
+    const data = await auriCallServer('/api/generate', {
+      imageDataUrl: JSON.parse(inputRaw).dataUrl,
+      facilities: items.map(function (it) { return it.name; }),
+      model: document.getElementById('modelSel').value,
     });
-
-    const type = res.headers.get('content-type') || '';
-    if (!type.includes('application/json')) throw new Error('진단 서버가 아닌 주소에서 열렸습니다.');
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || '생성에 실패했습니다.');
 
     img.src = data.dataUrl;
     img.style.display = 'block';
