@@ -74,6 +74,10 @@
   .rx-basis{font-size:11px;color:var(--ink-faint);margin-top:5px;font-family:var(--mono)}
   .rx-empty{padding:26px;text-align:center;color:var(--ink-soft);font-size:13px}
 
+  .cta-row{display:flex;justify-content:flex-end;padding:12px 14px;border-top:1px solid var(--line)}
+  .btn{font-family:inherit;font-size:13.5px;font-weight:600;border-radius:9px;padding:9px 16px;cursor:pointer;border:1px solid var(--rules);background:var(--rules);color:#fff;white-space:nowrap;transition:.15s;text-decoration:none;display:inline-block}
+  .btn:hover{filter:brightness(.94)}
+
   .placeholder-note{font-size:12.5px;color:var(--ink-faint);margin-top:14px;display:flex;align-items:center;gap:7px}
   .placeholder-note svg{width:15px;height:15px;flex:none}
 </style>
@@ -120,6 +124,9 @@
   <div class="pane">
     <div class="cap">개선 시설물 처방 <span class="tag">규칙 기반 엔진</span></div>
     <div class="rx-list" id="rxList"></div>
+    <div class="cta-row">
+      <a class="btn" href="visualize.html">개선 전/후 시각화 →</a>
+    </div>
   </div>
 
   <div class="placeholder-note">
@@ -251,6 +258,10 @@ function prescribe(results) {
 function renderPrescriptions(results) {
   const list = document.getElementById('rxList');
   const items = prescribe(results);
+
+  /* 규칙 엔진은 여기서 딱 한 번만 돌리고, 그 결과를 다음 단계(시각화·진단서)로 넘깁니다.
+     단계마다 다시 계산하면 서로 다른 처방이 나올 수 있어 감사 추적이 깨지기 때문입니다. */
+  sessionStorage.setItem('auri_prescriptions', JSON.stringify(items));
 
   if (items.length === 0) {
     /* 처방이 0건인 경우는 두 가지입니다.
