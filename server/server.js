@@ -79,7 +79,35 @@ if (!process.env.ANTHROPIC_API_KEY) {
   process.exit(1);
 }
 
-const anthropic = new Anthropic();  // ANTHROPIC_API_KEY 를 자동으로 읽습니다
+/* ANTHROPIC_API_KEY 를 자동으로 읽습니다.
+   AI 서버가 몰릴 때(529) SDK가 알아서 잠시 쉬었다 다시 시도합니다.
+   기본값은 2번인데, 진단 한 번이 아까우므로 조금 넉넉히 잡습니다. */
+const anthropic = new Anthropic({ maxRetries: 5 });
+
+/* ── 오류를 사람이 읽을 수 있는 말로 바꿉니다 ──────────────────────────
+   그대로 두면 화면에 {"type":"error",...} 같은 원문이 나와서
+   무엇을 해야 할지 알 수 없습니다. */
+function friendlyError(err) {
+  const s = err.status;
+  const raw = err.message || '';
+
+  if (s === 529 || s === 503) {
+    return 'AI 서버가 지금 몰려 있습니다. 20~30초 뒤에 다시 시도해 주세요. (일시적인 현상입니다)';
+  }
+  if (s === 429) {
+    return 'AI 요청이 잠시 한꺼번에 몰렸습니다. 잠시 후 다시 시도해 주세요.';
+  }
+  if (s === 401 || s === 403) {
+    return 'AI 서비스가 키를 거부했습니다. 서버의 API 키 설정을 확인해 주세요.';
+  }
+  if (/credit|balance|quota|billing/i.test(raw)) {
+    return 'AI 사용 잔액이나 한도가 부족합니다. 콘솔에서 확인해 주세요.';
+  }
+  if (s >= 500) {
+    return `AI 서버에 문제가 생겼습니다 (HTTP ${s}). 잠시 후 다시 시도해 주세요.`;
+  }
+  return raw;
+}
 
 /* ── AI에게 시킬 일을 글로 적는 부분 ───────────────────────────────────
    checklist.js의 내용을 그대로 문장으로 풀어 넣습니다.
@@ -500,8 +528,11 @@ const server = http.createServer(async function (req, res) {
       res.writeHead(405).end('Method Not Allowed');
     }
   } catch (err) {
-    console.error('[오류]', err.message);
-    if (!res.headersSent) sendJson(res, err.status || 500, { error: err.message });
+    console.error('[오류]', err.status || '', err.message);
+    /* 529 처럼 표준이 아닌 코드는 중계 구간에서 그대로 전달되지 않을 수 있어
+       500으로 맞춥니다. 사용자에게 보이는 것은 아래 안내 문구입니다. */
+    const status = (err.status && err.status >= 400 && err.status < 500) ? err.status : 500;
+    if (!res.headersSent) sendJson(res, status, { error: friendlyError(err) });
   }
 });
 
