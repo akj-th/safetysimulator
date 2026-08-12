@@ -65,7 +65,7 @@
       <div class="layer-chips" id="layerChips"></div>
       <p class="note" style="margin-top:13px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-        분야를 누르면 과거 응급신고 발생 지점이 지도 위에 겹쳐 표시됩니다. 여러 분야를 동시에 켤 수 있습니다. 점 하나가 <b>25×25m 격자 한 칸</b>이며, 그 칸에 쌓인 건수가 많을수록 크고 진하게 표시됩니다. 개인정보 항목은 모두 제외된 집계값입니다.
+        분야를 눌러 지난 3년간의 응급신고 발생 지점을 지도에 겹쳐 봅니다. 여러 분야를 동시에 켜서 위험이 함께 몰리는 구간을 찾아보세요. 신고가 많이 쌓인 곳일수록 크고 진하게 표시됩니다.
       </p>
     </div>
   </div>
@@ -227,11 +227,11 @@ function defineIncidentLayer() {
     const ctx = cv.getContext('2d');
     ctx.clearRect(0, 0, cv.width, cv.height);
 
-    /* 확대할수록 점을 키우고 진하게 — 멀리서는 분포가, 가까이서는 개별 지점이 보이도록 */
+    /* 확대할수록 점을 키우고 진하게 — 멀리서는 분포가, 가까이서는 개별 구간이 보이도록 */
     const z = map.getZoom();
     const base = Math.max(1.6, Math.min(7, Math.pow(1.45, z - 15) * 2.8));
-    const alpha = z >= 17 ? 0.62 : z >= 15 ? 0.52 : 0.44;
-    ctx.fillStyle = hexToRgba(this.color, alpha);
+    const alpha = z >= 17 ? 0.55 : z >= 15 ? 0.46 : 0.38;
+    ctx.fillStyle = this.color;
 
     /* 화면 밖 지점은 좌표 변환도 하지 않고 건너뜁니다 */
     const padLat = (ne.lat() - sw.lat()) * 0.05;
@@ -244,12 +244,18 @@ function defineIncidentLayer() {
       if (p[0] < minLat || p[0] > maxLat || p[1] < minLng || p[1] > maxLng) continue;
 
       const o = proj.fromCoordToOffset(this.coords[i]);
-      /* 같은 좌표에 여러 건이면 조금 더 크게 */
-      const r = base * (1 + Math.min(0.7, (p[2] - 1) * 0.18));
+
+      /* 한 칸에 쌓인 건수가 많을수록 크고 진하게.
+         제곱근을 쓰면 건수가 커져도 원이 지나치게 불어나지 않습니다. */
+      const n = p[2];
+      const r = base * (1 + Math.min(1.9, Math.sqrt(n - 1) * 0.6));
+      ctx.globalAlpha = Math.min(0.88, alpha + Math.min(0.32, (n - 1) * 0.07));
+
       ctx.beginPath();
       ctx.arc(o.x - origin.x, o.y - origin.y, r, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.globalAlpha = 1;
   };
 
   IncidentLayer.prototype.onRemove = function () {

@@ -26,10 +26,10 @@ const OUT_DIR = path.resolve(HERE, '../data/incidents');
 /* ── 격자 크기 (m) ───────────────────────────────────────────────────
    ★ 이 숫자만 바꾸고 다시 돌리면 해상도가 바뀝니다.
      100 = 넓게 뭉쳐 보임 (분포 파악용)
-      25 = 지금 값. 골목 단위까지 구분됨
+      50 = 지금 값. 골목 단위로 구분되면서 덩어리도 보임
        0 = 격자 없이 원본 좌표 그대로
    격자로 묶으면 개별 신고 지점이 드러나지 않고 지도도 가벼워집니다. */
-const CELL_SIZE = 25;
+const CELL_SIZE = 50;
 
 /* 원본 좌표계: EPSG:5186 (Korea 2000 / 중부원점) — .prj 파일에서 확인한 값 */
 const EPSG5186 = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
@@ -230,5 +230,6 @@ if (unnamed.length) {
   console.log(`\n지역 이름을 원본에서 찾지 못한 곳 ${unnamed.length}개 (index.json에서 직접 채워야 합니다):`);
   console.log('  ' + unnamed.map(function (r) { return r.region; }).join(', '));
 }
+
 
 

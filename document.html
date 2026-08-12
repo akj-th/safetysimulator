@@ -68,7 +68,7 @@
   <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; max-width:none; flex-wrap:wrap">
     <div style="max-width:720px">
       <h1>안전사업지구 지정 신청 서식</h1>
-      <p class="sub">진단 결과와 확정된 시설물을 지정 서식에 맞춰 정리합니다. 표와 수치는 앞 단계 데이터에서 바로 채워지고, 서술형 문장은 폐쇄망 sLLM이 연결되면 이 자리에 생성됩니다.</p>
+      <p class="sub">진단 결과와 확정된 시설물을 지정 서식에 맞춰 정리합니다. 표와 수치는 앞 단계 내용으로 자동으로 채워집니다.</p>
     </div>
     <button class="btn ghost" onclick="window.print()">인쇄 / PDF 저장</button>
   </div>
@@ -98,7 +98,7 @@
 
         <div class="pending">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          위 문단은 진단 수치를 문장 틀에 끼워 넣은 임시 문안입니다. 실제 납품본에서는 폐쇄망 sLLM이 행정 지침서를 참조해 법정 재난안전 용어에 맞는 사유서를 생성합니다.
+          위 문단은 진단 수치로 자동 작성된 임시 문안입니다. 최종본에서는 행정 지침에 맞춘 사유서로 대체됩니다.
         </div>
       </div>
     </div>
@@ -124,7 +124,7 @@
 
         <div class="pending">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          시설물 목록과 수량은 규칙 엔진이 확정한 실제 값입니다. 표준단가는 과업4 표준 단가 매트릭스가 확정되면 규칙표에 연결되어 자동 계산됩니다. (안전사업지구 예산 한도: 개소당 약 10억 원 내외)
+          시설물과 수량은 앞 단계에서 확정된 값입니다. 표준단가가 정해지면 금액이 자동으로 계산됩니다.
         </div>
       </div>
     </div>
@@ -147,7 +147,7 @@
 
         <div class="pending">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          기대효과 문장은 아직 비어 있습니다. 정량 저감 효과는 근거 없이 쓰면 할루시네이션이 되므로, 지침서·통계에 연결한 뒤에 채웁니다.
+          기대효과 문장은 아직 비어 있습니다. 근거 없는 수치를 적지 않기 위해, 통계와 지침이 연결된 뒤에 채웁니다.
         </div>
       </div>
     </div>
@@ -170,7 +170,7 @@
 
         <div class="pending">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          개선 후 이미지는 4단계 시각화에서 생성한 결과를 그대로 가져옵니다. 생성 모델이 아직 연결되지 않아 지금은 자리만 표시됩니다.
+          개선 후 이미지는 4단계 시각화에서 만든 결과를 그대로 가져옵니다. 아직 만들지 않았다면 그 단계에서 먼저 생성해 주세요.
         </div>
       </div>
     </div>
@@ -178,7 +178,7 @@
 
   <p class="note">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-    이 문서의 모든 시설물 항목에는 규칙 번호가 붙어 있습니다. 감사 시 "이 예산 항목이 왜 필요한가"를 진단 점수까지 거꾸로 확인할 수 있도록 하기 위한 것입니다.
+    각 시설물에는 근거가 함께 적혀 있어, 왜 필요한지를 진단 결과까지 거슬러 확인할 수 있습니다. 인쇄하면 화면 요소 없이 서식만 출력됩니다.
   </p>
 </main>
 <script src="assets/ui.js"></script>
@@ -317,5 +317,7 @@ window.addEventListener('load', function () {
 </script>
 </body>
 </html>
+
+
 
 
