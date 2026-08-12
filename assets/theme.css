@@ -1,0 +1,335 @@
+/* ════════════════════════════════════════════════════════════════════
+   ATELIER KJ — 발표자료 템플릿 디자인 시스템
+
+   원칙
+     · 카드/박스를 쓰지 않는다. 여백과 얇은 선으로 나눈다.
+     · 모서리는 각지게 (radius 0). 그림자 없음.
+     · 강조색은 최소 면적으로. 넓은 면을 메인 컬러로 칠하지 않는다.
+     · 배경은 흰색. 강조가 필요한 곳만 검정 반전.
+
+   색·여백을 바꾸려면 아래 :root 값만 고치면 전 화면에 반영됩니다.
+   ════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ── 색 (이 목록 밖의 색은 쓰지 않습니다) ─────────────────────── */
+  --main:#D83D64;        /* 메인 — 라벨·번호·핵심 강조에만 */
+  --contrast:#2793C9;    /* 대조 — 보조 강조에만 */
+
+  --w:#FFFFFF;
+  --g1:#CCCCCC;
+  --g2:#999999;
+  --g3:#666666;
+  --g4:#333333;
+  --k:#000000;
+
+  /* ── 여백 기준선 ──────────────────────────────────────────────── */
+  --gutter:34px;         /* 좌우 여백 */
+  --maxw:1180px;
+  --logo-h:22px;         /* 상단 로고 높이 */
+
+  /* ── 글꼴 ─────────────────────────────────────────────────────── */
+  --font:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --mono:'SFMono-Regular',ui-monospace,Consolas,monospace;
+
+  /* ── 이전 이름 유지 ────────────────────────────────────────────
+     화면별 CSS와 일부 스크립트가 아래 이름을 참조합니다.
+     새 색으로 연결해 두면 그쪽도 자동으로 새 디자인을 따릅니다. */
+  --bg:var(--w);         --surface:var(--w);      --surface-2:var(--w);
+  --ink:var(--k);        --ink-2:var(--g4);       --ink-3:var(--g3);
+  --line:var(--g1);      --line-2:var(--g1);
+  --accent:var(--main);  --accent-weak:var(--w);
+  --safe:var(--g3);      --caution:var(--k);      --danger:var(--main);
+  --safe-bg:var(--w);    --caution-bg:var(--w);   --danger-bg:var(--w);
+  --r:0;                 --r-sm:0;
+}
+
+*{box-sizing:border-box; margin:0; padding:0}
+
+body{
+  background:var(--w);
+  color:var(--g4);
+  font-family:var(--font);
+  font-size:13.5px;
+  font-weight:400;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* ════ 상단 바 ══════════════════════════════════════════════════ */
+
+.topbar{
+  background:var(--w);
+  border-bottom:1px solid var(--g1);
+  position:sticky; top:0; z-index:50;
+}
+.topbar-inner{
+  max-width:var(--maxw); margin:0 auto;
+  padding:0 var(--gutter);
+  display:flex; align-items:center; gap:40px; flex-wrap:wrap;
+}
+
+.brand{
+  display:flex; align-items:center; gap:13px;
+  padding:20px 0; white-space:nowrap;
+  text-decoration:none; color:var(--k);
+}
+.brand-logo{height:var(--logo-h,22px); width:auto; display:block}
+.brand-text{font-size:12px; font-weight:700; letter-spacing:.1em}
+.brand-sub{
+  font-size:10px; font-weight:700; letter-spacing:.15em; color:var(--g2);
+  padding-left:13px; border-left:1px solid var(--g1);
+}
+@media(max-width:560px){ .brand-sub{display:none} }
+
+/* ── 단계 이동 — 번호는 01, 02 두 자리 ───────────────────────────
+   숫자는 화면 스크립트가 1~5로 넣으므로 앞의 0은 CSS로 붙입니다. */
+.steps{display:flex; align-items:stretch; gap:26px; margin-left:auto; flex-wrap:wrap}
+.step{
+  display:flex; align-items:baseline; gap:7px;
+  padding:20px 0; border-bottom:1px solid transparent;
+  font-size:12px; font-weight:400; color:var(--g2);
+  text-decoration:none; background:none; border-top:none;
+  border-left:none; border-right:none;
+  font-family:inherit; cursor:pointer; white-space:nowrap;
+  transition:color .12s, border-color .12s;
+}
+.step .num{
+  font-size:10px; font-weight:700; letter-spacing:.06em;
+  color:var(--g2); flex:none;
+}
+.step .num::before{content:'0'}
+
+.step:hover:not(.is-locked){color:var(--k)}
+.step.is-done{color:var(--g3)}
+.step.is-done .num{color:var(--g3)}
+.step.is-current{color:var(--k); font-weight:700; border-bottom-color:var(--k)}
+.step.is-current .num{color:var(--main)}
+.step.is-locked{color:var(--g1); cursor:not-allowed}
+.step.is-locked .num{color:var(--g1)}
+
+@media(max-width:900px){
+  .topbar-inner{gap:0}
+  .steps{margin-left:0; width:100%; overflow-x:auto; border-top:1px solid var(--g1); gap:20px}
+  .step{padding:13px 0}
+  .brand{padding:15px 0}
+}
+
+/* ════ 본문 ═════════════════════════════════════════════════════ */
+
+.wrap{max-width:var(--maxw); margin:0 auto; padding:46px var(--gutter) 96px}
+
+.page-head{margin-bottom:40px; max-width:760px}
+h1{font-size:25px; font-weight:700; color:var(--k); letter-spacing:-.02em; line-height:1.4}
+.sub{font-size:13px; color:var(--g3); margin-top:12px; line-height:1.75}
+
+h2{font-size:15px; font-weight:700; color:var(--k); letter-spacing:-.01em}
+
+/* ════ 구획 — 카드 대신 얇은 선과 여백 ═════════════════════════ */
+
+.panel{
+  background:none; border:none; border-radius:0;
+  border-top:1px solid var(--g1);
+  margin-bottom:38px;
+}
+.panel-head{
+  display:flex; align-items:baseline; gap:12px;
+  padding:14px 0 16px;
+}
+.panel-head h2{flex:1; min-width:0}
+.panel-body{padding:0}
+.panel-foot{
+  display:flex; align-items:center; justify-content:flex-end; gap:10px;
+  padding:16px 0 0; margin-top:18px;
+  border-top:1px solid var(--g1); background:none;
+}
+
+/* 섹션 라벨 — 작은 대문자형 라벨 */
+.tag{
+  font-size:9.5px; font-weight:700; letter-spacing:.15em;
+  color:var(--g2); background:none; padding:0; border-radius:0;
+  white-space:nowrap;
+}
+.tag.neutral{color:var(--g2)}
+.tag.pending{color:var(--g1)}
+
+/* ════ 버튼 ═════════════════════════════════════════════════════ */
+
+.btn{
+  font-family:inherit; font-size:12.5px; font-weight:700;
+  letter-spacing:.02em;
+  border-radius:0; padding:12px 22px;
+  border:1px solid var(--k); background:var(--k); color:var(--w);
+  cursor:pointer; white-space:nowrap; text-decoration:none;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  transition:opacity .12s;
+}
+.btn:hover{opacity:.78}
+.btn:disabled{background:var(--g1); border-color:var(--g1); color:var(--w); cursor:not-allowed; opacity:1}
+
+/* 보조 버튼 — 흰 바탕에 얇은 테두리 */
+.btn.ghost{background:var(--w); color:var(--k); border-color:var(--g1)}
+.btn.ghost:hover{border-color:var(--k); opacity:1}
+
+/* 주요 동작도 검정을 씁니다. 넓은 면을 메인 컬러로 칠하지 않습니다. */
+.btn.accent{background:var(--k); border-color:var(--k); color:var(--w)}
+
+.btn.sm{font-size:11.5px; padding:9px 16px}
+.btn svg{width:14px; height:14px; flex:none}
+
+/* 글자형 보조 동작 */
+.btn-text{
+  font-family:inherit; font-size:11.5px; font-weight:700; letter-spacing:.02em;
+  color:var(--g3); background:none; border:none; cursor:pointer;
+  display:inline-flex; align-items:center; gap:6px; padding:2px 0;
+  border-bottom:1px solid var(--g1); border-radius:0; transition:.12s;
+}
+.btn-text:hover{color:var(--k); border-bottom-color:var(--k); background:none}
+.btn-text svg{width:12px; height:12px}
+.btn-text.danger:hover{color:var(--main); border-bottom-color:var(--main); background:none}
+
+/* ════ 입력 ═════════════════════════════════════════════════════ */
+
+input[type=text], textarea, select{
+  font-family:inherit; font-size:13px; color:var(--g4);
+  padding:11px 13px;
+  border:1px solid var(--g1); border-radius:0;
+  background:var(--w); outline:none; width:100%;
+  transition:border-color .12s;
+}
+input[type=text]:focus, textarea:focus, select:focus{border-color:var(--k)}
+input[type=text]::placeholder, textarea::placeholder{color:var(--g2)}
+textarea{resize:vertical; line-height:1.7}
+
+/* ════ 선택 위치 표시줄 ════════════════════════════════════════ */
+
+.picked{
+  display:flex; align-items:center; gap:16px;
+  padding:16px 0; margin-bottom:34px;
+  background:none; border:none;
+  border-top:1px solid var(--g1); border-bottom:1px solid var(--g1);
+  border-radius:0;
+}
+.picked .dot{width:5px; height:5px; border-radius:0; background:var(--g1); flex:none}
+.picked.on .dot{background:var(--main)}
+.picked .info{flex:1; min-width:0}
+.picked .lab{font-size:9.5px; font-weight:700; letter-spacing:.15em; color:var(--main)}
+.picked .addr{font-size:14px; font-weight:700; color:var(--k); margin-top:4px}
+.picked .coord{font-family:var(--mono); font-size:11px; color:var(--g2); margin-top:2px}
+
+/* ════ 위험도 ═══════════════════════════════════════════════════
+   안전은 옅은 회색, 주의는 검정, 위험만 메인 컬러.
+   면으로 칠하지 않고 글자와 막대에만 색을 씁니다. */
+
+.badge{
+  font-size:10px; font-weight:700; letter-spacing:.1em;
+  padding:0; border-radius:0; background:none;
+  white-space:nowrap; display:inline-block; text-align:center;
+}
+.lv-safe .badge,    .badge.lv-safe{color:var(--g3)}
+.lv-caution .badge, .badge.lv-caution{color:var(--k)}
+.lv-danger .badge,  .badge.lv-danger{color:var(--main)}
+
+.bar{flex:1; height:3px; border-radius:0; background:var(--g1); overflow:hidden}
+.bar-fill{height:100%; border-radius:0}
+.lv-safe .bar-fill{background:var(--g3)}
+.lv-caution .bar-fill{background:var(--k)}
+.lv-danger .bar-fill{background:var(--main)}
+
+/* 9단계 눈금 */
+.scale{display:flex; gap:2px; flex:1; min-width:90px}
+.scale i{flex:1; height:4px; border-radius:0; background:var(--g1); transition:background .15s}
+.lv-safe .scale i.on{background:var(--g3)}
+.lv-caution .scale i.on{background:var(--k)}
+.lv-danger .scale i.on{background:var(--main)}
+
+.scale-ends{display:flex; justify-content:space-between; font-size:9.5px; color:var(--g2); margin-top:4px}
+.step-num{font-family:var(--mono); font-size:11px; color:var(--g2); width:32px; flex:none; text-align:right}
+
+/* ════ 편집 ═════════════════════════════════════════════════════ */
+
+.edit-row{display:flex; align-items:center; gap:14px; padding:5px 0}
+.edit-row .name{width:88px; flex:none; font-size:13px; font-weight:700; color:var(--k)}
+.edit-row .badge{width:44px; flex:none}
+
+input[type=range]{flex:1; min-width:90px; height:4px; margin:0; accent-color:var(--k); cursor:pointer}
+
+.edit-note{margin-top:10px; padding-left:102px}
+.edit-note textarea{font-size:12.5px; min-height:54px}
+.edit-note .lab{font-size:9.5px; font-weight:700; letter-spacing:.15em; color:var(--main); margin-bottom:6px}
+@media(max-width:640px){ .edit-note{padding-left:0} }
+
+.rx-edit{display:flex; flex-direction:column; gap:9px; flex:1; min-width:0}
+.rx-edit .line{display:flex; gap:9px; align-items:center}
+.rx-edit select{width:auto; flex:none; padding:10px 12px}
+.rx-edit select.grow{flex:1; min-width:0}
+.rx-edit textarea{min-height:50px; font-size:12.5px}
+
+/* 사람이 손댄 표시 */
+.mark-edited{
+  font-size:9.5px; font-weight:700; letter-spacing:.12em;
+  color:var(--main); background:none; padding:0; margin-left:10px;
+}
+
+/* ════ 요청 입력 칸 ═════════════════════════════════════════════ */
+
+.revise-box{
+  margin:0 0 20px; padding:20px 0 0;
+  background:none; border:none; border-top:1px solid var(--g1);
+  border-radius:0;
+}
+.revise-box .lab{
+  font-size:9.5px; font-weight:700; letter-spacing:.15em;
+  color:var(--main); margin-bottom:10px;
+}
+.revise-box textarea{min-height:78px; font-size:12.5px}
+.revise-box .d{font-size:11px; color:var(--g2); margin-top:9px; line-height:1.7}
+.revise-box .actions{display:flex; gap:9px; margin-top:16px; flex-wrap:wrap}
+
+/* 바탕 이미지 선택 */
+.opt-row{display:flex; flex-direction:column; gap:0; margin-top:14px}
+.opt{
+  display:flex; gap:11px; align-items:flex-start;
+  padding:13px 0; border:none; border-bottom:1px solid var(--g1);
+  border-radius:0; background:none; cursor:pointer;
+}
+.opt:first-child{border-top:1px solid var(--g1)}
+.opt:hover .t{color:var(--main)}
+.opt:has(input:checked){background:none}
+.opt:has(input:checked) .t{color:var(--main)}
+.opt input{margin-top:3px; accent-color:var(--main); flex:none}
+.opt .t{font-size:12.5px; font-weight:700; color:var(--k); transition:color .12s}
+.opt .s{font-size:11px; color:var(--g3); margin-top:3px; line-height:1.6}
+
+/* ════ 표 — 머리행만 검정 반전, 세로선 없음 ════════════════════ */
+
+table{width:100%; border-collapse:collapse; font-size:12.5px; margin-top:6px}
+th,td{border:none; border-bottom:1px solid var(--g1); padding:11px 12px 11px 0; text-align:left; vertical-align:top}
+th{
+  background:var(--k); color:var(--w);
+  font-size:9.5px; font-weight:700; letter-spacing:.12em;
+  padding:11px 12px; border-bottom:none;
+}
+th:first-child, td:first-child{padding-left:12px}
+td{color:var(--g4)}
+td.num{text-align:right; font-family:var(--mono); color:var(--g3)}
+tr.sum td{background:none; border-top:1px solid var(--k); border-bottom:none; font-weight:700; color:var(--k)}
+
+/* ════ 안내 문구 ════════════════════════════════════════════════
+   아이콘을 글 흐름 밖에 두어야 문장 중간의 태그가 밀려나지 않습니다. */
+
+.note{
+  font-size:11.5px; color:var(--g3); line-height:1.75;
+  margin-top:20px; position:relative; padding-left:20px;
+}
+.note svg{width:12px; height:12px; position:absolute; left:0; top:4px; color:var(--g2)}
+
+/* 주의를 끄는 알림 — 박스 대신 왼쪽 세로선 */
+.callout{
+  padding:2px 0 2px 15px; border-left:2px solid var(--g1);
+  background:none; border-radius:0;
+  font-size:12px; color:var(--g3); line-height:1.75;
+}
+.callout.warn{border-left-color:var(--main); color:var(--g4); background:none}
+
+.empty{padding:46px 0; text-align:center; color:var(--g2); font-size:12.5px; line-height:1.9}
