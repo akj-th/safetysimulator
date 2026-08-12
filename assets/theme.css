@@ -210,7 +210,7 @@ textarea{resize:vertical; line-height:1.7}
   border-top:1px solid var(--g1); border-bottom:1px solid var(--g1);
   border-radius:0;
 }
-.picked .dot{width:5px; height:5px; border-radius:0; background:var(--g1); flex:none}
+.picked .dot{width:7px; height:7px; border-radius:50%; background:var(--g1); flex:none}
 .picked.on .dot{background:var(--main)}
 .picked .info{flex:1; min-width:0}
 .picked .lab{font-size:9.5px; font-weight:700; letter-spacing:.15em; color:var(--main)}
