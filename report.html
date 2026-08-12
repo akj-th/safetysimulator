@@ -6,41 +6,50 @@
 <title>안전사업지구 진단 — 종합 리포트</title>
 
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="stylesheet" href="assets/ui.css">
+<link rel="stylesheet" href="assets/theme.css">
 <style>
+  /* 종합 위험도 — 카드 대신 위아래 선 사이의 한 줄 */
   .summary{
-    display:flex; align-items:center; gap:20px;
-    padding:20px 22px; margin-bottom:14px;
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+    display:flex; align-items:center; gap:26px;
+    padding:22px 0; margin-bottom:34px;
+    background:none; border:none; border-radius:0;
+    border-top:1px solid var(--g1); border-bottom:1px solid var(--g1);
   }
-  .summary .score{font-size:34px; font-weight:700; letter-spacing:-.02em; flex:none}
-  .summary .score span{font-size:15px; color:var(--ink-3); font-weight:500}
+  .summary .score{font-size:44px; font-weight:700; letter-spacing:-.03em; flex:none; color:var(--k); line-height:1}
+  .summary .score span{font-size:14px; color:var(--g2); font-weight:400; letter-spacing:0}
   .summary .desc{flex:1}
-  .summary .desc .lab{font-size:11px; color:var(--ink-3); font-weight:600}
-  .summary .desc .t{font-size:14.5px; font-weight:600; margin-top:2px}
+  .summary .desc .lab{font-size:9.5px; font-weight:700; letter-spacing:.15em; color:var(--main)}
+  .summary .desc .t{font-size:14px; font-weight:700; color:var(--k); margin-top:5px}
 
-  .input-image{width:100%; max-height:420px; object-fit:contain; display:block; background:#E8EBEE}
+  .input-image{
+    width:100%; max-height:420px; object-fit:contain; display:block;
+    background:var(--w); border:1px solid var(--g1);
+  }
 
-  .result-list{padding:6px 16px}
-  .result-item{padding:11px 0; border-bottom:1px solid var(--line)}
+  .result-list{padding:0}
+  .result-item{padding:13px 0; border-bottom:1px solid var(--g1)}
   .result-item:last-child{border-bottom:none}
-  .result-row{display:flex; align-items:center; gap:12px}
-  .result-row .name{width:88px; flex:none; font-size:13px; font-weight:600}
+  .result-row{display:flex; align-items:center; gap:14px}
+  .result-row .name{width:88px; flex:none; font-size:13px; font-weight:700; color:var(--k)}
   .result-row .badge{width:44px; flex:none}
-  .result-why{margin-top:6px; padding-left:100px; font-size:12px; color:var(--ink-2); line-height:1.55}
+  .result-why{margin-top:7px; padding-left:102px; font-size:11.5px; color:var(--g3); line-height:1.7}
   @media(max-width:640px){ .result-why{padding-left:0} }
 
-  .rx-list{padding:4px 16px}
-  .rx-item{display:flex; gap:13px; padding:14px 0; border-bottom:1px solid var(--line); align-items:flex-start}
+  /* 우선순위는 칠한 알약이 아니라 글자로만 */
+  .rx-list{padding:0}
+  .rx-item{display:flex; gap:16px; padding:16px 0; border-bottom:1px solid var(--g1); align-items:flex-start}
   .rx-item:last-child{border-bottom:none}
-  .rx-priority{flex:none; width:44px; text-align:center; font-size:10.5px; font-weight:700; padding:3px 0; border-radius:5px}
-  .rx-priority.must{background:var(--danger-bg); color:var(--danger)}
-  .rx-priority.recommend{background:var(--caution-bg); color:var(--caution)}
+  .rx-priority{
+    flex:none; width:40px; padding:2px 0; border-radius:0; background:none;
+    font-size:9.5px; font-weight:700; letter-spacing:.1em;
+  }
+  .rx-priority.must{color:var(--main)}
+  .rx-priority.recommend{color:var(--g2)}
   .rx-body{flex:1; min-width:0}
-  .rx-name{font-size:13.5px; font-weight:700}
-  .rx-cat{font-size:11.5px; color:var(--ink-3); font-weight:600; margin-left:7px}
-  .rx-note{font-size:12.5px; color:var(--ink-2); margin-top:3px; line-height:1.6}
-  .rx-basis{font-size:11px; color:var(--ink-3); margin-top:6px; font-family:var(--mono)}
+  .rx-name{font-size:13.5px; font-weight:700; color:var(--k)}
+  .rx-cat{font-size:10px; color:var(--g2); font-weight:700; letter-spacing:.12em; margin-left:9px}
+  .rx-note{font-size:12.5px; color:var(--g3); margin-top:4px; line-height:1.7}
+  .rx-basis{font-size:10.5px; color:var(--g2); margin-top:7px; font-family:var(--mono)}
 </style>
 </head>
 <body data-step="3">

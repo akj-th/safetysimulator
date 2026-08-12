@@ -8,36 +8,40 @@
 <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=ikev3q84lb&submodules=geocoder,panorama"></script>
 
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="stylesheet" href="assets/ui.css">
+<link rel="stylesheet" href="assets/theme.css">
 <style>
   /* 스트리트뷰는 진단의 입력 자료이므로 화면 전체 폭으로 크게 봅니다 */
-  #streetview{width:100%; height:min(58vh,540px); min-height:360px; background:#E8EBEE}
+  #streetview{
+    width:100%; height:min(58vh,540px); min-height:360px;
+    background:var(--w); border:1px solid var(--g1);
+  }
 
-  .capture-hint{font-size:12px; color:var(--ink-3); padding:0 16px 13px; line-height:1.6}
+  .capture-hint{font-size:11.5px; color:var(--g3); padding:12px 0 0; line-height:1.75}
+  .capture-hint b{color:var(--k)}
 
-  .shot{display:flex; gap:16px; align-items:flex-start; padding:16px}
+  .shot{display:flex; gap:26px; align-items:flex-start; padding:0}
   .shot img{
-    width:280px; flex:none; border-radius:var(--r-sm);
-    border:1px solid var(--line); display:block; background:#E8EBEE;
+    width:300px; flex:none; border-radius:0;
+    border:1px solid var(--g1); display:block; background:var(--w);
   }
   .shot .meta{flex:1; min-width:0}
-  .shot .meta .t{font-size:13.5px; font-weight:600}
-  .shot .meta .d{font-size:12.5px; color:var(--ink-2); margin-top:5px; line-height:1.65}
-  .shot .meta .actions{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
-  @media(max-width:640px){ .shot{flex-direction:column} .shot img{width:100%} }
+  .shot .meta .t{font-size:15px; font-weight:700; color:var(--k)}
+  .shot .meta .d{font-size:12.5px; color:var(--g3); margin-top:7px; line-height:1.75}
+  .shot .meta .actions{display:flex; gap:9px; margin-top:20px; flex-wrap:wrap}
+  @media(max-width:640px){ .shot{flex-direction:column; gap:16px} .shot img{width:100%} }
 
-  .result-list{padding:6px 16px}
-  .result-item{padding:11px 0; border-bottom:1px solid var(--line)}
+  .result-list{padding:0}
+  .result-item{padding:13px 0; border-bottom:1px solid var(--g1)}
   .result-item:last-child{border-bottom:none}
-  .result-row{display:flex; align-items:center; gap:12px}
-  .result-row .name{width:88px; flex:none; font-size:13px; font-weight:600}
+  .result-row{display:flex; align-items:center; gap:14px}
+  .result-row .name{width:88px; flex:none; font-size:13px; font-weight:700; color:var(--k)}
   .result-row .badge{width:44px; flex:none}
-  .result-why{margin-top:6px; padding-left:100px; font-size:12px; color:var(--ink-2); line-height:1.55}
-  .result-why .dim{color:var(--ink-3)}
+  .result-why{margin-top:7px; padding-left:102px; font-size:11.5px; color:var(--g3); line-height:1.7}
+  .result-why .dim{color:var(--g2)}
   @media(max-width:640px){ .result-why{padding-left:0} }
 
-  .loading{padding:34px; text-align:center; font-size:13px; color:var(--ink-2)}
-  /* .revise-box 스타일은 assets/ui.css 로 옮겼습니다 (시각화 화면과 공용) */
+  .loading{padding:44px 0; text-align:center; font-size:12.5px; color:var(--g3)}
+  /* .revise-box 스타일은 assets/theme.css 로 옮겼습니다 (시각화 화면과 공용) */
 </style>
 </head>
 <body data-step="2">
