@@ -531,7 +531,9 @@ function showLocalRisk(lat, lng) {
 
   /* 어느 분야가 이 점수를 만들었는지 함께 남깁니다 — 근거 역추적용 */
   const top = Object.keys(parts)
-    .map(function (k) { return { key: k, share: Math.round(parts[k] / sum * 100) }; })
+    .map(function (k) {
+      return { key: k, name: _catLabels[k] || k, share: Math.round(parts[k] / sum * 100) };
+    })
     .sort(function (a, b) { return b.share - a.share; })
     .filter(function (t) { return t.share >= 1; })
     .slice(0, 3);
@@ -539,7 +541,7 @@ function showLocalRisk(lat, lng) {
   picked.risk = { score: score, level: band.label, radius: _compositeField.radius, top: top };
 
   el.innerHTML = `<span class="lv" style="color:${band.color}">주변 이력 위험지수 ${score} · ${band.label}</span> — ` +
-    top.map(function (t) { return `${_catLabels[t.key] || t.key} ${t.share}%`; }).join(' · ');
+    top.map(function (t) { return `${t.name} ${t.share}%`; }).join(' · ');
 }
 
 function startDiagnosis() {

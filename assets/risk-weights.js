@@ -64,6 +64,23 @@ const RISK_TOP_QUANTILE = 0.99;
    키우면 더 뭉개지고, 줄이면 칸 모양이 다시 드러납니다. */
 const RISK_SMOOTH = 1.5;
 
+/* 종합 위험도를 낼 때 사진 판독 점수가 차지하는 비중 (나머지가 주변 이력).
+   두 값은 보는 대상이 다릅니다.
+     사진 판독 — 지금 이 자리에 무엇이 있는가 (개선 시설물이 실제로 손댈 대상)
+     주변 이력 — 이 일대에서 무슨 일이 있었는가 (반경 188m·3개년의 맥락)
+   처방이 손대는 것은 사진에 찍힌 물리적 대상이므로 사진 쪽을 무겁게 둡니다.
+   다만 이력이 점수를 의미 있게 움직여야 맥락을 반영하는 뜻이 있습니다.
+   ※ 이 값도 통계가 아니라 판단입니다. 바꾸면 리포트의 종합 점수가 바뀝니다. */
+const RISK_BLEND_PHOTO = 0.7;
+
+/* 두 점수를 합칩니다. 이력이 없으면(그 일대에 신고 이력 자체가 없으면)
+   사진 판독 점수를 그대로 씁니다 — 없는 값을 0으로 넣으면 점수가
+   부당하게 낮아지기 때문입니다. */
+function auriBlendScore(photo, history) {
+  if (history === null || history === undefined) return Math.round(photo);
+  return Math.round(photo * RISK_BLEND_PHOTO + history * (1 - RISK_BLEND_PHOTO));
+}
+
 function auriRiskWeight(key) {
   return RISK_WEIGHTS[key] ? RISK_WEIGHTS[key].w : 0;
 }

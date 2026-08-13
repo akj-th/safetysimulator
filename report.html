@@ -8,18 +8,29 @@
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="assets/theme.css">
 <style>
-  /* 종합 위험도 — 카드 대신 위아래 선 사이의 한 줄 */
+  /* 종합 위험도 — 사진 판독 / 주변 이력 / 종합 을 나란히.
+     둘을 섞은 값 하나만 보이면 점수가 어디서 왔는지 되짚을 수 없습니다. */
   .summary{
-    display:flex; align-items:center; gap:26px;
-    padding:22px 0; margin-bottom:34px;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+    padding:22px 0; margin-bottom:0;
     background:none; border:none; border-radius:0;
     border-top:1px solid var(--g1); border-bottom:1px solid var(--g1);
   }
-  .summary .score{font-size:44px; font-weight:700; letter-spacing:-.03em; flex:none; color:var(--k); line-height:1}
-  .summary .score span{font-size:14px; color:var(--g2); font-weight:400; letter-spacing:0}
-  .summary .desc{flex:1}
-  .summary .desc .lab{font-size:9.5px; font-weight:700; letter-spacing:.15em; color:var(--main)}
-  .summary .desc .t{font-size:14px; font-weight:700; color:var(--k); margin-top:5px}
+  .summary .sc + .sc{margin-left:30px; padding-left:30px; border-left:1px solid var(--g1)}
+  @media(max-width:660px){
+    .summary{grid-template-columns:1fr; gap:22px}
+    .summary .sc + .sc{padding-left:0; margin-left:0; border-left:none}
+  }
+  .summary .lab{font-size:9.5px; font-weight:700; letter-spacing:.15em; color:var(--g2)}
+  .summary .v{font-size:33px; font-weight:700; letter-spacing:-.03em; color:var(--g3); line-height:1.15; margin-top:7px}
+  .summary .d{font-size:10.5px; color:var(--g2); margin-top:5px; line-height:1.6}
+  .summary .is-total .lab{color:var(--main)}
+  .summary .is-total .v{font-size:44px; color:var(--k)}
+  .summary .v .badge{font-size:11px; margin-left:10px; vertical-align:middle}
+
+  .summary-note{font-size:11.5px; color:var(--g3); line-height:1.8; margin:14px 0 34px}
+  .summary-note b{color:var(--k); font-weight:700}
+  .summary-note .parts{color:var(--g2); font-size:10.5px}
 
   .input-image{
     width:100%; max-height:420px; object-fit:contain; display:block;
@@ -72,13 +83,23 @@
   </div>
 
   <div class="summary" id="summary" style="display:none">
-    <div class="score" id="summaryScore">0<span>/100</span></div>
-    <div class="desc">
-      <div class="lab">종합 위험도</div>
-      <div class="t" id="summaryText">—</div>
+    <div class="sc">
+      <div class="lab">사진 판독</div>
+      <div class="v" id="scPhoto">—</div>
+      <div class="d">거리 이미지에서 읽은 7개 분야 평균</div>
     </div>
-    <div class="badge" id="summaryBadge">—</div>
+    <div class="sc">
+      <div class="lab">주변 이력</div>
+      <div class="v" id="scHistory">—</div>
+      <div class="d" id="scHistoryDesc">—</div>
+    </div>
+    <div class="sc is-total">
+      <div class="lab">종합 위험도</div>
+      <div class="v"><span id="scTotal">—</span><span class="badge" id="summaryBadge"></span></div>
+      <div class="d" id="scBlend">—</div>
+    </div>
   </div>
+  <p class="summary-note" id="summaryNote"></p>
 
   <div class="panel" id="inputImagePane" style="display:none">
     <div class="panel-head">
@@ -122,10 +143,12 @@
 </main>
 
 <script src="assets/ui.js"></script>
+<script src="assets/risk-weights.js"></script>
 <script src="assets/rules.js"></script>
 <script src="assets/rx-editor.js"></script>
 <script>
-let _results = null;      // 분야별 점수
+let _results = null;      // 분야별 점수 (사진 판독) — 주변 이력으로 바꾸지 않습니다
+let _localRisk = null;    // 주변 119 이력 종합 지수 (1단계에서 계산해 넘겨받음)
 let _rxDraft = null;      // 처방 편집 중인 임시 목록
 
 /* ── 항목별 점수 ────────────────────────────────────────────────── */
@@ -195,18 +218,51 @@ function saveScoreEdit() {
   recomputePrescriptions();   // 점수가 바뀌면 처방도 다시 뽑습니다
 }
 
+/* 종합 위험도 = 사진 판독 + 주변 이력.
+   두 값을 하나로 합쳐 버리면 "이 점수가 사진에서 나온 것인지 통계에서
+   나온 것인지"를 되짚을 수 없습니다. 그래서 섞은 값과 함께 원래 두 값을
+   나란히 남깁니다. 사진 판독 점수(_results)는 이 계산으로 바뀌지 않습니다. */
 function renderSummary() {
-  const avg = Math.round(_results.reduce(function (s, r) { return s + r.score; }, 0) / _results.length);
-  const lv = auriLevel(avg);
-  document.getElementById('summary').style.display = 'flex';
-  document.getElementById('summaryScore').innerHTML = `${avg}<span>/100</span>`;
-  document.getElementById('summaryText').textContent =
-    lv.key === 'lv-safe' ? '전반적으로 취약 요소가 적은 편입니다.' :
-    lv.key === 'lv-caution' ? '일부 항목에서 취약 요소가 발견되었습니다.' :
-    '여러 항목에서 취약 요소가 두드러집니다.';
+  const photo = Math.round(_results.reduce(function (s, r) { return s + r.score; }, 0) / _results.length);
+  const hist = _localRisk;
+  const total = auriBlendScore(photo, hist ? hist.score : null);
+  const lv = auriLevel(total);
+
+  document.getElementById('summary').style.display = 'grid';
+  document.getElementById('scPhoto').textContent = photo;
+  document.getElementById('scTotal').textContent = total;
+
   const badge = document.getElementById('summaryBadge');
   badge.textContent = lv.label;
   badge.className = 'badge ' + lv.key;
+
+  const note = document.getElementById('summaryNote');
+  const reading =
+    lv.key === 'lv-safe' ? '전반적으로 취약 요소가 적은 편입니다.' :
+    lv.key === 'lv-caution' ? '일부 항목에서 취약 요소가 발견되었습니다.' :
+    '여러 항목에서 취약 요소가 두드러집니다.';
+
+  if (!hist) {
+    document.getElementById('scHistory').textContent = '—';
+    document.getElementById('scHistoryDesc').textContent = '신고 이력 없음';
+    document.getElementById('scBlend').textContent = '사진 판독 점수를 그대로 사용';
+    note.innerHTML = `${reading} 이 지점 주변에는 지난 3년간 119 응급신고 이력이 없어, ` +
+      '종합 위험도는 사진 판독 결과만으로 계산했습니다.';
+    return;
+  }
+
+  const photoPct = Math.round(RISK_BLEND_PHOTO * 100);
+  document.getElementById('scHistory').textContent = hist.score;
+  document.getElementById('scHistoryDesc').textContent = `반경 ${hist.radius}m · 3개년 119 신고 이력`;
+  document.getElementById('scBlend').textContent = `사진 ${photoPct} : 이력 ${100 - photoPct} 반영`;
+
+  const parts = (hist.top || []).map(function (t) { return `${t.name || t.key} ${t.share}%`; }).join(' · ');
+
+  note.innerHTML = `${reading} <b>사진 판독</b>은 이 자리에서 눈에 보이는 취약 요소를, ` +
+    `<b>주변 이력</b>은 반경 ${hist.radius}m 안에서 실제로 일어난 일을 봅니다. ` +
+    '두 값을 나란히 두는 것은 종합 점수가 어디에서 나왔는지 되짚을 수 있게 하기 위해서입니다. ' +
+    '아래 항목별 점수와 개선 시설물은 <b>사진 판독 결과만</b>으로 정해집니다.' +
+    (parts ? `<br><span class="parts">주변 이력 구성 — ${parts}</span>` : '');
 }
 
 /* ── 개선 시설물 처방 ───────────────────────────────────────────
@@ -232,6 +288,7 @@ window.addEventListener('load', function () {
 
   const picked = JSON.parse(loc);
   _results = JSON.parse(resultsRaw);
+  _localRisk = picked.risk || null;
 
   document.getElementById('pickedAddr').textContent = picked.addr || '주소 미상';
   document.getElementById('pickedCoord').textContent = `위도 ${picked.lat}, 경도 ${picked.lng}`;

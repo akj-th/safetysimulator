@@ -100,7 +100,9 @@
         <div class="fld"><div class="k">대상지 위치</div><div class="v" id="f1Addr">—</div></div>
         <div class="fld"><div class="k">진단 단위</div><div class="v">100 × 100m 격자 1개소</div></div>
         <div class="fld"><div class="k">진단 방법</div><div class="v">거리 이미지 기반 7대 사회재난 취약성 진단</div></div>
-        <div class="fld"><div class="k">종합 위험도</div><div class="v" id="f1Avg">—</div></div>
+        <div class="fld"><div class="k">사진 판독 점수</div><div class="v" id="f1Avg">—</div></div>
+        <div class="fld"><div class="k">주변 이력 지수</div><div class="v" id="f1Hist">—</div></div>
+        <div class="fld"><div class="k">종합 위험도</div><div class="v" id="f1Total">—</div></div>
         <div class="fld"><div class="k">중점 취약 분야</div><div class="v" id="f1Top">—</div></div>
         <div class="fld" id="f1RevWrap" style="display:none"><div class="k">판독 보정 이력</div><div class="v" id="f1Rev"></div></div>
 
@@ -192,6 +194,7 @@
   </p>
 </main>
 <script src="assets/ui.js"></script>
+<script src="assets/risk-weights.js"></script>
 <script>
 function fmtDate(d) {
   return `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}.`;
@@ -222,17 +225,36 @@ window.addEventListener('load', function () {
   const risky = results.filter(function (r) { return r.level.key !== 'lv-safe'; })
                        .sort(function (a, b) { return b.score - a.score; });
 
+  /* 사진에서 읽은 점수와 주변 이력 지수는 끝까지 따로 적습니다.
+     서식은 예산 산출의 근거이므로, 어느 숫자가 어디에서 나왔는지
+     문서만 보고도 되짚을 수 있어야 합니다. */
+  const hist = picked.risk || null;
+  const total = auriBlendScore(avg, hist ? hist.score : null);
+
   document.getElementById('f1Addr').textContent = addr;
-  document.getElementById('f1Avg').textContent = `${avg}점 / 100점`;
+  document.getElementById('f1Avg').textContent = `${avg}점 / 100점 — 거리 이미지 판독 7개 분야 평균`;
+  document.getElementById('f1Hist').textContent = hist
+    ? `${hist.score}점 / 100점 — 반경 ${hist.radius}m 3개년 119 응급신고 이력`
+        + (hist.top && hist.top.length
+            ? ` (${hist.top.map(function (t) { return `${t.name || t.key} ${t.share}%`; }).join(', ')})`
+            : '')
+    : '해당 없음 — 반경 내 3개년 신고 이력 없음';
+  document.getElementById('f1Total').textContent = hist
+    ? `${total}점 / 100점 — 사진 판독 ${Math.round(RISK_BLEND_PHOTO * 100)} : 주변 이력 ${100 - Math.round(RISK_BLEND_PHOTO * 100)} 반영`
+    : `${total}점 / 100점 — 이력이 없어 사진 판독 점수를 그대로 적용`;
   document.getElementById('f1Top').textContent = risky.length
     ? risky.map(function (r) { return `${r.name}(${r.score}점 · ${r.level.label})`; }).join(', ')
     : '해당 없음 — 전 분야 안전 판정';
 
   /* 수치는 진단 결과에서 그대로 가져오고, 서술 문장만 임시 문안입니다 */
   const mustCount = items.filter(function (i) { return i.priority.cls === 'must'; }).length;
+  const histSentence = hist
+    ? ` 아울러 대상지 반경 ${hist.radius}m 내 최근 3개년 119 응급신고 이력을 종합한 주변 이력 지수는
+        <b>${hist.score}점</b>으로, 이를 함께 반영한 종합 위험도는 <b>${total}점</b>이다.`
+    : '';
   document.getElementById('f1Body').innerHTML = risky.length
-    ? `본 대상지(${addr})는 거리 이미지 기반 7대 사회재난 취약성 진단 결과 종합 위험도 <b>${avg}점</b>으로 평가되었으며,
-       특히 <b>${risky[0].name}</b> 분야가 ${risky[0].score}점으로 가장 취약한 것으로 나타났다.
+    ? `본 대상지(${addr})는 거리 이미지 기반 7대 사회재난 취약성 진단 결과 사진 판독 점수 <b>${avg}점</b>으로 평가되었으며,
+       특히 <b>${risky[0].name}</b> 분야가 ${risky[0].score}점으로 가장 취약한 것으로 나타났다.${histSentence}
        총 ${risky.length}개 분야에서 주의 이상 판정이 확인되어 다중 위험이 중첩되는 공간으로 판단된다.
        이에 따라 표준 설계 가이드라인에 근거해 총 <b>${items.length}종</b>의 예방 인프라(필수 ${mustCount}종)를 배치하고자
        안전사업지구 지정을 신청한다. <span class="blank">세부 사유 · 법적 근거 문단 생성 예정</span>`
