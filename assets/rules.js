@@ -47,7 +47,7 @@ const RX_RULES = {
       { id: 'R-CRM-02', name: '범죄예방 환경디자인 조명', note: '사각지대의 조도를 기준치까지 끌어올려 은폐 공간을 없앱니다.' }
     ],
     caution: [
-      { id: 'R-CRM-03', name: '시야 확보 정비 (벽면·식재)', note: '담장·수목으로 가려진 구간을 정비해 자연 감시가 되도록 합니다.' }
+      { id: 'R-CRM-03', name: '시야 확보 정비(벽면·식재)', note: '담장·수목으로 가려진 구간을 정비해 자연 감시가 되도록 합니다.' }
     ]
   },
   life: {
@@ -107,7 +107,8 @@ const RX_CATALOG = [
     '옥외 적치물 정비',
   ]},
   { group: '범죄예방 (CPTED)', items: [
-    'CPTED 방범 CCTV', '안심 비상벨(SOS)', '범죄예방 환경디자인 조명',
+    'CPTED 방범 CCTV', '안심 비상벨(SOS)', 'CPTED 방범 CCTV·비상벨',
+    '범죄예방 환경디자인 조명',
     'LED 보안등 교체·증설', '안심 귀갓길 노면표시', '반사형 안전거울',
     '시야 확보 정비(벽면·식재)', '노후 벽면 환경 정비', '스마트 안심 부스',
   ]},
@@ -125,6 +126,114 @@ const RX_CATALOG = [
     '대기공간 환기설비', '항균 손잡이·표면 마감',
   ]},
 ];
+
+/* ────────────────────────────────────────────────────────────────────
+   표준단가표 (임시 추정값)
+
+   ★ 지금 값은 공인된 표준단가가 아닙니다. ★
+   과업4 「재난 예방 인프라 표준 설계 가이드라인」의 표준 단가 매트릭스가
+   확정되기 전까지, 서식2(예산 산출 근거)가 실제로 금액을 계산하는지
+   확인하기 위해 넣어 둔 자리표시용 숫자입니다. 조달청 가격정보·지자체
+   일위대가가 확정되면 이 표만 교체하면 문서 전체에 반영됩니다.
+
+   가격은 자재비 + 설치비를 합한 개략 금액(원)이며 부가세는 제외했습니다.
+
+     unit   산출 단위 (개소 / m / ㎡ / 식)
+     qty    기본 수량 — 100 × 100m 격자 한 곳에 통상 들어가는 정도.
+            현장마다 달라지므로 연구원이 고치는 것을 전제로 한 기본값입니다.
+     price  단위당 단가 (원)
+   ──────────────────────────────────────────────────────────────────── */
+const RX_PRICES = {
+  /* 자살 예방 */
+  '옥상 출입 자동개폐장치':     { unit: '개소', qty: 2,  price:  2500000 },
+  '추락방지 안전펜스':          { unit: 'm',    qty: 30, price:   250000 },
+  '교량 난간 증고·보강':        { unit: 'm',    qty: 30, price:   350000 },
+  '생명존중 안전 사이니지':     { unit: '개',   qty: 4,  price:   800000 },
+  '위기상담 연결 SOS 전화기':   { unit: '개소', qty: 1,  price:  3500000 },
+  '투신방지 그물망':            { unit: 'm',    qty: 20, price:   450000 },
+
+  /* 교통안전 */
+  '바닥형 보행신호등':          { unit: '개소', qty: 1,  price: 12000000 },
+  '보행자 방호울타리':          { unit: 'm',    qty: 40, price:   150000 },
+  '차량진입억제용 볼라드':      { unit: '개',   qty: 8,  price:   250000 },
+  '고휘도 횡단보도 조명':       { unit: '개소', qty: 1,  price:  6000000 },
+  '스마트 횡단보도(보행자 감지)': { unit: '개소', qty: 1, price: 25000000 },
+  '고원식 횡단보도':            { unit: '개소', qty: 1,  price:  8000000 },
+  '과속방지턱':                 { unit: '개소', qty: 2,  price:  1200000 },
+  '과속경고 전광표지':          { unit: '개소', qty: 1,  price:  7500000 },
+  '도로반사경':                 { unit: '개',   qty: 2,  price:   450000 },
+  '노면 색깔유도선':            { unit: 'm',    qty: 60, price:    30000 },
+  '어린이보호구역 표지·노면표시': { unit: '식',  qty: 1,  price:  3500000 },
+  '불법주정차 단속 CCTV':       { unit: '개소', qty: 1,  price: 18000000 },
+  '보도 신설·확폭':             { unit: '㎡',   qty: 80, price:   180000 },
+
+  /* 화재안전 */
+  '스마트 소화전':              { unit: '개소', qty: 1,  price: 15000000 },
+  '옥외 소화기함':              { unit: '개소', qty: 4,  price:   450000 },
+  '비상소화장치함':             { unit: '개소', qty: 1,  price:  3500000 },
+  '소방차 진입로 노면표시':     { unit: 'm',    qty: 50, price:    40000 },
+  '소방차 전용구역 표시':       { unit: '개소', qty: 2,  price:   600000 },
+  '화재감지 IoT 센서':          { unit: '개',   qty: 10, price:   350000 },
+  '옥외 적치물 정비':           { unit: '식',   qty: 1,  price:  2000000 },
+
+  /* 범죄예방 (CPTED) */
+  'CPTED 방범 CCTV':            { unit: '개소', qty: 2,  price: 12000000 },
+  '안심 비상벨(SOS)':           { unit: '개소', qty: 2,  price:  4500000 },
+  'CPTED 방범 CCTV·비상벨':     { unit: '개소', qty: 2,  price: 15000000 },
+  '범죄예방 환경디자인 조명':   { unit: '개소', qty: 6,  price:  1800000 },
+  'LED 보안등 교체·증설':       { unit: '개소', qty: 8,  price:   950000 },
+  '안심 귀갓길 노면표시':       { unit: 'm',    qty: 80, price:    50000 },
+  '반사형 안전거울':            { unit: '개',   qty: 3,  price:   400000 },
+  '시야 확보 정비(벽면·식재)':  { unit: '식',   qty: 1,  price:  2500000 },
+  '노후 벽면 환경 정비':        { unit: '㎡',   qty: 60, price:   120000 },
+  '스마트 안심 부스':           { unit: '개소', qty: 1,  price: 35000000 },
+
+  /* 생활안전 */
+  '보행 안전 핸드레일':         { unit: 'm',    qty: 40, price:   120000 },
+  '미끄럼 방지 포장':           { unit: '㎡',   qty: 100, price:    60000 },
+  '보행로 단차 정비':           { unit: '㎡',   qty: 40, price:    90000 },
+  '점자블록 정비':              { unit: '㎡',   qty: 30, price:   110000 },
+  '배수시설(측구·맨홀) 정비':   { unit: 'm',    qty: 40, price:   220000 },
+  '노면 결빙방지 열선':         { unit: 'm',    qty: 30, price:   450000 },
+  '보행자 우선도로 조성':       { unit: '㎡',   qty: 200, price:  250000 },
+  '보행 장애물(입간판·적치물) 정비': { unit: '식', qty: 1, price:  1500000 },
+
+  /* 산업재해 */
+  '작업구간 방호 펜스':         { unit: 'm',    qty: 50, price:    80000 },
+  '안전 사이니지·경고 표지':    { unit: '개',   qty: 6,  price:   350000 },
+  '하역·적재구역 노면표시':     { unit: '㎡',   qty: 60, price:    25000 },
+  '가설 보행자 통로':           { unit: 'm',    qty: 30, price:   180000 },
+  '작업구간 경광등·유도등':     { unit: '개',   qty: 6,  price:   250000 },
+
+  /* 감염병 */
+  '스마트 클린 쉘터':           { unit: '개소', qty: 1,  price: 45000000 },
+  '옥외 손 위생 스테이션':      { unit: '개소', qty: 2,  price:  2800000 },
+  '개방형 대기공간 정비':       { unit: '식',   qty: 1,  price:  8000000 },
+  '대기공간 환기설비':          { unit: '식',   qty: 1,  price: 12000000 },
+  '항균 손잡이·표면 마감':      { unit: '식',   qty: 1,  price:  1200000 },
+};
+
+/* 시설물 이름으로 단가를 찾습니다. 목록에 없는(연구원이 직접 입력한)
+   시설물은 null — 문서에서 "단가 미산정"으로 표시됩니다. */
+function auriRxPrice(name) {
+  return RX_PRICES[name] || null;
+}
+
+/* 원 단위 금액에 천 단위 쉼표를 넣습니다 */
+function auriWon(n) {
+  return Number(n).toLocaleString('ko-KR');
+}
+
+/* 목록 화면에 짧게 붙일 단가 표기 — 예) 1,200만원/개소 */
+function auriPriceShort(name) {
+  const p = auriRxPrice(name);
+  if (!p) return '';
+  const man = Math.round(p.price / 10000);
+  const txt = man >= 10000
+    ? `${Math.floor(man / 10000)}억 ${man % 10000 ? auriWon(man % 10000) + '만' : ''}원`
+    : `${auriWon(man)}만원`;
+  return `${txt}/${p.unit}`;
+}
 
 function auriCatalogHas(name) {
   return RX_CATALOG.some(function (g) { return g.items.indexOf(name) !== -1; });
@@ -242,11 +351,15 @@ function auriFindRule(id) {
   return null;
 }
 
-/* 처방의 근거 한 줄. 규칙이 뽑은 것과 사람이 넣은 것을 구분해 적습니다. */
+/* 처방의 근거 한 줄. 규칙이 뽑은 것과 사람이 넣은 것을 구분해 적고,
+   뒤에 표준단가를 붙여 어느 항목이 비싼지 고르는 중에 보이게 합니다. */
 function auriRxBasis(it) {
-  if (it.custom) return '근거: 연구원 직접 추가';
+  const price = auriPriceShort(it.name);
+  const tail = price ? ` · 표준단가 ${price}` : ' · 표준단가 미산정';
+
+  if (it.custom) return '근거: 연구원 직접 추가' + tail;
   const edited = it.edited ? ' · 연구원 수정' : '';
-  return `근거: ${it.category} ${it.score}점 · ${it.levelLabel} 판정 → 규칙 ${it.id}${edited}`;
+  return `근거: ${it.category} ${it.score}점 · ${it.levelLabel} 판정 → 규칙 ${it.id}${edited}${tail}`;
 }
 
 /* 최종 목록을 다음 단계로 넘깁니다. 규칙 엔진은 리포트 단계에서만 돌리고,
