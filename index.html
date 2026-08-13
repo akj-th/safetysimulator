@@ -121,9 +121,8 @@
       <div class="layer-rows" id="layerChips"></div>
       <p class="note" style="margin-top:15px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-        분야를 눌러 지난 3년간의 응급신고 발생 지점을 지도에 겹쳐 봅니다.
-        <b>한 분야만 켜면</b> 그 분야 안에서 신고가 몰린 곳이 크고 진하게 나오고,
-        <b>둘 이상 켜면</b> 분야별 위험 수준을 반영한 크기로 바뀌어 서로 비교할 수 있습니다.
+        분야를 눌러 지난 3년간의 응급신고 발생 지점을 지도에 겹쳐 봅니다. 신고가 많이 쌓인 곳일수록 크고 진하게 표시됩니다.
+        <b>종합 위험도</b>는 7개 분야를 아래 가중치로 합산해 한 장으로 보여 줍니다. 진할수록 여러 위험이 함께 몰린 곳입니다.
         <span class="weights" id="weightLine"></span>
       </p>
     </div>
@@ -195,8 +194,7 @@ const INCIDENT_CATEGORIES = [
 let _incidentIndex = null;    // 지역 목록
 let _loadedRegion = null;     // 지금 지도에 올라와 있는 지역
 let _incidentLayers = {};
-let _compositeCells = [];     // 칸별 종합 위험지수 [[위도, 경도, 0~1, {분야별}]]
-let _compositeCellSize = 50;
+let _compositeField = null;   // 종합 위험지수 (assets/risk-weights.js)
 let _catLabels = {};          // 분야 key → 화면에 쓰는 이름
 
 /* 선택한 지점에서 가장 가까운 지역 자료를 고릅니다.
@@ -249,19 +247,14 @@ let IncidentLayer = null;
 function defineIncidentLayer() {
   if (IncidentLayer) return;
 
-  /* scaleAlone  — 이 레이어만 켰을 때 쓰는 자 (분야 안에서의 상대 밀도)
-     scaleMixed  — 여럿 켰을 때 쓰는 자 (분야 가중치까지 반영)
-     colorOf     — 있으면 점마다 색을 정합니다 (종합 위험도 레이어용) */
-  IncidentLayer = function (points, color, opts) {
-    opts = opts || {};
+  /* graded = true 면 p[2] 를 건수가 아니라 0~1 지수로 읽습니다 (종합 위험도).
+     그 외에는 분야 레이어로, 한 칸에 쌓인 건수로 그립니다. */
+  IncidentLayer = function (points, color, graded) {
     this.color = color;
     this.pts = points;
     this.coords = points.map(function (p) { return new naver.maps.LatLng(p[0], p[1]); });
     this.canvas = null;
-    this.scaleAlone = opts.scaleAlone || function () { return 0.5; };
-    this.scaleMixed = opts.scaleMixed || this.scaleAlone;
-    this.colorOf = opts.colorOf || null;
-    this.mixed = false;
+    this.graded = !!graded;
   };
   IncidentLayer.prototype = new naver.maps.OverlayView();
   IncidentLayer.prototype.constructor = IncidentLayer;
@@ -299,11 +292,7 @@ function defineIncidentLayer() {
     const z = map.getZoom();
     const base = Math.max(1.6, Math.min(7, Math.pow(1.45, z - 15) * 2.8));
     const alpha = z >= 17 ? 0.55 : z >= 15 ? 0.46 : 0.38;
-    if (!this.colorOf) ctx.fillStyle = this.color;
-
-    /* 자를 고릅니다. 혼자 켜져 있으면 그 분야 안의 고저를 보여 주고,
-       여럿 켜져 있으면 분야 간 비교가 되도록 가중치를 반영합니다. */
-    const scale = this.mixed ? this.scaleMixed : this.scaleAlone;
+    ctx.fillStyle = this.color;
 
     /* 화면 밖 지점은 좌표 변환도 하지 않고 건너뜁니다 */
     const padLat = (ne.lat() - sw.lat()) * 0.05;
@@ -317,12 +306,19 @@ function defineIncidentLayer() {
 
       const o = proj.fromCoordToOffset(this.coords[i]);
 
-      /* 위험할수록 크고 진하게. t 는 0~1 로 맞춰진 값이라
-         분야가 달라도 같은 자로 그려집니다. */
-      const t = scale(p[2]);
-      const r = base * (0.55 + t * 1.55);
-      ctx.globalAlpha = Math.min(0.9, alpha * 0.6 + t * 0.62);
-      if (this.colorOf) ctx.fillStyle = this.colorOf(t);
+      let r;
+      if (this.graded) {
+        /* 종합 위험지수 — 색은 한 가지로 두고 크기와 진하기로만 분포를 보입니다 */
+        const t = p[2];
+        r = base * (0.45 + t * 1.85);
+        ctx.globalAlpha = Math.min(0.9, 0.12 + t * 0.72);
+      } else {
+        /* 한 칸에 쌓인 건수가 많을수록 크고 진하게.
+           제곱근을 쓰면 건수가 커져도 원이 지나치게 불어나지 않습니다. */
+        const n = p[2];
+        r = base * (1 + Math.min(1.9, Math.sqrt(n - 1) * 0.6));
+        ctx.globalAlpha = Math.min(0.88, alpha + Math.min(0.32, (n - 1) * 0.07));
+      }
 
       ctx.beginPath();
       ctx.arc(o.x - origin.x, o.y - origin.y, r, 0, Math.PI * 2);
@@ -361,7 +357,6 @@ function buildIncidentLayers(data) {
   host.innerHTML = '';
   totalHost.innerHTML = '';
 
-  const wMax = auriRiskMaxWeight();
   _catLabels = {};
 
   INCIDENT_CATEGORIES.forEach(function (cat) {
@@ -369,55 +364,45 @@ function buildIncidentLayers(data) {
     if (!set || !set.points.length) return;
     _catLabels[cat.key] = set.label;
 
-    /* 이 분야 안에서의 상대 밀도. 가중 자는 여기에 분야 가중치를 곱한 뒤
-       가장 무거운 분야(자살)를 1로 두고 다시 0~1 로 맞춥니다. */
-    const density = auriDensityScale(set.points);
-    const w = auriRiskWeight(cat.key);
-
     _incidentLayers[cat.key] = {
       def: cat,
       active: false,
-      layer: new IncidentLayer(set.points, cat.color, {
-        scaleAlone: density,
-        scaleMixed: function (n) { return density(n) * w / wMax; },
-      }),
+      layer: new IncidentLayer(set.points, cat.color),
     };
 
     const row = makeLayerRow(set.label, cat.color);
-    row.title = `${set.label} — 위험 가중치 ${w}배\n${RISK_WEIGHTS[cat.key].why}`;
+    row.title = `${set.label} — 종합 위험도에 반영되는 가중치 ${auriRiskWeight(cat.key)}배\n${RISK_WEIGHTS[cat.key].why}`;
     row.addEventListener('click', function () { toggleIncidentLayer(cat.key, row); });
     host.appendChild(row);
   });
 
   buildCompositeLayer(data, totalHost);
-
-  /* 가중치를 화면에도 적어 둡니다 — 지도가 왜 그렇게 보이는지의 근거 */
-  document.getElementById('weightLine').textContent =
-    '위험 가중치 ' + INCIDENT_CATEGORIES
-      .filter(function (c) { return data.categories[c.key]; })
-      .map(function (c) { return `${data.categories[c.key].label} ×${auriRiskWeight(c.key)}`; })
-      .join(' · ');
 }
 
-/* 7개 분야를 가중 합산한 종합 위험도 레이어 */
+/* 7개 분야를 가중 합산해 완만하게 이어 붙인 종합 위험도 레이어 */
 function buildCompositeLayer(data, host) {
-  _compositeCells = auriCompositeCells(data.categories);
-  _compositeCellSize = data.cellSize || 50;
-  if (!_compositeCells.length) return;
+  _compositeField = auriCompositeField(data.categories, data.cellSize || 50);
+  if (!_compositeField.cells.length) return;
 
   _incidentLayers._total = {
     def: { key: '_total', color: '#D83D64' },
     active: false,
-    layer: new IncidentLayer(_compositeCells, '#D83D64', {
-      scaleAlone: function (t) { return t; },
-      colorOf: function (t) { return auriRiskBand(t).color; },
-    }),
+    layer: new IncidentLayer(_compositeField.cells, '#D83D64', true),
   };
 
-  const row = makeLayerRow('종합 위험도', '#D83D64', '7개 분야를 위험 가중치로 합산한 값');
-  row.title = '분야별 밀도를 0~1 로 맞춘 뒤 가중치를 곱해 더한 값입니다.\n이 지역 안에서의 상대 순위이며, 다른 지자체와 직접 비교할 수는 없습니다.';
+  const row = makeLayerRow('종합 위험도', '#D83D64', '7개 분야를 위험 가중치로 합산');
+  row.title = '분야별 밀도를 0~1 로 맞춘 뒤 위험 가중치를 곱해 더하고,\n'
+            + `주변 ${_compositeField.radius}m 를 거리에 따라 섞어 완만하게 만든 값입니다.\n`
+            + '이 지역 안에서의 상대 순위이며, 다른 지자체와 직접 비교할 수는 없습니다.';
   row.addEventListener('click', function () { toggleIncidentLayer('_total', row); });
   host.appendChild(row);
+
+  /* 지도가 왜 그렇게 보이는지의 근거를 화면에도 적어 둡니다 */
+  document.getElementById('weightLine').textContent =
+    '종합 위험도 가중치 ' + INCIDENT_CATEGORIES
+      .filter(function (c) { return data.categories[c.key]; })
+      .map(function (c) { return `${data.categories[c.key].label} ×${auriRiskWeight(c.key)}`; })
+      .join(' · ');
 }
 
 function toggleIncidentLayer(key, row) {
@@ -427,19 +412,6 @@ function toggleIncidentLayer(key, row) {
 
   row.classList.toggle('on', entry.active);
   row.setAttribute('aria-pressed', entry.active ? 'true' : 'false');
-  refreshIncidentScaling();
-}
-
-/* 켜진 레이어가 둘 이상이면 모든 레이어가 가중 자로 바뀝니다.
-   혼자 켜져 있을 때는 그 분야 안의 고저를 그대로 보여 줍니다. */
-function refreshIncidentScaling() {
-  const layers = Object.values(_incidentLayers);
-  const mixed = layers.filter(function (l) { return l.active; }).length > 1;
-  layers.forEach(function (l) {
-    if (l.layer.mixed === mixed) return;
-    l.layer.mixed = mixed;
-    if (l.active) l.layer.draw();
-  });
 }
 /* ── 시작 위치 결정 → 지도·스트리트뷰 띄우기 ──────────────────── */
 
@@ -540,30 +512,31 @@ function selectPoint(latlng, knownAddr) {
    진단 전에 먼저 보여 주는 부분입니다. */
 function showLocalRisk(lat, lng) {
   const el = document.getElementById('pickedRisk');
-  const cell = _compositeCells.length
-    ? auriCellAt(_compositeCells, lat, lng, _compositeCellSize)
-    : null;
-
   if (!picked) return;
 
-  if (!cell) {
+  const hit = _compositeField ? _compositeField.valueAt(lat, lng) : null;
+
+  if (!hit) {
     picked.risk = null;
-    el.textContent = `반경 ${_compositeCellSize}m 안에는 3년간 응급신고 이력이 없습니다.`;
+    el.textContent = _compositeField
+      ? `주변 ${_compositeField.radius}m 안에는 3년간 응급신고 이력이 없습니다.`
+      : '';
     return;
   }
 
-  const band = auriRiskBand(cell[2]);
-  const score = Math.round(cell[2] * 100);
-  const parts = cell[3];
+  const band = auriRiskBand(hit.t);
+  const score = Math.round(hit.t * 100);
+  const parts = hit.parts;
   const sum = Object.keys(parts).reduce(function (s, k) { return s + parts[k]; }, 0) || 1;
 
   /* 어느 분야가 이 점수를 만들었는지 함께 남깁니다 — 근거 역추적용 */
   const top = Object.keys(parts)
     .map(function (k) { return { key: k, share: Math.round(parts[k] / sum * 100) }; })
     .sort(function (a, b) { return b.share - a.share; })
+    .filter(function (t) { return t.share >= 1; })
     .slice(0, 3);
 
-  picked.risk = { score: score, level: band.label, cellSize: _compositeCellSize, top: top };
+  picked.risk = { score: score, level: band.label, radius: _compositeField.radius, top: top };
 
   el.innerHTML = `<span class="lv" style="color:${band.color}">주변 이력 위험지수 ${score} · ${band.label}</span> — ` +
     top.map(function (t) { return `${_catLabels[t.key] || t.key} ${t.share}%`; }).join(' · ');

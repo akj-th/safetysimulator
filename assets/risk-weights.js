@@ -42,9 +42,10 @@ const RISK_WEIGHTS = {
   life:       { w:  1, why: '기준값. 대부분 경상·단순 구조 신고로 개별 1건의 위험 수준이 가장 낮음' },
 };
 
-/* 종합 위험지수를 3구간으로 자를 때 쓰는 색.
+/* 종합 위험지수를 3구간으로 자를 때 쓰는 이름과 색.
    위험도 9단계·처방 규칙표의 경계(0~33 / 34~66 / 67~100)와 같은 값입니다.
-   한쪽만 바꾸면 지도와 처방이 어긋나므로 함께 고쳐야 합니다. */
+   한쪽만 바꾸면 지도와 처방이 어긋나므로 함께 고쳐야 합니다.
+   ※ 색은 화면의 글자에만 씁니다. 지도의 점은 한 가지 색으로 그립니다. */
 const RISK_BANDS = [
   { upTo: 0.34, color: '#666666', label: '안전' },
   { upTo: 0.67, color: '#000000', label: '주의' },
@@ -52,18 +53,19 @@ const RISK_BANDS = [
 ];
 
 /* 종합 지수를 지역 안에서 상대 평가할 때 쓰는 기준 분위수.
-   0.99 = 그 지역 상위 1% 칸을 만점(위험)으로 봅니다.
+   0.99 = 그 지역 상위 1% 지점을 만점(위험)으로 봅니다.
    낮추면 위험 판정 구간이 넓어집니다. */
 const RISK_TOP_QUANTILE = 0.99;
 
+/* 평활 반경 — 격자 한 칸의 몇 배까지 이웃 칸을 섞을 것인가.
+   격자 칸의 값을 그대로 읽으면 칸 경계에서 값이 튑니다. 1m만 옮겨도
+   지수가 100에서 13으로 바뀌는 식입니다. 실제 위험은 칸 경계에서
+   끊기지 않으므로, 주변 칸을 거리에 따라 섞어 완만한 분포로 만듭니다.
+   키우면 더 뭉개지고, 줄이면 칸 모양이 다시 드러납니다. */
+const RISK_SMOOTH = 1.5;
+
 function auriRiskWeight(key) {
   return RISK_WEIGHTS[key] ? RISK_WEIGHTS[key].w : 0;
-}
-
-function auriRiskMaxWeight() {
-  return Object.keys(RISK_WEIGHTS).reduce(function (m, k) {
-    return Math.max(m, RISK_WEIGHTS[k].w);
-  }, 1);
 }
 
 /* 정렬된 배열에서 분위수 하나를 꺼냅니다 */
@@ -87,18 +89,37 @@ function auriDensityScale(points) {
   };
 }
 
-/* ── 2단계 + 3단계: 칸별 종합 위험지수 ────────────────────────────
+function auriRiskBand(t) {
+  for (let i = 0; i < RISK_BANDS.length; i++) if (t < RISK_BANDS[i].upTo) return RISK_BANDS[i];
+  return RISK_BANDS[RISK_BANDS.length - 1];
+}
+
+/* ── 2·3단계 + 평활: 종합 위험지수 ────────────────────────────────
    격자는 모든 분야가 같은 원점·같은 크기로 잘려 있어(convert-gis.js),
    분야가 달라도 같은 칸이면 좌표가 정확히 일치합니다. 그래서 좌표를
    열쇠 삼아 더할 수 있습니다.
 
-   돌려주는 값: [[위도, 경도, 0~1 지수, {분야별 기여도}], ...]
-   지수는 그 지역 안에서의 상대 순위입니다. 지역이 다르면 절대
-   비교가 되지 않으므로, "이 지자체 안에서 어디부터 볼 것인가"에만
-   씁니다. */
-function auriCompositeCells(categories) {
-  const cells = new Map();
+   더한 값을 그대로 쓰지 않고, 각 지점에서 주변 칸을 거리에 따라
+   섞습니다. 가까운 칸일수록 크게 반영되고 멀수록 급격히 작아지는
+   종 모양 곡선(가우시안)을 씁니다. 그래야 칸 경계에서 값이 튀지
+   않고 히트맵처럼 완만하게 이어집니다.
 
+   돌려주는 값
+     .cells    [[위도, 경도, 0~1 지수], ...]   지도에 그릴 점
+     .valueAt(위도, 경도) → { t, parts }       임의 지점의 지수와 분야별 기여
+     .radius                                    평활 반경(m) — 화면 설명용
+
+   지수는 그 지역 안에서의 상대 순위입니다. 지역이 다르면 절대 비교가
+   되지 않으므로 "이 지자체 안에서 어디부터 볼 것인가"에만 씁니다. */
+function auriCompositeField(categories, cellSize) {
+  cellSize = cellSize || 50;
+  const sigma = cellSize * RISK_SMOOTH;    // 종 모양 곡선의 폭 (m)
+  const cutoff = sigma * 2.5;              // 이보다 먼 칸은 무시 (기여가 4% 미만)
+  const cut2 = cutoff * cutoff;
+  const twoSigma2 = 2 * sigma * sigma;
+
+  /* ① 칸별 가중 합 */
+  const byCell = new Map();
   for (const key in categories) {
     const w = auriRiskWeight(key);
     const set = categories[key];
@@ -110,36 +131,79 @@ function auriCompositeCells(categories) {
       const gk = p[0] + ',' + p[1];
       const add = w * d(p[2]);
 
-      let cell = cells.get(gk);
-      if (!cell) { cell = [p[0], p[1], 0, {}]; cells.set(gk, cell); }
+      let cell = byCell.get(gk);
+      if (!cell) { cell = [p[0], p[1], 0, {}]; byCell.set(gk, cell); }
       cell[2] += add;
-      cell[3][key] = add;
+      cell[3][key] = (cell[3][key] || 0) + add;
     }
   }
 
-  const arr = Array.from(cells.values());
-  const sorted = arr.map(function (c) { return c[2]; }).sort(function (a, b) { return a - b; });
+  const raw = Array.from(byCell.values());
+  if (!raw.length) {
+    return { cells: [], radius: Math.round(cutoff), valueAt: function () { return null; } };
+  }
+
+  /* ② 공간 색인 — 전부와 거리를 재면 칸이 3만 개인 지역에서 멈춥니다.
+        한 변이 cutoff 인 바구니로 나눠 두고 주변 9칸만 봅니다. */
+  const meanLat = raw.reduce(function (s, c) { return s + c[0]; }, 0) / raw.length;
+  const cosLat = Math.cos(meanLat * Math.PI / 180);
+  const M_PER_LAT = 111320;
+  const latStep = cutoff / M_PER_LAT;
+  const lngStep = cutoff / (M_PER_LAT * cosLat);
+
+  const buckets = new Map();
+  for (let i = 0; i < raw.length; i++) {
+    const bk = Math.floor(raw[i][0] / latStep) + '|' + Math.floor(raw[i][1] / lngStep);
+    let list = buckets.get(bk);
+    if (!list) { list = []; buckets.set(bk, list); }
+    list.push(raw[i]);
+  }
+
+  /* ③ 임의 지점의 평활값 */
+  function smoothAt(lat, lng, wantParts) {
+    const bx = Math.floor(lat / latStep), by = Math.floor(lng / lngStep);
+    let sum = 0;
+    const parts = wantParts ? {} : null;
+
+    for (let ax = -1; ax <= 1; ax++) {
+      for (let ay = -1; ay <= 1; ay++) {
+        const list = buckets.get((bx + ax) + '|' + (by + ay));
+        if (!list) continue;
+        for (let i = 0; i < list.length; i++) {
+          const c = list[i];
+          const my = (c[0] - lat) * M_PER_LAT;
+          const mx = (c[1] - lng) * M_PER_LAT * cosLat;
+          const d2 = my * my + mx * mx;
+          if (d2 > cut2) continue;
+
+          const k = Math.exp(-d2 / twoSigma2);
+          sum += k * c[2];
+          if (parts) for (const key in c[3]) parts[key] = (parts[key] || 0) + k * c[3][key];
+        }
+      }
+    }
+    return { sum: sum, parts: parts };
+  }
+
+  /* ④ 칸 중심의 평활값으로 지역 기준선을 잡습니다 */
+  const smoothed = new Array(raw.length);
+  for (let i = 0; i < raw.length; i++) smoothed[i] = smoothAt(raw[i][0], raw[i][1], false).sum;
+
+  const sorted = smoothed.slice().sort(function (a, b) { return a - b; });
   const top = auriQuantile(sorted, RISK_TOP_QUANTILE) || 1;
 
-  for (let i = 0; i < arr.length; i++) arr[i][2] = Math.min(1, arr[i][2] / top);
-  return arr;
-}
-
-function auriRiskBand(t) {
-  for (let i = 0; i < RISK_BANDS.length; i++) if (t < RISK_BANDS[i].upTo) return RISK_BANDS[i];
-  return RISK_BANDS[RISK_BANDS.length - 1];
-}
-
-/* 선택한 지점이 속한 칸을 찾습니다 (격자 한 칸 반경 안에서 가장 가까운 칸).
-   못 찾으면 null — 그 자리에는 3년간 신고 이력이 없다는 뜻입니다. */
-function auriCellAt(cells, lat, lng, cellSize) {
-  const deg = ((cellSize || 50) * 0.75) / 111000;   // m → 대략적인 위도 도수
-  let best = null, bestD = Infinity;
-  for (let i = 0; i < cells.length; i++) {
-    const c = cells[i];
-    const dy = c[0] - lat, dx = (c[1] - lng) * 0.8;
-    const d = dy * dy + dx * dx;
-    if (d < bestD) { bestD = d; best = c; }
+  const cells = new Array(raw.length);
+  for (let i = 0; i < raw.length; i++) {
+    cells[i] = [raw[i][0], raw[i][1], Math.min(1, smoothed[i] / top)];
   }
-  return best && Math.sqrt(bestD) <= deg ? best : null;
+
+  return {
+    cells: cells,
+    radius: Math.round(cutoff),
+    valueAt: function (lat, lng) {
+      const r = smoothAt(lat, lng, true);
+      if (!r.sum) return null;              // 반경 안에 신고 이력이 전혀 없음
+      return { t: Math.min(1, r.sum / top), parts: r.parts };
+    },
+  };
 }
