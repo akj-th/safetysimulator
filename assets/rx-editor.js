@@ -40,8 +40,23 @@ const AuriRx = {
     const items = auriPrescribe(results);
     auriSavePrescriptions(items);
     this.render(items);
+    this.showCap();
     if (this.opts.onChange) this.opts.onChange(items);
     return items;
+  },
+
+  /* 상한 때문에 빠진 시설물이 있으면 알립니다.
+     빠진 것도 사진에서 확인된 문제라, 조용히 없애면 근거가 사라집니다. */
+  showCap() {
+    if (!this.opts.capId) return;
+    const el = document.getElementById(this.opts.capId);
+    if (!el) return;
+    const n = auriRxDropped();
+    el.innerHTML = n
+      ? `진단에서 확인된 개선 항목이 더 있지만, 한 지점에 넣을 수 있는 규모를 고려해 ` +
+        `<b>급한 순으로 ${RX_MAX_TOTAL}종</b>만 골랐습니다 (제외 ${n}종). ` +
+        `필요하면 <b>수정 → 항목 추가</b>로 직접 넣을 수 있습니다.`
+      : '';
   },
 
   /* ── 보기 모드 ─────────────────────────────────────────────── */

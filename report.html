@@ -62,6 +62,11 @@
   .rx-cat{font-size:var(--fs-cap); color:var(--g2); font-weight:700; letter-spacing:.12em; margin-left:9px}
   .rx-note{font-size:var(--fs-body); color:var(--g3); margin-top:4px; line-height:var(--lh-body)}
   .rx-basis{font-size:var(--fs-cap); color:var(--g2); margin-top:7px; font-family:var(--mono)}
+
+  /* 상한으로 빠진 시설물 안내 */
+  .rx-cap{font-size:var(--fs-sm); color:var(--g3); line-height:var(--lh-body); margin-top:16px; padding-left:15px; border-left:2px solid var(--g1)}
+  .rx-cap:empty{display:none}
+  .rx-cap b{color:var(--k); font-weight:700}
 </style>
 </head>
 <body data-step="3">
@@ -131,6 +136,7 @@
       <button class="btn-text" id="rxSaveBtn" style="display:none" onclick="AuriRx.save()">저장</button>
     </div>
     <div class="rx-list" id="rxList"></div>
+    <p class="rx-cap" id="rxCap"></p>
     <div class="panel-foot">
       <button class="btn ghost sm" id="rxAddBtn" style="display:none" onclick="AuriRx.add()">＋ 항목 추가</button>
       <a class="btn accent" href="visualize.html">개선 전/후 시각화</a>
@@ -307,6 +313,7 @@ window.addEventListener('load', function () {
     listId: 'rxList',
     editBtnId: 'rxEditBtn', saveBtnId: 'rxSaveBtn',
     cancelBtnId: 'rxCancelBtn', addBtnId: 'rxAddBtn',
+    capId: 'rxCap',
     showNote: true,
     onChange: function () { auriRenderSteps(); },   // 다음 단계 잠금 해제
   });
