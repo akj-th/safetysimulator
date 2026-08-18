@@ -31,6 +31,23 @@
   --font:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   --mono:'SFMono-Regular',ui-monospace,Consolas,monospace;
 
+  /* ── 글자 크기 ────────────────────────────────────────────────
+     ★ 화면 전체의 글자 크기는 여기서만 조절합니다.
+     각 화면의 CSS도 아래 이름을 가리키므로, 숫자를 바꾸면
+     5개 화면에 한꺼번에 반영됩니다. 직접 px 을 적지 마세요.
+
+     실제 사용자가 공무원이라 작다는 지적을 받아 한 단계씩 키운 값입니다.
+     (본문 13.5 → 15 · 소제목 15 → 17.5 · 보조 11~12 → 13.5 · 캡션 9.5 → 11) */
+  --fs-title:27px;       /* 페이지 제목 (h1) */
+  --fs-h2:17.5px;        /* 소제목 (h2) */
+  --fs-lead:16px;        /* 강조 본문 — 페이지 부제, 항목 이름 */
+  --fs-body:15px;        /* 본문 · 버튼 · 입력창 · 표 내용 */
+  --fs-sm:13.5px;        /* 보조 설명 · 작은 버튼 · 표 머리행 */
+  --fs-cap:11px;         /* 캡션 · 각주 · 라벨 · 배지 */
+
+  --lh-body:1.7;         /* 본문 줄간격 */
+  --lh-tight:1.6;        /* 짧은 문구 줄간격 */
+
   /* ── 이전 이름 유지 ────────────────────────────────────────────
      화면별 CSS와 일부 스크립트가 아래 이름을 참조합니다.
      새 색으로 연결해 두면 그쪽도 자동으로 새 디자인을 따릅니다. */
@@ -49,9 +66,9 @@ body{
   background:var(--w);
   color:var(--g4);
   font-family:var(--font);
-  font-size:13.5px;
+  font-size:var(--fs-body);
   font-weight:400;
-  line-height:1.7;
+  line-height:var(--lh-body);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
 }
@@ -75,9 +92,9 @@ body{
   text-decoration:none; color:var(--k);
 }
 .brand-logo{height:var(--logo-h,22px); width:auto; display:block}
-.brand-text{font-size:12px; font-weight:700; letter-spacing:.1em}
+.brand-text{font-size:var(--fs-sm); font-weight:700; letter-spacing:.1em}
 .brand-sub{
-  font-size:10px; font-weight:700; letter-spacing:.15em; color:var(--g2);
+  font-size:var(--fs-cap); font-weight:700; letter-spacing:.15em; color:var(--g2);
   padding-left:13px; border-left:1px solid var(--g1);
 }
 @media(max-width:560px){ .brand-sub{display:none} }
@@ -88,14 +105,14 @@ body{
 .step{
   display:flex; align-items:baseline; gap:7px;
   padding:20px 0; border-bottom:1px solid transparent;
-  font-size:12px; font-weight:400; color:var(--g2);
+  font-size:var(--fs-sm); font-weight:400; color:var(--g2);
   text-decoration:none; background:none; border-top:none;
   border-left:none; border-right:none;
   font-family:inherit; cursor:pointer; white-space:nowrap;
   transition:color .12s, border-color .12s;
 }
 .step .num{
-  font-size:10px; font-weight:700; letter-spacing:.06em;
+  font-size:var(--fs-cap); font-weight:700; letter-spacing:.06em;
   color:var(--g2); flex:none;
 }
 .step .num::before{content:'0'}
@@ -120,10 +137,11 @@ body{
 .wrap{max-width:var(--maxw); margin:0 auto; padding:46px var(--gutter) 96px}
 
 .page-head{margin-bottom:40px; max-width:760px}
-h1{font-size:25px; font-weight:700; color:var(--k); letter-spacing:-.02em; line-height:1.4}
-.sub{font-size:13px; color:var(--g3); margin-top:12px; line-height:1.75}
+/* 제목은 줄간격을 좁게 — 본문 간격을 쓰면 두 줄일 때 벌어져 보입니다 */
+h1{font-size:var(--fs-title); font-weight:700; color:var(--k); letter-spacing:-.02em; line-height:1.4}
+.sub{font-size:var(--fs-lead); color:var(--g3); margin-top:12px; line-height:var(--lh-body)}
 
-h2{font-size:15px; font-weight:700; color:var(--k); letter-spacing:-.01em}
+h2{font-size:var(--fs-h2); font-weight:700; color:var(--k); letter-spacing:-.01em}
 
 /* ════ 구획 — 카드 대신 얇은 선과 여백 ═════════════════════════ */
 
@@ -146,7 +164,7 @@ h2{font-size:15px; font-weight:700; color:var(--k); letter-spacing:-.01em}
 
 /* 섹션 라벨 — 작은 대문자형 라벨 */
 .tag{
-  font-size:9.5px; font-weight:700; letter-spacing:.15em;
+  font-size:var(--fs-cap); font-weight:700; letter-spacing:.15em;
   color:var(--g2); background:none; padding:0; border-radius:0;
   white-space:nowrap;
 }
@@ -156,9 +174,9 @@ h2{font-size:15px; font-weight:700; color:var(--k); letter-spacing:-.01em}
 /* ════ 버튼 ═════════════════════════════════════════════════════ */
 
 .btn{
-  font-family:inherit; font-size:12.5px; font-weight:700;
+  font-family:inherit; font-size:var(--fs-body); font-weight:700;
   letter-spacing:.02em;
-  border-radius:0; padding:12px 22px;
+  border-radius:0; padding:14px 26px;
   border:1px solid var(--k); background:var(--k); color:var(--w);
   cursor:pointer; white-space:nowrap; text-decoration:none;
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
@@ -174,32 +192,32 @@ h2{font-size:15px; font-weight:700; color:var(--k); letter-spacing:-.01em}
 /* 주요 동작도 검정을 씁니다. 넓은 면을 메인 컬러로 칠하지 않습니다. */
 .btn.accent{background:var(--k); border-color:var(--k); color:var(--w)}
 
-.btn.sm{font-size:11.5px; padding:9px 16px}
-.btn svg{width:14px; height:14px; flex:none}
+.btn.sm{font-size:var(--fs-sm); padding:11px 19px}
+.btn svg{width:16px; height:16px; flex:none}
 
 /* 글자형 보조 동작 */
 .btn-text{
-  font-family:inherit; font-size:11.5px; font-weight:700; letter-spacing:.02em;
+  font-family:inherit; font-size:var(--fs-sm); font-weight:700; letter-spacing:.02em;
   color:var(--g3); background:none; border:none; cursor:pointer;
   display:inline-flex; align-items:center; gap:6px; padding:2px 0;
   border-bottom:1px solid var(--g1); border-radius:0; transition:.12s;
 }
 .btn-text:hover{color:var(--k); border-bottom-color:var(--k); background:none}
-.btn-text svg{width:12px; height:12px}
+.btn-text svg{width:14px; height:14px}
 .btn-text.danger:hover{color:var(--main); border-bottom-color:var(--main); background:none}
 
 /* ════ 입력 ═════════════════════════════════════════════════════ */
 
 input[type=text], textarea, select{
-  font-family:inherit; font-size:13px; color:var(--g4);
-  padding:11px 13px;
+  font-family:inherit; font-size:var(--fs-body); color:var(--g4);
+  padding:13px 14px;
   border:1px solid var(--g1); border-radius:0;
   background:var(--w); outline:none; width:100%;
   transition:border-color .12s;
 }
 input[type=text]:focus, textarea:focus, select:focus{border-color:var(--k)}
 input[type=text]::placeholder, textarea::placeholder{color:var(--g2)}
-textarea{resize:vertical; line-height:1.7}
+textarea{resize:vertical; line-height:var(--lh-body)}
 
 /* ════ 선택 위치 표시줄 ════════════════════════════════════════ */
 
@@ -213,16 +231,16 @@ textarea{resize:vertical; line-height:1.7}
 .picked .dot{width:7px; height:7px; border-radius:50%; background:var(--g1); flex:none}
 .picked.on .dot{background:var(--main)}
 .picked .info{flex:1; min-width:0}
-.picked .lab{font-size:9.5px; font-weight:700; letter-spacing:.15em; color:var(--main)}
-.picked .addr{font-size:14px; font-weight:700; color:var(--k); margin-top:4px}
-.picked .coord{font-family:var(--mono); font-size:11px; color:var(--g2); margin-top:2px}
+.picked .lab{font-size:var(--fs-cap); font-weight:700; letter-spacing:.15em; color:var(--main)}
+.picked .addr{font-size:var(--fs-lead); font-weight:700; color:var(--k); margin-top:4px}
+.picked .coord{font-family:var(--mono); font-size:var(--fs-sm); color:var(--g2); margin-top:2px}
 
 /* ════ 위험도 ═══════════════════════════════════════════════════
    안전은 옅은 회색, 주의는 검정, 위험만 메인 컬러.
    면으로 칠하지 않고 글자와 막대에만 색을 씁니다. */
 
 .badge{
-  font-size:10px; font-weight:700; letter-spacing:.1em;
+  font-size:var(--fs-cap); font-weight:700; letter-spacing:.1em;
   padding:0; border-radius:0; background:none;
   white-space:nowrap; display:inline-block; text-align:center;
 }
@@ -243,31 +261,31 @@ textarea{resize:vertical; line-height:1.7}
 .lv-caution .scale i.on{background:var(--k)}
 .lv-danger .scale i.on{background:var(--main)}
 
-.scale-ends{display:flex; justify-content:space-between; font-size:9.5px; color:var(--g2); margin-top:4px}
-.step-num{font-family:var(--mono); font-size:11px; color:var(--g2); width:32px; flex:none; text-align:right}
+.scale-ends{display:flex; justify-content:space-between; font-size:var(--fs-cap); color:var(--g2); margin-top:4px}
+.step-num{font-family:var(--mono); font-size:var(--fs-sm); color:var(--g2); width:40px; flex:none; text-align:right}
 
 /* ════ 편집 ═════════════════════════════════════════════════════ */
 
 .edit-row{display:flex; align-items:center; gap:14px; padding:5px 0}
-.edit-row .name{width:88px; flex:none; font-size:13px; font-weight:700; color:var(--k)}
-.edit-row .badge{width:44px; flex:none}
+.edit-row .name{width:98px; flex:none; font-size:var(--fs-body); font-weight:700; color:var(--k)}
+.edit-row .badge{width:48px; flex:none}
 
 input[type=range]{flex:1; min-width:90px; height:4px; margin:0; accent-color:var(--k); cursor:pointer}
 
-.edit-note{margin-top:10px; padding-left:102px}
-.edit-note textarea{font-size:12.5px; min-height:54px}
-.edit-note .lab{font-size:9.5px; font-weight:700; letter-spacing:.15em; color:var(--main); margin-bottom:6px}
+.edit-note{margin-top:10px; padding-left:112px}
+.edit-note textarea{font-size:var(--fs-body); min-height:54px}
+.edit-note .lab{font-size:var(--fs-cap); font-weight:700; letter-spacing:.15em; color:var(--main); margin-bottom:6px}
 @media(max-width:640px){ .edit-note{padding-left:0} }
 
 .rx-edit{display:flex; flex-direction:column; gap:9px; flex:1; min-width:0}
 .rx-edit .line{display:flex; gap:9px; align-items:center}
-.rx-edit select{width:auto; flex:none; padding:10px 12px}
+.rx-edit select{width:auto; flex:none; padding:12px 13px}
 .rx-edit select.grow{flex:1; min-width:0}
-.rx-edit textarea{min-height:50px; font-size:12.5px}
+.rx-edit textarea{min-height:50px; font-size:var(--fs-body)}
 
 /* 사람이 손댄 표시 */
 .mark-edited{
-  font-size:9.5px; font-weight:700; letter-spacing:.12em;
+  font-size:var(--fs-cap); font-weight:700; letter-spacing:.12em;
   color:var(--main); background:none; padding:0; margin-left:10px;
 }
 
@@ -279,11 +297,11 @@ input[type=range]{flex:1; min-width:90px; height:4px; margin:0; accent-color:var
   border-radius:0;
 }
 .revise-box .lab{
-  font-size:9.5px; font-weight:700; letter-spacing:.15em;
+  font-size:var(--fs-cap); font-weight:700; letter-spacing:.15em;
   color:var(--main); margin-bottom:10px;
 }
-.revise-box textarea{min-height:78px; font-size:12.5px}
-.revise-box .d{font-size:11px; color:var(--g2); margin-top:9px; line-height:1.7}
+.revise-box textarea{min-height:78px; font-size:var(--fs-body)}
+.revise-box .d{font-size:var(--fs-sm); color:var(--g2); margin-top:9px; line-height:var(--lh-body)}
 .revise-box .actions{display:flex; gap:9px; margin-top:16px; flex-wrap:wrap}
 
 /* 바탕 이미지 선택 */
@@ -298,17 +316,17 @@ input[type=range]{flex:1; min-width:90px; height:4px; margin:0; accent-color:var
 .opt:has(input:checked){background:none}
 .opt:has(input:checked) .t{color:var(--main)}
 .opt input{margin-top:3px; accent-color:var(--main); flex:none}
-.opt .t{font-size:12.5px; font-weight:700; color:var(--k); transition:color .12s}
-.opt .s{font-size:11px; color:var(--g3); margin-top:3px; line-height:1.6}
+.opt .t{font-size:var(--fs-body); font-weight:700; color:var(--k); transition:color .12s}
+.opt .s{font-size:var(--fs-sm); color:var(--g3); margin-top:3px; line-height:var(--lh-tight)}
 
 /* ════ 표 — 머리행만 검정 반전, 세로선 없음 ════════════════════ */
 
-table{width:100%; border-collapse:collapse; font-size:12.5px; margin-top:6px}
+table{width:100%; border-collapse:collapse; font-size:var(--fs-body); margin-top:6px}
 /* 세로선은 두지 않습니다. 칸 구분은 가로선과 여백으로만. */
-th,td{border:none; border-bottom:1px solid var(--g1); padding:11px 12px; text-align:left; vertical-align:top}
+th,td{border:none; border-bottom:1px solid var(--g1); padding:13px 13px; text-align:left; vertical-align:top}
 th{
   background:var(--k); color:var(--w); border-bottom:none;
-  font-size:9.5px; font-weight:700; letter-spacing:.12em;
+  font-size:var(--fs-sm); font-weight:700; letter-spacing:.08em;
 }
 td{color:var(--g4)}
 td.num{text-align:right; font-family:var(--mono); color:var(--g3)}
@@ -318,17 +336,17 @@ tr.sum td{background:none; border-top:1px solid var(--k); border-bottom:none; fo
    아이콘을 글 흐름 밖에 두어야 문장 중간의 태그가 밀려나지 않습니다. */
 
 .note{
-  font-size:11.5px; color:var(--g3); line-height:1.75;
-  margin-top:20px; position:relative; padding-left:20px;
+  font-size:var(--fs-sm); color:var(--g3); line-height:var(--lh-body);
+  margin-top:20px; position:relative; padding-left:23px;
 }
-.note svg{width:12px; height:12px; position:absolute; left:0; top:4px; color:var(--g2)}
+.note svg{width:14px; height:14px; position:absolute; left:0; top:5px; color:var(--g2)}
 
 /* 주의를 끄는 알림 — 박스 대신 왼쪽 세로선 */
 .callout{
   padding:2px 0 2px 15px; border-left:2px solid var(--g1);
   background:none; border-radius:0;
-  font-size:12px; color:var(--g3); line-height:1.75;
+  font-size:var(--fs-sm); color:var(--g3); line-height:var(--lh-body);
 }
 .callout.warn{border-left-color:var(--main); color:var(--g4); background:none}
 
-.empty{padding:46px 0; text-align:center; color:var(--g2); font-size:12.5px; line-height:1.9}
+.empty{padding:46px 0; text-align:center; color:var(--g2); font-size:var(--fs-body); line-height:var(--lh-body)}

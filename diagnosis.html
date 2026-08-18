@@ -16,7 +16,7 @@
     background:var(--w); border:1px solid var(--g1);
   }
 
-  .capture-hint{font-size:11.5px; color:var(--g3); padding:12px 0 0; line-height:1.75}
+  .capture-hint{font-size:var(--fs-sm); color:var(--g3); padding:12px 0 0; line-height:var(--lh-body)}
   .capture-hint b{color:var(--k)}
 
   .shot{display:flex; gap:26px; align-items:flex-start; padding:0}
@@ -25,8 +25,8 @@
     border:1px solid var(--g1); display:block; background:var(--w);
   }
   .shot .meta{flex:1; min-width:0}
-  .shot .meta .t{font-size:15px; font-weight:700; color:var(--k)}
-  .shot .meta .d{font-size:12.5px; color:var(--g3); margin-top:7px; line-height:1.75}
+  .shot .meta .t{font-size:var(--fs-h2); font-weight:700; color:var(--k)}
+  .shot .meta .d{font-size:var(--fs-body); color:var(--g3); margin-top:7px; line-height:var(--lh-body)}
   .shot .meta .actions{display:flex; gap:9px; margin-top:20px; flex-wrap:wrap}
   @media(max-width:640px){ .shot{flex-direction:column; gap:16px} .shot img{width:100%} }
 
@@ -34,13 +34,13 @@
   .result-item{padding:13px 0; border-bottom:1px solid var(--g1)}
   .result-item:last-child{border-bottom:none}
   .result-row{display:flex; align-items:center; gap:14px}
-  .result-row .name{width:88px; flex:none; font-size:13px; font-weight:700; color:var(--k)}
-  .result-row .badge{width:44px; flex:none}
-  .result-why{margin-top:7px; padding-left:102px; font-size:11.5px; color:var(--g3); line-height:1.7}
+  .result-row .name{width:98px; flex:none; font-size:var(--fs-body); font-weight:700; color:var(--k)}
+  .result-row .badge{width:48px; flex:none}
+  .result-why{margin-top:7px; padding-left:112px; font-size:var(--fs-sm); color:var(--g3); line-height:var(--lh-body)}
   .result-why .dim{color:var(--g2)}
   @media(max-width:640px){ .result-why{padding-left:0} }
 
-  .loading{padding:44px 0; text-align:center; font-size:12.5px; color:var(--g3)}
+  .loading{padding:44px 0; text-align:center; font-size:var(--fs-body); color:var(--g3)}
   /* .revise-box 스타일은 assets/theme.css 로 옮겼습니다 (시각화 화면과 공용) */
 </style>
 </head>

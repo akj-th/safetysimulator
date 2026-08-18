@@ -10,34 +10,35 @@
 <style>
   .doc-body{padding:0; background:none}
   .doc-title{
-    font-size:16px; font-weight:700; color:var(--k);
+    font-size:var(--fs-h2); font-weight:700; color:var(--k);
     padding-bottom:12px; border-bottom:1px solid var(--k); margin-bottom:20px;
   }
 
-  .fld{display:flex; gap:16px; padding:10px 0; border-bottom:1px solid var(--g1); font-size:13px}
+  .fld{display:flex; gap:16px; padding:10px 0; border-bottom:1px solid var(--g1); font-size:var(--fs-body)}
   .fld:last-of-type{border-bottom:none}
-  .fld .k{width:120px; flex:none; font-weight:700; font-size:11.5px; color:var(--g2)}
+  .fld .k{width:132px; flex:none; font-weight:700; font-size:var(--fs-sm); color:var(--g2)}
   .fld .v{flex:1; min-width:0; color:var(--g4)}
 
-  .doc-p{font-size:13px; margin-top:22px; line-height:1.95; text-align:justify; color:var(--g4)}
+  /* 서식 본문만 줄간격을 더 벌립니다 — 인쇄해서 읽는 행정 문서 */
+  .doc-p{font-size:var(--fs-body); margin-top:22px; line-height:1.95; text-align:justify; color:var(--g4)}
   .doc-p .blank{
     background:none; border-radius:0; padding:0 2px;
     border-bottom:1px solid var(--main); color:var(--main);
-    font-size:12.5px; font-weight:700;
+    font-size:var(--fs-body); font-weight:700;
   }
 
   /* 표는 assets/theme.css 를 그대로 씁니다 — 머리행만 검정, 세로선 없음 */
-  .rule-id{font-family:var(--mono); font-size:10.5px; color:var(--g2)}
+  .rule-id{font-family:var(--mono); font-size:var(--fs-cap); color:var(--g2)}
 
   /* 아직 채워지지 않은 부분 안내 — 상자 대신 왼쪽 세로선 */
   .pending{
     margin-top:22px; padding:2px 0 2px 15px;
     background:none; border:none; border-left:2px solid var(--g1); border-radius:0;
-    font-size:11.5px; color:var(--g3); line-height:1.75;
+    font-size:var(--fs-sm); color:var(--g3); line-height:var(--lh-body);
     display:flex; gap:9px; align-items:flex-start;
   }
   .pending svg{width:13px; height:13px; flex:none; margin-top:4px; color:var(--g2)}
-  .doc-empty{padding:44px 0; text-align:center; color:var(--g2); font-size:12.5px; line-height:1.9}
+  .doc-empty{padding:44px 0; text-align:center; color:var(--g2); font-size:var(--fs-body); line-height:var(--lh-body)}
 
   /* 서식 4 — 개선 전/후 비교도 */
   .ba-grid{display:grid; grid-template-columns:1fr 1fr; gap:22px}
@@ -46,15 +47,15 @@
   .ba-grid img{width:100%; aspect-ratio:4/3; object-fit:cover; display:block;
                border:1px solid var(--g1); background:var(--w)}
   .ba-grid figcaption{
-    font-size:9.5px; font-weight:700; letter-spacing:.15em; color:var(--g2);
+    font-size:var(--fs-cap); font-weight:700; letter-spacing:.15em; color:var(--g2);
     margin-top:10px; text-align:center;
   }
   .ba-none{
     width:100%; aspect-ratio:4/3; border:1px solid var(--g1); background:var(--w);
     display:flex; align-items:center; justify-content:center; text-align:center;
-    padding:24px; font-size:11.5px; color:var(--g3); line-height:1.75;
+    padding:24px; font-size:var(--fs-sm); color:var(--g3); line-height:var(--lh-body);
   }
-  .ba-list{font-size:12.5px; color:var(--g3); margin-top:20px; line-height:1.85}
+  .ba-list{font-size:var(--fs-body); color:var(--g3); margin-top:20px; line-height:var(--lh-body)}
   .ba-list b{color:var(--k); font-weight:700}
 
   /* 인쇄할 때는 화면용 장식을 걷어내고 서식만 남깁니다 */

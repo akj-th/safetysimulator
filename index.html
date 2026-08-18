@@ -20,7 +20,7 @@
   }
   .search-row:focus-within{border-bottom-color:var(--k)}
   .search-row input, .search-row input:focus{
-    border:none; padding:12px 0; font-size:15px; background:none;
+    border:none; padding:14px 0; font-size:var(--fs-lead); background:none;
   }
   .search-go{
     display:flex; align-items:center; justify-content:center;
@@ -36,10 +36,10 @@
   @media(max-width:1100px){.layer-rows{grid-template-columns:repeat(4,1fr); gap:0 30px}}
   @media(max-width:720px){.layer-rows{grid-template-columns:repeat(2,1fr)}}
   .layer-row{
-    display:flex; align-items:center; gap:9px; width:100%;
-    padding:11px 0; text-align:left;
+    display:flex; align-items:center; gap:8px; width:100%;
+    padding:13px 0; text-align:left;
     border:none; border-bottom:1px solid var(--g1); background:none;
-    font-family:inherit; font-size:12.5px; font-weight:400; color:var(--g3);
+    font-family:inherit; font-size:var(--fs-body); font-weight:400; color:var(--g3);
     cursor:pointer; transition:color .12s;
   }
   .layer-row .nm{white-space:nowrap}
@@ -64,14 +64,14 @@
 
   /* 종합 위험도 — 7개 분야의 요약이므로 한 단 위에 따로 둡니다 */
   .layer-total{border-top:1px solid var(--k)}
-  .layer-total .layer-row{border-bottom-color:var(--k); padding:13px 0; font-size:13px; color:var(--k)}
+  .layer-total .layer-row{border-bottom-color:var(--k); padding:13px 0; font-size:var(--fs-body); color:var(--k)}
   .layer-total .layer-row .nm{flex:none; font-weight:700}
-  .layer-total .hint{flex:1; font-size:10.5px; color:var(--g2); font-weight:400}
+  .layer-total .hint{flex:1; font-size:var(--fs-cap); color:var(--g2); font-weight:400}
   .layer-total .layer-row .dot{opacity:1}
 
-  .note .weights{display:block; margin-top:7px; font-size:10.5px; color:var(--g2); letter-spacing:.02em}
+  .note .weights{display:block; margin-top:7px; font-size:var(--fs-cap); color:var(--g2); letter-spacing:.02em}
 
-  .picked .risk{font-size:11.5px; color:var(--g3); margin-top:6px}
+  .picked .risk{font-size:var(--fs-sm); color:var(--g3); margin-top:6px}
   .picked .risk:empty{display:none}
   .picked .risk .lv{font-weight:700}
 
@@ -89,8 +89,8 @@
     background:var(--w);
   }
   .map-fallback svg{width:28px; height:28px; color:var(--g1); margin-bottom:16px}
-  .map-fallback .t{font-size:14px; font-weight:700; color:var(--k)}
-  .map-fallback .m{font-size:11.5px; color:var(--g3); margin-top:8px; max-width:400px; line-height:1.75}
+  .map-fallback .t{font-size:var(--fs-lead); font-weight:700; color:var(--k)}
+  .map-fallback .m{font-size:var(--fs-sm); color:var(--g3); margin-top:8px; max-width:400px; line-height:var(--lh-body)}
   .map-fallback .m b{color:var(--k)}
 </style>
 </head>
