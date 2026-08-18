@@ -387,22 +387,37 @@ const RX_PRIORITY = {
 };
 
 /* ────────────────────────────────────────────────────────────────────
-   처방 개수 상한 — ★ 담당자가 조절하는 값
+   분야별 처방 개수 — ★ 담당자가 조절하는 값
 
-   거리 사진 한 장에서 체크리스트 항목의 절반쯤이 문제로 잡히는 것은
-   보통입니다(대부분의 골목에 CCTV·핸드레일·소화전이 없으니까요).
-   상한이 없으면 한 지점에 30~40종이 나와서 문서로 쓸 수 없습니다.
-
-   100 × 100m 격자 한 곳에 실제로 넣을 수 있는 규모, 그리고 안전사업지구
-   개소당 한도(약 10억원) 안에서 여러 격자를 다룰 수 있는 규모를 기준으로
-   잡은 값입니다. 숫자를 키우면 더 많이 나옵니다.
+   판정에 따라 몇 종까지 넣을지 정합니다. 예를 들어 7개 분야가
+   위험 2 · 주의 4 · 안전 1 이면 → 2×2 + 4×1 = 총 8종이 나옵니다.
    ──────────────────────────────────────────────────────────────────── */
-const RX_MAX_PER_FIELD = 3;   // 한 분야에서 뽑을 최대 시설물 수
-const RX_MAX_TOTAL = 12;      // 한 지점에서 뽑을 최대 시설물 수
+const RX_MAX_BY_LEVEL = {
+  'lv-danger':  2,   // 위험 (67~100)
+  'lv-caution': 1,   // 주의 (34~66)
+  'lv-safe':    0,   // 안전 (0~33) — 처방 없음
+};
 
-/* 상한 때문에 빠진 시설물 수 — 화면에서 "몇 종이 더 있다"고 알릴 때 씁니다.
-   auriPrescribe 를 부를 때마다 새로 채워집니다. */
-let AURI_RX_DROPPED = 0;
+/* 적합도가 이 점수 이상이면 '필수', 아래면 '권장'.
+   위험/주의를 가르는 경계(67)와 같은 값입니다. 한쪽만 바꾸면
+   "왜 필수인가"를 진단 점수까지 되짚을 수 없게 됩니다. */
+const RX_MUST_FIT = 67;
+
+/* ── 적합도(0~100) ────────────────────────────────────────────────
+   "이 사진에 이 시설물이 얼마나 들어맞는가"를 재는 값입니다.
+   AI가 항목별로 판독한 결과에서 규칙으로 계산합니다.
+
+     ① 그 분야 점수가 높을수록  — 문제가 심한 곳일수록 잘 들어맞음
+     ② 그 문제의 1순위 대책일수록 — byItem 배열의 앞자리일수록
+                                  (뒷자리는 같은 문제를 푸는 '대안')
+     ③ 여러 항목에서 함께 확인될수록 — 근거가 겹치면 그만큼 확실함
+
+   같은 분야 안에서 이 점수로 줄을 세워 상위 N개만 처방합니다. */
+function auriFitScore(fieldScore, rank, triggerCount) {
+  const base = fieldScore / (rank + 1);
+  const bonus = Math.min(15, Math.max(0, (triggerCount - 1) * 8));
+  return Math.min(100, Math.round(base + bonus));
+}
 
 /* ────────────────────────────────────────────────────────────────────
    연구원이 직접 손댄 내용 (auri_rx_overrides)
@@ -431,93 +446,92 @@ function auriSaveOverrides(o) {
 /* 진단 결과 + 연구원 수정 → 최종 시설물 목록.
    같은 입력이면 언제나 같은 결과가 나오는 결정론적 함수입니다.
 
-   시설물을 고르는 것은 **문제로 확인된 체크리스트 항목**이고,
-   분야 점수는 우선순위(필수/권장)만 정합니다. 항목 판독이 없는 결과
-   (서버가 꺼져 있을 때의 더미 점수, 점수만 손으로 조정한 경우)는
-   예전처럼 분야 단위 예비 목록으로 처방합니다. */
+   ── 어떻게 고르는가 ────────────────────────────────────────────────
+   분야마다, 사진에서 확인된 문제가 부르는 시설물을 모두 후보로 놓고
+   적합도(auriFitScore)로 줄을 세운 뒤 **상위 N개만** 뽑습니다.
+
+     위험 → 상위 2개 · 주의 → 상위 1개 · 안전 → 없음   (RX_MAX_BY_LEVEL)
+
+   뽑힌 시설물은 적합도로 필수/권장이 갈립니다 (RX_MUST_FIT 이상이면 필수).
+
+   항목 판독이 없는 결과(서버가 꺼져 있을 때의 더미 점수, 점수만 손으로
+   조정한 경우)는 분야 단위 예비 목록에서 같은 방식으로 뽑습니다. */
 function auriPrescribe(results, overrides) {
   const ov = overrides || auriLoadOverrides();
   const out = [];
   const seen = {};
-  const fields = [];     // 분야별로 모아 두었다가 마지막에 돌려 가며 채웁니다
-  let dropped = 0;
 
   results.forEach(function (r) {
     const rule = RX_RULES[r.key];
     if (!rule) return;
-    if (r.level.key === 'lv-safe') return;          // 안전 판정은 처방 없음
 
-    const priority = r.level.key === 'lv-danger' ? RX_PRIORITY.must : RX_PRIORITY.recommend;
+    const limit = RX_MAX_BY_LEVEL[r.level.key] || 0;
+    if (!limit) return;                              // 안전 판정은 처방 없음
+
+    /* ① 후보 모으기 — 확인된 문제가 부르는 시설물마다 적합도를 냅니다.
+          한 시설물을 여러 항목이 부를 수 있으므로 규칙번호로 묶습니다. */
     const hits = (r.findings || []).filter(function (f) { return f.risk; });
+    const cand = {};
+    let order = 0;
 
-    /* ① 확인된 문제마다 시설물 하나씩 먼저 배정합니다.
-          한 항목에 시설물이 여러 개 붙어 있는 것은 같은 문제를 푸는
-          '대안'이지 전부 필요한 것이 아닙니다. 그래서 모든 문제에
-          하나씩 돌린 뒤에야 두 번째를 넣습니다. 그러지 않으면 앞쪽
-          항목이 시설물을 둘씩 가져가고 뒤쪽 문제는 아무것도 못 받습니다. */
-    const picked = [];
-    for (let depth = 0; depth < 4; depth++) {
-      let added = false;
-      hits.forEach(function (f) {
-        const list = rule.byItem[f.id] || [];
-        if (!list[depth]) return;
-        picked.push({ item: list[depth], trigger: f });
-        added = true;
+    hits.forEach(function (f) {
+      (rule.byItem[f.id] || []).forEach(function (item, rank) {
+        let c = cand[item.id];
+        if (!c) c = cand[item.id] = { item: item, best: 0, triggers: [], order: order++ };
+        /* 여러 항목이 부르면 가장 잘 들어맞는 자리(1순위)를 기준으로 */
+        c.best = Math.max(c.best, auriFitScore(r.score, rank, 1));
+        c.triggers.push(f);
       });
-      if (!added) break;
-    }
+    });
+
+    let pool = Object.keys(cand).map(function (k) { return cand[k]; });
 
     /* ② 항목 판독이 없으면 분야 단위 예비 목록으로 */
-    if (!picked.length) {
+    if (!pool.length) {
       const bucket = r.level.key === 'lv-danger' ? rule.fallback.danger : rule.fallback.caution;
-      bucket.forEach(function (item) { picked.push({ item: item, trigger: null }); });
+      pool = bucket.map(function (item, rank) {
+        return { item: item, best: auriFitScore(r.score, rank, 1), triggers: [], order: rank };
+      });
     }
 
-    const list = [];
-    picked.forEach(function (p) {
-      const item = p.item;
-      if (ov.removed.indexOf(item.id) !== -1) return;   // 연구원이 뺀 항목
-      if (seen[item.id]) return;    // 여러 항목이 같은 시설물을 불러도 한 번만
-      if (list.length >= RX_MAX_PER_FIELD) { dropped++; return; }   // 분야당 상한
+    /* ③ 적합도 확정 → 높은 순으로 줄 세우기.
+          점수가 같으면 규칙표에 적힌 순서(담당자가 정한 우선순위)를 따릅니다. */
+    pool.forEach(function (c) {
+      c.fit = Math.min(100, c.best + Math.min(15, Math.max(0, (c.triggers.length - 1) * 8)));
+    });
+    pool.sort(function (a, b) { return b.fit - a.fit || a.order - b.order; });
+
+    /* ④ 상위 N개만 */
+    let taken = 0;
+    for (let i = 0; i < pool.length && taken < limit; i++) {
+      const c = pool[i];
+      const item = c.item;
+      if (ov.removed.indexOf(item.id) !== -1) continue;   // 연구원이 뺀 항목
+      if (seen[item.id]) continue;    // 다른 분야에서 이미 뽑힌 시설물
       seen[item.id] = true;
+      taken++;
 
       const e = ov.edits[item.id] || {};
-      list.push({
+      const auto = c.fit >= RX_MUST_FIT ? RX_PRIORITY.must : RX_PRIORITY.recommend;
+      const t = c.triggers[0];
+
+      out.push({
         id: item.id,
         name: e.name || item.name,
         note: e.note || item.note,
         category: r.name,
         score: r.score,
         levelLabel: r.level.label,
-        priority: e.priorityCls ? RX_PRIORITY[e.priorityCls] : priority,
+        fit: c.fit,
+        priority: e.priorityCls ? RX_PRIORITY[e.priorityCls] : auto,
         edited: !!(e.name || e.note || e.priorityCls),
         /* 이 시설물을 부른 체크리스트 항목 — 문서의 근거가 됩니다 */
-        trigger: p.trigger ? { id: p.trigger.id, ask: p.trigger.ask, note: p.trigger.note } : null,
+        trigger: t ? { id: t.id, ask: t.ask, note: t.note, count: c.triggers.length } : null,
       });
-    });
-
-    if (list.length) fields.push({ danger: priority.cls === 'must', score: r.score, list: list });
-  });
-
-  /* ③ 전체 상한도 분야별로 돌려 가며 채웁니다.
-        위에서부터 잘라 버리면 뒤쪽 분야는 위험 판정을 받고도 시설물을
-        하나도 못 받습니다. 모든 분야에 하나씩 준 뒤에 두 번째를 줍니다.
-        순서는 필수(위험) 먼저, 같은 우선순위에서는 점수가 높은 분야부터. */
-  fields.sort(function (a, b) {
-    if (a.danger !== b.danger) return a.danger ? -1 : 1;
-    return b.score - a.score;
-  });
-
-  for (let depth = 0; depth < RX_MAX_PER_FIELD; depth++) {
-    for (let i = 0; i < fields.length; i++) {
-      const item = fields[i].list[depth];
-      if (!item) continue;
-      if (out.length >= RX_MAX_TOTAL) { dropped++; continue; }
-      out.push(item);
     }
-  }
+  });
 
-  /* 연구원이 직접 추가한 시설물은 점수·상한과 무관하게 항상 포함됩니다 */
+  /* 연구원이 직접 추가한 시설물은 적합도·개수와 무관하게 항상 포함됩니다 */
   const custom = [];
   ov.added.forEach(function (item) {
     custom.push({
@@ -532,21 +546,14 @@ function auriPrescribe(results, overrides) {
     });
   });
 
-  /* 필수 → 권장 순, 같은 우선순위 안에서는 점수 높은 분야부터.
-     연구원이 직접 넣은 것은 상한과 무관하게 항상 맨 뒤에 남습니다. */
+  /* 필수 → 권장 순, 같은 우선순위 안에서는 적합도가 높은 것부터.
+     연구원이 직접 넣은 것은 맨 뒤에 붙습니다. */
   out.sort(function (a, b) {
     if (a.priority.cls !== b.priority.cls) return a.priority.cls === 'must' ? -1 : 1;
-    return (b.score || 0) - (a.score || 0);
+    return (b.fit || 0) - (a.fit || 0);
   });
 
-  AURI_RX_DROPPED = dropped;
   return out.concat(custom);
-}
-
-/* 상한 때문에 빠진 시설물이 몇 종인지 — 화면에서 안내에 씁니다.
-   빠진 것도 진단으로 확인된 문제이므로, 조용히 없애지 않고 알립니다. */
-function auriRxDropped() {
-  return AURI_RX_DROPPED;
 }
 
 /* 규칙번호로 원래 시설물을 찾습니다. 연구원이 고친 내용이 원본과 다른지
@@ -576,11 +583,15 @@ function auriRxBasis(it) {
   if (it.custom) return '근거: 연구원 직접 추가' + tail;
   const edited = it.edited ? ' · 연구원 수정' : '';
 
+  const fit = it.fit != null ? ` · 적합도 ${it.fit}` : '';
+
   if (it.trigger) {
     const seen = it.trigger.note ? ` — ${it.trigger.note}` : '';
-    return `근거: 사진 판독 ${it.trigger.id}${seen} → 규칙 ${it.id} · ${it.category} ${it.levelLabel} 판정${edited}${tail}`;
+    const also = it.trigger.count > 1 ? ` 외 ${it.trigger.count - 1}건` : '';
+    return `근거: 사진 판독 ${it.trigger.id}${seen}${also} → 규칙 ${it.id} · ` +
+           `${it.category} ${it.levelLabel} 판정${fit}${edited}${tail}`;
   }
-  return `근거: ${it.category} ${it.score}점 · ${it.levelLabel} 판정 → 규칙 ${it.id}${edited}${tail}`;
+  return `근거: ${it.category} ${it.score}점 · ${it.levelLabel} 판정 → 규칙 ${it.id}${fit}${edited}${tail}`;
 }
 
 /* 최종 목록을 다음 단계로 넘깁니다. 규칙 엔진은 리포트 단계에서만 돌리고,
