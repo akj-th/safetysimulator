@@ -409,6 +409,7 @@ function toResults(data) {
       name: cat.label,
       score: c.score,
       level: auriLevel(c.score),
+      findings: c.findings,        // 항목별 판독 — 처방이 이 값으로 시설물을 고릅니다
       observed: c.observed,
       notVisible: c.notVisible,
       confidence: c.confidence,
@@ -478,7 +479,7 @@ async function sendRevise() {
   const previous = {};
   const before = {};
   _results.forEach(function (r) {
-    previous[r.key] = { score: r.score, observed: r.observed || [] };
+    previous[r.key] = { score: r.score, findings: r.findings || [] };
     before[r.key] = r;
   });
 

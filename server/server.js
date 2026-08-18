@@ -112,34 +112,51 @@ function friendlyError(err) {
 /* ── AI에게 시킬 일을 글로 적는 부분 ───────────────────────────────────
    checklist.js의 내용을 그대로 문장으로 풀어 넣습니다.
    체크리스트를 고치면 이 지시문도 자동으로 바뀝니다. */
-function buildPrompt() {
-  const checklistText = CATEGORIES.map(function (cat) {
-    const lines = cat.items.map(function (item) { return `   - ${item}`; }).join('\n');
+function checklistText() {
+  return CATEGORIES.map(function (cat) {
+    const lines = cat.items.map(function (item) {
+      return `   ${item.id}  ${item.ask}`;
+    }).join('\n');
     return `[${cat.label}] (key: ${cat.key})\n${lines}`;
   }).join('\n\n');
+}
 
+function buildPrompt() {
   return `당신은 도시 공간의 안전 취약성을 진단하는 전문가입니다.
-제시된 거리 이미지 한 장을 보고, 아래 7대 사회재난 분야별 체크리스트에 따라
-취약성 점수를 매겨 주세요.
+제시된 거리 이미지 한 장을 보고, 아래 7대 사회재난 분야별 체크리스트의
+**모든 항목에 하나씩 답한 뒤**, 그 답을 근거로 분야별 취약성 점수를 매겨 주세요.
 
 ## 가장 중요한 규칙
 - **사진에 실제로 보이는 것만으로 판단하세요.** 이 진단 결과는 국비 신청의 근거
   문서가 되므로, 추측이 섞이면 안 됩니다.
-- 지역 통계, 일반적인 경향, 사진 밖의 정보로 점수를 매기지 마세요.
-- 체크리스트 항목 중 사진으로 확인할 수 없는 것은 추측하지 말고
-  not_visible 목록에 넣으세요.
-- observed 에는 **사진에서 실제로 본 것**만 짧은 문장으로 적으세요.
-  (예: "가로등 없음", "보도와 차도 미분리", "담장 높이 2m 이상")
+- 지역 통계, 일반적인 경향, 사진 밖의 정보로 판단하지 마세요.
+
+## 항목별로 답하는 방법
+각 분야의 findings 에 **그 분야의 모든 항목 번호를 하나도 빠짐없이** 넣으세요.
+항목마다 이렇게 답합니다.
+
+- item   : 항목 번호 (예: "CRM-1")
+- answer : "yes" = 질문에 해당함 / "no" = 해당하지 않음 / "unknown" = 사진으로 확인 불가
+- note   : 그렇게 판단한 근거를 사진에서 본 그대로 짧게
+           (예: "가로등 미설치", "우측 담장 높이 2m로 시야 차단", "화면에 안 나옴")
+
+**확인할 수 없으면 반드시 "unknown" 으로 답하세요.** 짐작해서 yes/no 를 고르면
+없는 시설물이 처방되거나 필요한 시설물이 빠집니다. 모른다고 답하는 것이
+틀리게 답하는 것보다 낫습니다.
+
+## 점수는 항목 답과 어긋나면 안 됩니다
+항목에서 위험 요소를 여러 개 찾아 놓고 점수를 낮게 주거나, 그 반대로 하지 마세요.
+확인된 문제 항목이 많을수록 점수가 높아야 합니다.
 
 ## 점수 기준 (0~100) — 점수가 높을수록 위험합니다
 ${SCORING_GUIDE}
 
 ## 분야별 체크리스트
-${checklistText}
+${checklistText()}
 
 ## 판단이 어려울 때
 - 사진이 흐리거나, 실내이거나, 거리 풍경이 아니면 image_quality 를 "unusable" 로
-  표시하고 모든 점수를 0, confidence 를 "low" 로 하세요.
+  표시하고 모든 점수를 0, 모든 항목을 "unknown", confidence 를 "low" 로 하세요.
 - 확인 가능한 항목이 절반도 안 되면 confidence 를 "low" 로 하세요.
 - 위험 요소가 안 보인다고 해서 무조건 낮은 점수를 주지는 마세요.
   안전 시설이 갖춰진 것이 확인되어야 낮은 점수입니다.`;
@@ -154,7 +171,10 @@ ${checklistText}
 function buildRevisePrompt(previous, note) {
   const prevText = CATEGORIES.map(function (cat) {
     const p = previous[cat.key] || {};
-    return `[${cat.label}] ${p.score}점\n  판독: ${(p.observed || []).join(' / ') || '없음'}`;
+    const lines = (p.findings || []).map(function (f) {
+      return `    ${f.id} ${f.answer}${f.note ? ' — ' + f.note : ''}`;
+    }).join('\n');
+    return `[${cat.label}] ${p.score}점\n${lines || '    (항목 판독 없음)'}`;
   }).join('\n');
 
   return `앞서 당신이 이 거리 이미지를 판독한 결과에 대해, 현장을 아는 연구원이
@@ -173,40 +193,51 @@ ${note}
   (예: 없는 시설을 있다고 봤다면 점수가 올라가야 하고, 위험 요소를 잘못 봤다면
    점수가 내려가야 합니다.)
 - **지적과 관련이 없는 분야는 이전 판독을 그대로 유지하세요.** 지적 한 줄 때문에
-  전체를 새로 쓰지 마세요.
+  전체를 새로 쓰지 마세요. 관련 없는 항목의 answer 도 그대로 두세요.
 - 여전히 사진에 보이는 것만으로 판단합니다. 지적 내용을 넘어서는 추측은 하지 마세요.
-- observed 에는 고쳐진 최종 판독 내용을 적으세요.
+- findings 에는 **모든 항목**을 다시 넣되, 지적이 닿는 항목만 고쳐서 적으세요.
+  개선 시설물이 이 항목 답으로 정해지므로, 잘못 본 항목을 고치면 처방도 바뀝니다.
 
 ## 점수 기준 (0~100) — 점수가 높을수록 위험합니다
 ${SCORING_GUIDE}
 
 ## 분야별 체크리스트
-${CATEGORIES.map(function (cat) {
-  return `[${cat.label}] (key: ${cat.key})\n` + cat.items.map(function (i) { return `   - ${i}`; }).join('\n');
-}).join('\n\n')}`;
+${checklistText()}`;
 }
 
 /* ── AI가 반드시 이 모양으로 답하도록 강제하는 틀 ─────────────────────
    이걸 지정해 두면 AI가 엉뚱한 형식으로 답할 수 없습니다. */
-const categorySchema = {
-  type: 'object',
-  properties: {
-    score: { type: 'integer', description: '0~100. 높을수록 위험' },
-    observed: {
-      type: 'array',
-      items: { type: 'string' },
-      description: '사진에서 실제로 확인한 것들 (짧은 문장)',
+function categorySchema(cat) {
+  return {
+    type: 'object',
+    properties: {
+      score: { type: 'integer', description: '0~100. 높을수록 위험' },
+      findings: {
+        type: 'array',
+        minItems: cat.items.length,
+        maxItems: cat.items.length,
+        description: `${cat.label} 체크리스트 ${cat.items.length}개 항목에 하나씩 답합니다`,
+        items: {
+          type: 'object',
+          properties: {
+            item: { type: 'string', enum: cat.items.map(function (i) { return i.id; }) },
+            answer: {
+              type: 'string',
+              enum: ['yes', 'no', 'unknown'],
+              description: 'yes=질문에 해당함 / no=해당하지 않음 / unknown=사진으로 확인 불가',
+            },
+            note: { type: 'string', description: '사진에서 본 근거를 짧게' },
+          },
+          required: ['item', 'answer', 'note'],
+          additionalProperties: false,
+        },
+      },
+      confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
     },
-    not_visible: {
-      type: 'array',
-      items: { type: 'string' },
-      description: '체크리스트 항목 중 사진으로 확인 불가한 것들',
-    },
-    confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
-  },
-  required: ['score', 'observed', 'not_visible', 'confidence'],
-  additionalProperties: false,
-};
+    required: ['score', 'findings', 'confidence'],
+    additionalProperties: false,
+  };
+}
 
 const RESULT_SCHEMA = {
   type: 'object',
@@ -219,7 +250,7 @@ const RESULT_SCHEMA = {
     categories: {
       type: 'object',
       properties: Object.fromEntries(
-        CATEGORIES.map(function (c) { return [c.key, categorySchema]; })
+        CATEGORIES.map(function (c) { return [c.key, categorySchema(c)]; })
       ),
       required: CATEGORIES.map(function (c) { return c.key; }),
       additionalProperties: false,
@@ -228,6 +259,30 @@ const RESULT_SCHEMA = {
   required: ['image_quality', 'categories'],
   additionalProperties: false,
 };
+
+/* ── AI의 항목별 답을 화면이 쓸 모양으로 옮깁니다 ──────────────────────
+   체크리스트(어느 답이 문제인가)는 서버만 알고 있으므로, "문제 있음"
+   판정을 여기서 붙여서 넘깁니다. 화면과 규칙표는 risk 값만 보면 됩니다.
+
+   observed / notVisible 은 이 답에서 만들어 냅니다. 화면 쪽 표시 형식은
+   예전 그대로라 진단·리포트 화면을 고칠 필요가 없습니다. */
+function readFindings(cat, raw) {
+  const answered = {};
+  (raw || []).forEach(function (f) { answered[f.item] = f; });
+
+  return cat.items.map(function (item) {
+    const f = answered[item.id] || { answer: 'unknown', note: '' };
+    const answer = f.answer === 'yes' || f.answer === 'no' ? f.answer : 'unknown';
+    return {
+      id: item.id,
+      ask: item.ask,
+      answer: answer,
+      note: (f.note || '').trim(),
+      risk: answer === item.risk,      // 이 항목이 "문제 있음"인가
+    };
+  });
+}
+
 
 /* ── 실제 AI 호출 ──────────────────────────────────────────────────────
    ★ 폐쇄망 전환 시 이 함수 안쪽만 로컬 모델 호출로 바꾸면 됩니다. */
@@ -465,17 +520,28 @@ async function handleDiagnose(req, res, isRevise) {
   const categories = {};
   for (const cat of CATEGORIES) {
     const r = raw.categories[cat.key];
+    const findings = readFindings(cat, r.findings);
+
     categories[cat.key] = {
       score: Math.max(0, Math.min(100, Math.round(r.score))),
-      observed: r.observed,
-      notVisible: r.not_visible,
+      findings: findings,
+      /* 화면 표시용 — 항목 답에서 만들어 냅니다 */
+      observed: findings
+        .filter(function (f) { return f.answer !== 'unknown' && f.note; })
+        .map(function (f) { return f.note; }),
+      notVisible: findings
+        .filter(function (f) { return f.answer === 'unknown'; })
+        .map(function (f) { return f.ask; }),
       confidence: r.confidence,
     };
   }
 
   console.log(
     '  · 결과: ' +
-    CATEGORIES.map(function (c) { return `${c.label} ${categories[c.key].score}`; }).join(', ')
+    CATEGORIES.map(function (c) {
+      const n = categories[c.key].findings.filter(function (f) { return f.risk; }).length;
+      return `${c.label} ${categories[c.key].score}(문제 ${n})`;
+    }).join(', ')
   );
   sendJson(res, 200, { imageQuality: raw.image_quality, categories: categories });
 }

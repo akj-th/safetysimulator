@@ -3,80 +3,206 @@
 
    ★ checklist.js 와 함께 담당자가 계속 고쳐 나가는 파일입니다.
 
-   구조: 7대 분야별로 '위험' 판정일 때 / '주의' 판정일 때 넣을 시설물을 미리 정해 둠.
-     danger  : 7~9단계 → 우선순위 '필수'
-     caution : 4~6단계 → 우선순위 '권장'
-     안전(1~3단계)은 처방 없음.
+   ── 처방이 정해지는 방식 ────────────────────────────────────────────
+   AI가 체크리스트 **항목마다** 답하고, 문제로 확인된 항목이 시설물을 부릅니다.
 
-   각 시설물의 id는 감사 추적용 규칙 번호입니다. 화면과 문서에 근거로 함께
-   표시되므로 "왜 이 시설물이 나왔는가"를 진단 점수까지 되짚을 수 있습니다.
-   ※ 표준 단가·도면은 과업4 매뉴얼 확정 후 여기에 필드로 추가할 예정.
+     사진 → 'CRM-1 가로등 있는가' = 아니오 → LED 보안등 · CPTED 조명
+
+   그래서 사진이 다르면 처방도 달라지고, "왜 이 시설물인가"를 사진의
+   특정 지점까지 되짚을 수 있습니다. 분야 점수는 **우선순위**만 정합니다.
+
+     위험(67~100) → 필수 / 주의(34~66) → 권장 / 안전(0~33) → 처방 없음
+
+   ── 두 부분의 역할 ──────────────────────────────────────────────────
+     byItem    체크리스트 항목 번호 → 그 문제에 넣을 시설물.  ★ 여기를 고칩니다
+               번호는 server/checklist.js 의 id 와 정확히 같아야 합니다.
+     fallback  항목 판독이 없을 때만 쓰는 예비 목록.
+               (서버가 꺼져 더미 점수로 돌 때, 연구원이 점수만 손으로 조정했을 때)
+
+   시설물 id(R-XXX-NN)는 감사 추적용 규칙 번호입니다. 화면과 문서에 근거로
+   함께 표시됩니다.
    ════════════════════════════════════════════════════════════════════ */
 
 const RX_RULES = {
   suicide: {
-    danger: [
-      { id: 'R-SUI-01', name: '옥상 출입 자동개폐장치', note: '고층 건축물 옥상 출입을 평시 통제하고 화재 시에만 자동 개방해, 투신 접근 경로를 차단합니다.' },
-      { id: 'R-SUI-02', name: '추락방지 안전펜스', note: '교량·옥상·고지대 난간의 높이와 형상을 보강해 넘어서기 어렵게 만듭니다.' }
-    ],
-    caution: [
-      { id: 'R-SUI-03', name: '생명존중 안전 사이니지', note: '상담 연결 정보와 문구를 시야에 노출해 위기 순간의 행동을 지연시킵니다.' }
-    ]
+    byItem: {
+      'SUI-1': [{ id: 'R-SUI-01', name: '옥상 출입 자동개폐장치', note: '옥상 출입을 평시 통제하고 화재 시에만 자동 개방해, 투신 접근 경로를 차단합니다.' }],
+      'SUI-2': [
+        { id: 'R-SUI-02', name: '교량 난간 증고·보강', note: '난간 높이를 기준치까지 올리고 발 디딜 곳을 없애 넘어서기 어렵게 만듭니다.' },
+        { id: 'R-SUI-03', name: '투신방지 그물망', note: '난간을 넘더라도 추락으로 이어지지 않도록 하부에 그물망을 설치합니다.' },
+      ],
+      'SUI-3': [{ id: 'R-SUI-04', name: '추락방지 안전펜스', note: '고지대·경사지 가장자리의 개방 구간에 추락방지 펜스를 설치합니다.' }],
+      'SUI-4': [{ id: 'R-SUI-05', name: '위기상담 연결 SOS 전화기', note: '고립된 공간에서 즉시 상담으로 연결되는 통로를 확보합니다.' }],
+      'SUI-5': [{ id: 'R-SUI-06', name: '생명존중 안전 사이니지', note: '상담 연결 정보와 문구를 시야에 노출해 위기 순간의 행동을 지연시킵니다.' }],
+    },
+    fallback: {
+      danger: [
+        { id: 'R-SUI-01', name: '옥상 출입 자동개폐장치', note: '옥상 출입을 평시 통제하고 화재 시에만 자동 개방해, 투신 접근 경로를 차단합니다.' },
+        { id: 'R-SUI-04', name: '추락방지 안전펜스', note: '고지대·경사지 가장자리의 개방 구간에 추락방지 펜스를 설치합니다.' },
+      ],
+      caution: [{ id: 'R-SUI-06', name: '생명존중 안전 사이니지', note: '상담 연결 정보와 문구를 시야에 노출해 위기 순간의 행동을 지연시킵니다.' }],
+    },
   },
+
   traffic: {
-    danger: [
-      { id: 'R-TRF-01', name: '바닥형 보행신호등', note: '보행자가 고개를 숙인 상태에서도 신호를 인지할 수 있게 해 횡단 중 사고를 줄입니다.' },
-      { id: 'R-TRF-02', name: '보행자 방호울타리', note: '차도와 보도를 물리적으로 분리해 차량 이탈 시 보행자 피해를 차단합니다.' }
-    ],
-    caution: [
-      { id: 'R-TRF-03', name: '고휘도 횡단보도 조명', note: '야간 횡단 보행자의 시인성을 확보해 운전자의 인지 거리를 늘립니다.' }
-    ]
+    byItem: {
+      'TRF-1': [
+        { id: 'R-TRF-01', name: '보행자 방호울타리', note: '차도와 보도를 물리적으로 분리해 차량 이탈 시 보행자 피해를 차단합니다.' },
+        { id: 'R-TRF-02', name: '차량진입억제용 볼라드', note: '보도로의 차량 진입과 불법 주정차를 물리적으로 막습니다.' },
+      ],
+      'TRF-2': [
+        { id: 'R-TRF-03', name: '보도 신설·확폭', note: '차도로 내려서서 걷지 않도록 보행 공간을 확보합니다.' },
+        { id: 'R-TRF-04', name: '보행자 우선도로 조성', note: '보도 설치가 어려운 좁은 길은 보행자 우선 구조로 바꿉니다.' },
+      ],
+      'TRF-3': [
+        { id: 'R-TRF-05', name: '바닥형 보행신호등', note: '고개를 숙인 상태에서도 신호를 인지할 수 있게 해 횡단 중 사고를 줄입니다.' },
+        { id: 'R-TRF-06', name: '고원식 횡단보도', note: '횡단 지점을 노면보다 높여 차량 감속을 유도하고 보행자를 눈에 띄게 합니다.' },
+        { id: 'R-TRF-14', name: '스마트 횡단보도(보행자 감지)', note: '보행자를 감지해 운전자에게 경고하고, 야간·악천후의 인지 지연을 보완합니다.' },
+      ],
+      'TRF-4': [{ id: 'R-TRF-07', name: '불법주정차 단속 CCTV', note: '보행 공간과 시야를 막는 불법 주정차를 상시 단속합니다.' }],
+      'TRF-5': [
+        { id: 'R-TRF-08', name: '도로반사경', note: '건물·주차 차량에 가려진 교차 구간의 시야를 확보합니다.' },
+        { id: 'R-TRF-09', name: '노면 색깔유도선', note: '진입 동선을 노면에 표시해 교차 지점의 혼선을 줄입니다.' },
+      ],
+      'TRF-6': [{ id: 'R-TRF-10', name: '고휘도 횡단보도 조명', note: '야간 횡단 보행자의 시인성을 확보해 운전자의 인지 거리를 늘립니다.' }],
+      'TRF-7': [
+        { id: 'R-TRF-11', name: '과속방지턱', note: '물리적으로 주행 속도를 낮춰 보행 구간의 충돌 심각도를 줄입니다.' },
+        { id: 'R-TRF-12', name: '어린이보호구역 표지·노면표시', note: '보호구역임을 운전자에게 명확히 고지합니다.' },
+        { id: 'R-TRF-13', name: '과속경고 전광표지', note: '실시간 속도를 표시해 운전자의 자발적 감속을 유도합니다.' },
+      ],
+    },
+    fallback: {
+      danger: [
+        { id: 'R-TRF-05', name: '바닥형 보행신호등', note: '고개를 숙인 상태에서도 신호를 인지할 수 있게 해 횡단 중 사고를 줄입니다.' },
+        { id: 'R-TRF-01', name: '보행자 방호울타리', note: '차도와 보도를 물리적으로 분리해 차량 이탈 시 보행자 피해를 차단합니다.' },
+      ],
+      caution: [{ id: 'R-TRF-10', name: '고휘도 횡단보도 조명', note: '야간 횡단 보행자의 시인성을 확보해 운전자의 인지 거리를 늘립니다.' }],
+    },
   },
+
   fire: {
-    danger: [
-      { id: 'R-FIR-01', name: '스마트 소화전', note: '소방용수 위치와 수압을 원격 감시해, 화재 초기 대응 시간을 단축합니다.' },
-      { id: 'R-FIR-02', name: '소방차 진입로 노면표시', note: '불법 주정차로 인한 소방차 진입 지연을 예방합니다.' }
-    ],
-    caution: [
-      { id: 'R-FIR-03', name: '옥외 소화기함', note: '주민이 초기 진화에 즉시 대응할 수 있는 거점을 확보합니다.' }
-    ]
+    byItem: {
+      'FIR-1': [
+        { id: 'R-FIR-01', name: '스마트 소화전', note: '소방용수 위치와 수압을 원격 감시해, 화재 초기 대응 시간을 단축합니다.' },
+        { id: 'R-FIR-02', name: '옥외 소화기함', note: '주민이 초기 진화에 즉시 대응할 수 있는 거점을 확보합니다.' },
+      ],
+      'FIR-2': [
+        { id: 'R-FIR-03', name: '소방차 진입로 노면표시', note: '불법 주정차로 인한 소방차 진입 지연을 예방합니다.' },
+        { id: 'R-FIR-04', name: '소방차 전용구역 표시', note: '소방 활동 공간을 상시 비워 두도록 지정합니다.' },
+        { id: 'R-FIR-05', name: '비상소화장치함', note: '소방차 진입이 어려운 구간에 주민이 쓸 수 있는 소화 설비를 둡니다.' },
+      ],
+      'FIR-3': [{ id: 'R-FIR-06', name: '화재감지 IoT 센서', note: '밀집 구조에서 연소 확대 전에 화재를 조기에 감지합니다.' }],
+      'FIR-4': [{ id: 'R-FIR-06', name: '화재감지 IoT 센서', note: '노후 배선·설비 구간의 발화를 조기에 감지합니다.' }],
+      'FIR-5': [{ id: 'R-FIR-07', name: '옥외 적치물 정비', note: '옥외에 쌓인 가연물을 정리해 발화·연소 확대 요인을 없앱니다.' }],
+      'FIR-6': [{ id: 'R-FIR-06', name: '화재감지 IoT 센서', note: '노후 건축물의 화재를 조기에 감지해 대피 시간을 확보합니다.' }],
+    },
+    fallback: {
+      danger: [
+        { id: 'R-FIR-01', name: '스마트 소화전', note: '소방용수 위치와 수압을 원격 감시해, 화재 초기 대응 시간을 단축합니다.' },
+        { id: 'R-FIR-03', name: '소방차 진입로 노면표시', note: '불법 주정차로 인한 소방차 진입 지연을 예방합니다.' },
+      ],
+      caution: [{ id: 'R-FIR-02', name: '옥외 소화기함', note: '주민이 초기 진화에 즉시 대응할 수 있는 거점을 확보합니다.' }],
+    },
   },
+
   crime: {
-    danger: [
-      { id: 'R-CRM-01', name: 'CPTED 방범 CCTV·비상벨', note: '감시성을 확보하고 즉시 신고가 가능하게 해 범죄 기회를 줄입니다.' },
-      { id: 'R-CRM-02', name: '범죄예방 환경디자인 조명', note: '사각지대의 조도를 기준치까지 끌어올려 은폐 공간을 없앱니다.' }
-    ],
-    caution: [
-      { id: 'R-CRM-03', name: '시야 확보 정비(벽면·식재)', note: '담장·수목으로 가려진 구간을 정비해 자연 감시가 되도록 합니다.' }
-    ]
+    byItem: {
+      'CRM-1': [
+        { id: 'R-CRM-01', name: 'LED 보안등 교체·증설', note: '어두운 구간의 조도를 기준치까지 끌어올립니다.' },
+        { id: 'R-CRM-02', name: '범죄예방 환경디자인 조명', note: '사각지대를 남기지 않도록 조명 배치를 다시 계획합니다.' },
+      ],
+      'CRM-2': [
+        { id: 'R-CRM-03', name: 'CPTED 방범 CCTV', note: '감시성을 확보해 범죄 기회를 줄이고 사후 추적을 가능하게 합니다.' },
+        { id: 'R-CRM-04', name: '안심 비상벨(SOS)', note: '위급 상황에서 즉시 신고할 수 있는 지점을 확보합니다.' },
+      ],
+      'CRM-3': [
+        { id: 'R-CRM-05', name: '시야 확보 정비(벽면·식재)', note: '담장·수목으로 가려진 구간을 정비해 자연 감시가 되도록 합니다.' },
+        { id: 'R-CRM-06', name: '반사형 안전거울', note: '구조상 트일 수 없는 사각지대의 시야를 거울로 확보합니다.' },
+      ],
+      'CRM-4': [
+        { id: 'R-CRM-07', name: '스마트 안심 부스', note: '은폐 공간 인근에 대피·신고가 가능한 거점을 둡니다.' },
+        { id: 'R-CRM-08', name: '안심 귀갓길 노면표시', note: '감시가 되는 경로로 보행 동선을 유도합니다.' },
+      ],
+      'CRM-5': [{ id: 'R-CRM-08', name: '안심 귀갓길 노면표시', note: '자연 감시가 되는 경로로 보행 동선을 유도합니다.' }],
+      'CRM-6': [{ id: 'R-CRM-09', name: '노후 벽면 환경 정비', note: '방치된 인상을 없애 범죄 유발 환경을 개선합니다.' }],
+    },
+    fallback: {
+      danger: [
+        { id: 'R-CRM-03', name: 'CPTED 방범 CCTV', note: '감시성을 확보해 범죄 기회를 줄이고 사후 추적을 가능하게 합니다.' },
+        { id: 'R-CRM-02', name: '범죄예방 환경디자인 조명', note: '사각지대의 조도를 기준치까지 끌어올려 은폐 공간을 없앱니다.' },
+      ],
+      caution: [{ id: 'R-CRM-05', name: '시야 확보 정비(벽면·식재)', note: '담장·수목으로 가려진 구간을 정비해 자연 감시가 되도록 합니다.' }],
+    },
   },
+
   life: {
-    danger: [
-      { id: 'R-LIF-01', name: '보행 안전 핸드레일', note: '경사로·계단 구간의 낙상 사고를 물리적으로 방지합니다.' },
-      { id: 'R-LIF-02', name: '미끄럼 방지 포장', note: '결빙·우천 시 전도 사고를 줄이는 노면 마감을 적용합니다.' }
-    ],
-    caution: [
-      { id: 'R-LIF-03', name: '보행로 단차 정비', note: '보도 턱과 요철을 제거해 보행 장애 요소를 없앱니다.' }
-    ]
+    byItem: {
+      'LIF-1': [
+        { id: 'R-LIF-01', name: '보행로 단차 정비', note: '보도 턱과 요철을 제거해 보행 장애 요소를 없앱니다.' },
+        { id: 'R-LIF-02', name: '점자블록 정비', note: '파손·누락된 점자블록을 규격에 맞게 다시 설치합니다.' },
+      ],
+      'LIF-2': [{ id: 'R-LIF-03', name: '보행 안전 핸드레일', note: '경사로·계단 구간의 낙상 사고를 물리적으로 방지합니다.' }],
+      'LIF-3': [
+        { id: 'R-LIF-04', name: '미끄럼 방지 포장', note: '결빙·우천 시 전도 사고를 줄이는 노면 마감을 적용합니다.' },
+        { id: 'R-LIF-05', name: '노면 결빙방지 열선', note: '급경사·응달 구간의 결빙을 원천적으로 막습니다.' },
+      ],
+      'LIF-4': [{ id: 'R-LIF-06', name: '보행 장애물(입간판·적치물) 정비', note: '보행 동선을 막는 장애물을 정리해 유효 보도폭을 확보합니다.' }],
+      'LIF-5': [{ id: 'R-LIF-07', name: '배수시설(측구·맨홀) 정비', note: '파손·개방된 맨홀과 측구를 정비해 추락·전도를 막습니다.' }],
+      'LIF-6': [{ id: 'R-LIF-08', name: '보행자 우선도로 조성', note: '보행자와 이륜차 동선이 섞이는 구간을 보행자 우선 구조로 바꿉니다.' }],
+    },
+    fallback: {
+      danger: [
+        { id: 'R-LIF-03', name: '보행 안전 핸드레일', note: '경사로·계단 구간의 낙상 사고를 물리적으로 방지합니다.' },
+        { id: 'R-LIF-04', name: '미끄럼 방지 포장', note: '결빙·우천 시 전도 사고를 줄이는 노면 마감을 적용합니다.' },
+      ],
+      caution: [{ id: 'R-LIF-01', name: '보행로 단차 정비', note: '보도 턱과 요철을 제거해 보행 장애 요소를 없앱니다.' }],
+    },
   },
+
   industrial: {
-    danger: [
-      { id: 'R-IND-01', name: '작업구간 방호 펜스', note: '작업 동선과 보행 동선을 분리해 제3자 재해를 차단합니다.' },
-      { id: 'R-IND-02', name: '안전 사이니지·경고 표지', note: '위험 구역과 필수 보호구를 명확히 고지해 무방비 진입을 막습니다.' }
-    ],
-    caution: [
-      { id: 'R-IND-03', name: '하역·적재구역 노면표시', note: '작업 차량의 이동 구역을 지정해 혼재 작업의 충돌 위험을 낮춥니다.' }
-    ]
+    byItem: {
+      'IND-1': [{ id: 'R-IND-01', name: '작업구간 경광등·유도등', note: '작업 구간의 존재를 보행자·운전자에게 미리 알립니다.' }],
+      'IND-2': [
+        { id: 'R-IND-02', name: '작업구간 방호 펜스', note: '작업 동선과 보행 동선을 분리해 제3자 재해를 차단합니다.' },
+        { id: 'R-IND-03', name: '안전 사이니지·경고 표지', note: '위험 구역과 필수 보호구를 명확히 고지해 무방비 진입을 막습니다.' },
+      ],
+      'IND-3': [{ id: 'R-IND-04', name: '가설 보행자 통로', note: '작업 구간을 우회하는 안전한 보행 통로를 임시로 확보합니다.' }],
+      'IND-4': [{ id: 'R-IND-05', name: '하역·적재구역 노면표시', note: '작업 차량의 이동 구역을 지정해 혼재 작업의 충돌 위험을 낮춥니다.' }],
+      'IND-5': [
+        { id: 'R-IND-05', name: '하역·적재구역 노면표시', note: '도로면까지 나온 작업 구역의 경계를 명확히 합니다.' },
+        { id: 'R-IND-03', name: '안전 사이니지·경고 표지', note: '작업이 이뤄지는 구간임을 통행자에게 고지합니다.' },
+      ],
+      'IND-6': [{ id: 'R-IND-02', name: '작업구간 방호 펜스', note: '노상에 놓인 자재·장비 구역을 통행 동선과 분리합니다.' }],
+    },
+    fallback: {
+      danger: [
+        { id: 'R-IND-02', name: '작업구간 방호 펜스', note: '작업 동선과 보행 동선을 분리해 제3자 재해를 차단합니다.' },
+        { id: 'R-IND-03', name: '안전 사이니지·경고 표지', note: '위험 구역과 필수 보호구를 명확히 고지해 무방비 진입을 막습니다.' },
+      ],
+      caution: [{ id: 'R-IND-05', name: '하역·적재구역 노면표시', note: '작업 차량의 이동 구역을 지정해 혼재 작업의 충돌 위험을 낮춥니다.' }],
+    },
   },
+
   infection: {
-    danger: [
-      { id: 'R-INF-01', name: '스마트 클린 쉘터', note: '밀집 대기 공간에 환기·소독 설비를 갖춰 비말 전파 위험을 낮춥니다.' },
-      { id: 'R-INF-02', name: '옥외 손 위생 스테이션', note: '접촉 감염을 차단하는 상시 위생 거점을 확보합니다.' }
-    ],
-    caution: [
-      { id: 'R-INF-03', name: '개방형 대기공간 정비', note: '밀폐된 대기 공간을 자연 환기가 되는 구조로 개선합니다.' }
-    ]
-  }
+    byItem: {
+      'INF-1': [
+        { id: 'R-INF-01', name: '대기공간 환기설비', note: '밀폐된 대기 공간에 강제 환기 설비를 넣어 비말 체류를 줄입니다.' },
+        { id: 'R-INF-02', name: '개방형 대기공간 정비', note: '밀폐 구조를 자연 환기가 되는 개방형으로 바꿉니다.' },
+      ],
+      'INF-2': [{ id: 'R-INF-03', name: '스마트 클린 쉘터', note: '밀집 대기 공간에 환기·소독 설비를 갖춰 비말 전파 위험을 낮춥니다.' }],
+      'INF-3': [{ id: 'R-INF-04', name: '옥외 손 위생 스테이션', note: '접촉 감염을 차단하는 상시 위생 거점을 확보합니다.' }],
+      'INF-4': [{ id: 'R-INF-02', name: '개방형 대기공간 정비', note: '적치물을 정리하고 위생 관리가 되는 구조로 개선합니다.' }],
+      'INF-5': [{ id: 'R-INF-05', name: '보도 신설·확폭', note: '마주 지나갈 때 거리를 둘 수 있도록 보행 폭을 확보합니다.' }],
+      'INF-6': [{ id: 'R-INF-06', name: '항균 손잡이·표면 마감', note: '손이 자주 닿는 공용 시설물의 표면을 항균 마감으로 교체합니다.' }],
+    },
+    fallback: {
+      danger: [
+        { id: 'R-INF-03', name: '스마트 클린 쉘터', note: '밀집 대기 공간에 환기·소독 설비를 갖춰 비말 전파 위험을 낮춥니다.' },
+        { id: 'R-INF-04', name: '옥외 손 위생 스테이션', note: '접촉 감염을 차단하는 상시 위생 거점을 확보합니다.' },
+      ],
+      caution: [{ id: 'R-INF-02', name: '개방형 대기공간 정비', note: '밀폐된 대기 공간을 자연 환기가 되는 구조로 개선합니다.' }],
+    },
+  },
 };
 
 /* ────────────────────────────────────────────────────────────────────
@@ -107,8 +233,7 @@ const RX_CATALOG = [
     '옥외 적치물 정비',
   ]},
   { group: '범죄예방 (CPTED)', items: [
-    'CPTED 방범 CCTV', '안심 비상벨(SOS)', 'CPTED 방범 CCTV·비상벨',
-    '범죄예방 환경디자인 조명',
+    'CPTED 방범 CCTV', '안심 비상벨(SOS)', '범죄예방 환경디자인 조명',
     'LED 보안등 교체·증설', '안심 귀갓길 노면표시', '반사형 안전거울',
     '시야 확보 정비(벽면·식재)', '노후 벽면 환경 정비', '스마트 안심 부스',
   ]},
@@ -179,7 +304,6 @@ const RX_PRICES = {
   /* 범죄예방 (CPTED) */
   'CPTED 방범 CCTV':            { unit: '개소', qty: 2,  price: 12000000 },
   '안심 비상벨(SOS)':           { unit: '개소', qty: 2,  price:  4500000 },
-  'CPTED 방범 CCTV·비상벨':     { unit: '개소', qty: 2,  price: 15000000 },
   '범죄예방 환경디자인 조명':   { unit: '개소', qty: 6,  price:  1800000 },
   'LED 보안등 교체·증설':       { unit: '개소', qty: 8,  price:   950000 },
   '안심 귀갓길 노면표시':       { unit: 'm',    qty: 80, price:    50000 },
@@ -286,23 +410,46 @@ function auriSaveOverrides(o) {
   sessionStorage.setItem('auri_rx_overrides', JSON.stringify(o));
 }
 
-/* 진단 점수 + 연구원 수정 → 최종 시설물 목록.
-   같은 입력이면 언제나 같은 결과가 나오는 결정론적 함수입니다. */
+/* 진단 결과 + 연구원 수정 → 최종 시설물 목록.
+   같은 입력이면 언제나 같은 결과가 나오는 결정론적 함수입니다.
+
+   시설물을 고르는 것은 **문제로 확인된 체크리스트 항목**이고,
+   분야 점수는 우선순위(필수/권장)만 정합니다. 항목 판독이 없는 결과
+   (서버가 꺼져 있을 때의 더미 점수, 점수만 손으로 조정한 경우)는
+   예전처럼 분야 단위 예비 목록으로 처방합니다. */
 function auriPrescribe(results, overrides) {
   const ov = overrides || auriLoadOverrides();
   const out = [];
+  const seen = {};
 
   results.forEach(function (r) {
     const rule = RX_RULES[r.key];
     if (!rule) return;
+    if (r.level.key === 'lv-safe') return;          // 안전 판정은 처방 없음
 
-    let bucket = null, priority = null;
-    if (r.level.key === 'lv-danger')       { bucket = rule.danger;  priority = RX_PRIORITY.must; }
-    else if (r.level.key === 'lv-caution') { bucket = rule.caution; priority = RX_PRIORITY.recommend; }
-    if (!bucket) return;
+    const priority = r.level.key === 'lv-danger' ? RX_PRIORITY.must : RX_PRIORITY.recommend;
 
-    bucket.forEach(function (item) {
+    /* ① 사진에서 문제로 확인된 항목이 시설물을 부릅니다 */
+    const picked = [];
+    (r.findings || []).forEach(function (f) {
+      if (!f.risk) return;
+      (rule.byItem[f.id] || []).forEach(function (item) {
+        picked.push({ item: item, trigger: f });
+      });
+    });
+
+    /* ② 항목 판독이 없으면 분야 단위 예비 목록으로 */
+    if (!picked.length) {
+      const bucket = r.level.key === 'lv-danger' ? rule.fallback.danger : rule.fallback.caution;
+      bucket.forEach(function (item) { picked.push({ item: item, trigger: null }); });
+    }
+
+    picked.forEach(function (p) {
+      const item = p.item;
       if (ov.removed.indexOf(item.id) !== -1) return;   // 연구원이 뺀 항목
+      if (seen[item.id]) return;    // 여러 항목이 같은 시설물을 불러도 한 번만
+      seen[item.id] = true;
+
       const e = ov.edits[item.id] || {};
       out.push({
         id: item.id,
@@ -313,6 +460,8 @@ function auriPrescribe(results, overrides) {
         levelLabel: r.level.label,
         priority: e.priorityCls ? RX_PRIORITY[e.priorityCls] : priority,
         edited: !!(e.name || e.note || e.priorityCls),
+        /* 이 시설물을 부른 체크리스트 항목 — 문서의 근거가 됩니다 */
+        trigger: p.trigger ? { id: p.trigger.id, ask: p.trigger.ask, note: p.trigger.note } : null,
       });
     });
   });
@@ -343,15 +492,21 @@ function auriPrescribe(results, overrides) {
    비교할 때 씁니다 (같으면 굳이 수정으로 기록하지 않습니다). */
 function auriFindRule(id) {
   for (const key in RX_RULES) {
+    const rule = RX_RULES[key];
+    for (const itemId in rule.byItem) {
+      const found = rule.byItem[itemId].find(function (x) { return x.id === id; });
+      if (found) return found;
+    }
     for (const bucket of ['danger', 'caution']) {
-      const found = RX_RULES[key][bucket].find(function (x) { return x.id === id; });
+      const found = rule.fallback[bucket].find(function (x) { return x.id === id; });
       if (found) return found;
     }
   }
   return null;
 }
 
-/* 처방의 근거 한 줄. 규칙이 뽑은 것과 사람이 넣은 것을 구분해 적고,
+/* 처방의 근거 한 줄.
+   "사진에서 무엇을 봤기에 이 시설물인가"를 한 줄로 되짚을 수 있어야 합니다.
    뒤에 표준단가를 붙여 어느 항목이 비싼지 고르는 중에 보이게 합니다. */
 function auriRxBasis(it) {
   const price = auriPriceShort(it.name);
@@ -359,6 +514,11 @@ function auriRxBasis(it) {
 
   if (it.custom) return '근거: 연구원 직접 추가' + tail;
   const edited = it.edited ? ' · 연구원 수정' : '';
+
+  if (it.trigger) {
+    const seen = it.trigger.note ? ` — ${it.trigger.note}` : '';
+    return `근거: 사진 판독 ${it.trigger.id}${seen} → 규칙 ${it.id} · ${it.category} ${it.levelLabel} 판정${edited}${tail}`;
+  }
   return `근거: ${it.category} ${it.score}점 · ${it.levelLabel} 판정 → 규칙 ${it.id}${edited}${tail}`;
 }
 
