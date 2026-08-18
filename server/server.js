@@ -214,9 +214,12 @@ function categorySchema(cat) {
       score: { type: 'integer', description: '0~100. 높을수록 위험' },
       findings: {
         type: 'array',
-        minItems: cat.items.length,
-        maxItems: cat.items.length,
-        description: `${cat.label} 체크리스트 ${cat.items.length}개 항목에 하나씩 답합니다`,
+        /* 개수를 스키마로 못 박지 않습니다 — minItems 는 0이나 1만 허용됩니다.
+           대신 지시문에서 전부 답하게 하고, 빠진 항목은 readFindings 가
+           "확인 불가"로 채웁니다 (없는 시설물을 처방하지 않는 쪽이 안전). */
+        minItems: 1,
+        description: `${cat.label} 체크리스트 ${cat.items.length}개 항목 전부에 하나씩 답합니다 ` +
+                     `(${cat.items.map(function (i) { return i.id; }).join(', ')})`,
         items: {
           type: 'object',
           properties: {
@@ -645,6 +648,18 @@ async function handleDiagnose(req, res, isRevise) {
       return `${c.label} ${categories[c.key].score}(문제 ${n})`;
     }).join(', ')
   );
+
+  /* AI가 항목을 빠뜨리면 그 항목은 "확인 불가"가 되어 처방에서 빠집니다.
+     조용히 넘어가면 왜 시설물이 적게 나왔는지 알 수 없으므로 남깁니다. */
+  const skipped = CATEGORIES
+    .map(function (c) {
+      const miss = categories[c.key].findings.filter(function (f) {
+        return f.answer === 'unknown' && !f.note;
+      }).length;
+      return miss ? `${c.label} ${miss}개` : null;
+    })
+    .filter(Boolean);
+  if (skipped.length) console.log(`  · 답하지 않은 항목(확인 불가로 처리): ${skipped.join(', ')}`);
   sendJson(res, 200, { imageQuality: raw.image_quality, categories: categories });
 }
 
