@@ -330,15 +330,42 @@ async function callAI(mediaType, base64Data, promptText) {
 const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
-/* 화면에서 골라 쓸 수 있는 모델들. 어느 쪽이 원본을 잘 보존하는지는
-   같은 사진으로 직접 비교해 봐야 알 수 있어 목록으로 열어 둡니다.
-   (아무 이름이나 받지 않도록 여기 적힌 것만 허용합니다) */
-const GEMINI_MODELS = [
-  'gemini-3-pro-image',
-  'gemini-3.1-flash-image',
-  'gemini-2.5-flash-image',
+const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
+const OPENAI_BASE = 'https://api.openai.com/v1';
+
+/* ── 화면에서 골라 쓸 수 있는 이미지 생성 모델 ────────────────────────
+   어느 쪽이 원본을 잘 보존하는지는 같은 사진으로 직접 비교해 봐야 알 수
+   있어서 목록으로 열어 둡니다. (아무 이름이나 받지 않도록 여기 적힌 것만 허용)
+
+   ★ 모델을 추가하려면 이 목록에 한 줄만 넣으면 됩니다.
+     화면의 선택 상자는 /api/models 로 이 목록을 받아 스스로 채웁니다.
+     provider 가 같으면 호출 코드도 그대로 재사용됩니다.
+
+   키가 없는 제공사의 모델은 화면 목록에 아예 나오지 않습니다. */
+const IMAGE_MODELS = [
+  { id: 'gemini-3-pro-image',     provider: 'gemini', label: 'Gemini 3 Pro · 고성능' },
+  { id: 'gemini-3.1-flash-image', provider: 'gemini', label: 'Gemini 3.1 Flash · 빠름' },
+  { id: 'gemini-2.5-flash-image', provider: 'gemini', label: 'Gemini 2.5 Flash' },
+  { id: 'gpt-image-1',            provider: 'openai', label: 'GPT Image 1 · 원본 보존' },
+  { id: 'gpt-image-1-mini',       provider: 'openai', label: 'GPT Image 1 mini · 저렴' },
 ];
-const GEMINI_MODEL = process.env.GEMINI_MODEL || GEMINI_MODELS[0];
+
+function providerKey(provider) {
+  const key = provider === 'openai' ? OPENAI_KEY : GEMINI_KEY;
+  /* .env.example 을 그대로 복사만 하고 안 채운 경우를 걸러 냅니다 */
+  return key && key.indexOf('붙여넣') === -1 ? key : '';
+}
+
+function imageModelById(id) {
+  return IMAGE_MODELS.find(function (m) { return m.id === id; }) || null;
+}
+
+/* 지금 키가 있어서 실제로 쓸 수 있는 모델만 */
+function usableImageModels() {
+  return IMAGE_MODELS.filter(function (m) { return providerKey(m.provider); });
+}
+
+const GEMINI_MODEL = process.env.GEMINI_MODEL || IMAGE_MODELS[0].id;
 
 function buildGeneratePrompt(facilities, note, fromGenerated) {
   const list = facilities.map(function (f) { return `- ${f}`; }).join('\n');
@@ -396,7 +423,77 @@ HOW TO ADD THEM
 The scene is a Korean urban street.`;
 }
 
+/* 어느 제공사냐에 따라 호출 방식이 다릅니다.
+   지시문(buildGeneratePrompt)과 돌려주는 모양은 양쪽이 똑같으므로,
+   화면과 나머지 코드는 어느 모델인지 알 필요가 없습니다. */
 async function callImageAI(mediaType, base64Data, facilities, model, note, fromGenerated) {
+  const def = imageModelById(model);
+  if (def && def.provider === 'openai') {
+    return callOpenAIImage(mediaType, base64Data, facilities, model, note, fromGenerated);
+  }
+  return callGeminiImage(mediaType, base64Data, facilities, model, note, fromGenerated);
+}
+
+/* ── OpenAI (GPT Image) ───────────────────────────────────────────────
+   원본 사진을 고쳐 그리는 것이므로 "만들기(generations)"가 아니라
+   "고치기(edits)" 쪽을 씁니다. 파일 업로드 형식이라 JSON이 아닙니다.
+
+   input_fidelity: 'high' — 원본을 최대한 유지하라는 지시입니다.
+   이 앱의 판단 기준이 "원본 보존"이라 반드시 켭니다. */
+async function callOpenAIImage(mediaType, base64Data, facilities, model, note, fromGenerated) {
+  const ext = mediaType === 'image/jpeg' ? 'jpg' : mediaType === 'image/webp' ? 'webp' : 'png';
+  const blob = new Blob([Buffer.from(base64Data, 'base64')], { type: mediaType });
+
+  const form = new FormData();
+  form.append('model', model);
+  form.append('prompt', buildGeneratePrompt(facilities, note, fromGenerated));
+  form.append('image', blob, `input.${ext}`);
+  form.append('n', '1');
+  form.append('size', 'auto');            // 원본 비율에 맞춰 알아서
+  form.append('quality', 'high');
+  form.append('input_fidelity', 'high');  // 원본을 최대한 유지
+
+  const res = await fetch(`${OPENAI_BASE}/images/edits`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${OPENAI_KEY}` },
+    body: form,                            // Content-Type 은 fetch 가 알아서 붙입니다
+  });
+
+  const body = await res.json().catch(function () { return null; });
+
+  if (!res.ok) {
+    const msg = (body && body.error && body.error.message) || `HTTP ${res.status}`;
+    if (res.status === 404 || /model/i.test(msg)) {
+      const names = await listOpenAIImageModels();
+      throw new Error(`${msg}\n지금 쓸 수 있는 이미지 모델: ${names.join(', ') || '조회 실패'}\n` +
+                      `(요청한 모델: ${model} — 화면의 모델 선택에서 다른 것을 골라 보세요)`);
+    }
+    throw new Error(msg);
+  }
+
+  const first = body && body.data && body.data[0];
+  if (!first || !first.b64_json) throw new Error('이미지를 돌려받지 못했습니다.');
+
+  return {
+    dataUrl: `data:image/png;base64,${first.b64_json}`,
+    note: '',
+  };
+}
+
+async function listOpenAIImageModels() {
+  try {
+    const res = await fetch(`${OPENAI_BASE}/models`, {
+      headers: { Authorization: `Bearer ${OPENAI_KEY}` },
+    });
+    const body = await res.json();
+    return (body.data || [])
+      .map(function (m) { return m.id; })
+      .filter(function (id) { return /image/i.test(id); });
+  } catch { return []; }
+}
+
+/* ── Google (Gemini) ────────────────────────────────────────────────── */
+async function callGeminiImage(mediaType, base64Data, facilities, model, note, fromGenerated) {
   const url = `${GEMINI_BASE}/models/${model}:generateContent?key=${GEMINI_KEY}`;
   const res = await fetch(url, {
     method: 'POST',
@@ -418,7 +515,7 @@ async function callImageAI(mediaType, base64Data, facilities, model, note, fromG
     const msg = (body && body.error && body.error.message) || `HTTP ${res.status}`;
     /* 모델 이름이 바뀌었을 때를 대비해, 쓸 수 있는 모델을 함께 알려 줍니다 */
     if (res.status === 404 || /model/i.test(msg)) {
-      const names = await listImageModels();
+      const names = await listGeminiImageModels();
       throw new Error(`${msg}\n지금 쓸 수 있는 이미지 모델: ${names.join(', ') || '조회 실패'}\n` +
                       `(요청한 모델: ${model} — 화면의 모델 선택에서 다른 것을 골라 보세요)`);
     }
@@ -443,7 +540,7 @@ async function callImageAI(mediaType, base64Data, facilities, model, note, fromG
 }
 
 /* 쓸 수 있는 이미지 생성 모델 목록 — 오류 안내에 씁니다 */
-async function listImageModels() {
+async function listGeminiImageModels() {
   try {
     const res = await fetch(`${GEMINI_BASE}/models?key=${GEMINI_KEY}&pageSize=200`);
     const body = await res.json();
@@ -454,9 +551,10 @@ async function listImageModels() {
 }
 
 async function handleGenerate(req, res) {
-  if (!GEMINI_KEY || GEMINI_KEY.indexOf('붙여넣') !== -1) {
+  if (!usableImageModels().length) {
     return sendJson(res, 503, {
-      error: '이미지 생성 키가 설정되지 않았습니다. server/.env 의 GEMINI_API_KEY 를 채운 뒤 서버를 다시 켜 주세요.',
+      error: '이미지 생성 키가 설정되지 않았습니다. server/.env 에 GEMINI_API_KEY 또는 ' +
+             'OPENAI_API_KEY 를 채운 뒤 서버를 다시 켜 주세요.',
     });
   }
   if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) {
@@ -471,15 +569,19 @@ async function handleGenerate(req, res) {
   const facilities = (body.facilities || []).filter(Boolean);
   if (!facilities.length) return sendJson(res, 400, { error: '반영할 시설물이 없습니다.' });
 
-  /* 화면에서 고른 모델. 목록에 없는 값이면 무시하고 기본값을 씁니다. */
-  const model = GEMINI_MODELS.includes(body.model) ? body.model : GEMINI_MODEL;
+  /* 화면에서 고른 모델. 목록에 없거나 그 제공사 키가 없으면
+     쓸 수 있는 모델 중 첫 번째로 대신합니다. */
+  const usable = usableImageModels();
+  const picked = imageModelById(body.model);
+  const def = (picked && providerKey(picked.provider)) ? picked : usable[0];
+  const model = def.id;
 
   /* 연구원이 적어 보낸 수정 요청과, 그 요청을 어느 이미지에 반영할지 */
   const note = String(body.note || '').trim().slice(0, 1000);
   const fromGenerated = !!body.fromGenerated;
 
   const [, mediaType, base64Data] = match;
-  console.log(`[이미지 생성] ${model} / 시설물 ${facilities.length}종: ${facilities.join(', ')}`);
+  console.log(`[이미지 생성] ${def.provider} ${model} / 시설물 ${facilities.length}종: ${facilities.join(', ')}`);
 
   const out = await callImageAI(mediaType, base64Data, facilities, model, note, fromGenerated);
   console.log(`  · 생성 완료 (${Math.round(out.dataUrl.length / 1024)}KB)`);
@@ -620,6 +722,14 @@ const server = http.createServer(async function (req, res) {
       await handleDiagnose(req, res, true);   // 연구원 지적을 반영한 재판독
     } else if (req.method === 'POST' && req.url === '/api/generate') {
       await handleGenerate(req, res);         // 개선 후 이미지 생성
+    } else if (req.method === 'GET' && req.url === '/api/models') {
+      /* 화면의 모델 선택 상자가 이 목록으로 채워집니다.
+         키가 없는 제공사의 모델은 애초에 내려보내지 않습니다. */
+      sendJson(res, 200, {
+        models: usableImageModels().map(function (m) {
+          return { id: m.id, label: m.label, provider: m.provider };
+        }),
+      });
     } else if (req.method === 'GET') {
       await serveStatic(req, res);
     } else {
@@ -641,8 +751,13 @@ server.listen(PORT, function () {
   console.log('');
   console.log(`  요금 상한: 하루 ${DAILY_LIMIT}회 / 한 사람당 1시간 ${HOURLY_LIMIT_PER_IP}회`);
   console.log(`  접속 암호: ${ACCESS_CODE ? '사용 중' : '없음 (누구나 사용 가능)'}`);
-  console.log(`  이미지 생성: ${(GEMINI_KEY && GEMINI_KEY.indexOf('붙여넣') === -1)
-    ? `사용 가능 (기본 ${GEMINI_MODEL})` : '키 없음 — server/.env 의 GEMINI_API_KEY 를 채워 주세요'}`);
+  const imgs = usableImageModels();
+  console.log(`  이미지 생성: ${imgs.length
+    ? `${imgs.length}종 사용 가능 — ${imgs.map(function (m) { return m.id; }).join(', ')}`
+    : '키 없음 — server/.env 의 GEMINI_API_KEY 또는 OPENAI_API_KEY 를 채워 주세요'}`);
+  if (!providerKey('openai')) {
+    console.log('    · GPT 이미지 모델을 쓰려면 .env 에 OPENAI_API_KEY 를 추가하세요');
+  }
   console.log('');
   console.log('  (끄려면 이 창에서 Ctrl+C)');
   console.log('');
