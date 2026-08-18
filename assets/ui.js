@@ -121,9 +121,20 @@ const AURI_ICON_EDIT =
 /* 상단 바(로고 + 단계)를 그립니다.
    각 화면에는 <header class="topbar" id="topbar"></header> 만 두면 됩니다.
 
-   로고는 assets/logo.svg 를 먼저 찾고, 없으면 assets/logo.png,
-   그것도 없으면 글자 로고로 자동 대체됩니다. */
-const AURI_BRAND_TEXT = 'ATELIER KJ';
+   ── 로고 바꾸기 ───────────────────────────────────────────────────
+   발표 주관 기관에 따라 아래 한 줄만 바꾸면 5개 화면에 모두 반영됩니다.
+
+     AURI 주관    'assets/logo_auri.svg'   가로형 6.46 : 1
+     ATELIER KJ   'assets/logo.svg'        정사각  1 : 1
+
+   ⚠ 두 로고는 가로세로비가 크게 달라서, 파일을 바꿀 때는
+     assets/theme.css 의 --logo-h(로고 높이)도 함께 맞춰야 합니다.
+     AURI 로고는 국문·영문 2단 구성이라 아랫줄이 뭉개지지 않도록
+     정사각 로고보다 높게 잡습니다. (현재 32px / 정사각일 때는 22px)
+
+   지정한 파일을 못 찾으면 같은 이름의 .png → 글자 로고 순으로 대체됩니다. */
+const AURI_BRAND_LOGO = 'assets/logo_auri.svg';
+const AURI_BRAND_TEXT = '건축공간연구원 AURI';
 const AURI_BRAND_SUB = '안전사업지구 진단 시뮬레이터';
 
 function auriRenderTopbar() {
@@ -133,7 +144,7 @@ function auriRenderTopbar() {
   host.innerHTML =
     '<div class="topbar-inner">' +
       '<a class="brand" href="index.html">' +
-        `<img class="brand-logo" src="assets/logo.svg" alt="${AURI_BRAND_TEXT}">` +
+        `<img class="brand-logo" src="${AURI_BRAND_LOGO}" alt="${AURI_BRAND_TEXT}">` +
         `<span class="brand-sub">${AURI_BRAND_SUB}</span>` +
       '</a>' +
       '<nav class="steps" id="steps"></nav>' +
@@ -143,7 +154,7 @@ function auriRenderTopbar() {
   let tried = 0;
   logo.addEventListener('error', function () {
     tried++;
-    if (tried === 1) { logo.src = 'assets/logo.png'; return; }
+    if (tried === 1) { logo.src = AURI_BRAND_LOGO.replace(/\.svg$/, '.png'); return; }
     const text = document.createElement('span');
     text.className = 'brand-text';
     text.textContent = AURI_BRAND_TEXT;

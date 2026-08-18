@@ -25,7 +25,11 @@
   /* ── 여백 기준선 ──────────────────────────────────────────────── */
   --gutter:34px;         /* 좌우 여백 */
   --maxw:1180px;
-  --logo-h:22px;         /* 상단 로고 높이 */
+  /* 상단 로고 높이. 로고 파일의 가로세로비에 맞춰 조정합니다 (assets/ui.js 참고)
+       AURI 가로형 6.46:1 → 32px (가로 207px) · 국문/영문 2단이라 낮으면 뭉갭니다
+       ATELIER KJ 정사각  1:1 → 22px (가로  22px) */
+  --logo-h:32px;
+  --brand-pad:15px;      /* 로고 위아래 여백 — 로고를 키운 만큼 줄여 바 높이를 유지 */
 
   /* ── 글꼴 ─────────────────────────────────────────────────────── */
   --font:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
@@ -86,9 +90,10 @@ body{
   display:flex; align-items:center; gap:40px; flex-wrap:wrap;
 }
 
+/* 가로형 로고라 묶음이 넓습니다. flex:none 이 없으면 좁은 폭에서 눌려 단계와 겹칩니다. */
 .brand{
-  display:flex; align-items:center; gap:13px;
-  padding:20px 0; white-space:nowrap;
+  display:flex; align-items:center; gap:13px; flex:none;
+  padding:var(--brand-pad) 0; white-space:nowrap;
   text-decoration:none; color:var(--k);
 }
 .brand-logo{height:var(--logo-h,22px); width:auto; display:block}
@@ -97,7 +102,10 @@ body{
   font-size:var(--fs-cap); font-weight:700; letter-spacing:.15em; color:var(--g2);
   padding-left:13px; border-left:1px solid var(--g1);
 }
-@media(max-width:560px){ .brand-sub{display:none} }
+@media(max-width:560px){
+  :root{--logo-h:26px}      /* 좁은 화면에서는 로고도 한 단계 줄입니다 */
+  .brand-sub{display:none}
+}
 
 /* ── 단계 이동 — 번호는 01, 02 두 자리 ───────────────────────────
    숫자는 화면 스크립트가 1~5로 넣으므로 앞의 0은 CSS로 붙입니다. */
@@ -125,11 +133,11 @@ body{
 .step.is-locked{color:var(--g1); cursor:not-allowed}
 .step.is-locked .num{color:var(--g1)}
 
-@media(max-width:900px){
+@media(max-width:1020px){
   .topbar-inner{gap:0}
   .steps{margin-left:0; width:100%; overflow-x:auto; border-top:1px solid var(--g1); gap:20px}
   .step{padding:13px 0}
-  .brand{padding:15px 0}
+  .brand{padding:12px 0}
 }
 
 /* ════ 본문 ═════════════════════════════════════════════════════ */
