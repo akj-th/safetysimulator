@@ -50,25 +50,41 @@ const AuriRx = {
     this.toggle(false);
 
     if (!items.length) {
-      list.innerHTML = '<div class="empty">처방된 시설물이 없습니다.<br>수정을 눌러 직접 추가할 수 있습니다.</div>';
+      list.innerHTML = '<div class="empty">처방된 사업이 없습니다.<br>수정을 눌러 직접 추가할 수 있습니다.</div>';
       return;
     }
 
     list.innerHTML = items.map(function (it) {
       const mark = it.custom ? '<span class="mark-edited">직접 추가</span>'
                  : it.edited ? '<span class="mark-edited">수정됨</span>' : '';
-      const note = AuriRx.opts.showNote && it.note
+
+      /* HEA — 8/25 협의의 3분류가 이것입니다 (피해대상·환경·행위).
+         시설(E)만 나열하지 않는다는 것을 화면에서 바로 보이게 합니다. */
+      const program = AuriPalette.byName(it.name);
+      const hea = it.hea || (program || {}).hea;
+      const heaTag = hea
+        ? `<span class="rx-kind k-${hea}" title="${AuriPalette.heaDesc(hea)}">${AuriPalette.heaLabel(hea, true)}</span>`
+        : '';
+
+      /* 효과크기와 출처 — 예산 근거 문서라 출처 표기가 중요합니다.
+         AURI 팔레트에 적힌 문장을 그대로 싣습니다(우리가 지어내지 않습니다). */
+      const ev = auriRxEvidence(it);
+      const evidence = AuriRx.opts.showNote && ev && ev.effect
+        ? `<div class="rx-evidence">${ev.effect}` +
+          (ev.sourceShort ? ` <span class="src">출처: ${ev.sourceShort}</span>` : '') + '</div>'
+        : '';
+
+      /* 연구원이 직접 쓴 설명은 팔레트 문장과 별개로 남깁니다 */
+      const userNote = (it.custom || it.edited) && it.note && (!program || it.note !== program.effect)
         ? `<div class="rx-note">${it.note}</div>` : '';
-      /* 개입 유형(인적/환경/직접) — 8/25 협의의 3분류.
-         시설 설치만 나열하지 않는다는 것을 화면에서 바로 보이게 합니다. */
-      const kind = it.kind || auriRxKind(it.name);
-      const kindTag = `<span class="rx-kind k-${kind}">${auriRxKindLabel(kind, true)}</span>`;
+
       return `
         <div class="rx-item">
           <span class="rx-priority ${it.priority.cls}">${it.priority.label}</span>
           <div class="rx-body">
-            <div class="rx-name">${it.name}${kindTag}<span class="rx-cat">${it.category}</span>${mark}</div>
-            ${note}
+            <div class="rx-name">${it.name}${heaTag}<span class="rx-cat">${it.category}</span>${mark}</div>
+            ${userNote}
+            ${evidence}
             <div class="rx-basis">${auriRxBasis(it)}</div>
           </div>
         </div>`;
@@ -104,17 +120,17 @@ const AuriRx = {
               </select>
               <button class="btn-text danger" onclick="AuriRx.remove(${i})">삭제</button>
             </div>
-            <input type="text" id="rx-custom-${i}" placeholder="시설물 이름 직접 입력"
+            <input type="text" id="rx-custom-${i}" placeholder="사업 이름 직접 입력"
                    value="${isCustomName ? safeName : ''}" style="display:${isCustomName ? 'block' : 'none'}">
-            <textarea id="rx-note-${i}" placeholder="이 시설물이 왜 필요한지">${it.note || ''}</textarea>
-            <div class="rx-basis">${it.custom ? '연구원 직접 추가' : `${it.category} · 규칙 ${it.id}`}</div>
+            <textarea id="rx-note-${i}" placeholder="이 사업이 왜 필요한지 (비우면 팔레트의 효과크기가 쓰입니다)">${it.note || ''}</textarea>
+            <div class="rx-basis">${it.custom ? '연구원 직접 추가' : `${it.category} · ${it.id}`}</div>
           </div>
         </div>`;
     }).join('');
 
     document.getElementById(this.opts.listId).innerHTML = rows.trim()
       ? rows
-      : '<div class="empty">시설물이 모두 삭제되었습니다. 항목 추가로 직접 넣을 수 있습니다.</div>';
+      : '<div class="empty">사업이 모두 삭제되었습니다. 항목 추가로 직접 넣을 수 있습니다.</div>';
   },
 
   /* 드롭다운에서 "직접 입력…"을 고르면 아래 입력칸을 엽니다 */
@@ -176,10 +192,11 @@ const AuriRx = {
       }
       if (it.deleted) { ov.removed.push(it.id); return; }
 
+      /* 팔레트의 원본과 비교합니다. 설명(note)의 원본은 팔레트의 효과크기입니다. */
       const origin = auriFindRule(it.id);
       const e = {};
       if (origin && it.name !== origin.name) e.name = it.name;
-      if (origin && it.note !== origin.note) e.note = it.note;
+      if (origin && it.note !== (origin.effect || '')) e.note = it.note;
       /* 규칙 엔진이 정했을 우선순위 — 적합도로 갈립니다.
          이 값과 다를 때만 "연구원이 바꿨다"로 기록합니다. */
       const originPri = (it.fit != null && it.fit >= RX_MUST_FIT) ? 'must' : 'recommend';

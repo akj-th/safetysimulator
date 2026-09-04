@@ -140,7 +140,7 @@
 <main class="wrap">
   <div class="page-head">
     <h1>종합 진단 리포트</h1>
-    <p class="sub">데이터 결과 → 위험요인 해석 → 현장확인 사항 → 맞춤형 사업 순으로 정리합니다. 점수와 시설물 모두 직접 고칠 수 있습니다.</p>
+    <p class="sub">데이터 결과 → 위험요인 해석 → 현장확인 사항 → 맞춤형 사업 순으로 정리합니다. 점수와 사업 모두 직접 고칠 수 있습니다.</p>
   </div>
 
   <div class="picked" id="picked">
@@ -276,6 +276,7 @@
 <script src="assets/ui.js"></script>
 <script src="assets/risk-weights.js"></script>
 <script src="assets/stats.js"></script>
+<script src="assets/palette.js"></script>
 <script src="assets/rules.js"></script>
 <script src="assets/rx-editor.js"></script>
 <script>
@@ -394,7 +395,7 @@ function renderSummary() {
   note.innerHTML = `${reading} <b>사진 판독</b>은 이 자리에서 눈에 보이는 취약 요소를, ` +
     `<b>주변 이력</b>은 반경 ${hist.radius}m 안에서 실제로 일어난 일을 봅니다. ` +
     '두 값을 나란히 두는 것은 종합 점수가 어디에서 나왔는지 되짚을 수 있게 하기 위해서입니다. ' +
-    '아래 항목별 점수와 개선 시설물은 <b>사진 판독 결과만</b>으로 정해집니다.' +
+    '아래 항목별 점수와 개선 사업은 <b>사진 판독 결과만</b>으로 정해집니다.' +
     (parts ? `<br><span class="parts">주변 이력 구성 — ${parts}</span>` : '');
 }
 
@@ -583,7 +584,7 @@ function askToCheck(ask) {
     .replace(/가\??$/, '지 확인');
 }
 
-/* ── 개선 시설물 처방 ───────────────────────────────────────────
+/* ── 개선 사업 처방 ─────────────────────────────────────────────
    목록 표시와 편집은 assets/rx-editor.js 가 담당합니다.
    이 화면에서만 규칙 엔진을 돌리고, 시각화·진단서는 결과를 받아 씁니다. */
 function recomputePrescriptions() {
@@ -604,6 +605,9 @@ window.addEventListener('load', async function () {
     document.getElementById('rxEditBtn').style.display = 'none';
     return;
   }
+
+  /* 처방 엔진이 AURI 사업 팔레트를 읽으므로 먼저 받아 둡니다 */
+  await AuriPalette.load();
 
   const picked = JSON.parse(loc);
   _results = JSON.parse(resultsRaw);

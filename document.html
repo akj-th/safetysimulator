@@ -82,7 +82,7 @@
   <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; max-width:none; flex-wrap:wrap">
     <div style="max-width:720px">
       <h1>안전사업지구 지정 신청 서식</h1>
-      <p class="sub">진단 결과와 확정된 시설물을 지정 서식에 맞춰 정리합니다. 표와 수치는 앞 단계 내용으로 자동으로 채워집니다.</p>
+      <p class="sub">진단 결과와 확정된 개선 사업을 지정 서식에 맞춰 정리합니다. 표와 수치는 앞 단계 내용으로 자동으로 채워집니다.</p>
     </div>
     <button class="btn ghost" onclick="window.print()">인쇄 / PDF 저장</button>
   </div>
@@ -156,7 +156,7 @@
               <th style="width:22%">재난 분야</th>
               <th style="width:14%">진단 점수</th>
               <th style="width:14%">현재 판정</th>
-              <th style="width:50%">개선 시설물 투입에 따른 기대효과</th>
+              <th style="width:50%">개선 사업 시행에 따른 기대효과</th>
             </tr>
           </thead>
           <tbody id="effectBody"></tbody>
@@ -164,7 +164,7 @@
 
         <div class="pending">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          기대효과 문장은 아직 비어 있습니다. 근거 없는 수치를 적지 않기 위해, 통계와 지침이 연결된 뒤에 채웁니다.
+          기대효과는 AURI 사업 팔레트의 <b>성과증명(효과크기)과 출처</b>를 그대로 옮긴 것입니다. 우리가 만든 문장이 아닙니다. 팔레트에 효과크기가 비어 있는 사업은 그 사실을 그대로 적었습니다.
         </div>
       </div>
     </div>
@@ -180,7 +180,7 @@
           </figure>
           <figure>
             <div id="docAfterSlot"></div>
-            <figcaption>개선 후 — 시설물 반영</figcaption>
+            <figcaption>개선 후 — 개선 사업 반영</figcaption>
           </figure>
         </div>
         <div class="ba-list" id="docFacilities"></div>
@@ -195,11 +195,12 @@
 
   <p class="note">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-    각 시설물에는 근거가 함께 적혀 있어, 왜 필요한지를 진단 결과까지 거슬러 확인할 수 있습니다. 인쇄하면 화면 요소 없이 서식만 출력됩니다.
+    각 사업에는 효과크기·출처와 처방 근거가 함께 적혀 있어, 왜 필요한지를 진단 결과까지 거슬러 확인할 수 있습니다. 인쇄하면 화면 요소 없이 서식만 출력됩니다.
   </p>
 </main>
 <script src="assets/ui.js"></script>
 <script src="assets/risk-weights.js"></script>
+<script src="assets/palette.js"></script>
 <script src="assets/rules.js"></script>
 <script>
 function fmtDate(d) {
@@ -224,7 +225,8 @@ function fitComparisonBox(dataUrl) {
   probe.src = dataUrl;
 }
 
-window.addEventListener('load', function () {
+window.addEventListener('load', async function () {
+  await AuriPalette.load();   // 서식2 금액이 팔레트에서 옵니다
   const loc = sessionStorage.getItem('auri_picked_location');
   const resultsRaw = sessionStorage.getItem('auri_diagnosis_results');
   const rxRaw = sessionStorage.getItem('auri_prescriptions');
@@ -289,44 +291,54 @@ window.addEventListener('load', function () {
   const bFoot = document.getElementById('budgetFoot');
 
   if (items.length === 0) {
-    bBody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink-soft);padding:18px">처방된 시설물이 없습니다. 종합 리포트를 먼저 열어 주세요.</td></tr>';
+    bBody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink-soft);padding:18px">처방된 사업이 없습니다. 종합 리포트를 먼저 열어 주세요.</td></tr>';
   } else {
     let total = 0;
     let unpriced = 0;
 
     bBody.innerHTML = items.map(function (it) {
-      /* 규칙표가 뽑은 항목은 규칙번호를, 연구원이 넣은 항목은 그 사실을 적습니다 */
-      const source = it.custom ? '연구원 직접 추가' : it.id + (it.edited ? ' · 연구원 수정' : '');
-      const p = auriRxPrice(it.name);
+      /* 팔레트에서 온 항목은 사업번호를, 연구원이 넣은 항목은 그 사실을 적습니다 */
+      const origin = it.custom ? '연구원 직접 추가' : it.id + (it.edited ? ' · 연구원 수정' : '');
+      const p = AuriPalette.byName(it.name);
+      const a = p ? p.amount : null;
+      const hea = it.hea || (p || {}).hea;
 
-      if (!p) unpriced++;
-      const amount = p ? p.price * p.qty : 0;
-      total += amount;
+      /* 팔레트에 단가가 적힌 것만 금액을 계산합니다. 나머지는 "산출 근거 필요"로
+         두고 합계에서 뺍니다 — 근거 없는 숫자를 예산 문서에 올릴 수 없습니다. */
+      if (a && a.won) total += a.won; else unpriced++;
 
       return `
         <tr>
-          <td>${it.name}<br><span class="rule-id">${source}</span></td>
+          <td>${it.name}<br><span class="rule-id">${origin}</span></td>
           <td>${it.category}</td>
-          <td>${auriRxKindLabel(it.kind || auriRxKind(it.name))}</td>
+          <td>${hea ? AuriPalette.heaLabel(hea) : '—'}</td>
           <td>${it.priority.label}</td>
-          <td class="num">${p ? p.qty + p.unit : '—'}</td>
-          <td class="num">${p ? auriWon(p.price) : '단가 미산정'}</td>
-          <td class="num">${p ? auriWon(amount) : '—'}</td>
+          <td class="num">${a && a.won ? '1' + (a.unit || '') : '—'}</td>
+          <td class="num">${a && a.won ? auriWon(a.won) : '산출 근거 필요'}</td>
+          <td class="num">${a && a.won ? auriWon(a.won) : '—'}</td>
         </tr>`;
     }).join('');
 
     bFoot.innerHTML = `
       <tr class="sum">
-        <td colspan="5">합계 — 총 ${items.length}종${unpriced ? ` (단가 미산정 ${unpriced}종 제외)` : ''}</td>
+        <td colspan="5">합계 — 총 ${items.length}종${unpriced ? ` (산출 근거 필요 ${unpriced}종 제외)` : ''}</td>
         <td class="num">원</td>
-        <td class="num">${auriWon(total)}</td>
+        <td class="num">${total ? auriWon(total) : '산출 불가'}</td>
       </tr>`;
 
+    /* 금액을 못 채운 항목의 참고 문구를 아래에 모아 둡니다 — 어떤 근거가
+       필요한지 실무자가 바로 알 수 있어야 합니다. */
+    const refs = items.map(function (it) {
+      const p = AuriPalette.byName(it.name);
+      const a = p ? p.amount : null;
+      return (a && !a.won && a.text) ? `<li><b>${it.name}</b> — ${a.text}</li>` : '';
+    }).filter(Boolean).join('');
+
     document.getElementById('budgetNote').innerHTML =
-      '금액은 <b>자재비 + 설치비</b> 기준이며 부가세는 제외했습니다. '
-      + '수량은 100 × 100m 격자 한 곳의 통상 규모를 가정한 기본값으로, 현장 실측 후 조정합니다. '
-      + '<b>지금 단가는 공인된 표준단가가 아니라 임시 추정값입니다</b> — '
-      + '표준 설계 가이드라인의 단가 매트릭스가 확정되면 그 값으로 교체됩니다.';
+      'AURI 사업 팔레트에 <b>단위와 금액이 분명히 적힌 사업만</b> 금액을 계산했습니다. '
+      + '나머지는 지자체 총액·범위·국비 분담 등으로 적혀 있어 격자 단가로 쓸 수 없으므로 '
+      + '<b>「산출 근거 필요」</b>로 두고 합계에서 뺐습니다. 부가세는 제외입니다.'
+      + (refs ? `<br><br>참고로 적힌 금액 문구:<ul style="margin:6px 0 0; padding-left:18px">${refs}</ul>` : '');
   }
 
   /* ── 서식 3: 기대효과 ──────────────────────────────────────── */
@@ -334,15 +346,29 @@ window.addEventListener('load', function () {
   if (risky.length === 0) {
     eBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ink-soft);padding:18px">주의 이상 판정 분야가 없습니다.</td></tr>';
   } else {
+    /* 기대효과는 우리가 지어내지 않습니다. AURI 사업 팔레트에 적힌
+       성과증명(효과크기)과 그 출처를 그대로 옮깁니다. 예산 근거 문서라
+       "얼마나 줄어드는가"보다 "누가 그렇게 밝혔는가"가 중요합니다. */
     eBody.innerHTML = risky.map(function (r) {
-      const names = items.filter(function (i) { return i.category === r.name; })
-                         .map(function (i) { return i.name; });
+      const mine = items.filter(function (i) { return i.category === r.name; });
+      const cells = mine.map(function (it) {
+        const p = AuriPalette.byName(it.name);
+        const ev = AuriPalette.evidence(p);
+        const hea = it.hea || (p || {}).hea;
+        return '<div style="margin-bottom:9px">'
+          + `<b>${it.name}</b>${hea ? ` <span class="rule-id">${AuriPalette.heaLabel(hea)}</span>` : ''}<br>`
+          + (ev && ev.effect
+              ? ev.effect + (ev.source ? `<br><span class="rule-id">출처: ${ev.source}</span>` : '')
+              : '<span class="rule-id">성과증명 자료 없음 — AURI 팔레트에 효과크기가 비어 있습니다</span>')
+          + '</div>';
+      }).join('');
+
       return `
         <tr>
           <td>${r.name}</td>
           <td class="num">${r.score}점 (${r.level.step}/9)</td>
           <td>${r.level.label}${r.edited ? ' · 연구원 보정' : ''}</td>
-          <td>${names.length ? names.join(', ') + ' 설치' : '—'}<br><span class="rule-id">저감 효과 문장 생성 예정</span></td>
+          <td>${cells || '<span class="rule-id">이 분야에 처방된 사업이 없습니다</span>'}</td>
         </tr>`;
     }).join('');
   }
@@ -379,10 +405,10 @@ window.addEventListener('load', function () {
   fitComparisonBox(beforeUrl || afterRaw);
 
   document.getElementById('docFacilities').innerHTML = items.length
-    ? '<b>비교도에 반영된 시설물</b><br>' + items.map(function (it) {
+    ? '<b>비교도에 반영된 사업</b><br>' + items.map(function (it) {
         return `· ${it.name} — ${it.priority.label}${it.custom ? ' · 연구원 직접 추가' : ''}`;
       }).join('<br>')
-    : '<b>반영 시설물 없음</b>';
+    : '<b>반영 사업 없음</b>';
 
   /* 서식 하단 작성일 */
   const dateEl = document.createElement('div');

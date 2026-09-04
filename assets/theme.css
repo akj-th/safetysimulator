@@ -297,15 +297,24 @@ input[type=range]{flex:1; min-width:90px; height:4px; margin:0; accent-color:var
   color:var(--main); background:none; padding:0; margin-left:10px;
 }
 
-/* 개입 유형 3분류 (2026-08-25 행안부 협의) — 인적 / 환경적 / 직접요인 저감.
+/* HEA 3분류 (AURI 사업 팔레트 · 2026-08-25 행안부 협의의 3분류가 이것입니다)
+     H 피해대상 보호·지원 / E 환경적 개입 / A 행위 개입
    리포트와 시각화가 같은 목록을 쓰므로 여기(공용)에 둡니다.
-   시설 설치만 나열하지 않는다는 것이 이 과업의 요구라, 비시설 사업인
-   '인적 개입'만 대조색으로 눈에 띄게 하고 나머지는 무채색으로 둡니다. */
+   "시설(E) 설치만 나열하지 말라"가 이 과업의 요구라, 사람을 향한 개입인
+   H·A 를 대조색으로 눈에 띄게 하고 E 는 무채색으로 둡니다. */
 .rx-kind{
   font-size:var(--fs-cap); font-weight:700; letter-spacing:.1em;
   margin-left:9px; color:var(--g2);
 }
-.rx-kind.k-human{color:var(--contrast)}
+.rx-kind.k-H, .rx-kind.k-A{color:var(--contrast)}
+
+/* 효과크기 + 출처 — 예산 근거 문서라 출처 표기가 중요합니다.
+   AURI 팔레트에 적힌 문장을 그대로 싣습니다. */
+.rx-evidence{
+  font-size:var(--fs-sm); color:var(--g3); margin-top:5px; line-height:var(--lh-body);
+}
+.rx-evidence .src{color:var(--g2); font-size:var(--fs-cap); white-space:nowrap}
+.rx-note{font-size:var(--fs-body); color:var(--g3); margin-top:4px; line-height:var(--lh-body)}
 
 /* ════ 요청 입력 칸 ═════════════════════════════════════════════ */
 

@@ -1,0 +1,4646 @@
+{
+ "source": "7대유형_통합_HEA_성과증명_사업팔레트_0902.xlsx (AURI 제공)",
+ "generatedAt": "2026-09-04",
+ "note": "⚠️ 확정본이 아닙니다. 생활안전·감염병은 H·A 사업이 부족해 AURI가 재정리할 예정입니다.",
+ "hea": {
+  "H": {
+   "label": "피해대상 보호·지원",
+   "desc": "위험에 노출된 사람을 직접 보호하거나 지원하는 사업 (검진·접종·용품 지원·상담)"
+  },
+  "E": {
+   "label": "환경적 개입",
+   "desc": "사고가 나거나 피해가 커지기 쉬운 공간·시설을 바꾸는 사업 (시설 설치·정비)"
+  },
+  "A": {
+   "label": "행위 개입",
+   "desc": "사람의 행동을 바꾸는 사업 (단속·교육·홍보·제도)"
+  }
+ },
+ "amountNote": "금액은 원문 문구를 그대로 싣고, 단위와 금액이 분명한 것만 단가(won)로 씁니다. 나머지는 \"산출 근거 필요\"로 표시하고 합계에서 뺍니다.",
+ "programs": [
+  {
+   "id": "P-CRM-VBUDY7",
+   "field": "crime",
+   "name": "1인가구 안심 장비 지원사업",
+   "hea": "H",
+   "effect": "서울시 기준 2,400여가구 및 점포에 지원했으며, 만족도 5점 만점 4.5 이상",
+   "source": "https://opengov.seoul.go.kr/mediahub/28230881",
+   "amount": {
+    "text": "중랑구 기준 인당 약 19만 500원",
+    "won": 190000,
+    "unit": "명",
+    "reason": null
+   },
+   "group": "new",
+   "row": 9
+  },
+  {
+   "id": "P-CRM-Z9HNF6",
+   "field": "crime",
+   "name": "가로등형 방범 블랙박스 보안등 설치",
+   "hea": "E",
+   "effect": "CCTV 설치가 어려운 골목 및 외곽지역에서 조명 확보하며 증거 남길 수 있다는 장점 有 원주시 기준 '23~24년 총 436대 설치, '23년~'24년 5월까지 18건의 사건 중 10명 검거 활용",
+   "source": "https://www.yna.co.kr/view/AKR20241122045600062",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 12
+  },
+  {
+   "id": "P-CRM-4T4RRO",
+   "field": "crime",
+   "name": "가정폭력 및 성폭력 공동대응팀 개소",
+   "hea": "H",
+   "effect": "경찰, 상담, 복지, 의료 등을 연결해 신고 초기 상담, 피해자 지원, 긴급 분리 등 수행. '23년 8개 팀이 14,680명에게 26,964건의 지원 제공 및 긴급분리 783건, 법률상담 1,862건 진행 피해자 만족도 92%",
+   "source": "한국여성인권진흥원.(2024). 여성폭력피해자 통합지원 매뉴얼",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 13
+  },
+  {
+   "id": "P-CRM-1MIXTU",
+   "field": "crime",
+   "name": "건축물 출입통제장치 설치 지원",
+   "hea": "E",
+   "effect": "출입통제장치 설치 후 심리적으로 안정이 되고, 범죄예방에 도움이 된다는 답변이 응답자의 97%(155명) 단독다세대다가구 건축물의 공용출입구 출입통제장치 설치가 범죄 예방에 효과적(43% 감소)",
+   "source": "https://www.geconomy.co.kr/news/article.html?no=179387",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 52
+  },
+  {
+   "id": "P-CRM-03CGD3",
+   "field": "crime",
+   "name": "고위험시설 안전비상벨 설치 지원",
+   "hea": "E",
+   "effect": "모텔, 펜션, 고시원 등 고위험 시설에 집중할 필요 有",
+   "source": "https://www.pressian.com/pages/articles/2026061811324197200?utm_source=naver&utm_medium=search https://view.asiae.co.kr/article/2016120208454248475",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 44
+  },
+  {
+   "id": "P-CRM-IUMOJL",
+   "field": "crime",
+   "name": "공원보안관 채용 및 배치",
+   "hea": "A",
+   "effect": "서울시 노원구둘레길 노원안전순찰대 및 공원보안관 제도를 통해 둘레길 범죄율이 2023년 대비 43% 감소",
+   "source": "https://www.fnnews.com/news/202508220934515570",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 16
+  },
+  {
+   "id": "P-CRM-V30WK5",
+   "field": "crime",
+   "name": "공중화장실 안심환경 개선사업 실시",
+   "hea": "E",
+   "effect": "비상벨, 안심 가림막, 안심거울 등 안전관리시설 설치 사업 포함",
+   "source": "부산광역시 수영구청 김자현. (2021). [지역 정책 우수 사례] 화장실 범죄, 꼼짝 마!: 경기도, 공중화장실 500 곳과 민간화장실 안전시설 확충. 지방정부, 4, 44-45.",
+   "amount": {
+    "text": "부산광역시 공중화장실 3개소 기준 1.4백만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 21
+  },
+  {
+   "id": "P-CRM-JT67VZ",
+   "field": "crime",
+   "name": "기존 CCTV 교체 및 재배치",
+   "hea": "E",
+   "effect": "기존 CCTV는 범죄발생 hotspot지역에 설치되기 보다 주거지역과 어린이 보호구역에 밀집되어 있어 실제 발생 범죄 감시에 한계 有 다목적과 같이 모호한 용어로 설치 목적 제시는 지양해야하며, 공공 CCTV 우선 설치지점을 도출해야함",
+   "source": "허선영, & 문태헌. (2015). 범죄예방을 위한 CCTV 위치 적절성 및 효과성 분석. 한국지역지리학회지, 21(4), 739-750. 한민경, & 박현호. (2018). 범죄예방 목적의 공공 CCTV 운영실태 및 개선방안 연구. 형사정책연구원 연구총서, 1-366.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 6
+  },
+  {
+   "id": "P-CRM-JFU75A",
+   "field": "crime",
+   "name": "농산물 및 빈집털이 절도 예방 이동형 CCTV 설치",
+   "hea": "E",
+   "effect": "주민 의견 및 과학적 데이터 분석을 반영한 맞춤형 범죄예방 정책 경남 거제시, 경북 영천시, 강원 춘천시 등 많은 농산어촌 지역에서 시행 중",
+   "source": "https://www.kyongbuk.co.kr/news/articleView.html?idxno=4078997 https://www.kbsm.net/news/view.php?idx=526026",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 23
+  },
+  {
+   "id": "P-CRM-POTFJV",
+   "field": "crime",
+   "name": "딥페이크 성범죄 집중 단속",
+   "hea": "A",
+   "effect": "디지털 성폭력 '15년(9,385건) → '24년(1만5612건) 급증 피해영상물 탐지 및 분석, 삭제, 차단, 피해자 보호 등 딥페이크 성범죄 피해 예방 및 피해자 보호 강화",
+   "source": "https://www.korea.kr/news/policyNewsView.do?newsId=148967112 https://www.korea.kr/briefing/policyBriefingView.do?newsId=156659054",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 32
+  },
+  {
+   "id": "P-CRM-MR55AG",
+   "field": "crime",
+   "name": "모니터링 요원 역량 강화",
+   "hea": "A",
+   "effect": "감지된 상황을 정확히 판단하고 신속하게 신고 및 출동으로 연결하는 운영능력 필요 안심벨, CCTV 설치 대수만 관리하는 데에는 한계 有 → 감지, 관제요원 판단, 신고, 출동까지 걸린 시간과 사건 처리 정확도 파악 필요",
+   "source": "",
+   "amount": {
+    "text": "제주도 통합관제센터 기준인당 50만원",
+    "won": 500000,
+    "unit": "명",
+    "reason": null
+   },
+   "group": "new",
+   "row": 7
+  },
+  {
+   "id": "P-CRM-OVR3LM",
+   "field": "crime",
+   "name": "무인 안심 택배함 운영",
+   "hea": "E",
+   "effect": "서울시 여성안전정책 중 가장 높은 이용률을 보인 반면 설치 공간의 불안, 공급 부족 등 운영 방식의 문제점 다수 지적",
+   "source": "장진희, & 김연재. (2016). 서울 1 인가구 여성의 삶 연구: 2030 생활실태 및 정책지원방안: 불안정주거와 안전을 중심으로: 불안정주거와 안전을 중심으로. 서울시 여성가족재단 연구사업보고서, 1-226.",
+   "amount": {
+    "text": "양산시 기준 6,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 26
+  },
+  {
+   "id": "P-CRM-VRVYNM",
+   "field": "crime",
+   "name": "무인점포 절도 예방 활동 실시",
+   "hea": "A",
+   "effect": "광주/전남 기준 CCTV와 음성 안내방송 등 방범시설 강화 후 무인점포 절도사례 감소 확인",
+   "source": "https://www.mdilbo.com/detail/c3QycN/731754",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 24
+  },
+  {
+   "id": "P-CRM-U29GB0",
+   "field": "crime",
+   "name": "반려견 순찰대",
+   "hea": "A",
+   "effect": "심리적 안정감 및 이웃과의 유대감을 통한 소속감 증가 등 지역 범죄 불안감을 감소시키는 효과성 파악",
+   "source": "한효민, & 정회윤. (2024). 반려견순찰대 활동이 범죄 불안감 감소에 미치는 영향에 대한 연구: 강동구민의 경험에 대한 심층 인터뷰를 중심으로. 융복합지식학회논문지, 12(4), 131-144. https://www.munhwa.com/article/11599184?ref=naver",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 30
+  },
+  {
+   "id": "P-CRM-3W73UY",
+   "field": "crime",
+   "name": "범죄예방 도시환경디자인(CPTED) 적용한 주거환경개선사업 실시",
+   "hea": "E",
+   "effect": "고보조명, 안심마을 바닥 표시, 야간조명을 겸한 안심 반사경 설치 등을 포함 범죄예방 도시환경디자인 사업에 대한 안양시 인덕원 주민 만족도 조사 결과 95% 응답자 만족 서울특별시 중구 만족도 조사 결과, 응답자의 74%가 불안감이 감소했다고 답하며 체감 안전도 및 신뢰도 향상",
+   "source": "https://gits.gg.go.kr/web/newboard/3386.do?mode=view&idx=195117394 https://www.boannews.com/media/view.asp?idx=141247&kind= 유광흠, 조영진, 지혜란, & 손동필. (2017). 범죄예방 환경설계 (CPTED) 사업의 시행효과 분석 연구. 대한건축학회 논문집-계획계, 33(5), 13-20.",
+   "amount": {
+    "text": "안양시 인덕원동 행정복지센터 일원 기준 1억 5천만 원 서울시('25) 범죄예방 인프라 구축사업 2억 5000만원",
+    "won": null,
+    "unit": null,
+    "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
+   },
+   "group": "new",
+   "row": 19
+  },
+  {
+   "id": "P-CRM-GOGMSP",
+   "field": "crime",
+   "name": "범죄예방팀 신설 및 운영",
+   "hea": "A",
+   "effect": "폭력/절도/성범죄 다발지역 분석, CCTV, 안심벨설치 위치 조정, 범죄예방 우수시설 인증 및 CPTED 사업 관리 등의 역할 수행 필요",
+   "source": "경찰청.(2021). 2020년 자체평가 결과보고서",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 4
+  },
+  {
+   "id": "P-CRM-9BJNL3",
+   "field": "crime",
+   "name": "불법카메라 합동 점검 실시",
+   "hea": "A",
+   "effect": "만족도 조사에서 99.21%가 '만족 이상'으로 응답 점검 효과의 극대화를 위해 불시에 운영할 필요 有",
+   "source": "https://www.newsis.com/view/NISX20260422_0003601224 https://www.ksmnews.co.kr/news/view.php?idx=562229",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 22
+  },
+  {
+   "id": "P-CRM-Q7XQVZ",
+   "field": "crime",
+   "name": "빈집 사전예약 순찰제도 운영",
+   "hea": "A",
+   "effect": "농촌, 도서, 고령인구 많은 지역에서 비용 대비 효과 존재 CCTV 및 설치비가 들지 않고 즉시 시행 가능. 표적 순찰 효율적",
+   "source": "https://www.jbyonhap.com/news/articleView.html?idxno=418503",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 25
+  },
+  {
+   "id": "P-CRM-KGPRB2",
+   "field": "crime",
+   "name": "성폭력·가정폭력피해자 의료비 지원",
+   "hea": "H",
+   "effect": "성폭력·가정폭력 피해자 의료비 지원을 통해 작년 한 해 약 2만5천명의 피해자가 치료지원을 받아, 피해자의 회복을 위한 지속적 지원 필요성과 이용성과가 확인됨",
+   "source": "https://www.yna.co.kr/amp/view/AKR20260712012300530?utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 41
+  },
+  {
+   "id": "P-CRM-QF71ES",
+   "field": "crime",
+   "name": "숙박시설 안심벨 설치 지원",
+   "hea": "E",
+   "effect": "모텔, 펜션, 고시원 등 고위험 시설에 집중할 필요 有",
+   "source": "https://www.pressian.com/pages/articles/2026061811324197200?utm_source=naver&utm_medium=search",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 2
+  },
+  {
+   "id": "P-CRM-05XNXF",
+   "field": "crime",
+   "name": "스마트 자전거주차장 시스템",
+   "hea": "E",
+   "effect": "제9회 대한민국 범죄예방대상에서 경찰청장 표창 수상 양천구 전체 자전거 이용 인구 중 절도 사건 발생률 0.38%→스마트 자전거 지킴이 중에서는 0.16% 감소",
+   "source": "https://www.jeonguknews.co.kr/news/articleView.html?idxno=63645",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 27
+  },
+  {
+   "id": "P-CRM-6YW2ZX",
+   "field": "crime",
+   "name": "스토킹 피해자 긴급주거 지원사업",
+   "hea": "H",
+   "effect": "스토킹 피해자 긴급주거 지원사업 전국 17개 시도로 확대('24) 중임에도 불구하고 성폭력 및 가정폭력 피해자 지원기관을 통해 지원을 받는 체계→실질적 지원 필요",
+   "source": "https://www.yna.co.kr/view/AKR20240725081700530 심선희, & 최금순. (2023). 경기도 스토킹· 데이트 폭력 피해자 지원 방안에 대한 연구. 연구보고서, 1-111.",
+   "amount": {
+    "text": "23년 정부 예산 기준 14억 원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 10
+  },
+  {
+   "id": "P-CRM-DQR8C8",
+   "field": "crime",
+   "name": "시민안전모델 출범 및 운영",
+   "hea": "A",
+   "effect": "시민안전모델 도입 후 9~10월 112 신고가 전년 동기 대비 8.4% , 5대 범죄가 17.1% 감소",
+   "source": "https://www.donga.com/news/Society/article/all/20231228/122819713/1",
+   "amount": {
+    "text": "경기남부경찰청 기준 103억원 규모의 예산 반영 요청 사례 有",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 5
+  },
+  {
+   "id": "P-CRM-DBK3A8",
+   "field": "crime",
+   "name": "안심거울 설치",
+   "hea": "E",
+   "effect": "대구시 시범 설치 뒤 만족도 조사 응답자의 85%가 범죄 예방 효과 있다고 평가 서울 지하철 안심거울 설치 후 성범죄 22.6% 감소 불법 쓰레기 투기, 불법촬영 행위 등 예방 가능",
+   "source": "https://www.yeongnam.com/web/view.php?key=20260731026549498 https://www.pinpointnews.co.kr/news/articleView.html?idxno=419976",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 18
+  },
+  {
+   "id": "P-CRM-Z6Z7BH",
+   "field": "crime",
+   "name": "안심경광등 설치",
+   "hea": "E",
+   "effect": "서울시 '1인점포 안심경광등' 사업 시행 2일만에 물량 조기 마감 등 추가 지원 요청 多 비상 안심벨 등 관리 부실에 대한 문제점도 더불어 발생",
+   "source": "https://www.queen.co.kr/news/articleView.html?idxno=417005 https://www.busan.com/view/busan/view.php?code=2025110408341377727",
+   "amount": {
+    "text": "단순 경광등 기준 개당 3만원~7만원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 17
+  },
+  {
+   "id": "P-CRM-VZY5L3",
+   "field": "crime",
+   "name": "안심이 앱 연동 스마트보안등 설치",
+   "hea": "E",
+   "effect": "이용자가 안심이앱의 귀가 모니터링 켜고 접근하면 조도 높아지는 등 연계 서울시 기준 범죄취약지역 중심으로 '24년까지 약 15,000개 추가하는 계획 세움",
+   "source": "https://news.seoul.go.kr/culture/archives/522601 https://www.ydp.go.kr/www/selectBbsNttView.do?bbsNo=45&nttNo=364283&key=2868",
+   "amount": {
+    "text": "영등포구 기준 개당 약 94만원",
+    "won": 940000,
+    "unit": "개",
+    "reason": null
+   },
+   "group": "new",
+   "row": 11
+  },
+  {
+   "id": "P-CRM-I9WW0C",
+   "field": "crime",
+   "name": "안심장비 지원사업",
+   "hea": "H",
+   "effect": "주거 안전에 취약한 1인 가구, 스토킹, 데이트폭력 범죄 피해자의 안전 생활환경 조성을 위해 지원 스토킹 신고 건수 '19년(5468건)→'21년(14,509건) 데이트 폭력 신고 건수 '19년(19,940건)→'21년(57,297건)으로 꾸준히 증가",
+   "source": "https://www.m-i.kr/news/articleView.html?idxno=1369170 정정옥.(2023).경기도 스토킹/데이터 폭력 피해자 지원 방안에 대한 연구",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 31
+  },
+  {
+   "id": "P-CRM-07BHE5",
+   "field": "crime",
+   "name": "여성긴급전화(1366) 센터 운영",
+   "hea": "H",
+   "effect": "경기도 공동대응팀은 피해자 초기 상담, 복지지원, 기관연계 등을 수행하고 있으며 23년 8개 팀이 14,680명에게 26,964건의 지원 제공 성과 보고",
+   "source": "정정옥.(2023).경기도 스토킹/데이터 폭력 피해자 지원 방안에 대한 연구",
+   "amount": {
+    "text": "강원도 예산자료 기준 1개소 당 약 7억 8,200만원",
+    "won": null,
+    "unit": null,
+    "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
+   },
+   "group": "new",
+   "row": 14
+  },
+  {
+   "id": "P-CRM-460RPJ",
+   "field": "crime",
+   "name": "여성안심 지킴이 세트 지원",
+   "hea": "H",
+   "effect": "최대 3~5m 원거리 분사가 가능한 호신용 스프레이를 지원해 위급상황 시 신속한 대응과 범죄피해 예방에 기여함",
+   "source": "https://www.yna.co.kr/view/RPR20260513002400353",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 43
+  },
+  {
+   "id": "P-CRM-SEHCNM",
+   "field": "crime",
+   "name": "인공지능 보안 시스템 고도화",
+   "hea": "A",
+   "effect": "신한은행 '25년 상반기 기준 보이스피싱 예방건수 1401건, 차단된 피해금액 193억 2500만원",
+   "source": "https://daily.hankooki.com/news/articleView.html?idxno=1242236",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 29
+  },
+  {
+   "id": "P-CRM-JGZDYT",
+   "field": "crime",
+   "name": "자율방범대 출범",
+   "hea": "A",
+   "effect": "자율방범대 활동 이전 외국인 범죄 발생 건수 66건→56건(16% 감소) 특히 야간 발생빈도가 잦은 폭력 범죄 14건→9건(36% 감소)",
+   "source": "https://www.yasinmoon.com/news/articleView.html?idxno=43710",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 8
+  },
+  {
+   "id": "P-CRM-MV3C4U",
+   "field": "crime",
+   "name": "주거 안전취약가구 안심도어 지원사업",
+   "hea": "H",
+   "effect": "문열림 감지장치는 출입문이나 창문이 열리면 스마트 허브를 통해 휴대전화로 실시간 알림을 전달하며, 창문잠금장치는 외부의 강제 개방을 차단해 침입을 예방하는 역할",
+   "source": "https://www.swnews.kr/news/articleView.html?idxno=88683",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 40
+  },
+  {
+   "id": "P-CRM-VIBI8R",
+   "field": "crime",
+   "name": "주차장 방범 CCTV 및 조명 개선사업",
+   "hea": "E",
+   "effect": "주차장 방범 CCTV 설치는 주·야간 모두 122신고 발생 가능성을 낮추는 것으로 나타나, 주차장 내 범죄예방에 효과적",
+   "source": "조영진, 한수경, 김승남, 박유나. (2021). 저층주거지 내 범죄예방 환경조성 시설 · 기법의 효과성 실증 연구. 대한건축학회논문집, 37(10), 23-34.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 53
+  },
+  {
+   "id": "P-CRM-OTHFX0",
+   "field": "crime",
+   "name": "중고거래 안전지대 조성",
+   "hea": "E",
+   "effect": "22년 치안리빙랩 사업을 통해 첫 설치 이후 유동 인구가 많은 지하철 역사를 중심으로 확대",
+   "source": "https://sports.donga.com/region/article/all/20240702/125736024/1 https://www.koreatimenews.com/news/article.html?no=656483",
+   "amount": {
+    "text": "부산시 기준 개소 당 약 2,000만원 ~ 5,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 20
+  },
+  {
+   "id": "P-CRM-6W2VC6",
+   "field": "crime",
+   "name": "청소년 쉼터 운영",
+   "hea": "H",
+   "effect": "학업복귀 및 사회진입 비율('20년 38.5%→'21년 41.4%) 달성 및 가정 밖 청소년의 건강한 사회 복귀 지원 + 퇴소 청소년에 대한 자립지원수당 등 안정적인 자립 여건 도모 필요",
+   "source": "https://evaluation.go.kr/upload2/atch/eval/20220302142415570.pdf",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 15
+  },
+  {
+   "id": "P-CRM-NS7Z3C",
+   "field": "crime",
+   "name": "특수형광물질 도포사업",
+   "hea": "E",
+   "effect": "상주시 사업 시행 초기 대비 침입 절도 범죄 55.6% 감소 영국('09) 특수형광물질 도포로 인해 침입성 범죄 22% 감소 네덜란드('10) 침입성 범죄 65% 감소 범죄 사건에 있어 과학적 증거를 비교적 쉽게 확보 가능",
+   "source": "https://www.hidomin.com/news/articleView.html?idxno=708478 김홍규. (2015). 지역 맞춤형 특수형광 페이스트 개발을 활용한 범죄예방 연구. 한국디자인문화학회지, 21(4), 149-161. 김홍규. (2016). 특수형광 페이스트 식별기술 개발을 활용한 범죄예방디자인 연구. 한국디자인문화학회지, 22(4), 199-212.",
+   "amount": {
+    "text": "은평구 기준 마을 당 1,300만원",
+    "won": 13000000,
+    "unit": "마을",
+    "reason": null
+   },
+   "group": "new",
+   "row": 28
+  },
+  {
+   "id": "P-CRM-U9XNZ0",
+   "field": "crime",
+   "name": "합동순찰 실시",
+   "hea": "A",
+   "effect": "폭력, 절도, 주취, 성범죄 반복 장소에 직접 적용할 수 있는 사업 제주 기준 주민 요청 받은 탄력 순찰 전후 신고24.9%, 5대 범죄 43.2% 감소",
+   "source": "https://www.yna.co.kr/view/AKR20210518146000056",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 3
+  },
+  {
+   "id": "P-CRM-99YXCF",
+   "field": "crime",
+   "name": "휴대용 '안심벨' 안심헬프미",
+   "hea": "H",
+   "effect": "‘안심헬프미’를 받은 시민 73.2%가 만족, 56%는 혼자 길을 걸을 때 두려움 감소, 안전정책 실질 체감으로 연결",
+   "source": "https://www.seoul.go.kr/news/news_report.do?nttNo=457713",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 42
+  },
+  {
+   "id": "P-FIR-3S13L7",
+   "field": "fire",
+   "name": "119 화재대피안심콜",
+   "hea": "H",
+   "effect": "대상자의 현재 위치와 안전 여부, 대피 가능 여부 등을 확인하고, 화재 진행 상황과 대상자의 연령·거동 상태 등 특성을 고려해 상황에 맞는 대피 방법을 안내",
+   "source": "https://www.kookminnews.com/121512",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 38
+  },
+  {
+   "id": "P-FIR-00UP4I",
+   "field": "fire",
+   "name": "가연성 외장재 교체 지원",
+   "hea": "E",
+   "effect": "현행 「건축법 시행령」은 일정 건축물의 외벽에 불연·준불연재료 사용을 요구하고 있으나, 기준 강화 이전 노후건축물에는 가연성 외장재가 잔존할 수 있어 화재확산 방지를 위한 교체 지원이 필요함.",
+   "source": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95082614&lcmspage=8&utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 53
+  },
+  {
+   "id": "P-FIR-SB0I95",
+   "field": "fire",
+   "name": "거동불편자 대상 자동소화패치 지원",
+   "hea": "H",
+   "effect": "자동소화스티커는 전기화재 예방을 위한 초간편·자동화 안전장치로, 내부 마이크로캡슐이 120℃ 안팎의 고온을 감지하면 소화약제가 자동으로 방출되어 초기 화재에 신속하게 대응",
+   "source": "https://www.wisenews.co.kr/11207",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 40
+  },
+  {
+   "id": "P-FIR-9F30SY",
+   "field": "fire",
+   "name": "공동주택 노후 전기설비(변압기) 교체 지원",
+   "hea": "E",
+   "effect": "금천구의 경우 참여 201세대 중 55개발견 및 교체 완료",
+   "source": "https://council.geumjeong.go.kr/download/bagseo/2020/2-5-4.pdf?utm_source",
+   "amount": {
+    "text": "대당 320만 원부터 최대 1,180만원 차등 지원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "existing",
+   "row": 57
+  },
+  {
+   "id": "P-FIR-BWA6WP",
+   "field": "fire",
+   "name": "공동주택 옥상문 자동개폐장치 의무화 및 지원 확대",
+   "hea": "E",
+   "effect": "2016년 법적 의무화에도 불구하고 2026년 기준 창원시 아파트 단지 1311곳 중 비상문자동개폐장치 설치된 곳은 391곳→설치율 29.8% 2021년 경기도 조사 결과 설치율 55% 옥상으로 안전하게 대피하기 위해 필수 설치 필요 시설",
+   "source": "https://www.idomin.com/news/articleView.html?idxno=2010372 https://www.yna.co.kr/view/AKR20250110048000061 주건환. (2023). 공동주택 옥상 대피 효율화 방안에 관한 연구: A Study on the Efficiency of Rooftop Evacuation in Apartment Houses.",
+   "amount": {
+    "text": "광명시 기준 개소 당 약 60만원",
+    "won": 600000,
+    "unit": "개소",
+    "reason": null
+   },
+   "group": "new",
+   "row": 4
+  },
+  {
+   "id": "P-FIR-03BXI9",
+   "field": "fire",
+   "name": "공동주택 전기설비 안전진단 지원",
+   "hea": "E",
+   "effect": "변압기 교체지원 금천구의 경우 참여 201세대 중 55개발견 및 교체 완료",
+   "source": "https://council.geumjeong.go.kr/download/bagseo/2020/2-5-4.pdf?utm_source",
+   "amount": {
+    "text": "대당 320만 원부터 최대 1,180만원 차등 지원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 28
+  },
+  {
+   "id": "P-FIR-3XVZGV",
+   "field": "fire",
+   "name": "공동주택소방안전교육",
+   "hea": "A",
+   "effect": "체험형 소방안전교육을 통해 공동주택 주민의 소방시설 활용 및 상황별 대피능력을 강화하여 화재 초기대응과 인명피해 저감에 기여함",
+   "source": "최성경 and 문정민. (2021). 공동주택 재난 회복력 향상을 위한 화재 안전 교육 서비스 디자인. 한국공간디자인학회 논문집, 16(1), 359-370.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 66
+  },
+  {
+   "id": "P-FIR-2XM10Y",
+   "field": "fire",
+   "name": "국가산단 화재폭발·가스유출 예방 강화",
+   "hea": "A",
+   "effect": "21년 21건 → '22년 13건(약 38% 감소)",
+   "source": "https://www.sedaily.com/article/13790846",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 23
+  },
+  {
+   "id": "P-FIR-NJ87PB",
+   "field": "fire",
+   "name": "긴급차량 우선신호 시스템 구축",
+   "hea": "E",
+   "effect": "긴급차량 우선신호 적용 결과 출동시간이 13분에서 5분 8초로 단축되어 소방차 현장 접근 및 골든타임 확보 효과가 확인됨",
+   "source": "https://www.yna.co.kr/view/AKR20221020023100062?utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 54
+  },
+  {
+   "id": "P-FIR-VO7QMQ",
+   "field": "fire",
+   "name": "노후 염화비닐배관 금속배관 교체 사업",
+   "hea": "E",
+   "effect": "주택 LP가스사고를 31.6% 감축(2020년 19건 → 2021년 13건)",
+   "source": "https://m.ekn.kr/view.php?key=20220131010004891",
+   "amount": {
+    "text": "강릉시 기준 가구당 29만원",
+    "won": 290000,
+    "unit": "가구",
+    "reason": null
+   },
+   "group": "new",
+   "row": 30
+  },
+  {
+   "id": "P-FIR-3MI1TI",
+   "field": "fire",
+   "name": "노후시설 개선 및 스프링클러 설치",
+   "hea": "E",
+   "effect": "스프링클러 등 자동소화시설 작동으로 '17~'21년 5년간 화재 943건 초기 진압, 9조 8천억원의 재산 피해 줄임 스프링클러 작동하지 않은 고층건축물 피해 多",
+   "source": "https://gnews.gg.go.kr/briefing/brief_gongbo_view.do?BS_CODE=S017&number=55380 정원일. (2021). 고층건축물 화재에서 스프링클러 작동 여부에 따라 재산피해에 영향을 미치는 화재인자 분석에 관한 연구. Journal of Knowledge Information Technology and Systems, 16(5), 915-924.",
+   "amount": {
+    "text": "서울시 기준 개소당 약 2,000만원",
+    "won": 20000000,
+    "unit": "개소",
+    "reason": null
+   },
+   "group": "new",
+   "row": 8
+  },
+  {
+   "id": "P-FIR-N3RLUE",
+   "field": "fire",
+   "name": "방화문·완강기 설치 지원",
+   "hea": "E",
+   "effect": "단순 사용 지원을 넘어 완강기 사용법 등 숙지 필요 특히 숙박시설 및 오피스텔/원룸 등",
+   "source": "https://www.mt.co.kr/economy/2024/12/19/2024121908143750039",
+   "amount": {
+    "text": "일반 방화문 교체 기준 개소 당 100만원 ~ 200만원 일반 완강기 기준 개소 당 50만원 ~80만원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 3
+  },
+  {
+   "id": "P-FIR-6A1W94",
+   "field": "fire",
+   "name": "보이는 소화기 설치",
+   "hea": "E",
+   "effect": "설치 이후 7년동안 약 706건의 화재 진화 및 약 248억원 감소",
+   "source": "https://www.safetynews.co.kr/news/articleView.html?idxno=210354",
+   "amount": {
+    "text": "서울시 기준 6년 간 약 43억원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 26
+  },
+  {
+   "id": "P-FIR-PQSLT0",
+   "field": "fire",
+   "name": "불량 가스누출경보차단장치 교체 및 신규 설치 지원",
+   "hea": "E",
+   "effect": "서울시 소상공인 LP가스 노후배관·차단장치 개선",
+   "source": "https://ecofocus.co.kr/mobile/article.html?no=70390",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 31
+  },
+  {
+   "id": "P-FIR-4QZBWS",
+   "field": "fire",
+   "name": "사회복지시설 이용자 대상 방연물품 지원",
+   "hea": "H",
+   "effect": "소방청 통계에 따르면 최근 5년간(‘18년 ~ ’22년) 화재 발생 시 연기·유독가스 흡입 및 화상에 의한 전체 사상자는 약 82%에 달해, 사상원인 1위",
+   "source": "https://www.incheon.go.kr/IC010205/view?repSeq=DOM_0000000007708190&curPage=577",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 41
+  },
+  {
+   "id": "P-FIR-6VGB06",
+   "field": "fire",
+   "name": "산불 예방 활동",
+   "hea": "A",
+   "effect": "현재의 고정적인 산불 조심 기간을 기후 데이터와 연계하여 탄력적으로 운영할 필요성 有",
+   "source": "김기만, & 백석원. (2025). 입산통제 정책의 산불예방 효과에 대한 실증 연구: 산불조심기간 규제를 중심으로. 정책분석평가학회보, 35(1), 51-84.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 17
+  },
+  {
+   "id": "P-FIR-57JKYL",
+   "field": "fire",
+   "name": "소규모 사업장 및 공장 화재 예방사업",
+   "hea": "A",
+   "effect": "단순 교육을 넘어 설비 지원 등 실제 개선 방식이 효과적 경기도 '19년~'23년 공장화재는 총 4,336건 및 겨울철 31% 집중 소규모 공장 밀집지역은 진입로 협소 및 소방용수시설 부족 등 초기 대응 어려움 多",
+   "source": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1277741 https://www.jeollailbo.com/news/articleView.html?idxno=804432",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 22
+  },
+  {
+   "id": "P-FIR-J7M3NA",
+   "field": "fire",
+   "name": "소방용수시설 확충 및 정비",
+   "hea": "E",
+   "effect": "소방용수시설 확충을 통해 화재현장에서 신속한 용수 확보가 가능해져 초기진압과 연소확대 방지에 기여함",
+   "source": "https://www.fpn119.co.kr/234629",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 55
+  },
+  {
+   "id": "P-FIR-VV6QC9",
+   "field": "fire",
+   "name": "소방차 자동 진출입 시스템 개선 및 구축",
+   "hea": "E",
+   "effect": "소방차 현장 도착시간이 5분 이상 대상지 19곳 중 14곳(74%)이 5분 이내로 단축 골든타임 확보 및 생명, 재산 보호 가능",
+   "source": "석종수. (2011). [인천발전연구원] 소방차 출동 지원 시스템 구축에 관한 연구. 국립중앙도서관 연계자료, (4), 0-0. https://www.kmib.co.kr/article/view.asp?arcid=0016418738&code=61121111&cp=nv",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 7
+  },
+  {
+   "id": "P-FIR-42LE7I",
+   "field": "fire",
+   "name": "소방차 진입로 확보 시스템 구축",
+   "hea": "E",
+   "effect": "블법주차 이동아림 자동시스템 및 지능형 무인감시 CCTV설치로 출동로 사전 확보를 통해 소방차의 현장 접근 시간 단축하고 골든타임 확보에 기여",
+   "source": "https://www.sd.go.kr/main/selectBbsNttView.do?key=1477&bbsNo=188&nttNo=262524",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 56
+  },
+  {
+   "id": "P-FIR-NCK6II",
+   "field": "fire",
+   "name": "숙박업소 피난장치 설치 지원",
+   "hea": "E",
+   "effect": "19년 기준 숙박업소 20곳 중 19곳이 객실 완강기 기준 미달, 19곳은 비상구 통로 장애물 등등 문제점 多 26년 기준 서울시 7958개 숙박업소 중 90% 이상이 스프링클러 설치 X 숙박업소 특성상 화재 건수에 비해 투숙객 인명피해 비중이 크다는 특성 有",
+   "source": "https://www.kca.go.kr/home/sub.do?menukey=4002&mode=view&no=1002854992 https://www.yna.co.kr/view/AKR20191023125100030 https://www.joongang.co.kr/article/25430465",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 19
+  },
+  {
+   "id": "P-FIR-E3VQQA",
+   "field": "fire",
+   "name": "실외기 무상 안전점검 활동",
+   "hea": "E",
+   "effect": "20년~'25년 실외기 화재는 지속적으로 증가 추세 및 여름철 집중 에어컨 사용 전 실외기 주변 점검 및 안전 수칙 실천 중요",
+   "source": "https://www.jeollailbo.com/news/articleView.html?idxno=771969",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 32
+  },
+  {
+   "id": "P-FIR-MD1K9V",
+   "field": "fire",
+   "name": "쓰레기 불법소각·투기 집중 단속",
+   "hea": "A",
+   "effect": "여름철 쓰레기 불법 소각, 종량제 봉투 미사용 등 화재 예방",
+   "source": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1280361",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 33
+  },
+  {
+   "id": "P-FIR-DFTRVB",
+   "field": "fire",
+   "name": "아크차단기(AFCI) 설치 지원",
+   "hea": "E",
+   "effect": "주택 내 아크차단기 설치 의무화된 미국 osk다 등에서는 설치 이후 전기화재율 급감 (미국) 주택 전기화재 점유율 2002년 23.6% 》 2004년 14.9% 》 2012년 10% 미만",
+   "source": "https://gfsa.gwd.go.kr/fire/partici/partici_press/coverage?articleSeq=11095224",
+   "amount": {
+    "text": "강원도 기준 100가구 당 2억 5,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
+   },
+   "group": "new",
+   "row": 29
+  },
+  {
+   "id": "P-FIR-L7CIFT",
+   "field": "fire",
+   "name": "영농 부산물 안전처리 지원사업",
+   "hea": "A",
+   "effect": "최근 10년('16~'25)간 농산부산물 소각으로 인한 산불 연평균 53.6건→사업 개시 후('25) 32건으로 감소",
+   "source": "산림청 산불발생현황 농해양수산위원회.(2025).경상남도 영농부산물 안전처리 지원 조례안 심사보고서 https://www.news1.kr/economy/agri-food/6132356",
+   "amount": {
+    "text": "24 진안군 기준 105,000천원(국비42,000 및 군비63,000) 경남도 사업량 기준 총 17개소, 1,787백만원(국비40%, 시군비60%)",
+    "won": null,
+    "unit": null,
+    "reason": "국비·지방비 분담이라 산출 방식 확인 필요"
+   },
+   "group": "new",
+   "row": 18
+  },
+  {
+   "id": "P-FIR-0U6PR5",
+   "field": "fire",
+   "name": "음식점 주방 화재안전컨설팅 실시",
+   "hea": "A",
+   "effect": "19년~'21년 음식물 조리 중 발생한 화재는 9천 159건(전체 화재 8% 비중) 후드,덕트 청소 및 전기, 가스 정비, 자동소화장채 설치 지원 등 필요",
+   "source": "https://www.icnsdnews.com/news/articleView.html?idxno=187424",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 21
+  },
+  {
+   "id": "P-FIR-O82LFA",
+   "field": "fire",
+   "name": "음식점 주방 후드 덕트 청소 지원",
+   "hea": "E",
+   "effect": "음식점 화재의 확대는 덕트 관리 여부에 따라 좌우되며 대형 화재로 이어질 위험성",
+   "source": "https://cb119.chungbuk.go.kr/jp119/sub.do?menukey=2441&mode=view&no=4979542&utm",
+   "amount": {
+    "text": "총 600만원, 업소당 최대 50만원 한도 지원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 27
+  },
+  {
+   "id": "P-FIR-G0RCWO",
+   "field": "fire",
+   "name": "자동소화장치 설치",
+   "hea": "E",
+   "effect": "경기도 기준 '17년~'21년 자동소화설비가 화재 현장에서 943건 작동해 약 9조 8천억원의 재산 피해 감소 자동확산소화기 실험을 통해 일정 온도에 도달하면 자동 소화 약제 방출을 통한 화재 억제 효과 확인",
+   "source": "https://www.boannews.com/media/view.asp?idx=112333 https://www.ytn.co.kr/_ln/0103_202602250839503624",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 9
+  },
+  {
+   "id": "P-FIR-AQVUDS",
+   "field": "fire",
+   "name": "저소득층가정화재피해복구지원",
+   "hea": "H",
+   "effect": "서울시는 화재로 주거를 잃은 저소득가구에 집수리·생활필수품 등을 지원하여 주거·생활기반 회복을 지원하고 있으며, 2013년 9가구에서 2014년 15가구로 지원 규모를 확대하는 등 사업의 필요성과 지속성이 확인됨",
+   "source": "https://www.s-win.or.kr/boarddata/view?board_seq=1&board_data_seq=35432&qtr=perpage=10 https://news.seoul.go.kr/welfare/archives/23848?utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 39
+  },
+  {
+   "id": "P-FIR-A37UX0",
+   "field": "fire",
+   "name": "전기차 화재 안전관리 지침 마련",
+   "hea": "A",
+   "effect": "전기차 화재는 주차/충전 중 발생하는 경우가 많고 '18~'24년 조사된 156건 중 103건이 주차/충전 중 발생 이에 따른 안전관리 지침 필요",
+   "source": "https://blog.naver.com/motordaily/223818850093",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 25
+  },
+  {
+   "id": "P-FIR-XLTF84",
+   "field": "fire",
+   "name": "전선 정비사업 지원",
+   "hea": "E",
+   "effect": "화재 발생 원인 중 절반 이상이 누전 및 합선 특히 전통시장과 같이 점포가 밀집되어 있는 곳에 화재가 발생하면 대형 화재로 이어짐에도 불구하고 화재 고위험 시장점포 40%은 정비사업에서 누락",
+   "source": "국립재난안전연구원.(2025).안전지수 안전진단 맞춤형 사업 모음집 https://www.ggilbo.com/news/articleView.html?idxno=990453 https://www.news1.kr/politics/pm-bai-comm/5155276",
+   "amount": {
+    "text": "대구시 기준('23) 전통시장 노후 전선 정비사업 약 1억 9,000만원 ~ 2억 6,000만원(시장 규모별 상이) 고창군 기준('24) 노후 전선 정비사업 약 1억 2,200만원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 11
+  },
+  {
+   "id": "P-FIR-36FGC2",
+   "field": "fire",
+   "name": "전통시장 민관합동 안전점검 실시",
+   "hea": "A",
+   "effect": "16년~'20년 전통시장 화재 중 전기로 인한 화재가 46%를 넘는 등 안전 점검에 대한 필요성 증가",
+   "source": "배재현.(2022).전통시장 소방안전관리 강화방안 이남제, & 김상겸. (2022). 전통시장 화재보험의 의무화 방안에 관한 법적 연구. 강원법학, 83-114.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 15
+  },
+  {
+   "id": "P-FIR-915SCF",
+   "field": "fire",
+   "name": "전통시장 화재공제 보험료 지원",
+   "hea": "A",
+   "effect": "전통시장 화재 특징은 화재발생 건당 피해액이 매우 크다는 것→그러나 '21년 기준 전체 전통시장 점포의 19.8%만 화재공제 가입을 하여 미비함",
+   "source": "배재현.(2022).전통시장 소방안전관리 강화방안",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 14
+  },
+  {
+   "id": "P-FIR-62XY1J",
+   "field": "fire",
+   "name": "전통시장 화재알림시설 설치사업",
+   "hea": "E",
+   "effect": "불꽃/연기/온도 등을 감지하고 점주에게 문자/전화로 알리는 동시에 119 전달 이용자 조사에서 만족도 및 화재안전도 향상 응답 각 87%",
+   "source": "https://www.kgnews.co.kr/news/article.html?no=714368 https://info.daegu.go.kr/newshome/mtnmain.php?mtnkey=articleview&mkey=todaylist&mkey2=2&aid=263670&bpage=1015&stext=",
+   "amount": {
+    "text": "대구시 기준 시장별 약 2,650만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 16
+  },
+  {
+   "id": "P-FIR-1XTK2L",
+   "field": "fire",
+   "name": "주택용 소방시설 지원",
+   "hea": "E",
+   "effect": "주택용 소방시설 설치가 화재 예방에 대해 90.8%가 효과 있다고 인식 주택용 소방시설 설치가 화재 발생 초기 신속한 대피 효과가 있다고 90.0% 인식",
+   "source": "케이스탯컨설팅.(2024).2024년 주택용 소방시설 설치 대국민 인식조사 결과 요약 https://fire.gwd.go.kr/fire/partici/partici_press?articleSeq=11129959",
+   "amount": {
+    "text": "강원도소방본부 기준 가구당 약 9만 6,000원",
+    "won": null,
+    "unit": null,
+    "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
+   },
+   "group": "new",
+   "row": 13
+  },
+  {
+   "id": "P-FIR-CE3B0K",
+   "field": "fire",
+   "name": "찾아가는 소방안전교육",
+   "hea": "A",
+   "effect": "교육을 받은 실험군은 단순 인쇄자료만 제공받은 대조군보다 소방안전지식과 소방안전사고 예방실천 점수가 유의하게 높게 나타나, 대면·체험 중심 교육의 효과가 확인",
+   "source": "김영도, and 김영빈. \"노인을 위한 소방안전교육 프로그램 개발 및 효과분석.\" 한국화재소방학회논문지 32.3 (2018): 123-133. https://www.riss.kr/search/detail/DetailView.do?p_mat_type=1a0202e37d52c72d&control_no=bbf54cb037f2ecbeb36097776a77e665",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 67
+  },
+  {
+   "id": "P-FIR-DSSE93",
+   "field": "fire",
+   "name": "피난안전관리 강화",
+   "hea": "E",
+   "effect": "피난통로 확보율, 방화문 정상 폐쇄율, 피난시설 사용 가능률 등을 확인할 필요 有 '19년~'21년 아파트 화재 통계에서 사망 및 부상자 약 40%가 대피 과정에서 발생한 것으로 파악",
+   "source": "https://www.gunsan.go.kr/_cms/board/eFileDownload/111/1431705/955c5fbca01d3e204fd1eaad9c33a168",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 12
+  },
+  {
+   "id": "P-FIR-LA2BD1",
+   "field": "fire",
+   "name": "합동소방훈련 실시",
+   "hea": "E",
+   "effect": "서울 세브란스병원 화재 시 훈련 절차에 따라 대응하여 피해 감소 단순 훈련 횟수 증감보다는 야간/정전/연기 발생 상황 반영, 재난 약자 포함, 방화문 폐쇄 및 피난통로 확보 확인 등의 실질적인 훈련 필요",
+   "source": "https://www.kfsi.or.kr/contents/webzine/202012/sub02-01.html",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 10
+  },
+  {
+   "id": "P-FIR-NOM21U",
+   "field": "fire",
+   "name": "화목보일러 예방 수칙 홍보 및 간이스프링클러 지원",
+   "hea": "A",
+   "effect": "설치 2달만에 실제 주택 화재 3건 초기 진화 성공 및 산불 연쇄 예방 가능",
+   "source": "http://www.snakorea.com/news/articleView.html?idxno=563483 https://gfsa.gwd.go.kr/fire/partici/partici_press/coverage?articleSeq=11093869",
+   "amount": {
+    "text": "강원도소방본부 사례 기준 가구당 약 6만 5,000원",
+    "won": null,
+    "unit": null,
+    "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
+   },
+   "group": "new",
+   "row": 5
+  },
+  {
+   "id": "P-FIR-OKK2ML",
+   "field": "fire",
+   "name": "화재 소방훈련 실시",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 24
+  },
+  {
+   "id": "P-FIR-KGOVAL",
+   "field": "fire",
+   "name": "화재안전컨설팅 실시",
+   "hea": "A",
+   "effect": "1가정 1소화기 갖기 사업, 골목길 화재 안전 사업, 대피로 확인 등의 활동을 포함하고 있으며, 부산 구포2동 화재 발생 33.3% 감소 화재안전 교육 및 홍보를 통해 화재 발생 지속 감소('22. 40,103건→'24. 37,614건)",
+   "source": "행정안전부.(2019).안전한 지역사회 만들기 모델 사업 백서 소방청.(2025).2025년도 성과관리 시행계획 https://www.fpn119.co.kr/229411",
+   "amount": {
+    "text": "지자체 사업 기준 약 1억 ~ 1억 5,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 2
+  },
+  {
+   "id": "P-FIR-JE7W1M",
+   "field": "fire",
+   "name": "IoT 기반 무선 화재 감지기 설치",
+   "hea": "E",
+   "effect": "고령자 밀집 지역, 전통시장 및 상점가 등에 설치되어 화재 발생 시 점포주, 상인회, 고령자 등에 자동 통보를 통해 초기 진압 및 대피 가능 평택시 통복시장 화재 시, 무선 화재 감지기를 통한 화재 조기 감지 및 신고",
+   "source": "https://www.kmaeil.com/news/articleView.html?idxno=227953 https://www.seouland.com/arti/society/society_general/15046.html",
+   "amount": {
+    "text": "의령군 기준 경로당 534개소 4억원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 6
+  },
+  {
+   "id": "P-FIR-ZGWYZ9",
+   "field": "fire",
+   "name": "K급 소화기 비치 안내 및 지원",
+   "hea": "E",
+   "effect": "주방용 분말소화약제는 식용유 화재에 효과 미비 → 적응성 있는 k급 소화기 도입 필요",
+   "source": "https://www.busan.go.kr/nbnews/1360986?curPage=&srchBeginDt=2019-01-16&srchEndDt=2019-02-16&srchKey=&srchText= https://www.yna.co.kr/view/AKR20220128186000530",
+   "amount": {
+    "text": "성남시 기준 업소당 약 5만 1,000원",
+    "won": 50000,
+    "unit": "업소",
+    "reason": null
+   },
+   "group": "new",
+   "row": 20
+  },
+  {
+   "id": "P-FIR-ME22SU",
+   "field": "fire",
+   "name": "K급 소화기 비치 지원",
+   "hea": "E",
+   "effect": "주방용 분말소화약제는 식용유 화재에 효과 미비 → 적응성 있는 k급 소화기 도입 필요",
+   "source": "https://www.busan.go.kr/nbnews/1360986?curPage=&srchBeginDt=2019-01-16&srchEndDt=2019-02-16&srchKey=&srchText= https://www.yna.co.kr/view/AKR20220128186000530",
+   "amount": {
+    "text": "성남시 기준 업소당 약 5만 1,000원",
+    "won": 50000,
+    "unit": "업소",
+    "reason": null
+   },
+   "group": "existing",
+   "row": 48
+  },
+  {
+   "id": "P-IND-MHOMN6",
+   "field": "industrial",
+   "name": "건강일터 조성지원(온열질환 예방장비)",
+   "hea": "E",
+   "effect": "온열질환 산재 승인 건수가 2020년 13건에서 2025년 77건으로 5.9배 증가하고, 매년 사망사고도 지속 발생해 폭염 취약 사업장에 대한 예방장비 지원 필요성이 높음.",
+   "source": "https://www.yna.co.kr/view/AKR20260701173400530",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 49
+  },
+  {
+   "id": "P-IND-AJGFDB",
+   "field": "industrial",
+   "name": "농작업 안전재해예방 지원체계 구축",
+   "hea": "A",
+   "effect": "농작업안전관리자가 농가별로 3차례 현장 방문 및 맞춤형 안전컨설팅 제공 분진 마스크, 손베임 방지 장갑 등 안전보조구 제공 및 농업인의 안전의식 향상",
+   "source": "http://www.gndomin.com/news/articleView.html?idxno=483775",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 17
+  },
+  {
+   "id": "P-IND-VM2V5D",
+   "field": "industrial",
+   "name": "물류·하역시설 내 지게차 안전관리 실태 점검",
+   "hea": "E",
+   "effect": "지게차는 제조업 12대 사망사고 기인물 중 20% 차지 지게차 운전자 자격 보유, 안전교육 이수 여부, 제동장치, 유압계통 이상 유무 등 불시 점검 필요",
+   "source": "https://www.kyongbuk.co.kr/news/articleView.html?idxno=4080498",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 14
+  },
+  {
+   "id": "P-IND-84RWM1",
+   "field": "industrial",
+   "name": "밀폐공간 질식사고 예방 점검",
+   "hea": "E",
+   "effect": "오폐수처리, 맨홀, 축산분뇨처리설비 등 질식사고 가능성이 높은사업자 대상 밀폐공간 관리 강화 및 질식 재해 예방 가능",
+   "source": "https://www.ccreview.co.kr/news/articleView.html?idxno=333244 https://www.asiatoday.co.kr/kn/view.php?key=20250518010008306",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 18
+  },
+  {
+   "id": "P-IND-UI1BM3",
+   "field": "industrial",
+   "name": "산단 행복 일터 프로젝트",
+   "hea": "A",
+   "effect": "맞춤형 교육 및 상담 수행 50억 원 미만 소규모 건설 현장 및 50인 미만 제조업 사업장 등 집중 관리",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 6
+  },
+  {
+   "id": "P-IND-AG3E6G",
+   "field": "industrial",
+   "name": "산업단지 안전장비 대여 센터",
+   "hea": "H",
+   "effect": "안전 점검에 대한 신뢰성 확보 가능 산업단지 의식도 조사에서 개선사항으로 안전설비 및 물붐비용 지원(30.4%)이 가장 높음 사업 이후 86% 기업이 비용 절감 효과 체감",
+   "source": "https://news.nate.com/view/20250320n05358",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 8
+  },
+  {
+   "id": "P-IND-75SBUM",
+   "field": "industrial",
+   "name": "산업안전 관리체계 구축 및 위험성평가 컨설팅 지원",
+   "hea": "A",
+   "effect": "산업재해예방을 위한 위험성평가 필요성 느끼는 비율52.8%",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 3
+  },
+  {
+   "id": "P-IND-XVWI4O",
+   "field": "industrial",
+   "name": "산업안전·품질 중점지원 협업형 공제",
+   "hea": "H",
+   "effect": "재직자가 납입하는 공제부금 외 기업 부담금을 중진공 대신 부담 안전 및 품질 관리 역량 강화 및 현장 숙련 근로자 장기재직 유도",
+   "source": "https://www.sentv.co.kr/article/view/sentv202608060034",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 15
+  },
+  {
+   "id": "P-IND-RWR79T",
+   "field": "industrial",
+   "name": "산업재해예방시설 융자지원",
+   "hea": "E",
+   "effect": "자금여력이 부족한 사업장 대상으로 안전·보건시설 투자 촉진 및 안전보건관리체계 구축을 위해 융자금 지원",
+   "source": "https://portal.kosha.or.kr/business-apply-search/biz-support/loans-support/info",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 30
+  },
+  {
+   "id": "P-IND-LMCEB3",
+   "field": "industrial",
+   "name": "소규모 건설공사장 추락사고 예방 안전용품 지원",
+   "hea": "H",
+   "effect": "25년 경기도 내 건설공사장 사고 사망자 59.3% 가 추락사고 사망자 공사금액 5억 원 미만의 민간 건설공사장 → 안전관리 인력 및 시설 부족 + 추락사고 위험 노출 증가",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 10
+  },
+  {
+   "id": "P-IND-7COOGQ",
+   "field": "industrial",
+   "name": "소규모 사업장 방호장치 설치 지원",
+   "hea": "E",
+   "effect": "50인 미만 소규모 사업장의 방호장치·안전설비 개선 지원 결과 산업재해 발생률이 약 15.8% 감소한 것으로 나타나 재해예방 효과가 확인됨",
+   "source": "김대일 and 유경준. (2008). 클린사업장 조성사업의 산재 감소효과 추정. 노동경제논집, 31(3), 21-46.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 48
+  },
+  {
+   "id": "P-IND-G7PEZI",
+   "field": "industrial",
+   "name": "소규모 특화 안전일터 조성지원(끼임, 부딪힘)",
+   "hea": "E",
+   "effect": "10인 미만 사업장의 끼임/부딪힘 사고사망 재해를 예방하기 위해 안전설비 및 방호·안전장치 설비 비용의 일부 지원",
+   "source": "https://portal.kosha.or.kr/business-apply-search/biz-support/bump-stuck/info",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 24
+  },
+  {
+   "id": "P-IND-6E68Q8",
+   "field": "industrial",
+   "name": "소규모 특화 안전일터 조성지원(떨어짐)",
+   "hea": "E",
+   "effect": "소규모 철골, 지붕공사 현장 및 공장, 축사 등 유지보수 현장의 추락 사고사망 감축을 위해 안전시설 비용 일부 지원",
+   "source": "https://portal.kosha.or.kr/business-apply-search/biz-support/acc-fall/info",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 29
+  },
+  {
+   "id": "P-IND-IJZU1W",
+   "field": "industrial",
+   "name": "소상공인 산재보험료 지원",
+   "hea": "H",
+   "effect": "보험료 부담 감소 및 5년간 납부 보험료의 최대 50% 환급",
+   "source": "https://www.safetynews.co.kr/news/articleView.html?idxno=239420",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 23
+  },
+  {
+   "id": "P-IND-GZDO4P",
+   "field": "industrial",
+   "name": "스마트 안전장비 기술 지원 및 컨설팅",
+   "hea": "A",
+   "effect": "대형 공사에는 기술 컨설팅 지원 및 상대적으로 장비 도입 여력이 부족한 300억 원이하 소규모 현장에는 공사 특성에 맞춘 지원 방안 마련",
+   "source": "https://www.bzeronews.com/news/articleView.html?idxno=820436",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 13
+  },
+  {
+   "id": "P-IND-1IW88F",
+   "field": "industrial",
+   "name": "안전관리 불량현장 단속",
+   "hea": "A",
+   "effect": "미비점을 발견하면 안전모, 안전대와 같은 필수 보호구 및 이동식 가드레일 등 임시 방호시설물 지원",
+   "source": "https://www.gjdream.com/news/articleView.html?idxno=670063",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 2
+  },
+  {
+   "id": "P-IND-MJPH5W",
+   "field": "industrial",
+   "name": "안전동행 지원사업(격차완화)",
+   "hea": "A",
+   "effect": "중소기업에 제조공정의 유해·위험요인 개선 비용을 일부 지원하며 근원적 안전성 확보 및 사고 사망 감소에 기여",
+   "source": "https://portal.kosha.or.kr/business-apply-search/biz-support/safety-companion1/info",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 28
+  },
+  {
+   "id": "P-IND-9L3AFP",
+   "field": "industrial",
+   "name": "안전일터 조성지원(건설업 산재예방 안전시설)",
+   "hea": "E",
+   "effect": "공사금액 50억원 미만 소규모 건설현장의 추락, 붕괴 등 사고사망 감축을 위해 건설업 산재예방 안전시설 비용 일부 지원 사업",
+   "source": "https://portal.kosha.or.kr/business-apply-search/biz-support/fall-safe/info",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 26
+  },
+  {
+   "id": "P-IND-32OTF2",
+   "field": "industrial",
+   "name": "안전일터 조성지원(스마트 안전장비)",
+   "hea": "E",
+   "effect": "재정 및 기술여건이 취약한 중소사업장이 산업재해 예방을 위해 스마트 안전장비 도입시 비용 일부 지원",
+   "source": "https://portal.kosha.or.kr/business-apply-search/biz-support/smart-equipment/info",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 27
+  },
+  {
+   "id": "P-IND-1QPP5M",
+   "field": "industrial",
+   "name": "안전일터 조성지원(제조·서비스업 고위험 개선)",
+   "hea": "E",
+   "effect": "기술 및 재정 여력이 취약한 중소사업장 등의 사고 사망 및 중상해 재해 예방을 위해 유해 및 위험 요인 개선에 소요되는 비용 일부 지원",
+   "source": "https://portal.kosha.or.kr/business-apply-search/biz-support/acc-death/info",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 25
+  },
+  {
+   "id": "P-IND-N14S6V",
+   "field": "industrial",
+   "name": "외국인 노동자를 위한 맞춤형 안전역량 강화 사업",
+   "hea": "A",
+   "effect": "외국인 노동자는 중대재해 발생 위험이 높은 환경에서 일하면서도 체계적인 교육에 한계 有 VR 및 AI 기반 안전 교육 등 체험 방식으로 진행",
+   "source": "https://www.safekorea.go.kr/safekorea-kor/ctim/cnews/calamitySafetyNewsView.do?menuSn=35&cno=10123",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 7
+  },
+  {
+   "id": "P-IND-WM3P6C",
+   "field": "industrial",
+   "name": "위험공종 사전작업 허가제",
+   "hea": "A",
+   "effect": "안전사고 방지를 위해 동바리 조립, 해체, 유해 및 위험공종 사전 허가서 제출 승인 제도",
+   "source": "https://opengov.seoul.go.kr/sanction/9335909",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 21
+  },
+  {
+   "id": "P-IND-DIDJG2",
+   "field": "industrial",
+   "name": "이동노동자를 위한 쉼터 설치",
+   "hea": "E",
+   "effect": "부산시 기준 편의점 쉼터 운영 이동노동자를 위한 식음료 제공 및 1인당 하루 1회 2000원 상당 식음료 지원",
+   "source": "https://www.newspim.com/news/view/20260730001456",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 5
+  },
+  {
+   "id": "P-IND-KWRIW0",
+   "field": "industrial",
+   "name": "인사·노무·산업안전 무료 컨설팅 지원",
+   "hea": "A",
+   "effect": "노동관계법 준수하려는 의지는 있지만 관련 제도를 충분히 알지 못해 어려움을 겪는 사업장 많다는 현장 의견 반영 법적 리스크 예방 및 사업장 스스로 노동환경 점검 및 개선을 위한 지원 사업",
+   "source": "https://vop.co.kr/A00001695634.html https://www.ebn.co.kr/news/articleView.html?idxno=1718349",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 16
+  },
+  {
+   "id": "P-IND-M7SEED",
+   "field": "industrial",
+   "name": "지역 소규모 건설현장 안전지킴이 활동",
+   "hea": "A",
+   "effect": "산업재해 취약한 곳 상시 순찰 핵심 위험 요인 확인 및 재정 지원 연계",
+   "source": "https://blog.naver.com/molab_suda/224293171929",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 4
+  },
+  {
+   "id": "P-IND-EL7YR1",
+   "field": "industrial",
+   "name": "질식사고 예방장비 무료 대여",
+   "hea": "H",
+   "effect": "18년 기준 양돈농장 중 가스농도측정기 보유 사업장은 9.1%에 불과하며 환기시설 보유율도 36% 미만 → 질식에 노출 환기팬, 가스농도측정기, 송기마스크 등 장비 무상 대여 사업",
+   "source": "https://www.safetynews.co.kr/news/articleView.html?idxno=142717",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 19
+  },
+  {
+   "id": "P-IND-D0AIUF",
+   "field": "industrial",
+   "name": "찾아가는 안전보건교육",
+   "hea": "A",
+   "effect": "안전보건교육을 미실시하는 사업장 대비 안전보건교육을실시한 사업장의 산업재해가 제조업 5.77%, 비제조업 2.36%, 건설업13.30% 감소",
+   "source": "최서연 외 2명(2020) 정기안전보건교육의 적정성 및 적용범위에 관한 연구 https://portal.kosha.or.kr/archive/research/Research-Data-Report1/Research-Data/Research-Report-Detail1",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 62
+  },
+  {
+   "id": "P-IND-R6REVN",
+   "field": "industrial",
+   "name": "찾아가는 질식재해예방 원콜(one-call) 서비스",
+   "hea": "A",
+   "effect": "밀폐공간 질식사고는 재해자 2명 중 1명꼴로 사망하고 일반 사고성 재해보다 사망률이 약 41배 높아, 작업 전 유해가스 측정·환기 등 현장점검과 예방지원 필요성이 매우 높음",
+   "source": "https://www.moel.go.kr/news/enews/report/enewsView.do?news_seq=16585&utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 60
+  },
+  {
+   "id": "P-IND-XLEGZL",
+   "field": "industrial",
+   "name": "클린사업장 조성 지원",
+   "hea": "E",
+   "effect": "중소사업장 및 건설현장 사망사고 예방품목 도입을 위한 재정지원 사업 안전일터 조성지원, 안전동행 지원사업, 건강일터 조성지원 등 3개 분야로 구분 소요 비용의 최대 90% 지원 가능 클린사업장 조성지원이 일어진 사업장은 0.033명의 재해자 수 감소 효과 확인",
+   "source": "최훈, & 박만희. (2019). 산업재해 예방 재정지원 사업의 재해 감소 효과 분석: 소규모 사업장을 중심으로: 소규모 사업장을 중심으로. 한국콘텐츠학회논문지, 19(4), 54-62.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 9
+  },
+  {
+   "id": "P-IND-0KO8GF",
+   "field": "industrial",
+   "name": "폭염 대응 특별대책 및 점검",
+   "hea": "A",
+   "effect": "얼음물, 쿨토시, 넥쿨러 등 혹서기 안전용품 2만 3000여개 배부 온열질환 예방조치 이행여부 집중 점검",
+   "source": "https://www.newspim.com/news/view/20260730001456 https://www.moel.go.kr/news/enews/report/enewsView.do?news_seq=19380",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 11
+  },
+  {
+   "id": "P-IND-T8RBGB",
+   "field": "industrial",
+   "name": "플랫폼 근로자를 위한 산재보험료 지원",
+   "hea": "H",
+   "effect": "이동 중 사고 위험이 큰 배달노동자, 대리운전기사 등의 산재보험료 부담 감소",
+   "source": "https://www.newsis.com/view/NISX20260804_0003736050 https://www.hg-times.com/news/articleView.html?idxno=304261",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 12
+  },
+  {
+   "id": "P-IND-M706P8",
+   "field": "industrial",
+   "name": "학교 급식노동자 폐암검진",
+   "hea": "H",
+   "effect": "서울시 급식노동자 6472명 중 희망자는 교육청과 mou를 맺은 병원에서 1차 검진 및 폐암이 의심되면 2차 정밀검진",
+   "source": "https://www.edaily.co.kr/News/Read?newsId=03781846642394256&mediaCodeNo=257",
+   "amount": {
+    "text": "2년 10억 9000만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 22
+  },
+  {
+   "id": "P-IND-RFM6PW",
+   "field": "industrial",
+   "name": "항만사업장 근로자 재해예방시설 지원",
+   "hea": "E",
+   "effect": "스마트 에어백, 응급구조함, 인공지능 기반 영상장비(CCTV) 등 골든타임 내 신속한 응급조치 가능",
+   "source": "https://www.klnews.co.kr/news/articleView.html?idxno=321337 https://www.gnmaeil.com/news/articleView.html?idxno=587668",
+   "amount": {
+    "text": "4년 146억",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 20
+  },
+  {
+   "id": "P-IND-PQFU93",
+   "field": "industrial",
+   "name": "현장노동자, 경비 노동자 휴게시설 개선사업",
+   "hea": "E",
+   "effect": "휴게시설 개선 후 근로자의 80%가 만족한다고 응답하고, 전년 대비 만족도가 7%p 상승해 휴게환경 개선 효과가 확인됨",
+   "source": "https://gnews.gg.go.kr/news/news_detail.do?number=202110011600257467C048&s_code=C048&utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 50
+  },
+  {
+   "id": "P-IND-G697UR",
+   "field": "industrial",
+   "name": "환기장치 설치비용 지원 (건강일터 조성사업)",
+   "hea": "E",
+   "effect": "환기설비 개선으로 후드면풍속 기준을 100% 충족하고 조리흄 배출 및 기름때 적체가 개선돼 조리종사자의 유해물질 노출 저감 효과가 확인됨",
+   "source": "https://www.the-biz.co.kr/news/articleView.html?idxno=702737",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 47
+  },
+  {
+   "id": "P-INF-E94653",
+   "field": "infection",
+   "name": "65세 이상 어르신 폐렴구균 예방접종 지원",
+   "hea": "H",
+   "effect": "침습성 폐렴구균 감염증으로 인한 사망률 65~74세에서 35.4%, 75세 이상 49.3%, 예방접종을 통해 감염증을 약 60~70% 예방 가능 \"호읍기질환은 치료보다 예방이 중요\", 제 2급 법정감염병 예방",
+   "source": "http://www.doctorstimes.com/news/articleView.html?idxno=224759",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 41
+  },
+  {
+   "id": "P-INF-RISIXJ",
+   "field": "infection",
+   "name": "감염병 대응 전문인력 양성",
+   "hea": "A",
+   "effect": "수료율 103.1%, 실습 효능감 102.2% 증가, 현업 적용도 73% 등 전문인력 양성사업 효과성 입증",
+   "source": "Hur, H., Kim, B. I., & Yeo, S. G. (2025). Training Outcomes of Healthcare Workers for Emerging and Bioterrorism-related Infectious Disease Response, 2024. Public Health Weekly Report, 18(28), 1039.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 20
+  },
+  {
+   "id": "P-INF-UK19ZP",
+   "field": "infection",
+   "name": "감염병 매개체 밀도·병원체 감시 및 방제사업",
+   "hea": "E",
+   "effect": "동대문구 모기감시장비 설치 후 감염병 매개체 방제사업 추진 매개체 밀도 높은 지점으로 방역 설정",
+   "source": "https://www.jeonmae.co.kr/news/articleView.html?idxno=1276087 https://www.kdca.go.kr/kdca/3327/subview.do",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 22
+  },
+  {
+   "id": "P-INF-KKWUP5",
+   "field": "infection",
+   "name": "감염취약시설 종사자 감염관리 교육",
+   "hea": "A",
+   "effect": "병원·요양원·노인·장애인시설 종사자 726명을 분석한 결과, 감염교육 이수자의 감염관리 수행수준이 미이수자보다 높았으며, 특히 사회복지시설에서 교육 효과가 더 크게 나타남",
+   "source": "강정희 and 이희창. (2015). 사회복지시설의 감염관리 현황과 감염교육 효과 분석: 병원 감염관리와의 비교. 국가정책연구, 29(1), 107-135",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 58
+  },
+  {
+   "id": "P-INF-LTRHVD",
+   "field": "infection",
+   "name": "권역 감염병전문병원 구축사업",
+   "hea": "E",
+   "effect": "감염병(코로나19 등)에 대비하기 위해 음압병동 신축 사례 多",
+   "source": "https://www.newspim.com/news/view/20231221000469 https://www.mk.co.kr/news/it/10904167",
+   "amount": {
+    "text": "26년 기준 개소당 408억 6,700만원",
+    "won": 40867000000,
+    "unit": "개소",
+    "reason": null
+   },
+   "group": "new",
+   "row": 6
+  },
+  {
+   "id": "P-INF-WXIZ6Q",
+   "field": "infection",
+   "name": "긴급치료병상 신규 운영",
+   "hea": "A",
+   "effect": "평소에는 일반 환자 진료 병상으로 활용→감염병 위기 발생하면 음압 격리병상으로 전환",
+   "source": "https://www.whosaeng.com/166215",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 7
+  },
+  {
+   "id": "P-INF-BQ2ZES",
+   "field": "infection",
+   "name": "농업·임업종사자 신증후군출혈열 예방접종",
+   "hea": "H",
+   "effect": "군인, 농업,임업 종사자 가을철 유행 들쥐 배설물 매개 감염병인 신증후군출혈열 감염 예방, 예방접종 받은 고위험군 미접종자 대비 감염률 약73% 감소 (제 3급 법정감염병)",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 28
+  },
+  {
+   "id": "P-INF-B90KTB",
+   "field": "infection",
+   "name": "다중이용시설 레지오넬라균 환경검사",
+   "hea": "E",
+   "effect": "제 3급 법정감염병 인체 레지오넬라증 유행 사전 대비",
+   "source": "https://news.suwon.go.kr/?p=71&page=11&mode=blog&viewMode=view&reqIdx=202505291009197035",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 29
+  },
+  {
+   "id": "P-INF-BF75UP",
+   "field": "infection",
+   "name": "돌봄시설(어린이집·유치원·아동복지시설 등) 종사자 잠복결핵감염 무료 검진",
+   "hea": "H",
+   "effect": "23년 전체 검진자의 25.8% 잠복결핵감염자와 9명의 활동성 결핵 환자 조기 발견 및 치료",
+   "source": "질병관리청 보도자료",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 2
+  },
+  {
+   "id": "P-INF-86BSLU",
+   "field": "infection",
+   "name": "맑은숨터 조성 및 돌봄사업 (실내 공기질 개선 사업)",
+   "hea": "E",
+   "effect": "누수 벽면 방수, 친환경 벽지·장판 시공 등 근본적인 실내 환경 개선을 추진한 결과, 개선 전후의 실내공기질 측정값이 항목 평균 44% 감소, (벽지, 장판, 페인트, 공기청정기 등을 친환경 제품으로 교체), 실내 공기질 개선을 통한 호흡기 감염병 전파위험 저감",
+   "source": "https://www.mediatoday.asia/sub_read.html?u_ip=66.249.75.110&uid=1612482",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 47
+  },
+  {
+   "id": "P-INF-8W5RW5",
+   "field": "infection",
+   "name": "매독 무료 야간·익명 검진",
+   "hea": "H",
+   "effect": "익명성 보장을 통한 심리적 부담 해소 및 감염병 조기 발견 및 예방 가능 전체적인 국내 발생 상황 및 추이 파악 및 감염병 감시체계 강화 가능",
+   "source": "https://www.wikitree.co.kr/articles/1091673 질병관리청.(2023).매독의 전수감시 전환 개정 소개",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 14
+  },
+  {
+   "id": "P-INF-7I6ZIY",
+   "field": "infection",
+   "name": "모기 유충구제사업",
+   "hea": "E",
+   "effect": "모기 유충 단계에서 개체 수 줄여 감염병 예방",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 26
+  },
+  {
+   "id": "P-INF-PO4AMD",
+   "field": "infection",
+   "name": "무료 예방접종 실시",
+   "hea": "H",
+   "effect": "백신 접종을 목표로 하는 HPV 지원 사업을 통해 국내 여성 청소년의 출생연도별 예방접종률 지속적으로 증가 영유아 및 어르신 대상 무료 예방접종(NIP) 확대 시행 이후 감염병 발생률 감소하나, 추가적 확대 필요",
+   "source": "프로빗. (2024). 20 대 여성의 가다실 9 가에 대한 지불의사액 추정-CVM 이중양분선택형 이변량 프로빗 모형을 이용하여. The Korean Journal of Health Economics and Policy, 30(2), 21-42. https://www.medipana.com/news/articleView.html?idxno=346885",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 13
+  },
+  {
+   "id": "P-INF-NONC9Y",
+   "field": "infection",
+   "name": "민간·공공협력 결핵관리사업",
+   "hea": "A",
+   "effect": "결핵 신환자 64.5% 감소(''11년 50,491명→'24년 17,944명) 사업 참여기관 치료성공률 81.2%로 미참여기관보다 8.4%p높음 1명의 추가 완치자를 위해 소요된 예산은 86만원으로, 비용효과적",
+   "source": "질병관리청 보도자료(국가결핵관리의 핵심, 민간공공협력 결핵관리사업 성과 논의) https://www.korea.kr/briefing/pressReleaseView.do?newsId=156596491&call_from=nate_news#pressRelease",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 4
+  },
+  {
+   "id": "P-INF-SR2E3E",
+   "field": "infection",
+   "name": "보건소 신규인력 채용",
+   "hea": "A",
+   "effect": "의료기관 접근성 한계 지역(ex.도서)에 대한 의료사각지대 해소 가능 지역간 의료 불평등 해소 가능",
+   "source": "https://www.news1.kr/local/jeonbuk/6229027 김나영. (2022). Trade and public health in the post COVID-19 era: 포스트코로나 시대의 통상과 공중보건. 김동환, 정혜인, 심수보, 현도훈, & 김경한. (2025). 한의과 공중보건의사의 농어촌 방문진료 실태 및 개선방안 탐색 연구. 대한한의학회지, 46(2), 153-169.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 8
+  },
+  {
+   "id": "P-INF-J9Q1TA",
+   "field": "infection",
+   "name": "시민참여 모기 유충구제사업",
+   "hea": "A",
+   "effect": "주민이 직접 취약지역을 발굴하고 유충구제에 참여함으로써 방역 사각지대를 줄이고, 유충 단계의 선제적 방제를 통해 모기 개체수와 감염병 발생 위험을 낮춤",
+   "source": "https://www.suwonnews.co.kr/news/articleView.html?idxno=31173",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 60
+  },
+  {
+   "id": "P-INF-2UWF2P",
+   "field": "infection",
+   "name": "신혼부부 건강검진 지원",
+   "hea": "H",
+   "effect": "B형 간염, 풍진 등 임신 관련 검사 무료 지원 출산율 증가 및 건강 위험 조기 발견을 통한 불임/난임 위험 부담 감소",
+   "source": "https://www.mk.co.kr/news/politics/11239347 보건복지부 보도자료",
+   "amount": {
+    "text": "60개 지자체 대상 63억원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 10
+  },
+  {
+   "id": "P-INF-RYI1KS",
+   "field": "infection",
+   "name": "어르신 대상 찾아가는 감염병 예방교육",
+   "hea": "A",
+   "effect": "감염병에 취약한 어르신을 직접 찾아가 손씻기·기침예절·예방접종 등 예방수칙을 교육함으로써 감염병 예방 인식과 일상생활 속 예방행동 실천을 강화함",
+   "source": "https://www.hsinews.com/52112",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 57
+  },
+  {
+   "id": "P-INF-M5NJJK",
+   "field": "infection",
+   "name": "어린이 국가예방접종 지원",
+   "hea": "H",
+   "effect": "국가예방접종 지원 정책 만족도 90% 이상 양육비 부담 감소(87.9%), 질병 예방효과 크다고 생각(92.6%) 향후 예방접종 안전성 확보 및 무료접종 지원 확대 필요 의견",
+   "source": "질병관리청 보도자료(https://www.kdca.go.kr/kdca/2848/subview.do?enc=Zm5jdDF8QEB8JTJGYmJzJTJGa2RjYSUyRjQyJTJGMjE1MDk1JTJGYXJ0Y2xWaWV3LmRvJTNG)",
+   "amount": {
+    "text": "26년 국가예방접종 실시 전국 지자체 보조 예산 4,371억원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 3
+  },
+  {
+   "id": "P-INF-CT7LVJ",
+   "field": "infection",
+   "name": "어린이 대상 체험형 감염병 예방 교육",
+   "hea": "A",
+   "effect": "손 오염도를 직접 확인하는 체험형 교육으로 학습 흥미와 이해도를 높이고, 손씻기·기침예절 등 감염병 예방수칙의 일상적 실천을 유도함",
+   "source": "https://www.hidomin.com/news/articleView.html?idxno=719242",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 56
+  },
+  {
+   "id": "P-INF-8Y04XR",
+   "field": "infection",
+   "name": "어린이집 장난감 살균 소독기 설치",
+   "hea": "E",
+   "effect": "장난감 소독기 설치를 통해 공용 교구·생활용품의 병원균 감염위험을 낮추고, 집단감염에 취약한 어린이집의 감염병 확산 예방",
+   "source": "https://www.chosun.com/national/regional/2021/03/04/5BSZISO73NGELBXCQJB47BLFDY/ https://www.ccnnews.co.kr/news/articleView.html?idxno=374816",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 49
+  },
+  {
+   "id": "P-INF-57LTQI",
+   "field": "infection",
+   "name": "역학조사관 임명·교육",
+   "hea": "A",
+   "effect": "역학조사관 현황: ('19년) 86명→('21년) 515명→('23년) 607명으로 꾸준히 증가 미래 팬데믹을 대비한 혁신적 진단 및 분석체계 구축 필요",
+   "source": "질병관리청.(2024).2024년도 성과관리 시행계획",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 18
+  },
+  {
+   "id": "P-INF-OYO48X",
+   "field": "infection",
+   "name": "원인불명 감염병 대응 모의훈련",
+   "hea": "A",
+   "effect": "24년 모의 실행훈련 만족도 5점 만점에 4.7점 방호복 착용 및 탈의, VR기반 시뮬레이션 학습 효과 입증",
+   "source": "Hur, H., Kim, B. I., & Yeo, S. G. (2025). Training Outcomes of Healthcare Workers for Emerging and Bioterrorism-related Infectious Disease Response, 2024. Public Health Weekly Report, 18(28), 1039.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 19
+  },
+  {
+   "id": "P-INF-8WZM4S",
+   "field": "infection",
+   "name": "유아차 살균소독기 무료 운영",
+   "hea": "E",
+   "effect": "유아차, 카시트, 장난감, 휠체어 등 자외선 소독을 통해 알레르기 유발 물질 차단 및 살균 소독이 가능하도록 함",
+   "source": "https://blog.naver.com/cheonan_official/224296727178 https://www.lofin365.go.kr/portal/LF3120204.do?dbizCd=31000002022300C9&lafCd=1121000&fyr=2024",
+   "amount": {
+    "text": "4년('24년~'28년) 기준 약 5억 4,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 32
+  },
+  {
+   "id": "P-INF-RNDZ6J",
+   "field": "infection",
+   "name": "유아차 살균소독기 설치",
+   "hea": "E",
+   "effect": "유아차, 카시트, 장난감, 휠체어 등 자외선 소독을 통해 알레르기 유발 물질 차단 및 살균 소독이 가능하도록 함",
+   "source": "https://blog.naver.com/cheonan_official/224296727178 https://www.lofin365.go.kr/portal/LF3120204.do?dbizCd=31000002022300C9&lafCd=1121000&fyr=2024",
+   "amount": {
+    "text": "4년('24년~'28년) 기준 약 5억 4,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "existing",
+   "row": 44
+  },
+  {
+   "id": "P-INF-6W4PZH",
+   "field": "infection",
+   "name": "유충구제 방역추진",
+   "hea": "E",
+   "effect": "방제사업에 대한 실질적 효과 입증(방제 활동 30.6% 감소, 관련 민원 28.8% 감소) 그러나 단순 포충기 가동에서 벗어나 매개체 감시 결과를 기반으로 방제 시기 및 장소를 결정하는 근거 중심 매개체 방제사업의 추진 필요",
+   "source": "https://medicalworldnews.co.kr/m/view.php?idx=1510971589",
+   "amount": {
+    "text": "강남구('24년) 기준 4억 9,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 11
+  },
+  {
+   "id": "P-INF-KX815Y",
+   "field": "infection",
+   "name": "음압병동 신축",
+   "hea": "A",
+   "effect": "중복(17 권역 감염병전문병원 구축사업)",
+   "source": "https://www.kha.or.kr/kha_home/infectious-disease-info.do?mode=view&articleNo=33817&title=[4.14+%EB%B3%B4%EB%8F%84%EC%B0%B8%EA%B3%A0%EC%9E%90%EB%A3%8C]+%EA%B6%8C%EC%97%AD+%EA%B0%90%EC%97%BC%EB%B3%91+%EC%A0%84%EB%AC%B8%EB%B3%91%EC%9B%90+%EB%B0%8F+%EA%B5%AD%EA%B2%A9%ED%99%95%EC%B6%A9%EC%82%AC%EC%97%85+%EC%B0%B8%EC%97%AC%ED%9D%AC%EB%A7%9D%EA%B8%B0%EA%B4%80+%EA%B3%B5%EB%AA%A8",
+   "amount": {
+    "text": "병실당 3억 5,000만원",
+    "won": 350000000,
+    "unit": "병실",
+    "reason": null
+   },
+   "group": "new",
+   "row": 5
+  },
+  {
+   "id": "P-INF-FTT509",
+   "field": "infection",
+   "name": "임산부 및 배우자 백일해 예방접종 지원",
+   "hea": "H",
+   "effect": "제 2급 법정감염병 예방",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 30
+  },
+  {
+   "id": "P-INF-AEJYT0",
+   "field": "infection",
+   "name": "장기 요양기관 환기설비 설치 지원",
+   "hea": "E",
+   "effect": "다수가 장시간 생활하는 장기요양시설의 환기환경을 개선하여 공기 중 감염원 축적을 억제하고 호흡기 감염병의 시설 내 전파 위험을 낮춤",
+   "source": "https://www.seosanpost.co.kr/news/articleView.html?idxno=41527",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 50
+  },
+  {
+   "id": "P-INF-L7JQ0R",
+   "field": "infection",
+   "name": "저장강박 의심가구 주거환경 개선사업",
+   "hea": "E",
+   "effect": "생활폐기물·적치물 등 감염병 발생 오염원을 제거하고 맞춤형 방역을 병행해 위생해충 서식과 재오염을 줄여 감염병 발생 위험을 저감함",
+   "source": "https://www.ccdn.co.kr/news/articleView.html?idxno=1096565",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 52
+  },
+  {
+   "id": "P-INF-0Z1N7L",
+   "field": "infection",
+   "name": "주민참여 환경정비 사업",
+   "hea": "E",
+   "effect": "주민이 직접 쓰레기 취약지역 정비에 참여해 생활쓰레기·적치물을 지속적으로 제거함으로써 위생해충 서식환경과 감염병 위험요인을 사전에 개선함",
+   "source": "https://www.naewoeilbo.com/news/articleView.html?idxno=2016563",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 48
+  },
+  {
+   "id": "P-INF-23NVAC",
+   "field": "infection",
+   "name": "쪽방촌 방역 및 소독",
+   "hea": "E",
+   "effect": "모기 유충, 빈대, 진드기 등 확산 막기 위해 사전 방역 실시 주민 인터뷰 통해 만족도 높은 것으로 확인",
+   "source": "https://www.donga.com/news/Society/article/all/20231109/122102123/1 https://www.ajunews.com/view/20231107112553024 https://www.fntimes.com/html/view.php?ud=20240328143759261b372994c95_18",
+   "amount": {
+    "text": "강원도 기준 빈대 확산 방지에 특별조정교부금 1억원 편성",
+    "won": null,
+    "unit": null,
+    "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
+   },
+   "group": "new",
+   "row": 17
+  },
+  {
+   "id": "P-INF-XIJD7N",
+   "field": "infection",
+   "name": "찾아가는 결핵검진",
+   "hea": "H",
+   "effect": "찾아가는 결핵 검진, 보건소 등 전담인력 배치 등을 통해 결핵 발생율 '11년 이후 꾸준히 감소 특히 65세 이상 고령층 잠복결핵감염 검진 유도 및 잠복결핵감염 치료의료기관 연계 필요",
+   "source": "질병관리청.(2024).2024년도 성과관리 시행계획",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 16
+  },
+  {
+   "id": "P-INF-9ZYAFN",
+   "field": "infection",
+   "name": "찾아가는 또는 무료 건강검진 실시",
+   "hea": "H",
+   "effect": "백신 접종을 목표로 하는 HPV 지원 사업을 통해 국내 여성 청소년의 출생연도별 예방접종률 지속적으로 증가 영유아 및 어르신 대상 무료 예방접종(NIP) 확대 시행 이후 감염병 발생률 감소하나, 추가적 확대 필요",
+   "source": "프로빗. (2024). 20 대 여성의 가다실 9 가에 대한 지불의사액 추정-CVM 이중양분선택형 이변량 프로빗 모형을 이용하여. The Korean Journal of Health Economics and Policy, 30(2), 21-42. https://www.medipana.com/news/articleView.html?idxno=346885",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 9
+  },
+  {
+   "id": "P-INF-WX3UVZ",
+   "field": "infection",
+   "name": "취약지역 방역소독",
+   "hea": "A",
+   "effect": "하천변·쓰레기처리장 등 위생취약지역의 정기적인 살충소독을 통해 파리·모기 등 감염병 매개 위생해충을 감소시켜 감염병 발생·전파 위험을 사전에 저감함.",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 61
+  },
+  {
+   "id": "P-INF-NDBMC1",
+   "field": "infection",
+   "name": "취학 전 아동 예방접종 확인사업 실시",
+   "hea": "H",
+   "effect": "감염병 예방 및 건강 보호 실효성 입증",
+   "source": "https://www.m-i.kr/news/articleView.html?idxno=1089997",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 15
+  },
+  {
+   "id": "P-INF-H8T6HM",
+   "field": "infection",
+   "name": "침수지역 집중 방역·소독",
+   "hea": "E",
+   "effect": "",
+   "source": "https://www.dailydgnews.com/news/article.html?no=258760",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 27
+  },
+  {
+   "id": "P-INF-UHHN7G",
+   "field": "infection",
+   "name": "하수 기반 감염병 조기 감시(KOWAS)",
+   "hea": "E",
+   "effect": "울산지역 하수 감시에서 환자감시보다 약 1주일 빠르게 검출되어 지역 내 유행 조기 인지에 기여",
+   "source": "https://www.yna.co.kr/view/AKR20260306118300057?utm http://www.engjournal.co.kr/news/articleView.html?idxno=3831",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 21
+  },
+  {
+   "id": "P-INF-L11NSV",
+   "field": "infection",
+   "name": "해외여행 전 홍역 예방백신 접종 실시",
+   "hea": "H",
+   "effect": "25년 기준 83개국이 홍역 검역 관리지역으로 지정되어 해외여행 전 접종 필수 2차 접종까지 완료하면 97% 예방효과 입증",
+   "source": "서울특별시 보도자료(https://news.seoul.go.kr/welfare/archives/570474)",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 12
+  },
+  {
+   "id": "P-INF-MAW4FS",
+   "field": "infection",
+   "name": "해충기피제 자동분사기 설치",
+   "hea": "E",
+   "effect": "중증열성혈소판감소증후군, 쯔즈가무시병 등 진드기매개감염병 예방",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 25
+  },
+  {
+   "id": "P-INF-X5F9T9",
+   "field": "infection",
+   "name": "A형간염 고위험군 예방접종 지원",
+   "hea": "H",
+   "effect": "제 2급 법정감염병 예방",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 31
+  },
+  {
+   "id": "P-INF-S5H8D2",
+   "field": "infection",
+   "name": "B형간염 주산기감염 예방처지 지원",
+   "hea": "H",
+   "effect": "부천, 서초, 보건소 시행, B형간염 주산기 예방조치의 성공률은 96.81% (제3급 법정감염병)",
+   "source": "국립보건연구원, 국내 소아청소년에서의 폐구균 혈청형 분석을 위한 체계구축 https://www.nih.go.kr/ko/bbs/B0000101/view.do?nttId=2571&menuNo=300023&pageIndex=",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 23
+  },
+  {
+   "id": "P-INF-J2BCI6",
+   "field": "infection",
+   "name": "CRE 감염증 감소 전략 운영사업",
+   "hea": "H",
+   "effect": "\"CRE 감소전략 사업을 통한 선별검사 확대가 환자 조기 발견 및 추가 전파 차단에 실질적으로 기여\"한 것으로 평가됨 CRE 선별검사 비용 + 격리 물품(장갑·AP가운·소독티슈 등) 지원",
+   "source": "http://www.mediwelfare.com/news/articleView.html?idxno=4575",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 40
+  },
+  {
+   "id": "P-INF-185ZW8",
+   "field": "infection",
+   "name": "HIV 감염취약군 노출 전 예방요법(PrEP) 약제비·검사비 지원",
+   "hea": "H",
+   "effect": "미국 센프란시스코의 경우 인구 72%가 시행한 결과 10년간 67% 감소, 대만의 경우도 도입 이후 62% 감소(제 3급법정감염병)",
+   "source": "https://health.chosun.com/site/data/html_dir/2024/11/26/2024112602424.html",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 24
+  },
+  {
+   "id": "P-LIF-2WZAU8",
+   "field": "life",
+   "name": "가스안전 취약계층 타이머 콕 지원사업",
+   "hea": "H",
+   "effect": "가스레인지 등의 연소기 과열을 방지하기 위해 일정 시간이 되면 가스공급을 자동 차단하는 장치로, 가스 사고 예방에 탁월한 효과를 인정받고 있어 취약계층의 안전 복지 증대에 도움",
+   "source": "https://www.daedeok.go.kr/cmm/boardViewPopup.do?boardId=DPT_000001&ntatcSeq=1091073001&pageIndex=1&utm_source=chatgpt.com",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 40
+  },
+  {
+   "id": "P-LIF-U4DCCM",
+   "field": "life",
+   "name": "경사로 안전 손잡이 설치(핸드레일)",
+   "hea": "E",
+   "effect": "경사구간 안전손잡이 설치로 주민의 미끄러짐·낙상 우려를 줄이고 보행 안전성과 체감안전도를 향상함.",
+   "source": "https://www.guro.go.kr/www/selectBbsNttView.do?bbsNo=665&nttNo=220093&key=1793",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 50
+  },
+  {
+   "id": "P-LIF-MJBXRU",
+   "field": "life",
+   "name": "교육대상자 맞춤형 응급처치 교육",
+   "hea": "A",
+   "effect": "단순 교육임에도 불구하고 '26년 기준 서울교통공사는 최근 5년간 지하철서 심정지 승객 171명을 응급처치로 살린 성과 有 어린이집 보육교직원 교육을 통한 응급처치 실무 역량 강화",
+   "source": "https://www.newspim.com/news/view/20260630000758 https://www.cnbizm.com/news/articleView.html?idxno=202300",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 13
+  },
+  {
+   "id": "P-LIF-EE2BZJ",
+   "field": "life",
+   "name": "기후위기 적응형 도시숲 및 공원 조성사업",
+   "hea": "E",
+   "effect": "주변 기온 3~7도 낮추고, 습도 9~23% 향상 미세먼지 차단숲 '06년 조성 초기 대비 '23년 미세먼지 평균 농도 49.5% 감소",
+   "source": "임재연, 손정민, 박주현, & 엄정희. (2025). ENVI-met 시뮬레이션을 통한 도시숲 조성 시나리오별 열환경 개선 효과 분석. Journal of the Korean Institute of Landscape Architecture, 53(1), 14-25. 권전오, & 김신우. (2022). 인천시 도시숲 조성현황 분석 및 시민 이용방안 연구. 연구보고서, 1-115. https://www.asiatoday.co.kr/kn/view.php?key=20250715010008592",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 23
+  },
+  {
+   "id": "P-LIF-SEE8FR",
+   "field": "life",
+   "name": "노후 하수관로 정비",
+   "hea": "E",
+   "effect": "노후 관로에 대한 정밀 조사 및 하수관 파손에 따른 지반 침하 위험 감소 안전검사 실시 및 우선정비구역 확인",
+   "source": "https://blog.naver.com/cmcsong/224367462289 https://council.gangbuk.go.kr/kr/minutes/qnaview.do?uid=6976",
+   "amount": {
+    "text": "안산시 노후관로 1,386km 대상 2,229억",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 29
+  },
+  {
+   "id": "P-LIF-NCJU1O",
+   "field": "life",
+   "name": "노후승강기 교체지원",
+   "hea": "E",
+   "effect": "",
+   "source": "https://www.asiatoday.co.kr/kn/view.php?key=20251223010012162",
+   "amount": {
+    "text": "아산시 기준 단지당 최대 7000만원~1억원 지원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 16
+  },
+  {
+   "id": "P-LIF-KUWN9O",
+   "field": "life",
+   "name": "다중운집 인파사고 예방 사업",
+   "hea": "A",
+   "effect": "25년 주요 인파 밀집 시기(핼러윈, 성탄절 등)에 인파사고 없이 안전하게 행사 마무리 성과 CCTV, 드론 등 활용하여 과학적 인파 분석으로 실시간 대응 강화",
+   "source": "행정안전부 보도자료",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 19
+  },
+  {
+   "id": "P-LIF-0UWU1B",
+   "field": "life",
+   "name": "들개 피해예방 전문포획단 운영",
+   "hea": "A",
+   "effect": "연평균 200마리 이상 포획 성과(태안군 201마리, 당진시 300마리 등) 농가 피해 감소 및 군민 만족도 높음",
+   "source": "https://www.dynews.co.kr/news/articleView.html?idxno=614862#google_vignette https://www.ccnnews.co.kr/news/articleView.html?idxno=352244",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 21
+  },
+  {
+   "id": "P-LIF-J4H8PP",
+   "field": "life",
+   "name": "마을안길 안전난간 설치사업",
+   "hea": "E",
+   "effect": "도랑·수로·비탈면 등 단차가 있는 마을안길 위험구간에 안전난간을 설치하여 주민의 보행 중 이탈·추락을 물리적으로 차단하고 생활안전사고 위험을 저감함",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 49
+  },
+  {
+   "id": "P-LIF-LDLGD5",
+   "field": "life",
+   "name": "맨홀 추락방지망 설치",
+   "hea": "E",
+   "effect": "도시 침수 문제 중점관리지역 내 맨홀 이탈 및 파손에 따른 인명사고 예방",
+   "source": "https://www.cctimes.kr/news/articleView.html?idxno=873870 https://biz.heraldcorp.com/article/3834877",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 30
+  },
+  {
+   "id": "P-LIF-AZ9QZ4",
+   "field": "life",
+   "name": "물놀이 시설 안전관리 점검",
+   "hea": "E",
+   "effect": "해수욕장, 해변, 물놀이형 어린이놀이시설, 수상레저 사업장 등 안전점검 및 안전관리 요원 현장 배치 구명조끼 등 필수 안전시설물 설치 현황 확인 및 지적건 시정 조치",
+   "source": "https://www.cnbnews.com/news/articleView.html?idxno=1010570 한승곤. (2026). 해양 수상 레저스포츠 안전관리에 관한 연구 (Doctoral dissertation, 한성대학교 행정대학원).",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 31
+  },
+  {
+   "id": "P-LIF-H0H3AX",
+   "field": "life",
+   "name": "복합 수상레저시설 합동 안전점검",
+   "hea": "A",
+   "effect": "적극적 점검 필요 (미동력기구는 신고하지 않고 몰래 들여놓고 사용하는 업체들 多)",
+   "source": "https://view.asiae.co.kr/article/2019103019052720689",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 25
+  },
+  {
+   "id": "P-LIF-RFDS2K",
+   "field": "life",
+   "name": "산악안전지킴이 운영",
+   "hea": "A",
+   "effect": "인천지역 산악 사고 60% 감소 홍천소방서는 등산로에 안전리본 200여개를 부착하고 유동 순찰 강화→사고 예방 효과 입증",
+   "source": "https://www.asiae.co.kr/article/2016050718234768621 https://yw119.gwd.go.kr/hc119/partici/partici_press?articleSeq=11113087",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 15
+  },
+  {
+   "id": "P-LIF-7EF9PW",
+   "field": "life",
+   "name": "스마트 그늘막 설치(폭염 저감 시설 확대 사업)",
+   "hea": "E",
+   "effect": "19년 정부 혁신최초/최고 사례로 선정 여러 지자체에서 스마트 그늘막 확대 설치 및 추가 설치",
+   "source": "염현철. (2025). '폭염'속 슬기로운 일상을 위한'K-기술'의 진화... 1 도라도 낮춰라. 특허뉴스, 38-39. https://www.insight.co.kr/news/556179",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 24
+  },
+  {
+   "id": "P-LIF-O8T2ZD",
+   "field": "life",
+   "name": "승강기 사고대응 훈련",
+   "hea": "A",
+   "effect": "승강기 고장 건수 '16년(20,481건)→'18년(27,584건)",
+   "source": "행정안전부 보도자료(https://blog.naver.com/mopaspr/221544937472)",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 11
+  },
+  {
+   "id": "P-LIF-LNXNQF",
+   "field": "life",
+   "name": "승강기 점검 및 조사",
+   "hea": "A",
+   "effect": "24년 승강기 유지관리 실태 표본점검 결과 30개 업체 중 16개 업체에서 48건의 위반사항 적발 현행 규제는 사후 조사 위주→실효성 감소 유지/보수 시 2인 1조 작업 등을 통한 사고 예방 필요",
+   "source": "https://biz.heraldcorp.com/article/10826155?ref=naver http://www.samsungeltec.co.kr/index.php?mid=board_Gtoa73&listStyle=list&page=2&order_type=desc&sort_index=title&document_srl=9417",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 17
+  },
+  {
+   "id": "P-LIF-30QS0I",
+   "field": "life",
+   "name": "안전마을 조성사업",
+   "hea": "E",
+   "effect": "부천시의 경우 사업 후 범죄율, 교통사고율 20% 이상 감소 주민 대상 설문조사 범죄 불안감 9.1% 감소",
+   "source": "양산시.(2019).양산시 범어초 인근 안전마을만들기사업 결과보고서 박석훈, & 김선영. (2017). 범죄예방 환경디자인 (CPTED) 개념을 적용한 안전마을 조성에 관한 연구: 의정부시 가능동을 중심으로: 의정부시 가능동을 중심으로. 한국디자인문화학회지, 23(4), 431-446.",
+   "amount": {
+    "text": "1개소당 5~10억 이내",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 10
+  },
+  {
+   "id": "P-LIF-M8QGS9",
+   "field": "life",
+   "name": "안전보안관 및 안전신고 포상제 운영",
+   "hea": "A",
+   "effect": "서울시 기준 '19년 우수사례 778건 선정 부산시 기준 '26년 상반기 신고 건수 전년 대비 16%(약 6만 7천 건) 증가",
+   "source": "https://news.seoul.go.kr/safe/archives/503804?listPage=1 http://msba.co.kr/37850",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 12
+  },
+  {
+   "id": "P-LIF-NPK6MA",
+   "field": "life",
+   "name": "안전취약가구 안전점검 사업",
+   "hea": "A",
+   "effect": "서울시 기준 11년간('13~'24) 약 28만 5,220가구의 안전 점검 및 정비 지원 '23년 송파구 1,581가구 대상 안전 점검, 시설 및 장비 등 무료 지원",
+   "source": "서울특별시 보도자료(https://news.seoul.go.kr/safe/archives/514012) https://www.yna.co.kr/view/RPR20210826003500353",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 9
+  },
+  {
+   "id": "P-LIF-STMQZL",
+   "field": "life",
+   "name": "어르신 안심주택(고령자 특화설계) 공급",
+   "hea": "E",
+   "effect": "주거, 의료, 돌봄 서비스를 하나로 묶어 지원 고령층 특성을 반영한 제도 설계 필요",
+   "source": "https://www.gukjenews.com/news/articleView.html?idxno=3616570 https://www.fnnews.com/news/202505071847349709",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 26
+  },
+  {
+   "id": "P-LIF-7V0L3C",
+   "field": "life",
+   "name": "어린이 놀이시설 개선지원",
+   "hea": "E",
+   "effect": "영유아 침대/소파 등에서 떨어지는 사고가 가장 많음(41.5%) 놀이 사업을 통해 방임 감소 등 아동 삶의 질 증가 우수 어린이놀이시설 선정을 통해 아동 행복지수 증가(무장애통합놀이터 등)",
+   "source": "https://www.mohw.go.kr/board.es?mid=a10503010200&bid=0027&tag=&act=view&list_no=351220&cg_code= https://www.korea.kr/news/policyNewsView.do?newsId=148958727 https://www.yna.co.kr/view/AKR20250324106200030",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 4
+  },
+  {
+   "id": "P-LIF-B2B528",
+   "field": "life",
+   "name": "어린이 놀이시설 안전점검",
+   "hea": "E",
+   "effect": "기존 미달률 '13년(43.9%)→'14년(17.4%) 환경안전 관리상태 향상 환경부는 기준 초과 시설 19곳 선정 및 시설 개선 지원 실시",
+   "source": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156189751&pWise=sub&pWiseSub=J1 https://mcee.go.kr/home/web/board/read.do;jsessionid=SpyyMRNnA68YCCdMmPhTn7u9Ipcik6KkZANHxIIp.mehome1?pagerOffset=7320&maxPageItems=10&maxIndexPages=10&searchKey=&searchValue=&menuId=&orgCd=&boardMasterId=1&boardCategoryId=39&boardId=843240&decorator=",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 6
+  },
+  {
+   "id": "P-LIF-GWQUY5",
+   "field": "life",
+   "name": "어린이집 손끼임 방지장치 설치 지원",
+   "hea": "E",
+   "effect": "대전 내 매년 평균 8건 발생하는 교실 출입문 손끼임사고 예방 사업",
+   "source": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5022216",
+   "amount": {
+    "text": "대전동부교육지원청 2년 기준 4억 5240만원",
+    "won": null,
+    "unit": null,
+    "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
+   },
+   "group": "new",
+   "row": 5
+  },
+  {
+   "id": "P-LIF-EMOBK6",
+   "field": "life",
+   "name": "연안 내 센서형 음성 안내기",
+   "hea": "E",
+   "effect": "음성 안내기 설치 후 테트라포드로 무단침입하는 낚시객 감소",
+   "source": "https://www.todayan.com/news/articleView.html?idxno=627437",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 47
+  },
+  {
+   "id": "P-LIF-RKD3NO",
+   "field": "life",
+   "name": "응급안전안심서비스",
+   "hea": "H",
+   "effect": "화재·응급상황을 상시 감지·신고하는 응급안전안심서비스는 독거노인의 심리적 안정과 일상생활 관리 개선에 효과가 확인됨",
+   "source": "김수완 and 임정원. (2025). 응급안전안심서비스의 효과성 검증과 기술적 고도화에 관한 실증 연구. 사회보장연구, 41(4), 4.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 39
+  },
+  {
+   "id": "P-LIF-CPOA3Q",
+   "field": "life",
+   "name": "일산화탄소 경보기 보급",
+   "hea": "E",
+   "effect": "소모성 물품 배부임에도 부룩하고 12년 약 4만 7,005세대 보급 및 90% 이상의 만족도 기록 저소득 취약계층의 일산화탄소 중독사고 예방 기여",
+   "source": "https://www.anjunj.com/news/articleView.html?idxno=36399 https://www.newspim.com/news/view/20230818000558",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 3
+  },
+  {
+   "id": "P-LIF-CH04RS",
+   "field": "life",
+   "name": "장마철 가로등 점검",
+   "hea": "A",
+   "effect": "가로등 뿐만 아니라 온열의자 등 장마철 전 시설물 안전점검 미비로 인한 감전사고 가능성 有",
+   "source": "https://www.nocutnews.co.kr/news/6551714?utm_source=naver&utm_medium=article&utm_campaign=20260723050109 https://www.newsjeju.net/news/articleView.html?idxno=422089",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 18
+  },
+  {
+   "id": "P-LIF-POIVGI",
+   "field": "life",
+   "name": "저소득 홀몸어르신 안전용품 지원",
+   "hea": "H",
+   "effect": "욕실 안전손잡이 설치 후 노인의 낙상 두려움이 유의하게 감소했으며, 안전손잡이·욕실안전매트는 고령자 안전환경 개선 시 활용도가 높은 낙상예방용품으로 평가됨",
+   "source": "백경원, 송현종, 조준필. (2002). 화장실에서의 노인 낙상 예방을 위한 안전손잡이 효과. 한국노년학, 22(3), 85-98.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 38
+  },
+  {
+   "id": "P-LIF-64UC52",
+   "field": "life",
+   "name": "주거환경 개선사업",
+   "hea": "E",
+   "effect": "불량도로 61%→32% 감소, 취약건축물 50%→10% 감소 전문가 만족도 72.5%(도시기반시설, 미관 개선을 통한 삶의 질 향상)",
+   "source": "(사)대한국토도시계획학회.(2013).3단계 주거환경개선사업의 새로운 패러다움 및 운영방안 http://www.home1004.or.kr/bbs/board.php?bo_table=free&wr_id=76&sca=%EC%B9%BC%EB%9F%BC&page=4",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 2
+  },
+  {
+   "id": "P-LIF-SS5DK4",
+   "field": "life",
+   "name": "차수판 설치 지원",
+   "hea": "E",
+   "effect": "침수 우려가 있는 소규모 상가 대상 차수판 지원 집중호우 침수 피해 이력 건축물 대상 지원",
+   "source": "https://www.jeollailbo.com/news/articleView.html?idxno=796903 https://www.paxetv.com/news/articleView.html?idxno=265345",
+   "amount": {
+    "text": "익산시 1년 기준 약 1억 1,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 28
+  },
+  {
+   "id": "P-LIF-GG2KGA",
+   "field": "life",
+   "name": "취약 어르신 낙상방지 안심홈 지원",
+   "hea": "E",
+   "effect": "주거 안전 및 실내 낙상 사고 예방을 위한 환경 개선 사업 낙상 위험이 높은 65세 이상 어르신 50가구 선정하여 집수리 지원 및 최근 낙상 경험 있거나 만성질환으로 보행 불안정한 가구 우선 지원",
+   "source": "https://www.babytimes.co.kr/news/articleView.html?idxno=73770",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 27
+  },
+  {
+   "id": "P-LIF-1MM76A",
+   "field": "life",
+   "name": "테트라포트 인근 지능형 CCTV",
+   "hea": "E",
+   "effect": "통영해경 집계에 따르면 '21~'25 테트라포트 추락 및 고립사고 35건 컬러 테트라포트 설치 사업, CCTV 및 안전시설 확충 등 지속적 관리 필요",
+   "source": "https://www.jjinews.net/news/articleView.html?idxno=312400 안성호, & 윤재선. (2025). 실시간 LiDAR 와 영상 AI 기술 기반 테트라포드 낙상사고 사전예방 체계개발. 대한토목학회지, 73(9), 96-98. https://www.joongang.co.kr/article/24096387",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 46
+  },
+  {
+   "id": "P-LIF-X7YO0Q",
+   "field": "life",
+   "name": "테트라포트 추락사고 예방",
+   "hea": "A",
+   "effect": "통영해경 집계에 따르면 '21~'25 테트라포트 추락 및 고립사고 35건 컬러 테트라포트 설치 사업, CCTV 및 안전시설 확충 등 지속적 관리 필요",
+   "source": "https://www.jjinews.net/news/articleView.html?idxno=312400 안성호, & 윤재선. (2025). 실시간 LiDAR 와 영상 AI 기술 기반 테트라포드 낙상사고 사전예방 체계개발. 대한토목학회지, 73(9), 96-98. https://www.joongang.co.kr/article/24096387",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 20
+  },
+  {
+   "id": "P-LIF-X1VRJO",
+   "field": "life",
+   "name": "해빙기 취약시설 안전 점검",
+   "hea": "E",
+   "effect": "해빙기 취약시설 점검에서 위험요소 8856곳 발굴 및 보수/즉시 시정 조치 '25년 서울시 해빙기 취약시설 6천여곳 점검 및 2천여건 안전 조치",
+   "source": "https://www.safetynews.co.kr/news/articleView.html?idxno=229033 https://www.yna.co.kr/view/AKR20250428005000004",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 14
+  },
+  {
+   "id": "P-LIF-3N3RCZ",
+   "field": "life",
+   "name": "힐링냉장고(무인생수함) 운영",
+   "hea": "A",
+   "effect": "군포시 이용자 만족도 조사에서 92.5%가 긍정적으로 평가 전화 인증 방식의 스마트 자판기(1일 1병 원칙 등)를 통해 많은 시민이 혜택 받을 수 있도록 할 필요 有 or 취약계층 우선 지급",
+   "source": "https://www.kihoilbo.co.kr/news/articleView.html?idxno=3030848 https://www.sedaily.com/article/14090430",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 22
+  },
+  {
+   "id": "P-LIF-XS2M2A",
+   "field": "life",
+   "name": "AED 설치, 접근성 개선",
+   "hea": "E",
+   "effect": "현재 AED의 75%는 특정 건물 이용자의 제한적 시간대에만 이용 가능 한계 有 현재 의무적으로 배치된 AED는 법률에 의한 처벌을 피하기 위한 일률적 배치 문제 有 23년 부산 시내버스 33개 노선, 26년 경기도 버스정류소 설치 조례 통과 등 접근성 개선 사업 활성화",
+   "source": "손정민, 임정호, & 김도원. (2023). 병원 외 심장마비 적시 대응을 위한 자동심장충격기 (AED) 배치 최적화. 대한산업공학회지, 49(6), 491-501. https://www.busan.go.kr/nbtnewsBU/1597325?curPage=313&srchBeginDt=&srchEndDt=&srchKey=&srchText= 권필, 이영민, 유기윤, & 이원희. (2016). 자동제세동기의 접근성 향상을 위한 배치 적정성 연구. 한국측량학회지, 34(3), 263-271.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 43
+  },
+  {
+   "id": "P-LIF-GXCUXG",
+   "field": "life",
+   "name": "AED 의무설치기관 관리실태 점검",
+   "hea": "E",
+   "effect": "20년 경기도 AED 관리실태 특정감사 보고서에 따르면 세곳 중 한 곳의 AED는 유효기한 경과 및 패드 훼손 등의 문제 발생 점검 및 관리책임자 교육 등을 통해 올바른 관리 필요",
+   "source": "https://www.labortoday.co.kr/news/articleView.html?idxno=209601",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 7
+  },
+  {
+   "id": "P-LIF-TUHDKA",
+   "field": "life",
+   "name": "AED 접근성 개선",
+   "hea": "E",
+   "effect": "현재 AED의 75%는 특정 건물 이용자의 제한적 시간대에만 이용 가능 한계 有 현재 의무적으로 배치된 AED는 법률에 의한 처벌을 피하기 위한 일률적 배치 문제 有 23년 부산 시내버스 33개 노선, 26년 경기도 버스정류소 설치 조례 통과 등 접근성 개선 사업 활성화",
+   "source": "손정민, 임정호, & 김도원. (2023). 병원 외 심장마비 적시 대응을 위한 자동심장충격기 (AED) 배치 최적화. 대한산업공학회지, 49(6), 491-501. https://www.busan.go.kr/nbtnewsBU/1597325?curPage=313&srchBeginDt=&srchEndDt=&srchKey=&srchText= 권필, 이영민, 유기윤, & 이원희. (2016). 자동제세동기의 접근성 향상을 위한 배치 적정성 연구. 한국측량학회지, 34(3), 263-271.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 8
+  },
+  {
+   "id": "P-SUI-GXOD0Y",
+   "field": "suicide",
+   "name": "1인가구 병원동행서비스 실시",
+   "hea": "A",
+   "effect": "이용자 만족도 증진, 1인가구 고독사 예방 등 긍정적 효과 언급 서울시 기준 21년 11월 시작 후 3년간 4만 5천 건의 누적 이용 건수 및 92.9% 서비스 만족도 확인",
+   "source": "한국건강가정진흥원.(2023).1인가구 긴급돌봄/병원동행 지원 프로그램 https://scpm.seoul.go.kr/seoul-policy/evt0083",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 11
+  },
+  {
+   "id": "P-SUI-QBEHST",
+   "field": "suicide",
+   "name": "경제위기군 자살 고위험군 발굴",
+   "hea": "A",
+   "effect": "21년 기준 경북 자살통계 현황에 따르면 경제적 문제로 자살하는 사람은 전체 자살사망자의 29.6% 차지 40~50대 자살 동기 1위가 경제적 문제",
+   "source": "경상북도 보도자료(https://narangdesign.com/mail/gbmhc/202306/b1.html)",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 15
+  },
+  {
+   "id": "P-SUI-5YKC9U",
+   "field": "suicide",
+   "name": "경제적 재활 지원",
+   "hea": "H",
+   "effect": "부채부담 위험군에 속하는 이들이 자살 생각 비율 높다는 연구결과 有 재무상담 및 구제, 심리상담 병행 필요",
+   "source": "이윤정, & 송인한. (2015). 자살과 연관된 경제적 요인에 관한 연구: 부채와 자살생각: 부채와 자살생각. 정신건강과 사회복지, 43(1), 58-82.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 16
+  },
+  {
+   "id": "P-SUI-DRBRF7",
+   "field": "suicide",
+   "name": "고위험군 조기발굴·상담관리",
+   "hea": "A",
+   "effect": "우울장애 진단 후 자살/사망에 이르기 까지 평균 4.5년 소요 조기 개입을 통한 치료 환경 조성 및 지속적인 개입 필요",
+   "source": "성근혜, 최진화, 이동현, & 황태연. (2024). 우울장애 진단-자살사망 기간에 영향을 미치는 요인 연구. 한국보건사회연구, 44(2), 239-255.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 12
+  },
+  {
+   "id": "P-SUI-OCFANB",
+   "field": "suicide",
+   "name": "교량 난간 내 장력 센서 설치",
+   "hea": "E",
+   "effect": "CCTV·레이저센서 등과 연계한 한강교량 감지·구조체계 운영 결과 최근 5년 평균 생존구조율 96.3% 수준으로 나타남",
+   "source": "김준철, 권민지, 이지애(2020),한강교량 투신자살 증가와 서울시 골든타임 5分 생존율 확보노력",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 56
+  },
+  {
+   "id": "P-SUI-D8528L",
+   "field": "suicide",
+   "name": "교량 난간 설치",
+   "hea": "E",
+   "effect": "미국 샌프란시스코 금문교는 교량 난간 설치 후 자살률 감소 그러나 인근 미설치 교량에서의 투신 시도 2배 이상 증가→풍선효과에 대한 해결 방안 마련 필요",
+   "source": "https://www.fntoday.co.kr/news/articleView.html?idxno=323037 https://www.seoul.co.kr/news/newsView.php?id=20231113500035https://www.seoul.co.kr/news/newsView.php?id=20231113500035&wlog_tag3=naver&wlog_tag3=naver https://www.asiae.co.kr/article/2024031116095613852",
+   "amount": {
+    "text": "인천시 기준 시설 설치를 위한 예산 120억원 증액 요청 사례 有",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 20
+  },
+  {
+   "id": "P-SUI-E3TDPG",
+   "field": "suicide",
+   "name": "교량 추락위험구간 CCTV 설치",
+   "hea": "E",
+   "effect": "CCTV, 경보 등 등이 자살시도를 원천적으로 막는 데에는 한계가 있지만, 적극적인 위기 대응 및 조치 가능",
+   "source": "https://www.asiae.co.kr/article/2024031116095613852",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 19
+  },
+  {
+   "id": "P-SUI-Z457XT",
+   "field": "suicide",
+   "name": "교량·수변지역 비상벨·SOS 상담전화 설치",
+   "hea": "E",
+   "effect": "2011년 7월부터 2022년 6월까지 sos생명의전화는 자살위기 상담 9,050건을 수행하고, 이 중 투신직전 위기자 1,973명을 구조한 것으로 나타남",
+   "source": "http://www.liscc.or.kr/news/view/281 생명보험사회공헌위원회",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 55
+  },
+  {
+   "id": "P-SUI-TD327H",
+   "field": "suicide",
+   "name": "노인 나들이 진행",
+   "hea": "A",
+   "effect": "24년 치유농장 나들이 운영결과 우울감 평균 33% 감소",
+   "source": "https://www.rda.go.kr/board/boardfarminfo.do?mode=view&prgId=day_farmprmninfoEntry&dataNo=100000799479&CONTENT1=",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 5
+  },
+  {
+   "id": "P-SUI-K68DEB",
+   "field": "suicide",
+   "name": "노인 대상 식량작물 활용 치유프로그램 (노인 나들이)",
+   "hea": "A",
+   "effect": "24년 치유농장 나들이 운영결과 우울감 평균 33% 감소",
+   "source": "https://www.rda.go.kr/board/boardfarminfo.do?mode=view&prgId=day_farmprmninfoEntry&dataNo=100000799479&CONTENT1=",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 65
+  },
+  {
+   "id": "P-SUI-UCGZT1",
+   "field": "suicide",
+   "name": "노인 일자리·공공사업 참여",
+   "hea": "H",
+   "effect": "노인일자리사업 참여를 통해 규칙적 운동 수행 및 활동량 증가 등 긍정적 영향 참여기간 1년 증가→68.179원씩 의료비 절감",
+   "source": "이석원. (2009). 노인일자리 사업에 대한 사회· 경제적 효과분석: 건강증진 효과 및 의료비 절감효과 분석을 중심으로.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 10
+  },
+  {
+   "id": "P-SUI-2V7TDS",
+   "field": "suicide",
+   "name": "농약보관함 설치",
+   "hea": "E",
+   "effect": "중국 농촌 지역의 농약 음독은 전체 자살의 절반 이상을 차지하며, 농약보관함 설치 사업 이후 자살률의 유의미한 감소 확인 25년까지 완주군 1,583가구에 농약안전보관함 보급 및 보급 기간 동안 음독자살 0%",
+   "source": "WHO.(2019).자살 예방 문헌집 https://www.jeonbuktimes.co.kr/news_view.jsp?ncd=216396",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 23
+  },
+  {
+   "id": "P-SUI-6QEYKF",
+   "field": "suicide",
+   "name": "마음봄 사업장 운영(중장년 자살 고위험군 발굴 지원)",
+   "hea": "H",
+   "effect": "중장년 근로자 대상 마음건진 -> 고위험군 발굴-> 정신건강, 자살 예방 서비스 제공",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 43
+  },
+  {
+   "id": "P-SUI-O88LFZ",
+   "field": "suicide",
+   "name": "마음e음 밥상프로그램",
+   "hea": "H",
+   "effect": "봉사자 1명과 자살유족 1명이 2인 1조로 밥상을 차리고 고위험군 대상자 가정에 직접 전달하는 프로그램 심리적 안정 및 기력 회복에 효과",
+   "source": "http://gwnet.kr/detail.php?number=67223",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 34
+  },
+  {
+   "id": "P-SUI-1X0SKV",
+   "field": "suicide",
+   "name": "번개탄 판매 형태 개선",
+   "hea": "E",
+   "effect": "번개탄 이용 자살률: '07년 0.7% → '11년 7.9% 꾸준히 증가 양상 홍콩 연구 사례 중 번개탄 진열대에서 없앤 개입 지역이 번개탄을 이용한 자살 53.5% 감소하였다는 결과 有 이 외에도 언론 통제, 번개탄 품질 개선 등을 통해 일산화탄소 농도를 감소시키는 방안에 대한 사업 마련 필요",
+   "source": "이태엽, 이아롱, 안명희, 정수연, & 홍진표. (2014). 번개탄을 이용한 자살에 대한 전반적 고찰과 예방 대책. J Korean Neuropsychiatr Assoc, 53, 1-7. 박선영, 오승택, 이현화, & 이병욱. (2021). 지역사회 자살 수단 차단 사업: 번개탄 판매개선 캠페인의 효과. 대한보건연구, 47(2), 77-85.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 21
+  },
+  {
+   "id": "P-SUI-UR6WII",
+   "field": "suicide",
+   "name": "사회보장 특별지원구역 운영",
+   "hea": "A",
+   "effect": "23 익산시 공모 선정 및 사업 운영 성과를 인정받아 행안부 장관 표창 수여 마을 커뮤니티 활성화, 이웃돌봄 공동체 구축, 1인 가구 지원 활성화 등의 세부 사업 시행 지자체 벤치마킹 중",
+   "source": "https://www.mjeonbuk.com/news/articleView.html?idxno=134729 https://www.iksanopennews.com/news/articleView.html?idxno=512736",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 17
+  },
+  {
+   "id": "P-SUI-FJR6PP",
+   "field": "suicide",
+   "name": "산모 마음건강증진 사업",
+   "hea": "H",
+   "effect": "산모 우울 45% 감소, 자해 생각 50% 감소 등 정신건강 측면에서 뚜렷한 효과 有 서비스 만족도 10점 만점 기준 기본방문(9.32점), 지속방문(9.42점) 10년간 23만 건 방문",
+   "source": "https://www.etoday.co.kr/news/view/2549218",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 13
+  },
+  {
+   "id": "P-SUI-NQ0DJV",
+   "field": "suicide",
+   "name": "생명사랑지킴이 제도",
+   "hea": "A",
+   "effect": "매주 전화상담 및 가정방문을 통해 쓰러진 독거 노인 살린 사례 有 생명지킴이 서비스 만족도 참여 어르신의 71.3%가 만족한다고 응답",
+   "source": "https://www.nowon.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1027&q_bbscttSn=20160901000055658 정진영, & 김동현. (2016). 독거노인 자살예방사업의 효과 평가–서울시 노원구 사례. 대한보건연구, 42(3), 39-52.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 64
+  },
+  {
+   "id": "P-SUI-5PWQ1L",
+   "field": "suicide",
+   "name": "생명사랑택시 운영",
+   "hea": "A",
+   "effect": "18년 기준 생명사랑 택시 밴드에는 연간 1천건 이상의 활동 후기 확인 가능 전국 최초로 시작한 인천시는 사업 시작 이후 6년 연속 자살률이 감소한 지자체",
+   "source": "https://daehannews.kr/news/article.html?no=458656 https://www.kyeongin.com/article/1709543",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 14
+  },
+  {
+   "id": "P-SUI-E9R24Y",
+   "field": "suicide",
+   "name": "생명존중안심마을 운영",
+   "hea": "A",
+   "effect": "경남 산청군, 경기 고양군 등 여러 지자체 실시 및 제5차 자살예방 기본계획 목표 中 1 병의원, 약국, 지역아동센터 등 여러 기관이 협력한다는 점에서 유의미함",
+   "source": "고든솔,권세원,하솔잎,전진아,&채수미.(2023).자살예방정책의 현황과 과제",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 30
+  },
+  {
+   "id": "P-SUI-7W8CM8",
+   "field": "suicide",
+   "name": "생명지킴이 제도",
+   "hea": "A",
+   "effect": "매주 전화상담 및 가정방문을 통해 쓰러진 독거 노인 살린 사례 有 생명지킴이 서비스 만족도 참여 어르신의 71.3%가 만족한다고 응답",
+   "source": "https://www.nowon.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1027&q_bbscttSn=20160901000055658 정진영, & 김동현. (2016). 독거노인 자살예방사업의 효과 평가–서울시 노원구 사례. 대한보건연구, 42(3), 39-52.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 4
+  },
+  {
+   "id": "P-SUI-424NLC",
+   "field": "suicide",
+   "name": "숙박업소 일산화탄소 감지기 보급",
+   "hea": "A",
+   "effect": "자살 시도 후 생존자 中 약 90%는 자살로 사망하지 않음→선제적 방지 필요",
+   "source": "광주광역시정신겅강복지센터 자료(https://www.youtube.com/watch?v=HXm3tFOR0o0)",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 22
+  },
+  {
+   "id": "P-SUI-PE05OF",
+   "field": "suicide",
+   "name": "식사 지원",
+   "hea": "A",
+   "effect": "20년 아침 식사 실천 하지 않는 사람의 자살 충동률은 7.2%로 아침식사 실천자보다 높았음",
+   "source": "보건복지부.(2021).2021 자살예방백서",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 8
+  },
+  {
+   "id": "P-SUI-B0RT4N",
+   "field": "suicide",
+   "name": "옥상 출입문 자동개폐 장치 설치",
+   "hea": "E",
+   "effect": "심각한 자살 충동은 10분 내 소멸하며, 이 시간동안 물리적 접근 차단이 핵심 전략 일부 청소년들 사이 서울 강남역 일대 고층빌딩이 자살 성지로 알려지며 대응책 논의 사례 多",
+   "source": "https://www.themedical.kr/news/articleView.html?idxno=2956 https://biz.heraldcorp.com/article/10518623",
+   "amount": {
+    "text": "광명시 기준 개소 당 약 60만원",
+    "won": 600000,
+    "unit": "개소",
+    "reason": null
+   },
+   "group": "new",
+   "row": 18
+  },
+  {
+   "id": "P-SUI-PU3EY5",
+   "field": "suicide",
+   "name": "우리동네돌봄단(중장년·어르신·1인가구 안부 확인, 전화통화사업)",
+   "hea": "H",
+   "effect": "\"전과달리 우울감도 많이 줄어들었고\" 경로당과 친구를 만나는 등 활동성 증가 경향 서울시 '18년 기준 5,804가구를 46,041회 방문하고 전화상담 31,049건, 공적서비스 255건, 민간자원 15,219건 등 실행",
+   "source": "https://news.seoul.go.kr/welfare/archives/504033?utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 36
+  },
+  {
+   "id": "P-SUI-PX70QS",
+   "field": "suicide",
+   "name": "의료 지원",
+   "hea": "A",
+   "effect": "26년 자살 시도자 사후관리 병원 100개소로 확대 치료비, 긴급 복지 등 지원('25년 기준 1만 4천여명 지원) 응급실 기반 자살시도자 사후관리 시범사업으로 자살 재시도율 4.7% 감소",
+   "source": "보건복지부 보도자료(https://blog.naver.com/mohw2016/224346486736) 건강보험심사평가원.(2023).응급실 기반 자살시도자 사후관리 시범사업 평가 연구",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 7
+  },
+  {
+   "id": "P-SUI-F13CV2",
+   "field": "suicide",
+   "name": "인공지능(AI) 활용 노인말벗 서비스",
+   "hea": "A",
+   "effect": "23년 6월 시범사업 이후 25년 8월까지 총 7,115명 어르신들께 서비스 제공 181건의 긴급 상황 탐지 및 연계 서비스 이용자 500명 대상 만족도 조사 결과 90.4%가 만족, 86.6%가 지속 이용 의사 밝힘",
+   "source": "https://gnews.gg.go.kr/briefing/brief_gongbo_view.do?BS_CODE=s026&number=4698&subject_Code= 경기도사회서비스원 보도자료(https://www.erc.re.kr/webzine/vol50/10.jsp)",
+   "amount": {
+    "text": "경기도 기준 5억 1,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 2
+  },
+  {
+   "id": "P-SUI-BONOH9",
+   "field": "suicide",
+   "name": "일산화탄소 감지기 보급",
+   "hea": "E",
+   "effect": "자살 시도 후 생존자 中 약 90%는 자살로 사망하지 않음→선제적 방지 필요",
+   "source": "광주광역시정신겅강복지센터 자료(https://www.youtube.com/watch?v=HXm3tFOR0o0)",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 52
+  },
+  {
+   "id": "P-SUI-CFV4FC",
+   "field": "suicide",
+   "name": "자살방지 교량 난간 설치(안전펜스 설치)",
+   "hea": "E",
+   "effect": "미국 샌프란시스코 금문교는 교량 난간 설치 후 자살률 감소 그러나 인근 미설치 교량에서의 투신 시도 2배 이상 증가→풍선효과에 대한 해결 방안 마련 필요",
+   "source": "https://www.fntoday.co.kr/news/articleView.html?idxno=323037 https://www.seoul.co.kr/news/newsView.php?id=20231113500035https://www.seoul.co.kr/news/newsView.php?id=20231113500035&wlog_tag3=naver&wlog_tag3=naver https://www.asiae.co.kr/article/2024031116095613852",
+   "amount": {
+    "text": "인천시 기준 시설 설치를 위한 예산 120억원 증액 요청 사례 有",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "existing",
+   "row": 50
+  },
+  {
+   "id": "P-SUI-YAI8Y4",
+   "field": "suicide",
+   "name": "자살예방 전문상담",
+   "hea": "A",
+   "effect": "상담 6회 이상→자살 재시도율 26% 상담개입으로 청소년 자살 위험률 39% 감소 실적 有",
+   "source": "https://m.dongascience.com/ko/news/5546 https://www.busan.com/view/busan/view.php?code=2021122809530552090",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 3
+  },
+  {
+   "id": "P-SUI-D0KBRU",
+   "field": "suicide",
+   "name": "자살유족 마음치유 사업",
+   "hea": "A",
+   "effect": "자살 유족 치료비 지원사업, 자살 유족 원스톱 서비스, 산림 치유 프로그램 등 다양한 세부 사업 포함 자살 유족의 자살률은 22.5배 높음에도 국내에서는 실제적인 지원 미흡 및 교육 프로그램 개발도 부족한 실정 자살 유가족 대책 방안 마련이 시급함",
+   "source": "김용분. (2014). 자살 유가족 위기와 스트레스 극복에 대한 연구. https://h21.hani.co.kr/arti/society/society/54271.html",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 26
+  },
+  {
+   "id": "P-SUI-G36E3K",
+   "field": "suicide",
+   "name": "자살재발 방지 프로그램 운영",
+   "hea": "A",
+   "effect": "국내 자살 재시도율 20% 응급실 기반 자살 시도자 사후관리사업이 야간 운영에 어려움 有",
+   "source": "https://www.ccdailynews.com/news/articleView.html?idxno=2240135 https://www.whosaeng.com/172201",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 25
+  },
+  {
+   "id": "P-SUI-7SAM2U",
+   "field": "suicide",
+   "name": "재난·폭력·사고 경험자 트라우마 회복 프로그램",
+   "hea": "A",
+   "effect": "PTSD 증상 3영역 모두 완화, 심리적 부정적 스트레스 완화 등의 효과 확인",
+   "source": "https://m.sedaily.com/amparticle/12556469",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 29
+  },
+  {
+   "id": "P-SUI-69X6Q8",
+   "field": "suicide",
+   "name": "종교단체 연계 자살예방 프로그램 실시",
+   "hea": "A",
+   "effect": "19년 종교계 자살예방 캠페인에 5,956명 참여, 전화상담을 통해 1,727명의 위기상담 진행",
+   "source": "http://kbcd.org/bbs/board.php?bo_table=board_07&wr_id=761&page=20",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 28
+  },
+  {
+   "id": "P-SUI-Q2U138",
+   "field": "suicide",
+   "name": "주거 지원",
+   "hea": "A",
+   "effect": "공공임대주택의 주거환경 계획요소가 자살에 영향을 미치는 것으로 확인 주거 불안정이 높으면 사회적 고립감 증가 및 자살 생각 경험할 확률 증가",
+   "source": "이승지, 이은진, & 노태린. (2021). 자살예방을 위한 주거환경 계획요소 및 실태 분석-공공임대주택을 대상으로. Journal of The Korea Institute of Healthcare Architecture, 27(3), 51-60.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 9
+  },
+  {
+   "id": "P-SUI-KKY42T",
+   "field": "suicide",
+   "name": "중독관리통합지원센터 운영",
+   "hea": "A",
+   "effect": "24년 노원구 중독관리통합지원센터 일반중독상담 1524건, 중독 고위험군 지속사례관리 1743건, 3개월 이상 중독회복 경험률 39.1% 그럼에도 불구하고 지역별 편차가 큼(광주,경기,서울에 등록자 집중) 상담 및 치료 실적 또한 미비한 것에 대한 해결책 필요",
+   "source": "https://www.segye.com/newsView/20250728509633 https://www.mk.co.kr/news/it/11440355",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 24
+  },
+  {
+   "id": "P-SUI-HL1A0B",
+   "field": "suicide",
+   "name": "철도·지하철 승강장 스크린도어 설치·개선",
+   "hea": "E",
+   "effect": "스크린도어 설치가 완료된 2010부터 지난해까지 연평균 지하철 내 자살 사고 사망자 수는 0.1명으로 감소",
+   "source": "https://www.mk.co.kr/news/society/10847721",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 54
+  },
+  {
+   "id": "P-SUI-3MVOVE",
+   "field": "suicide",
+   "name": "청년 마음건강지원사업 및 마음투자 바우처",
+   "hea": "H",
+   "effect": "전문 심리상담 이용권 제공 및 경제적 비용 부담 감소 단순 상담을 넘어 진로/사회 진출까지 연계하는 구조로 확대 중",
+   "source": "https://blog.naver.com/haechiseoul/224161240326",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 32
+  },
+  {
+   "id": "P-SUI-4EVBAH",
+   "field": "suicide",
+   "name": "청년 자살고위험군 치료비 지원",
+   "hea": "H",
+   "effect": "’24년 서울시 응급실 내원 10~30대 자살시도자 약 5,100명, 전체 응급실 내원 자살시도자의 59%가 10~30대로 나타나 청년층 치료·사후관리 필요성 확인",
+   "source": "강세리. 이경희(2025) 청소년과 청년의 자살시도 및 자살의 특성과 영향 요인 : 퇴원손상심층조사자료를 활용하여, p41",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 41
+  },
+  {
+   "id": "P-SUI-XT9YIT",
+   "field": "suicide",
+   "name": "청년마음건강지원사업",
+   "hea": "A",
+   "effect": "전문심리상담 전·후 평가 결과 우울감 19%, 불안감 18%, 스트레스 11% 감소 등 청년의 정신건강 위험요인 완화 효과 확인",
+   "source": "https://news.seoul.go.kr/gov/archives/574622?listPage=2&utm_",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 60
+  },
+  {
+   "id": "P-SUI-QP10RY",
+   "field": "suicide",
+   "name": "청소년 모바일 상담 다들어줄개",
+   "hea": "H",
+   "effect": "전화통화에 거부감 느끼는 10~20대 위주로 카카오톡/앱/문자 중심의 모바일 상담사업 가장 높은 이용률 및 접촉효과+진입 장벽 감소 실질적인 상담 실효성은 의문",
+   "source": "https://www.g-enews.com/view.php?ud=202606100859059229a6e8311f64_1 https://radio.ytn.co.kr/program/?f=2&id=61292&s_mcd=0211&s_hcd=09",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 31
+  },
+  {
+   "id": "P-SUI-21HFGP",
+   "field": "suicide",
+   "name": "편의점 연계 자살예방",
+   "hea": "A",
+   "effect": "양산시 109개 편의점에서 진행한 결과, 13%의 고위험군 발굴 '25년 자살예방의 날 기념식에서 보건복지부 장관 표창 수상",
+   "source": "https://www.kookje.co.kr/news2011/asp/newsbody.asp?code=0300&key=20250911.99099003740",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 27
+  },
+  {
+   "id": "P-SUI-U3JVPL",
+   "field": "suicide",
+   "name": "행복드림 건강음료 배달",
+   "hea": "H",
+   "effect": "19년 10가구로 시작해'26년 40가구 확대 주2회 홀몸노인 가정에 유산균 음료 전달 및 안부 확인의 인적핵심망",
+   "source": "https://www.dailycc.net/news/articleView.html?idxno=864518 https://www.ccdailynews.com/news/articleView.html?idxno=2409259",
+   "amount": {
+    "text": "서산시 기준 40가구 672만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 33
+  },
+  {
+   "id": "P-SUI-E1L36B",
+   "field": "suicide",
+   "name": "AI 기반 고독사 예방·대응 서비스",
+   "hea": "A",
+   "effect": "AI돌봄로봇을 활용해 자살 고위험군 어르신 조기 발견 사례 有",
+   "source": "https://www.viva100.com/article/20260803500353",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 6
+  },
+  {
+   "id": "P-TRF-AEN5YX",
+   "field": "traffic",
+   "name": "개인형이동장치(PM) 불법 주정차 단속",
+   "hea": "A",
+   "effect": "필요한 사업임에도 불구하고 전시행정 비판 여론 多 실질적 단속 및 견인을 통해 사고 예방 필요",
+   "source": "https://www.ngonews.kr/news/articleView.html?idxno=222515 https://www.econovill.com/news/articleView.html?idxno=705536",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 13
+  },
+  {
+   "id": "P-TRF-VGOS0I",
+   "field": "traffic",
+   "name": "고령보행자 교통안전용품 지원",
+   "hea": "H",
+   "effect": "고령보행자 사고 저감방으로 지팡이 야광스티커, 야광안전봉, 형광색 안전장바구니 등 반사·형광 안전용품을 통해 고령자의 식별성을 높이는 방안, 야간 시인성 확보를 통한 고령보행자 안전대책",
+   "source": "이은진, 이재정, 김지윤 (2025). 고령자 친화적인 15분 생활권내 교통안전 확보방안",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 41
+  },
+  {
+   "id": "P-TRF-F6POMX",
+   "field": "traffic",
+   "name": "고령운전자 교통안전교육",
+   "hea": "A",
+   "effect": "고령운전자 교통안전교육 결과 교통표지판 변별능력과 주의탐색능력에서 큰 차이를 보였으며 안전운전 인식이 유의하게 개선되었음",
+   "source": "윤춘식, 김상구. (2024). 후기 고령운전자 교통안전의식 향상을 위한 의무교육 효과분석에 관한 연구. 교통안전연구 , 43(1), 49-68. https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE12309258",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 69
+  },
+  {
+   "id": "P-TRF-8SEJ40",
+   "field": "traffic",
+   "name": "고령운전자 운전면허 자진반납지원",
+   "hea": "H",
+   "effect": "면허반납률 1%p 증가 시 고령자 사고율이 0.02142%p 감소하고, 비용편익비(B/c)6.57로 교통사고 감소 효과와 경제성이 확인됨",
+   "source": "정영제, 이설영, 정상미 (2025) 고령운전자 운전면허 자진반납 지원사업의 효과분석과 발전방안 https://www.si.re.kr/bbs/view.do?pstSn=2512290001&key=2024100039",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 38
+  },
+  {
+   "id": "P-TRF-0AW6PO",
+   "field": "traffic",
+   "name": "고령운전자 페달 오조작 방치장치 지원",
+   "hea": "H",
+   "effect": "페달 오조작 방지장치 오조작 53%감소, 과속 21% 감소로 운전습관 개선 확인",
+   "source": "https://main.kotsa.or.kr/portal/bbs/report_view.do?bbscCode=report&bbscSeqn=18833&menuCode=05010200&utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 43
+  },
+  {
+   "id": "P-TRF-OUUGIG",
+   "field": "traffic",
+   "name": "고원식 횡단보도 설치",
+   "hea": "E",
+   "effect": "차량속도 16~22km/h 감속 과속방지턱과 유사 효과",
+   "source": "이호원, 주두환, 현철승, 김동효, 박부희, & 이철기. (2012). 어린이 보호구역내 교통안전시설이 구간통행속도에 미치는 효과 분석. The Journal of The Korea Institute of Intelligent Transport Systems, 11(3), 124-132. https://www.bidpro.co.kr/n0_ipchal/konggo/sisul/konggo_view.asp?num=3582755",
+   "amount": {
+    "text": "개소 당 약 800만원",
+    "won": 8000000,
+    "unit": "개소",
+    "reason": null
+   },
+   "group": "new",
+   "row": 21
+  },
+  {
+   "id": "P-TRF-7RIKBG",
+   "field": "traffic",
+   "name": "교통단속 CCTV 신규설치",
+   "hea": "E",
+   "effect": "19년 서울시 신호위반 단속장비 신규 설치 지점 87개소 분석 결과 치명적 사고 발생 39.44% 감소 후면 무인 단속 장비 운영 결과, 설치 이전보다 이륜차 법규 위반 행위 18.9% 감소",
+   "source": "https://www.ytn.co.kr/_ln/0134_202403141410121465 이윤섭, 한여희, & 김영찬. (2023). 비교그룹방법을 이용한 공공데이터 기반 교통단속장비 사고감소 효과분석. The Journal of The Korea Institute of Intelligent Transport Systems, 168-181.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 17
+  },
+  {
+   "id": "P-TRF-KB0K1T",
+   "field": "traffic",
+   "name": "교통법규 위반 단속(고정형 교통단속 CCTV 설치 및 운영)",
+   "hea": "E",
+   "effect": "취약 지점에 대한 다발지점 관리 카드 작성 및 CCTV 연계를 통한 단속 효과 입증",
+   "source": "https://www.yna.co.kr/view/AKR20260720069200060?input=1195m",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 28
+  },
+  {
+   "id": "P-TRF-YTH6KD",
+   "field": "traffic",
+   "name": "교통사고 잦은 곳 개선사업",
+   "hea": "E",
+   "effect": "20년 개선 완료 270개소 분석 결과 사망자 56.3% 감소, '21년 기준 72.1% 감소",
+   "source": "행정안전부 보도자료",
+   "amount": {
+    "text": "전주시 1년 기준 7억 6200만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 18
+  },
+  {
+   "id": "P-TRF-TNSC58",
+   "field": "traffic",
+   "name": "교통정온화",
+   "hea": "E",
+   "effect": "보호구역, 방지턱 등의 물리적 시설물 설치로 인해 차량 속도 감소, 차량 우회, 교통사고 감소 등의 결과로 이어짐",
+   "source": "윤재용.(2019). 교통정온화 시설 설치 및 관리지침 제정",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 9
+  },
+  {
+   "id": "P-TRF-5L8OBY",
+   "field": "traffic",
+   "name": "농기계 교통사고 감지 알림 시스템 설치",
+   "hea": "E",
+   "effect": "21년~23년 알림 시스템 도입 이후 설치지역 차량 평균속도 11% 감소, 과속차량 25% 감소 농업인들의 교통안전 체감도 최대 150% 상승",
+   "source": "https://rda.go.kr/board/boardfarminfo.do?mode=view&prgId=day_farmprmninfoEntry&dataNo=100000795926&CONTENT1= https://www.safetynews.co.kr/news/articleView.html?idxno=228040",
+   "amount": {
+    "text": "농기계 사고감지 단말기 대당 약 50만원",
+    "won": 500000,
+    "unit": "대",
+    "reason": null
+   },
+   "group": "new",
+   "row": 14
+  },
+  {
+   "id": "P-TRF-RPZ0XD",
+   "field": "traffic",
+   "name": "농기계 운전자 교통안전교육",
+   "hea": "A",
+   "effect": "농기계 교통사고 분석 결과 운전미숙·부주의·교통법규 위반 등 인적요인이 주요 사고원인으로 확인되어 이를 개선하기 위한 농기계 교통안전교육을 확대시키고자 하는 노력이 필요함",
+   "source": "오주석 , 정미경 and 전재현 (2021). 농기계 교통사고 특성에 따른 안전대책 및 정책제언. 교통연구, 28(2), 33 - 49.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 72
+  },
+  {
+   "id": "P-TRF-1XSJ95",
+   "field": "traffic",
+   "name": "농기계·등화장치·안전반사판 지원",
+   "hea": "H",
+   "effect": "등화장치 부착 지원사업 시행 후 농기계 교통사고가 '13~'16년까지 연간 6~10건→3~4건으로 약 절반 감소",
+   "source": "https://www.nongmin.com/article/20201111328976",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 40
+  },
+  {
+   "id": "P-TRF-J362K8",
+   "field": "traffic",
+   "name": "도로열선 설치",
+   "hea": "E",
+   "effect": "교통정체 및 교통사고율 감소",
+   "source": "https://www.jjan.kr/article/20251216500434 https://www.incheon.go.kr/budget/BUD020212/view?bsnsYear=2023&bsnsNo=1947&curPage=21&findBsnsYear=2023&findPrgsStsCd=&findFldCd= 성북구청(2021년 성북구 친환경 스마트 열선시스템 설치 사업)",
+   "amount": {
+    "text": "100m 기준 약 1억원~1억 5,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 4
+  },
+  {
+   "id": "P-TRF-TSEPVH",
+   "field": "traffic",
+   "name": "미끄럼방지포장 개선사업",
+   "hea": "E",
+   "effect": "노면표시 9천54m2 재도색 및 미끄럼방지포장 4천800m2 정비 등",
+   "source": "https://www.inews365.com/news/article.html?no=927506",
+   "amount": {
+    "text": "청주시 9개 초등학교 기준 12억 9천만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 35
+  },
+  {
+   "id": "P-TRF-MFV99L",
+   "field": "traffic",
+   "name": "바닥형 신호등 설치",
+   "hea": "E",
+   "effect": "주간(29.76%)보다 야간(82.21%)에 효과적이며 보행자사고 14.03%, 차대차사고 57.75% 감소 그러나 한계(내구성 문제 및 고장) 해소와 관련된 사업 필요",
+   "source": "신동협. (2021). 비교그룹방법을 이용한 바닥형 보행신호등 보조장치 설치 효과 분석: Analysis of Effects from Ground-level Traffic Lights using CG Method. https://www.todaykorea.co.kr/news/articleView.html?idxno=340066",
+   "amount": {
+    "text": "개소당 2,500만원",
+    "won": 25000000,
+    "unit": "개소",
+    "reason": null
+   },
+   "group": "new",
+   "row": 5
+  },
+  {
+   "id": "P-TRF-HRK02R",
+   "field": "traffic",
+   "name": "보행자 우선도로 표시",
+   "hea": "E",
+   "effect": "보행자 우선도로 사업 시행 후 교통사고 29~31% 감소 행안부 '19년 시범사업 6곳 대상 만족도 조사 결과 평균 만족도 42.8% 상승",
+   "source": "https://m.news.nate.com/view/20240610n08235?mid=m03 Jang, J. M., Lee, Y. I., Kim, S., & Choi, H. K. (2018). A study on the change of traffic accidents around the pedestrian priority zone. Journal of Korean Society of Transportation, 36(2), 112-128.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 20
+  },
+  {
+   "id": "P-TRF-L25ICH",
+   "field": "traffic",
+   "name": "불법주정차 및 과속 무인단속시스템 설치",
+   "hea": "E",
+   "effect": "서울시 어린이보호구역 내 무인단속 카메라 설치 전후 사고건수 77% 감소('18~'19년 31건 → '21~'22년 7건) 차량감속유도 및 주정차 단속을 위해서는 주정차위반단속장비 설치가 가장 효과적이나, 많이 설치한다고 교통사고 감소 X(2.75개/km 효과 임계점)",
+   "source": "https://www.newscj.com/news/articleView.html?idxno=3171029 빈미영, 김점산, 김준용, 양철수, & 손슬기. (2021). 어린이 교통안전대책 효과분석 및 발전방안 연구. 정책연구, 1-157.",
+   "amount": {
+    "text": "송파둘레길 신호위반 과속단속 카메라 사업 기준 약 2,800만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 2
+  },
+  {
+   "id": "P-TRF-FRHQ9Q",
+   "field": "traffic",
+   "name": "사고 빈발 위험지역 발굴 개선사업",
+   "hea": "E",
+   "effect": "최근 5년간의 소방 출동 데이터 및 교통사고 발생 현황, 사상자 발생 현황 등 종합적 분석 및 사고다발표지판 등 안전시설 설치",
+   "source": "https://fpn119.co.kr/254957",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 34
+  },
+  {
+   "id": "P-TRF-4KYJWH",
+   "field": "traffic",
+   "name": "생활권 이면도로 속도관리 사업",
+   "hea": "A",
+   "effect": "전국 118개 도심 이면도로 제한속도 하향사업 결과, 1년 내 사상자 26.7% 감소, 서울 도심지역 41.7% 감소",
+   "source": "김상옥, 전제호, 김인석, & 이종학. (2015). 도시부 이면도로 제한속도 하향사업 효과평가. 교통기술과정책, 12(4), 7-12.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 24
+  },
+  {
+   "id": "P-TRF-UCFDTV",
+   "field": "traffic",
+   "name": "스마트 보행안전시스템 설치",
+   "hea": "E",
+   "effect": "도로교통공단 성능평가 시행 결과, 보행자 검지 정확도 100% 달성",
+   "source": "빈미영, 김점산, 김준용, 양철수, & 손슬기. (2021). 어린이 교통안전대책 효과분석 및 발전방안 연구. 정책연구, 1-157.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 6
+  },
+  {
+   "id": "P-TRF-LRODNS",
+   "field": "traffic",
+   "name": "시각장애인 음향신호기 점검정비 및 확대설치",
+   "hea": "E",
+   "effect": "인천시 25년 기준 7,443대의 음향신호기 운영, 시각장애인의 독립적 이동 지원 및 사고 위험 감소 기대",
+   "source": "https://www.incheon.go.kr/mayor_9/MA05010000/view?repSeq=DOM_0000000013761823&curPage=125&beginDt=&srchRepTitle=&srchRepContents=&endDt=&srchMainManagerDeptNm= https://www.incheon.go.kr/budget/BUD020212/view?bsnsYear=2023&bsnsNo=1795&curPage=36&findBsnsYear=2023&findPrgsStsCd=&findFldCd=",
+   "amount": {
+    "text": "개소당 200만~500만",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 30
+  },
+  {
+   "id": "P-TRF-STO1VY",
+   "field": "traffic",
+   "name": "안전벨트 전 좌석 착용 단속",
+   "hea": "A",
+   "effect": "안전벨트 착용 시 사망사고 63.3% 감소 앞좌석 75.7% 감소 및 뒷자석 58.1% 감소 안전벨트 착용 검지시스템 도입률이 60%인 경우 사망자수는 현재 대비 3배 이상 감소 예상",
+   "source": "won Park, J., bin Park, S., cheol Kang, S., & Oh, C. (2023). Analysis of Traffic Safety Effectiveness of Vehicle Seat-belt Wearing Detection System. The Journal of The Korea 박지원, 박수빈, 강상철, & 오철. (2023). 주행차량 안전벨트 착용 검지시스템 교통안전 효과 분석. 한국 ITS 학회 논문지, 22(5), 53-73. Institute of Intelligent Transport Systems, 22(5), 53-73.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 26
+  },
+  {
+   "id": "P-TRF-3JB4FA",
+   "field": "traffic",
+   "name": "안전펜스 설치 및 정비",
+   "hea": "E",
+   "effect": "차대 사람(무단횡단)에 대한 사고 위험성 억제 인도통행율 2배 가까이 증가 교통사고 감소 효과→설치 권장 그러나 한편으로는 어린이 보호구역의 경우 4차로 미만 이면도로 운영 多→물리적으로 무분별하게 많이 설치하는 것은 효율성 감소(최적위치 선정 중요) + 필수고려여부 중 선택에 해당",
+   "source": "http://www.dswelfare.kr/dswelfare/bbs/board.php?bo_table=bo_10_01&wr_id=237 김동식, & 권예진. (2022). 보행로 안전성 구축을 위한 보행자용 보호펜스의 배치 현황 및 입면 디자인 표현특성에 관한 연구. 한국실내디자인학회 논문집, 31(4), 82-92. 박병규.(2013).어린이 보호구역의 안전성 제고를 위한 교통안전시설 실태연구.한국공간구조학회,제13권,제2호,101-109 김진욱.(2008).어린이 보호구역 교통안전시설의 설치효과 분석에 관한 연구.서울대학교 환경대학원 석사학위논문 강명식. (2017). 어린이보호구역개선사업의 효율성 평가에 관한 연구: A study on the efficiency evaluation of the improvement project for school zones. 행정안전부.(2020).어린이 노인 보호구역 중장기 개선방안 및 표준 모델 연구",
+   "amount": {
+    "text": "용인시 기흥구 기준 약 1억 1000만원 달성군 기준 1,040m 구간 1억 원",
+    "won": null,
+    "unit": null,
+    "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
+   },
+   "group": "new",
+   "row": 3
+  },
+  {
+   "id": "P-TRF-K8CH99",
+   "field": "traffic",
+   "name": "야간 조명타워 설치",
+   "hea": "E",
+   "effect": "집중 조명 방식의 가로등 설치효과는 평균 22.4% 야간 교통사고 감소, 편익비용비 12.85로 효과 큼 TASS 분석 결과 조명타워 설치 후 야간 교통사고 발생 건수 평균 25~30% 감소",
+   "source": "박제진, 박주천, & 하태준. (2008). 횡단보도 조명시설의 설치효과에 관한 연구. 대한교통학회지, 26(2), 25-33. https://newspim.com/news/view/20190522000945",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 10
+  },
+  {
+   "id": "P-TRF-2PNCP5",
+   "field": "traffic",
+   "name": "양방향 무인단속 장비 설치",
+   "hea": "E",
+   "effect": "충돌 14~25%↓·사망중상 30~40%↓; 편익비용비 2.6~10",
+   "source": "Wilson 외(2010); FHWA https://www.yna.co.kr/view/AKR20240313142000004",
+   "amount": {
+    "text": "대당 약 2,500만원",
+    "won": 25000000,
+    "unit": "대",
+    "reason": null
+   },
+   "group": "new",
+   "row": 33
+  },
+  {
+   "id": "P-TRF-71RSBS",
+   "field": "traffic",
+   "name": "어린이 교통안전용품지원",
+   "hea": "H",
+   "effect": "빛 반사형 어린이 교안전용품 착용 시 어린이 보행자 발견거리 17m→150m로 약 9배 증가",
+   "source": "https://childsafetycommittee.org/activity/?bmode=view&idx=94691859",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 39
+  },
+  {
+   "id": "P-TRF-G68R8R",
+   "field": "traffic",
+   "name": "어린이 대상 교통안전교육",
+   "hea": "A",
+   "effect": "초등학생 456명 대상 교육 전·후 및 대조군을 비교한 결과, 교통안전 지식이 6.48점→8.38점으로 향상되고 안전태도도 개선됨",
+   "source": "손주현(Ju Hyun Shon), and 이명선(Myung Sun Lee). \"참여 중심 어린이 교통안전교육 프로그램 효과 평가.\" 보건교육건강증진학회지 27.1 (2010): 49-60. https://www.riss.kr/search/detail/DetailView.do?p_mat_type=1a0202e37d52c72d&control_no=9ff8d1477287f9e7ffe0bdc3ef48d419",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 70
+  },
+  {
+   "id": "P-TRF-8RLXP6",
+   "field": "traffic",
+   "name": "어린이 보호구역 개선사업",
+   "hea": "E",
+   "effect": "23년 기준 서울시 어린이 보호구역 내 교통사고 71% 감소 18년 기준 전년 대비 사망자 비율 37% 감소",
+   "source": "https://www.boannews.com/media/view.asp?idx=124328 서울특별시 보도자료 https://www.korea.kr/briefing/policyBriefingView.do?newsId=148859607",
+   "amount": {
+    "text": "경기도 하남시 6억 5,000만원 서울특별시 초등학교 1개소 당 400만원",
+    "won": null,
+    "unit": null,
+    "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
+   },
+   "group": "new",
+   "row": 19
+  },
+  {
+   "id": "P-TRF-QDOAPN",
+   "field": "traffic",
+   "name": "영유아 교통안전용품(카시트) 지원",
+   "hea": "H",
+   "effect": "카시트 미착용 시 복합 상해가능성은 49.7%로 카시트를 정상적으로 사용하는 경우 29.5%보다 20.2% 높으며, 「도로교통법」제50조에 따라 6세 미만의 영유아는 카시트와 같은 유아보호용 장구를 장착해야하지만 도시부 도로의 카시트 착용률 3.3%에 불과",
+   "source": "https://main.kotsa.or.kr/portal/bbs/report_view.do?bbscCode=report&bbscSeqn=15093&menuCode=05010200&utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 42
+  },
+  {
+   "id": "P-TRF-2X564H",
+   "field": "traffic",
+   "name": "우회전 일시정지 보행자 보호의무 위반 단속",
+   "hea": "A",
+   "effect": "우회전 교통사고 보행자 사망률 56.0%로 전체 교통사고의 보행자 사망률(36.3%)보다 높게 나타나 우회전 시 일시정지 및 보행자 보호의무 준수를 위한 단속 강화 필요성이 높음",
+   "source": "https://www.police.go.kr/user/bbs/BD_selectBbs.do?q_bbsCode=1007&q_bbscttSn=20260423182115036&utm https://www.koroad.or.kr/main/board/6/7437/board_view.do?bdNoticeYn=N&bdOpenYn=Y&cp=21&listType=list&utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 68
+  },
+  {
+   "id": "P-TRF-NUQRB5",
+   "field": "traffic",
+   "name": "우회전 전용차로 횡방향 그루빙 설치",
+   "hea": "E",
+   "effect": "사업 이후 차량 통행속도 46.11km/h→41.37km/h(10.28% 감소) 보행자 차량인식률 20~46.5%p 향상",
+   "source": "https://www.geoje.go.kr/board/view.geoje?boardId=BBS_0000028&menuCd=DOM_000008902003004000&paging=ok&startPage=1&dataSid=306161184 http://www.gjin.co.kr/front/news/view.do?articleId=ARTICLE_00018597",
+   "amount": {
+    "text": "교차로 1개소당 약 1,500만원 ~ 2,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 22
+  },
+  {
+   "id": "P-TRF-C236YF",
+   "field": "traffic",
+   "name": "운수종사자 교통안전교육",
+   "hea": "A",
+   "effect": "운수종사자 온라인 교육의 설문조사 결과 모바일 활용 74.1%, 학습효과 크다 69.5%로교육 참여자 조사에서 학습효과에 대한 긍정적 평가가 확인됨",
+   "source": "https://go.seoul.co.kr/news/newsView.php?id=20211105500133&utm_",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 71
+  },
+  {
+   "id": "P-TRF-0J3C11",
+   "field": "traffic",
+   "name": "음주운전 단속",
+   "hea": "A",
+   "effect": "25년 서울 기준 연말연시 단속을 통해 음주운전 사고 16.7% 감소",
+   "source": "https://www.edaily.co.kr/News/Read?newsId=03325926645318376&mediaCodeNo=257",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 27
+  },
+  {
+   "id": "P-TRF-046JRB",
+   "field": "traffic",
+   "name": "이륜차 사고 자동 알림 시스템",
+   "hea": "A",
+   "effect": "사고 신속 감지 및 보호자/경찰과 연계해 운전자 구조 지원 사례 有 사고 발생 후 90초만에 사고 인지 후 119 신고 소요 시간 4분→신고 소요 시간 대폭 단축",
+   "source": "https://www.chungnamilbo.co.kr/news/articleView.html?idxno=831455 https://www.autodaily.co.kr/news/articleView.html?idxno=523211",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 15
+  },
+  {
+   "id": "P-TRF-69BALN",
+   "field": "traffic",
+   "name": "이륜차 안전신고 포상제",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 12
+  },
+  {
+   "id": "P-TRF-LENAG5",
+   "field": "traffic",
+   "name": "자전거도로 안전시설 확충 사업",
+   "hea": "E",
+   "effect": "자전거와 다른 차종과의 충돌 시 사고심각도가 높고 측면충돌의 사고유형이 가장 많았기 때문에 공간적 분리가 우선시 되어야 함",
+   "source": "최정윤. (2021). 자전거 사고 유형 분석에 따른 개선방안 연구: 서울시를 중심으로: Measures for improvement based on the analysis of bicycle accident types. https://www.yna.co.kr/view/AKR20200610026500530 https://www.shinailbo.co.kr/news/articleView.html?idxno=5039496",
+   "amount": {
+    "text": "지자체 당 약 1억 7,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 29
+  },
+  {
+   "id": "P-TRF-D582LR",
+   "field": "traffic",
+   "name": "전동킥보드 속도제한",
+   "hea": "A",
+   "effect": "개인형 이동장치로 인한 사고 4년 사이 2.5배 증가 속도 5km 감소 당 정지거리 26% 감소 + 충격량 절반 이상 감소",
+   "source": "https://news.skbroadband.com/news/articleView.html?idxno=221345",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 31
+  },
+  {
+   "id": "P-TRF-XFBV09",
+   "field": "traffic",
+   "name": "전동킥보드 안전모 단속",
+   "hea": "A",
+   "effect": "헬멧 미착용, 2인 이상 탑승 등 위험한 운행에 대한 단속 학원가 등 청소년 통행이 많은 지역 집중 관리 구역",
+   "source": "https://www.ccdn.co.kr/news/articleView.html?idxno=1092236",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 32
+  },
+  {
+   "id": "P-TRF-TPLI38",
+   "field": "traffic",
+   "name": "제한속도 하향 추진",
+   "hea": "A",
+   "effect": "부산시 안전속도5030 전면 시행 결과 보행 중 교통사고 사망자수 40.5% 감소 서울 종로구 구간 제한속도 60km→50km 하향 결과 보행 부상자 22.7% 감소",
+   "source": "https://www.newsis.com/view/NISX20190611_0000677234 https://news.nate.com/view/20200531n07705 https://www.korea.kr/briefing/policyBriefingView.do?newsId=148862532&tongYeog=Y&pageIndex=&startDate=2024-04-09&endDate=2025-04-09&srchWord=",
+   "amount": {
+    "text": "지자체 당 약 1억 5,000만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 7
+  },
+  {
+   "id": "P-TRF-O3JKH1",
+   "field": "traffic",
+   "name": "지능형 교통 체계(ITS) 구축 사업",
+   "hea": "E",
+   "effect": "강릉시 스마트 횡단보도 도입 이후 무단횡단 90.6% 감소 수원시 긴급차량 우선 신호시스템 운영으로 응급환자 이송시간 56.3% 단축",
+   "source": "국토교통부.(2014). 2013 경제발전경험모듈화사업: 지능형 교통시스템 구축 https://www.seoul.co.kr/news/economy/policy/2022/03/08/20220308500074",
+   "amount": {
+    "text": "삼척시 기준 국비 30억원 + 지방비 20억원",
+    "won": null,
+    "unit": null,
+    "reason": "국비·지방비 분담이라 산출 방식 확인 필요"
+   },
+   "group": "new",
+   "row": 23
+  },
+  {
+   "id": "P-TRF-7BYUKM",
+   "field": "traffic",
+   "name": "차선 색깔 유도선 설치사업",
+   "hea": "E",
+   "effect": "11년 고속도로 분기점 설치 후 6개월만에 사고 88% 감소 나들목 사고 40% 감소 등 효과 有",
+   "source": "https://www.ktv.go.kr/content/view?content_id=716253 https://www.donga.com/news/Society/article/all/20211203/110578408/1",
+   "amount": {
+    "text": "개소당 500~800만원",
+    "won": null,
+    "unit": null,
+    "reason": "범위로 적혀 있어 단가 확정 필요"
+   },
+   "group": "new",
+   "row": 25
+  },
+  {
+   "id": "P-TRF-KG6WHM",
+   "field": "traffic",
+   "name": "찾아가는 고령보행자 교통안전교육",
+   "hea": "A",
+   "effect": "노인 교통 사망자수 전년 동기 대비 71.4% 개선 (14명→4명)",
+   "source": "https://www.cbtti.or.kr/bbs/board.php?bo_table=free_board&wr_id=6298&sst=wr_datetime&sod=asc&sop=and&page=15",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "existing",
+   "row": 73
+  },
+  {
+   "id": "P-TRF-LAMKMH",
+   "field": "traffic",
+   "name": "화물차량 법규위반 단속",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 16
+  },
+  {
+   "id": "P-TRF-7O4QIO",
+   "field": "traffic",
+   "name": "회전교차로 설치",
+   "hea": "E",
+   "effect": "10년~18년 회전교차로 설치된 476곳 분석 결과 사망자 76% 감소 및 사상자 33.1~45.2% 감소",
+   "source": "https://www.korea.kr/news/policyNewsView.do?newsId=148885582#policyNews https://www.yna.co.kr/view/AKR20210329023900530",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 11
+  },
+  {
+   "id": "P-TRF-120BJG",
+   "field": "traffic",
+   "name": "횡단보도 신호시간 연장",
+   "hea": "A",
+   "effect": "노인 보행자 사고 예방 효과 입증 19년 대비 20년 사망자 14.3%, 부상자 0.8% 감소",
+   "source": "https://www.yna.co.kr/view/AKR20200707154800061",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 8
+  }
+ ]
+}

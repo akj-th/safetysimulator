@@ -5,6 +5,7 @@
   "description": "119 출동자료를 앱이 읽는 격자·통계 JSON으로 바꾸는 변환 도구",
   "scripts": {
     "build": "node --max-old-space-size=4096 build-stats.mjs",
+    "palette": "node build-palette.mjs",
     "verify": "node verify-stats.mjs",
     "verify-rules": "node verify-rules.mjs",
     "convert-legacy": "node convert-gis.js"
