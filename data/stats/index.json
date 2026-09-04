@@ -1,0 +1,640 @@
+{
+  "source": "119 출동자료 (AURI 제공, 2026-08-26 최종본) · 2023~2025년 · 개인정보 항목 제외",
+  "generatedAt": "2026-09-04",
+  "minSample": 30,
+  "categories": {
+    "suicide": "자살",
+    "traffic": "교통사고",
+    "fire": "화재",
+    "crime": "범죄",
+    "life": "생활안전",
+    "industrial": "산업재해",
+    "infection": "감염병"
+  },
+  "categoryOrder": [
+    "traffic",
+    "fire",
+    "crime",
+    "life",
+    "industrial",
+    "suicide",
+    "infection"
+  ],
+  "regions": [
+    {
+      "region": "bucheon",
+      "label": "경기도 부천시",
+      "short": "부천시",
+      "total": 27365,
+      "inside": 4475,
+      "focusTypes": [
+        "범죄",
+        "감염병",
+        "자살"
+      ],
+      "areaHa": 254.37,
+      "meanRisk": 1.94,
+      "dongCount": 25
+    },
+    {
+      "region": "jeju",
+      "label": "제주특별자치도",
+      "short": "제주도",
+      "total": 16579,
+      "inside": 3084,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 1464.73,
+      "meanRisk": 0.282,
+      "dongCount": 73
+    },
+    {
+      "region": "andong",
+      "label": "경상북도 안동시",
+      "short": "안동시",
+      "total": 8251,
+      "inside": 2176,
+      "focusTypes": [
+        "범죄",
+        "감염병",
+        "자살"
+      ],
+      "areaHa": 849.76,
+      "meanRisk": 0.634,
+      "dongCount": 56
+    },
+    {
+      "region": "bukgu",
+      "label": "광주광역시 북구",
+      "short": "광주 북구",
+      "total": 8079,
+      "inside": 1771,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 492.62,
+      "meanRisk": 1.25,
+      "dongCount": 40
+    },
+    {
+      "region": "sejong",
+      "label": "세종특별자치시",
+      "short": "세종시",
+      "total": 5061,
+      "inside": 619,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 485.56,
+      "meanRisk": 0.638,
+      "dongCount": 34
+    },
+    {
+      "region": "michuhol",
+      "label": "인천광역시 미추홀구",
+      "short": "미추홀구",
+      "total": 4455,
+      "inside": 913,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "areaHa": 188.07,
+      "meanRisk": 1.473,
+      "dongCount": 7
+    },
+    {
+      "region": "gwanak",
+      "label": "서울특별시 관악구",
+      "short": "관악구",
+      "total": 4279,
+      "inside": 816,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "areaHa": 110.01,
+      "meanRisk": 2.143,
+      "dongCount": 3
+    },
+    {
+      "region": "dangjin",
+      "label": "충청남도 당진시",
+      "short": "당진시",
+      "total": 4237,
+      "inside": 488,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "areaHa": 233.18,
+      "meanRisk": 0.791,
+      "dongCount": 23
+    },
+    {
+      "region": "pocheon",
+      "label": "경기도 포천시",
+      "short": "포천시",
+      "total": 3919,
+      "inside": 189,
+      "focusTypes": [
+        "범죄",
+        "생활안전",
+        "자살"
+      ],
+      "areaHa": 97.86,
+      "meanRisk": 0.982,
+      "dongCount": 18
+    },
+    {
+      "region": "mokpo",
+      "label": "전라남도 목포시",
+      "short": "목포시",
+      "total": 3623,
+      "inside": 718,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "areaHa": 236.22,
+      "meanRisk": 1.191,
+      "dongCount": 50
+    },
+    {
+      "region": "gongju",
+      "label": "충청남도 공주시",
+      "short": "공주시",
+      "total": 3227,
+      "inside": 418,
+      "focusTypes": [
+        "범죄",
+        "감염병",
+        "자살"
+      ],
+      "areaHa": 253.48,
+      "meanRisk": 0.856,
+      "dongCount": 38
+    },
+    {
+      "region": "geumcheon",
+      "label": "서울특별시 금천구",
+      "short": "금천구",
+      "total": 2873,
+      "inside": 390,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 90.58,
+      "meanRisk": 1.829,
+      "dongCount": 3
+    },
+    {
+      "region": "naju",
+      "label": "전라남도 나주시",
+      "short": "나주시",
+      "total": 2801,
+      "inside": 180,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "areaHa": 235.21,
+      "meanRisk": 1.03,
+      "dongCount": 47
+    },
+    {
+      "region": "jeongeup",
+      "label": "전북특별자치도 정읍시",
+      "short": "정읍시",
+      "total": 2692,
+      "inside": 286,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 224.93,
+      "meanRisk": 0.826,
+      "dongCount": 41
+    },
+    {
+      "region": "yeongcheon",
+      "label": "경상북도 영천시",
+      "short": "영천시",
+      "total": 2613,
+      "inside": 345,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "areaHa": 265.63,
+      "meanRisk": 0.836,
+      "dongCount": 39
+    },
+    {
+      "region": "sasanggu",
+      "label": "부산광역시 사상구",
+      "short": "사상구",
+      "total": 2600,
+      "inside": 262,
+      "focusTypes": [
+        "범죄",
+        "생활안전",
+        "자살"
+      ],
+      "areaHa": 66.4,
+      "meanRisk": 1.681,
+      "dongCount": 8
+    },
+    {
+      "region": "miryang",
+      "label": "경상남도 밀양시",
+      "short": "밀양시",
+      "total": 2574,
+      "inside": 425,
+      "focusTypes": [
+        "범죄",
+        "감염병",
+        "자살"
+      ],
+      "areaHa": 302.49,
+      "meanRisk": 0.675,
+      "dongCount": 20
+    },
+    {
+      "region": "sacheon",
+      "label": "경상남도 사천시",
+      "short": "사천시",
+      "total": 2551,
+      "inside": 363,
+      "focusTypes": [
+        "범죄",
+        "감염병",
+        "자살"
+      ],
+      "areaHa": 209.63,
+      "meanRisk": 1.045,
+      "dongCount": 32
+    },
+    {
+      "region": "ujunggu",
+      "label": "울산광역시 중구",
+      "short": "울산 중구",
+      "total": 2462,
+      "inside": 472,
+      "focusTypes": [
+        "화재",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 185.19,
+      "meanRisk": 1.515,
+      "dongCount": 18
+    },
+    {
+      "region": "jjunggu",
+      "label": "대전광역시 중구",
+      "short": "대전 중구",
+      "total": 2432,
+      "inside": 470,
+      "focusTypes": [
+        "화재",
+        "산재",
+        "자살"
+      ],
+      "areaHa": 207.58,
+      "meanRisk": 1.598,
+      "dongCount": 25
+    },
+    {
+      "region": "yeongju",
+      "label": "경상북도 영주시",
+      "short": "영주시",
+      "total": 2173,
+      "inside": 380,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "areaHa": 230.88,
+      "meanRisk": 0.955,
+      "dongCount": 23
+    },
+    {
+      "region": "namwon",
+      "label": "전북특별자치도 남원시",
+      "short": "남원시",
+      "total": 2125,
+      "inside": 498,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 444.27,
+      "meanRisk": 0.763,
+      "dongCount": 39
+    },
+    {
+      "region": "gjunggu",
+      "label": "대구광역시 중구",
+      "short": "대구 중구",
+      "total": 2015,
+      "inside": 722,
+      "focusTypes": [
+        "범죄",
+        "산재",
+        "자살"
+      ],
+      "areaHa": 75.39,
+      "meanRisk": 3.792,
+      "dongCount": 54
+    },
+    {
+      "region": "jecheon",
+      "label": "충청북도 제천시",
+      "short": "제천시",
+      "total": 1980,
+      "inside": 126,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 128.39,
+      "meanRisk": 1.138,
+      "dongCount": 34
+    },
+    {
+      "region": "hongcheon",
+      "label": "강원특별자치도 홍천군",
+      "short": "홍천군",
+      "total": 1855,
+      "inside": 194,
+      "focusTypes": [
+        "범죄",
+        "감염병",
+        "자살"
+      ],
+      "areaHa": 162.06,
+      "meanRisk": 0.73,
+      "dongCount": 10
+    },
+    {
+      "region": "goheung",
+      "label": "전라남도 고흥군",
+      "short": "고흥군",
+      "total": 1636,
+      "inside": 12,
+      "focusTypes": [
+        "생활안전",
+        "산재",
+        "자살"
+      ],
+      "areaHa": 12.46,
+      "meanRisk": 1.072,
+      "dongCount": 16
+    },
+    {
+      "region": "seocheon",
+      "label": "충청남도 서천군",
+      "short": "서천군",
+      "total": 1396,
+      "inside": 24,
+      "focusTypes": [
+        "생활안전",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 73.98,
+      "meanRisk": 1.125,
+      "dongCount": 13
+    },
+    {
+      "region": "donggu",
+      "label": "부산광역시 동구",
+      "short": "부산 동구",
+      "total": 1330,
+      "inside": 273,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "areaHa": 50.66,
+      "meanRisk": 2.833,
+      "dongCount": 4
+    },
+    {
+      "region": "hamyang",
+      "label": "경상남도 함양군",
+      "short": "함양군",
+      "total": 1217,
+      "inside": 14,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 60.91,
+      "meanRisk": 0.741,
+      "dongCount": 11
+    },
+    {
+      "region": "gangjin",
+      "label": "전라남도 강진군",
+      "short": "강진군",
+      "total": 1058,
+      "inside": 4,
+      "focusTypes": [
+        "생활안전",
+        "산재",
+        "자살"
+      ],
+      "areaHa": 25.08,
+      "meanRisk": 0.921,
+      "dongCount": 11
+    },
+    {
+      "region": "namhae",
+      "label": "경상남도 남해군",
+      "short": "남해군",
+      "total": 1050,
+      "inside": 27,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 61.31,
+      "meanRisk": 1.138,
+      "dongCount": 10
+    },
+    {
+      "region": "jangheung",
+      "label": "전라남도 장흥군",
+      "short": "장흥군",
+      "total": 1002,
+      "inside": 79,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "areaHa": 60.05,
+      "meanRisk": 1.116,
+      "dongCount": 10
+    },
+    {
+      "region": "yeongdogu",
+      "label": "부산광역시 영도구",
+      "short": "영도구",
+      "total": 979,
+      "inside": 386,
+      "focusTypes": [
+        "범죄",
+        "산재",
+        "자살"
+      ],
+      "areaHa": 77.12,
+      "meanRisk": 1.854,
+      "dongCount": 21
+    },
+    {
+      "region": "jeongseon",
+      "label": "강원특별자치도 정선군",
+      "short": "정선군",
+      "total": 930,
+      "inside": 55,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "areaHa": 99.55,
+      "meanRisk": 1.301,
+      "dongCount": 9
+    },
+    {
+      "region": "cheongsong",
+      "label": "경상북도 청송군",
+      "short": "청송군",
+      "total": 804,
+      "inside": 23,
+      "focusTypes": [
+        "감염병",
+        "화재",
+        "자살"
+      ],
+      "areaHa": 91.65,
+      "meanRisk": 0.793,
+      "dongCount": 8
+    },
+    {
+      "region": "danyang",
+      "label": "충청북도 단양군",
+      "short": "단양군",
+      "total": 801,
+      "inside": 46,
+      "focusTypes": [
+        "교통사고",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 140.88,
+      "meanRisk": 0.342,
+      "dongCount": 10
+    },
+    {
+      "region": "taebaek",
+      "label": "강원특별자치도 태백시",
+      "short": "태백시",
+      "total": 742,
+      "inside": 29,
+      "focusTypes": [
+        "화재",
+        "산업재해",
+        "자살"
+      ],
+      "areaHa": 79.86,
+      "meanRisk": 1.462,
+      "dongCount": 16
+    },
+    {
+      "region": "jindo",
+      "label": "전라남도 진도군",
+      "short": "진도군",
+      "total": 737,
+      "inside": 52,
+      "focusTypes": [
+        "산재",
+        "범죄",
+        "자살"
+      ],
+      "areaHa": 52.43,
+      "meanRisk": 1.069,
+      "dongCount": 7
+    },
+    {
+      "region": "jinan",
+      "label": "전북특별자치도 진안군",
+      "short": "진안군",
+      "total": 736,
+      "inside": 65,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "areaHa": 84.68,
+      "meanRisk": 0.778,
+      "dongCount": 11
+    },
+    {
+      "region": "jangsu",
+      "label": "전북특별자치도 장수군",
+      "short": "장수군",
+      "total": 700,
+      "inside": 19,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "areaHa": 56.82,
+      "meanRisk": 0.876,
+      "dongCount": 7
+    },
+    {
+      "region": "ongjin",
+      "label": "인천광역시 옹진군",
+      "short": "옹진군",
+      "total": 323,
+      "inside": 29,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "areaHa": 33.22,
+      "meanRisk": 0.37,
+      "dongCount": 7
+    }
+  ]
+}

@@ -2,10 +2,12 @@
   "name": "auri-gis-tools",
   "private": true,
   "type": "module",
-  "description": "119 응급신고 SHP를 격자 집계 JSON으로 바꾸는 변환 도구",
+  "description": "119 출동자료를 앱이 읽는 격자·통계 JSON으로 바꾸는 변환 도구",
   "scripts": {
-    "convert": "node convert-gis.js",
-    "verify": "node verify-rules.mjs"
+    "build": "node --max-old-space-size=4096 build-stats.mjs",
+    "verify": "node verify-stats.mjs",
+    "verify-rules": "node verify-rules.mjs",
+    "convert-legacy": "node convert-gis.js"
   },
   "dependencies": {
     "proj4": "^2.21.0"
