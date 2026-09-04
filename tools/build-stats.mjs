@@ -79,6 +79,34 @@ const PLACE_GROUPS = {
   '도로외교통지역': '교통지역',
 };
 
+/* ── 반복 발생 지점 (사전진단서 2.2 · 목차안 III.3 "동일 장소·시설 반복") ──
+   같은 장소에서 몇 번이나 되풀이됐는지를 셉니다.
+
+   ★ 임계값은 분야마다 다릅니다. 사전진단서 부천시 원문 기준입니다.
+       "3개년 내 부천시에서 **5회 이상** 범죄가 반복 발생한 지점은 총 6개소"
+       "…**2회 이상** 감염병이…                        총 10개소"
+       "…**3회 이상** 자살·자살 시도가…                총 10개소"
+     발생 빈도가 다른 분야를 같은 잣대로 세면 의미가 없어 이렇게 두었습니다.
+     담당자가 바꿀 수 있게 상수로 뺐습니다.
+
+   ── 무엇을 "같은 지점"으로 보는가 ──────────────────────────────────
+   **지번주소가 같으면 같은 지점**으로 봅니다. 목차안이 "동일 장소·시설"이라
+   적고 있고, 좌표는 같은 건물이라도 지오코딩에 따라 조금씩 흔들립니다.
+   실제로 부천 범죄는 이 방식에서 조사지 내 6개소가 나와 원문과 일치했습니다.
+
+   ⚠️ 감염병(우리 시전체 11 vs 원문 10)·자살(30 vs 10)은 맞지 않습니다.
+     원문이 시전체 기준인지 조사지 기준인지도 분야마다 달라 보입니다.
+     AURI 확인 대기 — 우리 값은 계산 방식을 적어 두고 그대로 씁니다.
+
+   ── 개인정보 ────────────────────────────────────────────────────────
+   결과물에는 **개소 수와 읍면동 이름만** 남깁니다. 지번주소는 묶는 열쇠로만
+   쓰고 파일에 쓰지 않습니다.                                            */
+const REPEAT_THRESHOLD = {
+  crime: 5, infection: 2, suicide: 3,
+  /* 원문에 없는 분야는 자살과 같은 3회로 둡니다 (담당자 조정 대상) */
+  traffic: 3, fire: 3, life: 3, industrial: 3,
+};
+
 /* ── 통계 누적기 ───────────────────────────────────────────────────── */
 
 const AGE_BUCKETS = ['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80+'];
@@ -186,6 +214,38 @@ function exportAcc(acc) {
     symptom: { n: acc.symptom.n, top: topList(acc.symptom) },
     cause: { n: acc.cause.n, top: topList(acc.cause) },
     hour: { n: acc.hour.n, bins: acc.hour.bins, peak: peakWindow(acc.hour) },
+  };
+}
+
+/**
+ * 반복 발생 지점 요약.
+ * spots: 지번주소 → { region, inside, dong }
+ * 결과물에는 **주소를 남기지 않습니다** — 개소 수와 읍면동 이름만.
+ */
+function exportRepeat(spots, threshold) {
+  if (!spots || !spots.size) return null;
+
+  const region = [], inside = [];
+  for (const v of spots.values()) {
+    if (v.region >= threshold) region.push(v);
+    if (v.inside >= threshold) inside.push(v);
+  }
+
+  /* 어느 동에 반복 지점이 몰렸는가 — "특히 원미구 중동에서 반복" 문장의 재료 */
+  const byDong = {};
+  for (const v of region) byDong[v.dong] = (byDong[v.dong] || 0) + 1;
+
+  return {
+    threshold,
+    spots: { region: region.length, inside: inside.length },
+    /* 반복 지점에서 일어난 총 건수 (개소 수만으로는 규모를 알 수 없어서) */
+    incidents: {
+      region: region.reduce((n, v) => n + v.region, 0),
+      inside: inside.reduce((n, v) => n + v.inside, 0),
+    },
+    maxAtOneSpot: region.reduce((m, v) => Math.max(m, v.region), 0),
+    topDongs: Object.entries(byDong).sort((a, b) => b[1] - a[1]).slice(0, 3)
+      .map(([dong, n]) => ({ dong, spots: n })),
   };
 }
 
@@ -338,6 +398,7 @@ const store = {};
 for (const slug of Object.keys(REGIONS)) {
   store[slug] = {
     grid: {},          // "분야|칸X|칸Y" → 건수
+    spot: {},          // 분야 → (지번주소 → 발생 횟수) · 반복 발생 지점 계산용
     cat: {},           // 분야 → { region: acc, inside: acc }
     dong: {},          // 읍면동 → 분야 → { region: acc, inside: acc }
     insideTotal: 0,
@@ -361,7 +422,7 @@ for (const [file, category] of Object.entries(FILE_CATEGORY)) {
     age: csv.col('환자연'), sex: csv.col('환자성'),
     place: csv.col('발생장'), type: csv.col('type'),
     symptom: csv.col('환자증'), cause: csv.col('질병외_'),
-    x: csv.col('X'), y: csv.col('Y'),
+    x: csv.col('X'), y: csv.col('Y'), addr: csv.col('지번주'),
   };
 
   let used = 0;
@@ -418,7 +479,17 @@ for (const [file, category] of Object.entries(FILE_CATEGORY)) {
     addRow(s.cat[cat].region, row);
     if (inside) addRow(s.cat[cat].inside, row);
 
+    /* 반복 발생 지점 — 지번주소가 같으면 같은 장소로 봅니다.
+       주소는 묶는 열쇠로만 쓰고 결과물에는 개소 수와 읍면동만 남깁니다. */
+    const addr = String(r[C.addr] || '').replace(/s+/g, ' ').trim();
     const dongName = (r[C.dong] || '').trim() || '(미상)';
+    if (addr) {
+      if (!s.spot[cat]) s.spot[cat] = new Map();
+      const spot = s.spot[cat].get(addr) || { region: 0, inside: 0, dong: dongName };
+      spot.region++; if (inside) spot.inside++;
+      s.spot[cat].set(addr, spot);
+    }
+
     if (!s.dong[dongName]) s.dong[dongName] = {};
     if (!s.dong[dongName][cat]) s.dong[dongName][cat] = { region: newAcc(), inside: newAcc() };
     addRow(s.dong[dongName][cat].region, row);
@@ -495,6 +566,9 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
       },
       inside, region,
       compare: compare(inside, region),
+      /* 같은 지번주소에서 임계값 이상 되풀이된 지점 수. 주소는 남기지 않고
+         개소 수와 어느 동에 몰렸는지만 남깁니다 (사전진단서 2.2). */
+      repeat: exportRepeat(s.spot[cat], REPEAT_THRESHOLD[cat] || 3),
       /* 표본이 적으면 비율을 그대로 읽으면 안 됩니다 */
       sample: { n: pair.inside.n, reliable: pair.inside.n >= MIN_SAMPLE, minSample: MIN_SAMPLE },
     };
