@@ -62,6 +62,75 @@
   .rx-cat{font-size:var(--fs-cap); color:var(--g2); font-weight:700; letter-spacing:.12em; margin-left:9px}
   .rx-note{font-size:var(--fs-body); color:var(--g3); margin-top:4px; line-height:var(--lh-body)}
   .rx-basis{font-size:var(--fs-cap); color:var(--g2); margin-top:7px; font-family:var(--mono)}
+
+  /* ── 6단 서술 (행안부 요구 구성) ────────────────────────────────
+     ① 인적 특성 ② 사고유형 ③ 물적·공간환경 ④ 대응역량
+     ⑤ 현장확인 사항 ⑥ 개선방향
+     단 번호는 라벨로만 강조하고 면을 칠하지 않습니다(디자인 규칙). */
+  .stage-num{
+    font-size:var(--fs-cap); font-weight:700; letter-spacing:.12em;
+    color:var(--main); margin-right:9px;
+  }
+  .stage-num.muted{color:var(--g2)}
+
+  /* 조사지(복합위험지역) 안내 줄 */
+  .area-bar{
+    display:flex; flex-wrap:wrap; gap:0 26px; align-items:baseline;
+    padding:14px 0; margin-bottom:26px;
+    border-top:1px solid var(--g1); border-bottom:1px solid var(--g1);
+  }
+  .area-bar .k{font-size:var(--fs-cap); font-weight:700; letter-spacing:.12em; color:var(--g2); margin-right:7px}
+  .area-bar .v{font-size:var(--fs-sm); color:var(--g3)}
+  .area-bar .v b{color:var(--k); font-weight:700}
+  .area-bar .in{color:var(--main); font-weight:700}
+
+  /* 분야별 서술 묶음 */
+  .cat-block{padding:16px 0; border-bottom:1px solid var(--g1)}
+  .cat-block:last-child{border-bottom:none}
+  .cat-block .cat-name{font-size:var(--fs-body); font-weight:700; color:var(--k)}
+  .cat-block .cat-count{font-size:var(--fs-cap); color:var(--g2); margin-left:9px; font-family:var(--mono)}
+  .cat-block .cat-text{
+    margin-top:6px; font-size:var(--fs-body); color:var(--g3); line-height:var(--lh-body);
+  }
+  .cat-block .cat-text b{color:var(--k); font-weight:700}
+  .cat-block .warn{color:var(--main); font-weight:700}
+
+  /* 현장확인 사항 — 번호 매긴 확인 목록 */
+  .check-list{padding:0}
+  .check-group{padding:14px 0; border-bottom:1px solid var(--g1)}
+  .check-group:last-child{border-bottom:none}
+  .check-group .g-name{font-size:var(--fs-body); font-weight:700; color:var(--k); margin-bottom:7px}
+  .check-group ul{margin:0; padding-left:19px}
+  .check-group li{font-size:var(--fs-body); color:var(--g3); line-height:var(--lh-body); margin:4px 0}
+  .check-group li .src{font-size:var(--fs-cap); color:var(--g2); margin-left:7px; font-family:var(--mono)}
+
+  /* 자료가 아직 없는 단 */
+  .pending{
+    padding:16px 0; font-size:var(--fs-body); color:var(--g2); line-height:var(--lh-body);
+  }
+  .pending b{color:var(--g3); font-weight:700}
+
+  /* 읍면동 종합 분석 — 지점 상세보다 먼저 나옵니다 */
+  .dong-lead{
+    font-size:var(--fs-lead); color:var(--g3); line-height:var(--lh-body); margin:0 0 18px;
+  }
+  .dong-lead b{color:var(--k); font-weight:700}
+  .dong-lead .hi{color:var(--main); font-weight:700}
+  .dong-grid{
+    display:grid; grid-template-columns:repeat(7,1fr); gap:0;
+    border-top:1px solid var(--g1);
+  }
+  @media(max-width:820px){ .dong-grid{grid-template-columns:repeat(4,1fr)} }
+  @media(max-width:480px){ .dong-grid{grid-template-columns:repeat(2,1fr)} }
+  .dong-cell{
+    padding:12px 10px 12px 0; border-bottom:1px solid var(--g1);
+  }
+  .dong-cell .n{font-size:var(--fs-cap); font-weight:700; letter-spacing:.08em; color:var(--g2)}
+  .dong-cell .c{font-size:var(--fs-lead); font-weight:700; color:var(--g3); margin-top:4px}
+  .dong-cell .s{font-size:var(--fs-cap); color:var(--g2); margin-top:2px}
+  .dong-cell.is-focus .n{color:var(--main)}
+  .dong-cell.is-focus .c{color:var(--k)}
+  .dong-foot{font-size:var(--fs-sm); color:var(--g2); line-height:var(--lh-body); margin:14px 0 0}
 </style>
 </head>
 <body data-step="3">
@@ -71,7 +140,7 @@
 <main class="wrap">
   <div class="page-head">
     <h1>종합 진단 리포트</h1>
-    <p class="sub">주의·위험 판정이 나온 분야에 필요한 개선 시설물이 자동으로 정해집니다. 점수와 시설물 모두 직접 고칠 수 있습니다.</p>
+    <p class="sub">데이터 결과 → 위험요인 해석 → 현장확인 사항 → 맞춤형 사업 순으로 정리합니다. 점수와 시설물 모두 직접 고칠 수 있습니다.</p>
   </div>
 
   <div class="picked" id="picked">
@@ -81,6 +150,25 @@
       <div class="addr" id="pickedAddr">—</div>
       <div class="coord" id="pickedCoord"></div>
     </div>
+  </div>
+
+  <!-- 조사지(복합위험지역) 안내 — 통계를 불러왔을 때만 -->
+  <div class="area-bar" id="areaBar" style="display:none">
+    <div><span class="k">지자체</span><span class="v" id="abRegion">—</span></div>
+    <div><span class="k">조사지</span><span class="v" id="abArea">—</span></div>
+    <div><span class="k">중점 분야</span><span class="v" id="abFocus">—</span></div>
+    <div><span class="k">이 지점</span><span class="v" id="abInside">—</span></div>
+  </div>
+
+  <!-- 읍면동 종합 분석 — 주무관이 담당 동 단위로 사업을 관리하므로 먼저 보여 줍니다 -->
+  <div class="panel" id="paneDong" style="display:none">
+    <div class="panel-head">
+      <h2>읍면동 종합 분석</h2>
+      <span class="tag" id="dongTag">—</span>
+    </div>
+    <p class="dong-lead" id="dongLead"></p>
+    <div class="dong-grid" id="dongGrid"></div>
+    <p class="dong-foot" id="dongFoot"></p>
   </div>
 
   <div class="summary" id="summary" style="display:none">
@@ -110,10 +198,29 @@
     <img class="input-image" id="inputImage" alt="진단 입력 이미지">
   </div>
 
-  <!-- 항목별 점수 (9단계 · 보정 가능) -->
+  <!-- ① 인적 특성 — 누가 다치는가 (119 출동자료) -->
+  <div class="panel" id="paneHuman" style="display:none">
+    <div class="panel-head">
+      <h2><span class="stage-num">①</span>인적 특성</h2>
+      <span class="tag">119 출동자료 3개년</span>
+    </div>
+    <div id="humanList"></div>
+  </div>
+
+  <!-- ② 사고유형 — 어떻게 다치는가 (119 출동자료) -->
+  <div class="panel" id="paneType" style="display:none">
+    <div class="panel-head">
+      <h2><span class="stage-num">②</span>사고유형</h2>
+      <span class="tag">발생 장소 · 유형 · 시간대</span>
+    </div>
+    <div id="typeList"></div>
+  </div>
+
+  <!-- ③ 물적·공간환경 — 왜 그런 곳인가 (사진 AI 판독) -->
   <div class="panel">
     <div class="panel-head">
-      <h2>항목별 점수</h2>
+      <h2><span class="stage-num">③</span>물적·공간환경</h2>
+      <span class="tag">사진 판독</span>
       <button class="btn-text" id="scoreEditBtn" onclick="startScoreEdit()"></button>
       <button class="btn-text" id="scoreCancelBtn" style="display:none" onclick="cancelScoreEdit()">취소</button>
       <button class="btn-text" id="scoreSaveBtn" style="display:none" onclick="saveScoreEdit()">저장</button>
@@ -121,11 +228,33 @@
     <div class="result-list" id="resultList"></div>
   </div>
 
-  <!-- 개선 시설물 처방 (수정 · 삭제 · 추가 가능) -->
+  <!-- ④ 대응역량 — 자료 미수신 -->
   <div class="panel">
     <div class="panel-head">
-      <h2>개선 시설물 처방</h2>
-      <span class="tag">자동 선정</span>
+      <h2><span class="stage-num muted">④</span>대응역량</h2>
+      <span class="tag">자료 확인 중</span>
+    </div>
+    <div class="pending">
+      소방서·경찰서·응급의료기관 접근성, AED·CCTV 설치 현황을 여기에 표시할 예정입니다.
+      <b>해당 위치 자료를 아직 받지 못해 현재는 비어 있습니다.</b>
+      현장조사 때 직접 확인해 채워 주세요.
+    </div>
+  </div>
+
+  <!-- ⑤ 현장확인 사항 — 현장에서 무엇을 볼 것인가 -->
+  <div class="panel">
+    <div class="panel-head">
+      <h2><span class="stage-num">⑤</span>현장확인 사항</h2>
+      <span class="tag">사진 판독 + 출동자료</span>
+    </div>
+    <div class="check-list" id="checkList"></div>
+  </div>
+
+  <!-- ⑥ 개선방향 — 맞춤형 사업 (수정 · 삭제 · 추가 가능) -->
+  <div class="panel">
+    <div class="panel-head">
+      <h2><span class="stage-num">⑥</span>개선방향</h2>
+      <span class="tag">규칙 기반 자동 선정</span>
       <button class="btn-text" id="rxEditBtn" onclick="AuriRx.start()"></button>
       <button class="btn-text" id="rxCancelBtn" style="display:none" onclick="AuriRx.cancel()">취소</button>
       <button class="btn-text" id="rxSaveBtn" style="display:none" onclick="AuriRx.save()">저장</button>
@@ -139,18 +268,21 @@
 
   <p class="note">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-    점수에 따라 필요한 시설물이 자동으로 정해집니다. 수정을 눌러 항목을 고치거나 지우거나 새로 추가할 수 있으며, 손댄 항목은 따로 표시되어 남습니다.
+    ①②는 119 출동자료 3개년을 집계한 값이고, ③은 이 사진에서 읽은 결과입니다. ⑤⑥은 두 가지를 합쳐 만들어집니다.
+    수정을 눌러 항목을 고치거나 지우거나 새로 추가할 수 있으며, 손댄 항목은 따로 표시되어 남습니다.
   </p>
 </main>
 
 <script src="assets/ui.js"></script>
 <script src="assets/risk-weights.js"></script>
+<script src="assets/stats.js"></script>
 <script src="assets/rules.js"></script>
 <script src="assets/rx-editor.js"></script>
 <script>
 let _results = null;      // 분야별 점수 (사진 판독) — 주변 이력으로 바꾸지 않습니다
 let _localRisk = null;    // 주변 119 이력 종합 지수 (1단계에서 계산해 넘겨받음)
 let _rxDraft = null;      // 처방 편집 중인 임시 목록
+let _stats = null;        // 119 출동자료 통계 { data, inside } — 없으면 null
 
 /* ── 항목별 점수 ────────────────────────────────────────────────── */
 
@@ -266,6 +398,191 @@ function renderSummary() {
     (parts ? `<br><span class="parts">주변 이력 구성 — ${parts}</span>` : '');
 }
 
+/* ── ①② 119 출동자료 통계 ─────────────────────────────────────
+   행안부 요구 서술은 "구체적 수치 + 비교 기준"입니다. 문장은 규칙으로
+   만들고(assets/stats.js), AI는 사진 판독에만 씁니다. 숫자를 AI가 쓰게
+   하면 지어낼 수 있고, 그러면 예산 근거 문서로 못 쓰기 때문입니다.
+
+   서술 대상은 강원대가 확정한 **중점 3분야**입니다. 7개 분야를 균등하게
+   다루지 않는 것은 8/25 협의에서 정해진 방식입니다. */
+function renderStats() {
+  if (!_stats || !_stats.data) return;
+  const data = _stats.data;
+  const inside = _stats.inside;
+  const summary = AuriStats.regionSummary(data);
+  const focus = AuriStats.focusCategories(data);
+  if (!focus.length) return;
+
+  /* 머리말 — 어느 지자체의 어떤 조사지인가 */
+  document.getElementById('areaBar').style.display = 'flex';
+  document.getElementById('abRegion').innerHTML = `<b>${summary.label}</b>`;
+  document.getElementById('abArea').innerHTML = summary.areaHa
+    ? `<b>${summary.areaHa}ha</b> · ${summary.overlapN}개 분야 중첩`
+    : '—';
+  document.getElementById('abFocus').innerHTML = `<b>${summary.focus}</b>`;
+  document.getElementById('abInside').innerHTML = inside
+    ? '<span class="in">조사지 안</span>'
+    : '조사지 밖 — 지자체 전체 기준으로 서술';
+
+  /* 조사지 밖 지점은 "조사지 내 vs 전체" 비교가 성립하지 않습니다.
+     그럴 때는 지자체 전체 분포만 씁니다. */
+  const opts = { inside: inside };
+
+  const humanRows = [], typeRows = [];
+  for (const f of focus) {
+    const h = AuriStats.narrateHuman(f.cat, opts);
+    const t = AuriStats.narrateType(f.cat, opts);
+    const count = `${f.cat.count.inside.toLocaleString()} / ${f.cat.count.region.toLocaleString()}건 · 조사지 비중 ${f.cat.count.share}%`;
+    const low = !f.cat.sample.reliable;
+
+    if (h) humanRows.push(catBlock(f.label, count, h.text, low));
+    if (t) typeRows.push(catBlock(f.label, count, t.text, low));
+  }
+
+  if (humanRows.length) {
+    document.getElementById('paneHuman').style.display = 'block';
+    document.getElementById('humanList').innerHTML = humanRows.join('');
+  }
+  if (typeRows.length) {
+    document.getElementById('paneType').style.display = 'block';
+    document.getElementById('typeList').innerHTML = typeRows.join('');
+  }
+}
+
+/* ── 읍면동 종합 분석 ──────────────────────────────────────────
+   "부천시 ○○동은 범죄 위험도가 높고" 를 먼저 보여 준 뒤 지점 상세로
+   내려가는 구조입니다. 주무관이 담당 동 단위로 사업을 관리하기 때문에
+   9/1 회의에서 요청된 순서입니다.
+
+   동 이름은 1단계에서 좌표를 행정구역으로 조회해 받아 둡니다.
+   119 자료의 동 이름이 법정동이라 지번 주소 쪽과 짝이 맞습니다. */
+function renderDong(dongName) {
+  if (!_stats || !_stats.data || !dongName) return;
+  const data = _stats.data;
+  const dong = AuriStats.dongSummary(data, dongName);
+  if (!dong) return;
+
+  const focusKeys = (data.focusTypes || []).map((t) => t.key);
+  const order = AuriStats.categoryOrder;
+
+  /* 이 동이 지자체 안에서 어느 분야에 몰려 있는지 — 동 건수 ÷ 지자체 건수 */
+  const rows = order
+    .filter((k) => dong.categories[k])
+    .map((k) => {
+      const c = dong.categories[k];
+      const regionN = data.categories[k] ? data.categories[k].count.region : 0;
+      return {
+        key: k, label: c.label, n: c.count.region, inside: c.count.inside,
+        share: regionN ? Number((c.count.region / regionN * 100).toFixed(1)) : null,
+        focus: focusKeys.includes(k),
+      };
+    });
+  if (!rows.length) return;
+
+  /* 머리 문장 — 이 동에서 가장 두드러진 분야 두 개 */
+  const lead = rows.slice().sort((a, b) => (b.share || 0) - (a.share || 0));
+  const first = lead[0], second = lead[1];
+  const focusHit = rows.filter((r) => r.focus && r.share !== null)
+                       .sort((a, b) => b.share - a.share);
+
+  document.getElementById('paneDong').style.display = 'block';
+  document.getElementById('dongTag').textContent = `${data.shortLabel} ${dongName}`;
+
+  const J = AuriStats.josa;
+  const pct = AuriStats.pctText;
+  const sentence =
+    `<b>${data.shortLabel} ${dongName}</b>${J(dongName, '은', '는')} 지난 3년간 119 출동 ` +
+    `<b>${dong.total.region.toLocaleString()}건</b>이 발생했습니다. ` +
+    (first && first.share !== null
+      ? `지자체 전체 대비 <span class="hi">${first.label} ${pct(first.share)}</span>` +
+        (second && second.share !== null ? ` · ${second.label} ${pct(second.share)}` : '') +
+        `가 이 동에 몰려 있습니다. `
+      : '') +
+    (focusHit.length
+      ? `이 지자체의 중점 분야 중에서는 <b>${focusHit[0].label}</b>${J(focusHit[0].label, '이', '가')} ` +
+        '이 동에서 가장 두드러집니다. '
+      : '') +
+    (dong.total.inside
+      ? `이 가운데 <b>${dong.total.inside.toLocaleString()}건</b>이 조사지 안에서 발생했습니다.`
+      : '조사지와는 겹치지 않는 동입니다.');
+  document.getElementById('dongLead').innerHTML = sentence;
+
+  document.getElementById('dongGrid').innerHTML = rows.map((r) => `
+    <div class="dong-cell ${r.focus ? 'is-focus' : ''}">
+      <div class="n">${r.label}</div>
+      <div class="c">${r.n.toLocaleString()}</div>
+      <div class="s">${r.share !== null ? `구 전체의 ${pct(r.share)}` : '—'}</div>
+    </div>`).join('');
+
+  document.getElementById('dongFoot').textContent =
+    `표시된 건수는 이 동에서 발생한 119 출동 건수이고, 아래 %는 ${data.shortLabel} 전체 대비 비중입니다. ` +
+    `붉은 라벨은 이 지자체의 중점 분야입니다. 아래 ①~⑥은 선택한 지점 한 곳에 대한 상세 분석입니다.`;
+}
+
+function catBlock(name, count, text, low) {
+  return `
+    <div class="cat-block">
+      <div>
+        <span class="cat-name">${name}</span>
+        <span class="cat-count">${count}</span>
+        ${low ? '<span class="cat-count warn">표본 부족</span>' : ''}
+      </div>
+      <div class="cat-text">${text}</div>
+    </div>`;
+}
+
+/* ── ⑤ 현장확인 사항 ───────────────────────────────────────────
+   두 곳에서 나옵니다.
+     · 사진 판독에서 **문제로 확인된 체크리스트 항목** → 그 자리에서 볼 것
+     · 출동자료 통계가 가리키는 것 (연령·장소·시간대) → 일대에서 볼 것
+   어느 쪽에서 나왔는지 꼬리표를 달아 근거를 되짚을 수 있게 합니다. */
+function renderChecks() {
+  const groups = [];
+
+  for (const r of _results) {
+    const items = [];
+
+    /* 사진에서 문제로 확인된 항목 */
+    for (const f of (r.findings || [])) {
+      if (!f.risk) continue;
+      items.push({ text: askToCheck(f.ask), src: f.id });
+    }
+
+    /* 같은 분야의 출동자료 통계 */
+    if (_stats && _stats.data && _stats.data.categories[r.key]) {
+      for (const c of AuriStats.fieldChecks(_stats.data.categories[r.key], { inside: _stats.inside })) {
+        items.push({ text: c, src: '출동자료' });
+      }
+    }
+
+    /* 안전 판정이고 확인할 것도 없으면 굳이 줄을 만들지 않습니다 */
+    if (!items.length) continue;
+    groups.push(`
+      <div class="check-group">
+        <div class="g-name">${r.name} <span class="badge ${r.level.key}">${r.level.label}</span></div>
+        <ul>${items.map((i) => `<li>${i.text}<span class="src">${i.src}</span></li>`).join('')}</ul>
+      </div>`);
+  }
+
+  document.getElementById('checkList').innerHTML = groups.length
+    ? groups.join('')
+    : '<div class="empty">현장에서 따로 확인할 항목이 없습니다.</div>';
+}
+
+/* 체크리스트 질문을 현장 확인 문장으로 바꿉니다.
+   "가로등이 설치되어 있는가" → "가로등이 설치되어 있는지 확인" */
+function askToCheck(ask) {
+  if (!ask) return '';
+  return ask
+    .replace(/인가\??$/, '인지 확인')
+    .replace(/있는가\??$/, '있는지 확인')
+    .replace(/없는가\??$/, '없는지 확인')
+    .replace(/되는가\??$/, '되는지 확인')
+    .replace(/막히는가\??$/, '막히는지 확인')
+    .replace(/보이는가\??$/, '보이는지 확인')
+    .replace(/가\??$/, '지 확인');
+}
+
 /* ── 개선 시설물 처방 ───────────────────────────────────────────
    목록 표시와 편집은 assets/rx-editor.js 가 담당합니다.
    이 화면에서만 규칙 엔진을 돌리고, 시각화·진단서는 결과를 받아 씁니다. */
@@ -274,7 +591,7 @@ function recomputePrescriptions() {
 }
 /* ── 페이지 시작 ───────────────────────────────────────────────── */
 
-window.addEventListener('load', function () {
+window.addEventListener('load', async function () {
   const loc = sessionStorage.getItem('auri_picked_location');
   const resultsRaw = sessionStorage.getItem('auri_diagnosis_results');
 
@@ -282,6 +599,7 @@ window.addEventListener('load', function () {
     document.getElementById('pickedAddr').textContent = '진단 데이터가 없습니다. 앞 단계를 먼저 진행해 주세요.';
     document.getElementById('resultList').innerHTML = '<div class="empty">진단 결과가 없습니다.</div>';
     document.getElementById('rxList').innerHTML = '<div class="empty">진단 결과가 없어 처방을 만들 수 없습니다.</div>';
+    document.getElementById('checkList').innerHTML = '<div class="empty">진단 결과가 없습니다.</div>';
     document.getElementById('scoreEditBtn').style.display = 'none';
     document.getElementById('rxEditBtn').style.display = 'none';
     return;
@@ -313,6 +631,24 @@ window.addEventListener('load', function () {
 
   renderResults();
   recomputePrescriptions();
+  renderChecks();          // 통계가 없어도 사진 판독분만으로 먼저 보여 줍니다
+
+  /* 통계는 파일을 받아와야 하므로 뒤늦게 채웁니다.
+     못 받아와도(파일 없음·오프라인) 위 내용은 그대로 남습니다. */
+  _stats = await AuriStats.load(picked.lat, picked.lng);
+  if (_stats) {
+    renderDong(picked.dong);   // 읍면동 종합 → 그다음이 지점 상세
+    renderStats();
+    renderChecks();            // 출동자료에서 나온 확인 항목을 더해 다시 그립니다
+    sessionStorage.setItem('auri_region_stats', JSON.stringify({
+      region: _stats.data.region,
+      label: _stats.data.label,
+      shortLabel: _stats.data.shortLabel,
+      inside: _stats.inside,
+      dong: picked.dong || null,
+      focusTypes: _stats.data.focusTypes,
+    }));
+  }
 });
 </script>
 </body>

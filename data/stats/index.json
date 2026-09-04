@@ -25,6 +25,8 @@
       "region": "bucheon",
       "label": "경기도 부천시",
       "short": "부천시",
+      "lat": 37.4998,
+      "lng": 126.7874,
       "total": 27365,
       "inside": 4475,
       "focusTypes": [
@@ -40,6 +42,8 @@
       "region": "jeju",
       "label": "제주특별자치도",
       "short": "제주도",
+      "lat": 33.41125,
+      "lng": 126.52746,
       "total": 16579,
       "inside": 3084,
       "focusTypes": [
@@ -55,6 +59,8 @@
       "region": "andong",
       "label": "경상북도 안동시",
       "short": "안동시",
+      "lat": 36.57171,
+      "lng": 128.7165,
       "total": 8251,
       "inside": 2176,
       "focusTypes": [
@@ -70,6 +76,8 @@
       "region": "bukgu",
       "label": "광주광역시 북구",
       "short": "광주 북구",
+      "lat": 35.18641,
+      "lng": 126.90055,
       "total": 8079,
       "inside": 1771,
       "focusTypes": [
@@ -85,6 +93,8 @@
       "region": "sejong",
       "label": "세종특별자치시",
       "short": "세종시",
+      "lat": 36.53847,
+      "lng": 127.26986,
       "total": 5061,
       "inside": 619,
       "focusTypes": [
@@ -100,6 +110,8 @@
       "region": "michuhol",
       "label": "인천광역시 미추홀구",
       "short": "미추홀구",
+      "lat": 37.45591,
+      "lng": 126.66716,
       "total": 4455,
       "inside": 913,
       "focusTypes": [
@@ -115,6 +127,8 @@
       "region": "gwanak",
       "label": "서울특별시 관악구",
       "short": "관악구",
+      "lat": 37.47944,
+      "lng": 126.93748,
       "total": 4279,
       "inside": 816,
       "focusTypes": [
@@ -130,6 +144,8 @@
       "region": "dangjin",
       "label": "충청남도 당진시",
       "short": "당진시",
+      "lat": 36.90095,
+      "lng": 126.67796,
       "total": 4237,
       "inside": 488,
       "focusTypes": [
@@ -145,6 +161,8 @@
       "region": "pocheon",
       "label": "경기도 포천시",
       "short": "포천시",
+      "lat": 37.89654,
+      "lng": 127.21361,
       "total": 3919,
       "inside": 189,
       "focusTypes": [
@@ -160,6 +178,8 @@
       "region": "mokpo",
       "label": "전라남도 목포시",
       "short": "목포시",
+      "lat": 34.80489,
+      "lng": 126.40419,
       "total": 3623,
       "inside": 718,
       "focusTypes": [
@@ -175,6 +195,8 @@
       "region": "gongju",
       "label": "충청남도 공주시",
       "short": "공주시",
+      "lat": 36.47553,
+      "lng": 127.10341,
       "total": 3227,
       "inside": 418,
       "focusTypes": [
@@ -190,6 +212,8 @@
       "region": "geumcheon",
       "label": "서울특별시 금천구",
       "short": "금천구",
+      "lat": 37.46458,
+      "lng": 126.898,
       "total": 2873,
       "inside": 390,
       "focusTypes": [
@@ -205,6 +229,8 @@
       "region": "naju",
       "label": "전라남도 나주시",
       "short": "나주시",
+      "lat": 35.00563,
+      "lng": 126.72799,
       "total": 2801,
       "inside": 180,
       "focusTypes": [
@@ -220,6 +246,8 @@
       "region": "jeongeup",
       "label": "전북특별자치도 정읍시",
       "short": "정읍시",
+      "lat": 35.59667,
+      "lng": 126.87528,
       "total": 2692,
       "inside": 286,
       "focusTypes": [
@@ -235,6 +263,8 @@
       "region": "yeongcheon",
       "label": "경상북도 영천시",
       "short": "영천시",
+      "lat": 35.98073,
+      "lng": 128.92662,
       "total": 2613,
       "inside": 345,
       "focusTypes": [
@@ -250,6 +280,8 @@
       "region": "sasanggu",
       "label": "부산광역시 사상구",
       "short": "사상구",
+      "lat": 35.15898,
+      "lng": 128.98645,
       "total": 2600,
       "inside": 262,
       "focusTypes": [
@@ -265,6 +297,8 @@
       "region": "miryang",
       "label": "경상남도 밀양시",
       "short": "밀양시",
+      "lat": 35.47348,
+      "lng": 128.76539,
       "total": 2574,
       "inside": 425,
       "focusTypes": [
@@ -280,6 +314,8 @@
       "region": "sacheon",
       "label": "경상남도 사천시",
       "short": "사천시",
+      "lat": 35.02579,
+      "lng": 128.05966,
       "total": 2551,
       "inside": 363,
       "focusTypes": [
@@ -295,6 +331,8 @@
       "region": "ujunggu",
       "label": "울산광역시 중구",
       "short": "울산 중구",
+      "lat": 35.56244,
+      "lng": 129.3208,
       "total": 2462,
       "inside": 472,
       "focusTypes": [
@@ -310,6 +348,8 @@
       "region": "jjunggu",
       "label": "대전광역시 중구",
       "short": "대전 중구",
+      "lat": 36.31755,
+      "lng": 127.41136,
       "total": 2432,
       "inside": 470,
       "focusTypes": [
@@ -325,6 +365,8 @@
       "region": "yeongju",
       "label": "경상북도 영주시",
       "short": "영주시",
+      "lat": 36.83889,
+      "lng": 128.60201,
       "total": 2173,
       "inside": 380,
       "focusTypes": [
@@ -340,6 +382,8 @@
       "region": "namwon",
       "label": "전북특별자치도 남원시",
       "short": "남원시",
+      "lat": 35.4209,
+      "lng": 127.40843,
       "total": 2125,
       "inside": 498,
       "focusTypes": [
@@ -355,6 +399,8 @@
       "region": "gjunggu",
       "label": "대구광역시 중구",
       "short": "대구 중구",
+      "lat": 35.86692,
+      "lng": 128.59083,
       "total": 2015,
       "inside": 722,
       "focusTypes": [
@@ -370,6 +416,8 @@
       "region": "jecheon",
       "label": "충청북도 제천시",
       "short": "제천시",
+      "lat": 37.1153,
+      "lng": 128.18704,
       "total": 1980,
       "inside": 126,
       "focusTypes": [
@@ -385,6 +433,8 @@
       "region": "hongcheon",
       "label": "강원특별자치도 홍천군",
       "short": "홍천군",
+      "lat": 37.71285,
+      "lng": 127.92524,
       "total": 1855,
       "inside": 194,
       "focusTypes": [
@@ -400,6 +450,8 @@
       "region": "goheung",
       "label": "전라남도 고흥군",
       "short": "고흥군",
+      "lat": 34.5993,
+      "lng": 127.28382,
       "total": 1636,
       "inside": 12,
       "focusTypes": [
@@ -415,6 +467,8 @@
       "region": "seocheon",
       "label": "충청남도 서천군",
       "short": "서천군",
+      "lat": 36.08731,
+      "lng": 126.68748,
       "total": 1396,
       "inside": 24,
       "focusTypes": [
@@ -430,6 +484,8 @@
       "region": "donggu",
       "label": "부산광역시 동구",
       "short": "부산 동구",
+      "lat": 35.12792,
+      "lng": 129.04762,
       "total": 1330,
       "inside": 273,
       "focusTypes": [
@@ -445,6 +501,8 @@
       "region": "hamyang",
       "label": "경상남도 함양군",
       "short": "함양군",
+      "lat": 35.5517,
+      "lng": 127.74004,
       "total": 1217,
       "inside": 14,
       "focusTypes": [
@@ -460,6 +518,8 @@
       "region": "gangjin",
       "label": "전라남도 강진군",
       "short": "강진군",
+      "lat": 34.61796,
+      "lng": 126.7723,
       "total": 1058,
       "inside": 4,
       "focusTypes": [
@@ -475,6 +535,8 @@
       "region": "namhae",
       "label": "경상남도 남해군",
       "short": "남해군",
+      "lat": 34.82651,
+      "lng": 127.9387,
       "total": 1050,
       "inside": 27,
       "focusTypes": [
@@ -490,6 +552,8 @@
       "region": "jangheung",
       "label": "전라남도 장흥군",
       "short": "장흥군",
+      "lat": 34.63628,
+      "lng": 126.92547,
       "total": 1002,
       "inside": 79,
       "focusTypes": [
@@ -505,6 +569,8 @@
       "region": "yeongdogu",
       "label": "부산광역시 영도구",
       "short": "영도구",
+      "lat": 35.08522,
+      "lng": 129.0627,
       "total": 979,
       "inside": 386,
       "focusTypes": [
@@ -520,6 +586,8 @@
       "region": "jeongseon",
       "label": "강원특별자치도 정선군",
       "short": "정선군",
+      "lat": 37.32448,
+      "lng": 128.75942,
       "total": 930,
       "inside": 55,
       "focusTypes": [
@@ -535,6 +603,8 @@
       "region": "cheongsong",
       "label": "경상북도 청송군",
       "short": "청송군",
+      "lat": 36.38843,
+      "lng": 129.03533,
       "total": 804,
       "inside": 23,
       "focusTypes": [
@@ -550,6 +620,8 @@
       "region": "danyang",
       "label": "충청북도 단양군",
       "short": "단양군",
+      "lat": 37.00435,
+      "lng": 128.3528,
       "total": 801,
       "inside": 46,
       "focusTypes": [
@@ -565,6 +637,8 @@
       "region": "taebaek",
       "label": "강원특별자치도 태백시",
       "short": "태백시",
+      "lat": 37.15557,
+      "lng": 128.99314,
       "total": 742,
       "inside": 29,
       "focusTypes": [
@@ -580,6 +654,8 @@
       "region": "jindo",
       "label": "전라남도 진도군",
       "short": "진도군",
+      "lat": 34.45361,
+      "lng": 126.23914,
       "total": 737,
       "inside": 52,
       "focusTypes": [
@@ -595,6 +671,8 @@
       "region": "jinan",
       "label": "전북특별자치도 진안군",
       "short": "진안군",
+      "lat": 35.81477,
+      "lng": 127.43149,
       "total": 736,
       "inside": 65,
       "focusTypes": [
@@ -610,6 +688,8 @@
       "region": "jangsu",
       "label": "전북특별자치도 장수군",
       "short": "장수군",
+      "lat": 35.67053,
+      "lng": 127.5397,
       "total": 700,
       "inside": 19,
       "focusTypes": [
@@ -625,6 +705,8 @@
       "region": "ongjin",
       "label": "인천광역시 옹진군",
       "short": "옹진군",
+      "lat": 37.42841,
+      "lng": 126.10642,
       "total": 323,
       "inside": 29,
       "focusTypes": [

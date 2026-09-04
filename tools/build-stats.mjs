@@ -430,12 +430,11 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
   }));
 
   const all = Object.values(categories).flatMap((c) => c.points);
-  gridIndex.push({
-    region: slug, label: meta.label,
+  const centroid = {
     lat: Number((all.reduce((a, p) => a + p[0], 0) / (all.length || 1)).toFixed(5)),
     lng: Number((all.reduce((a, p) => a + p[1], 0) / (all.length || 1)).toFixed(5)),
-    total: s.regionTotal,
-  });
+  };
+  gridIndex.push({ region: slug, label: meta.label, ...centroid, total: s.regionTotal });
 
   /* ② 리포트용 통계 */
   const catOut = {};
@@ -515,6 +514,9 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
   const kb = Math.round(fs.statSync(path.join(OUT_STATS, 'regions', `${slug}.json`)).size / 1024);
   statsIndex.push({
     region: slug, label: meta.label, short: meta.short,
+    /* 선택한 지점에서 가장 가까운 지역 파일을 고르기 위한 대표 좌표
+       (data/incidents/index.json 과 같은 값 — 화면이 둘 중 하나만 읽어도 되게) */
+    ...centroid,
     total: s.regionTotal, inside: s.insideTotal,
     focusTypes: (f.focusTypes || []).map((t) => t.label),
     areaHa: area ? area.meta.areaHa : null,

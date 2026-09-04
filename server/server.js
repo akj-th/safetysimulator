@@ -714,6 +714,21 @@ async function serveStatic(req, res) {
     res.writeHead(403).end('Forbidden');
     return;
   }
+
+  /* ★ 원본 자료는 절대 내주지 않습니다.
+     data/raw/ 에는 환자 연령·성별·지번주소가 담긴 119 출동자료 원본과
+     API 키가 들어 있습니다. 이 서버는 데모를 위해 인터넷에 올라가므로,
+     막지 않으면 주소만 알면 누구나 받아 갈 수 있습니다.
+     앱이 쓰는 것은 집계된 data/incidents · data/stats 뿐입니다. */
+  const blocked = [
+    path.join(SITE_ROOT, 'data', 'raw'),
+    path.join(SITE_ROOT, 'server'),
+  ];
+  if (blocked.some((dir) => filePath === dir || filePath.startsWith(dir + path.sep))) {
+    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' })
+       .end('접근할 수 없는 경로입니다.');
+    return;
+  }
   try {
     const data = await fs.readFile(filePath);
     res.writeHead(200, { 'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream' });
