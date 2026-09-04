@@ -360,29 +360,46 @@ function auriPrescribe(results, overrides) {
       }
     }
 
-    /* ⑤ 상위 N개만 */
+    /* ⑤ 상위 N개만.
+
+       ★ 뽑은 **뒤에** 연구원이 뺀 항목을 걷어냅니다. 순서가 중요합니다.
+         먼저 걸러 내고 N개를 채우면, 뺀 자리를 다음 후보가 밀고 들어와
+         연구원이 본 적도 없는 사업이 새로 나타납니다. 실제로 "지우고
+         저장해도 그대로"처럼 보이던 원인이 이것이었습니다.
+         뺀다는 것은 "다른 걸 달라"가 아니라 "이건 필요 없다"는 판단이므로,
+         자리는 비워 두고 개수만 줄입니다. 다른 사업을 넣고 싶으면
+         '항목 추가'로 직접 넣습니다. */
     let taken = 0;
     for (let i = 0; i < pool.length && taken < limit; i++) {
       const c = pool[i];
       const p = c.program;
-      if (ov.removed.indexOf(p.id) !== -1) continue;   // 연구원이 뺀 항목
       if (seen[p.id]) continue;                        // 다른 분야에서 이미 뽑힘
       seen[p.id] = true;
-      taken++;
+      taken++;                                         // 뺀 항목도 자리는 차지합니다
+      if (ov.removed.indexOf(p.id) !== -1) continue;   // 연구원이 뺀 항목 — 자리를 비워 둡니다
 
       const e = ov.edits[p.id] || {};
       const auto = c.fit >= RX_MUST_FIT ? RX_PRIORITY.must : RX_PRIORITY.recommend;
       const t = c.triggers[0];
 
+      /* ★ 연구원이 드롭다운으로 다른 사업을 고르면 HEA·금액·출처도 그 사업을
+         따라가야 합니다. 예전에는 이름만 바뀌고 나머지는 원래 사업 값이
+         남아, A 사업으로 바꿔도 [E] 로 표시되고 이미지 생성 대상에 계속
+         들어갔습니다. */
+      const shown = (e.name && auriFindProgram(e.name)) || p;
+
       out.push({
+        /* id 는 '어느 자리를 고쳤는가'를 가리키는 열쇠라 그대로 둡니다.
+           실제로 무엇이 들어갔는지는 programId 로 따로 남깁니다. */
         id: p.id,
+        programId: shown.id,
         name: e.name || p.name,
         /* 설명은 팔레트의 효과크기를 그대로 씁니다 — 우리가 지어내지 않습니다 */
-        note: e.note || p.effect || '',
-        source: p.source || '',
-        hea: p.hea,
-        amount: p.amount,
-        palette: p.group,                 // 'new' | 'existing'
+        note: e.note || shown.effect || '',
+        source: shown.source || '',
+        hea: shown.hea,
+        amount: shown.amount,
+        palette: shown.group,             // 'new' | 'existing'
         category: r.name,
         field: r.key,
         score: r.score,

@@ -800,11 +800,28 @@ const server = http.createServer(async function (req, res) {
       await handleGenerate(req, res);         // 개선 후 이미지 생성
     } else if (req.method === 'GET' && req.url === '/api/models') {
       /* 화면의 모델 선택 상자가 이 목록으로 채워집니다.
-         키가 없는 제공사의 모델은 애초에 내려보내지 않습니다. */
+         키가 없는 제공사의 모델은 애초에 내려보내지 않습니다.
+
+         왜 안 나오는지도 함께 알려 줍니다 — 목록에 없으면 "고장인가"
+         싶어지는데, 실제로는 키를 안 넣었거나 서버를 다시 안 켠 경우가
+         대부분입니다. 키 자체는 절대 내보내지 않습니다. */
+      const PROVIDER_LABEL = { gemini: 'Google Gemini', openai: 'OpenAI GPT Image' };
+      const ENV_NAME = { gemini: 'GEMINI_API_KEY', openai: 'OPENAI_API_KEY' };
+      const missing = ['gemini', 'openai']
+        .filter(function (p) { return !providerKey(p); })
+        .map(function (p) {
+          return {
+            provider: p,
+            label: PROVIDER_LABEL[p],
+            hint: `server/.env 에 ${ENV_NAME[p]} 를 넣고 서버를 다시 켜면 나타납니다`,
+          };
+        });
+
       sendJson(res, 200, {
         models: usableImageModels().map(function (m) {
           return { id: m.id, label: m.label, provider: m.provider };
         }),
+        unavailable: missing,
       });
     } else if (req.method === 'GET') {
       await serveStatic(req, res);

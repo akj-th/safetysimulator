@@ -37,6 +37,12 @@
   .rx-name{font-size:var(--fs-body); font-weight:700; color:var(--k)}
   .rx-cat{font-size:var(--fs-cap); color:var(--g2); font-weight:700; letter-spacing:.12em; margin-left:9px}
   .rx-basis{font-size:var(--fs-cap); color:var(--g2); margin-top:6px; font-family:var(--mono)}
+
+  /* 쓸 수 없는 생성 모델 안내 — 목록에 없는 이유를 적습니다 */
+  .model-note{
+    font-size:var(--fs-cap); color:var(--g2); line-height:var(--lh-body);
+    margin:10px 0 0; text-align:right;
+  }
 </style>
 </head>
 <body data-step="4">
@@ -94,6 +100,8 @@
       </select>
       <button class="btn accent" id="genBtn" onclick="generateAfter()">개선 이미지 생성</button>
     </div>
+    <!-- 쓸 수 없는 생성 모델이 있으면 왜 그런지 적습니다 -->
+    <p class="model-note" id="modelNote" style="display:none"></p>
   </div>
 
   <!-- ③ 개선 후 (버튼을 누르면 나타남) -->
@@ -356,15 +364,39 @@ window.addEventListener('load', async function () {
    보이는 일이 없습니다. 서버가 없으면(GitHub Pages 등) 그냥 둡니다. */
 async function loadModelList() {
   const sel = document.getElementById('modelSel');
+  const note = document.getElementById('modelNote');
   try {
     const res = await fetch('/api/models');
     if (!res.ok) return;
     const body = await res.json();
-    if (!body.models || !body.models.length) return;
 
-    sel.innerHTML = body.models.map(function (m) {
-      return `<option value="${m.id}">${m.label}</option>`;
-    }).join('');
+    if (body.models && body.models.length) {
+      /* 제공사별로 묶어 보여 줍니다 — 같은 사진으로 번갈아 돌려
+         어느 쪽이 원본을 잘 지키는지 비교하는 것이 이 상자의 목적입니다 */
+      const byProvider = {};
+      body.models.forEach(function (m) {
+        (byProvider[m.provider] = byProvider[m.provider] || []).push(m);
+      });
+      const LABEL = { gemini: 'Google Gemini', openai: 'OpenAI GPT Image' };
+      sel.innerHTML = Object.keys(byProvider).map(function (p) {
+        return `<optgroup label="${LABEL[p] || p}">`
+          + byProvider[p].map(function (m) { return `<option value="${m.id}">${m.label}</option>`; }).join('')
+          + '</optgroup>';
+      }).join('');
+    }
+
+    /* 못 쓰는 제공사가 있으면 이유를 적어 둡니다.
+       목록에 없으면 고장으로 오해하는데, 대개는 키를 안 넣었거나
+       서버를 다시 켜지 않은 경우입니다. */
+    if (note) {
+      const missing = body.unavailable || [];
+      if (missing.length) {
+        note.style.display = 'block';
+        note.textContent = missing.map(function (u) { return `${u.label}: ${u.hint}`; }).join(' · ');
+      } else {
+        note.style.display = 'none';
+      }
+    }
   } catch { /* 서버 없이 화면만 보는 경우 — 기본 항목을 그대로 둡니다 */ }
 }
 </script>

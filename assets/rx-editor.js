@@ -240,11 +240,15 @@ const AuriRx = {
       }
       if (it.deleted) { ov.removed.push(it.id); return; }
 
-      /* 팔레트의 원본과 비교합니다. 설명(note)의 원본은 팔레트의 효과크기입니다. */
+      /* 팔레트 원본과 비교해 "연구원이 손댄 것"만 기록합니다.
+         설명(note)의 기준은 **지금 고른 사업**의 효과크기입니다 —
+         원래 사업 것과 비교하면, 사업만 바꿨는데도 설명까지 고친 것으로
+         잘못 기록됩니다. */
       const origin = auriFindRule(it.id);
+      const selected = AuriPalette.byName(it.name) || origin;
       const e = {};
       if (origin && it.name !== origin.name) e.name = it.name;
-      if (origin && it.note !== (origin.effect || '')) e.note = it.note;
+      if (selected && it.note !== (selected.effect || '')) e.note = it.note;
       /* 규칙 엔진이 정했을 우선순위 — 적합도로 갈립니다.
          이 값과 다를 때만 "연구원이 바꿨다"로 기록합니다. */
       const originPri = (it.fit != null && it.fit >= RX_MUST_FIT) ? 'must' : 'recommend';
