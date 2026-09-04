@@ -219,7 +219,12 @@ function auriHasPrice(program) {
    넣으면 모델이 없는 시설을 지어내므로 이미지 생성에서 뺍니다.
    목록·예산·문서에는 그대로 남습니다. */
 function auriRxIsVisual(item) {
-  const hea = item && (item.hea || (AuriPalette.byName(item.name) || {}).hea);
+  if (!item) return false;
+  /* 처방 항목(객체)으로도, 사업 이름(문자열)으로도 부를 수 있게 합니다.
+     ※ 문자열을 넘겼을 때 조용히 false 가 되어 "그릴 것이 하나도 없다"로
+       판정되던 버그가 있었습니다. 화면에서는 생성 버튼이 늘 잠겨 보였습니다. */
+  const name = typeof item === 'string' ? item : item.name;
+  const hea = (typeof item === 'object' && item.hea) || (AuriPalette.byName(name) || {}).hea;
   return hea === 'E';
 }
 

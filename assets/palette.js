@@ -67,13 +67,21 @@ const AuriPalette = (function () {
     return (_data ? _data.programs : []).filter(function (p) { return p.field === field; });
   }
 
-  /** HEA 표시 이름 */
+  /* HEA 는 알파벳을 함께 적습니다. "환경"만 있으면 무슨 분류 체계인지
+     알 수 없고, 팔레트·회의록·보고서가 모두 E/A/H 로 부르기 때문입니다. */
+  const HEA_SHORT = { E: '환경', A: '행위', H: '피해대상' };
+
+  /** HEA 표시 이름. short 면 "[E] 환경", 아니면 "환경적 개입" */
   function heaLabel(hea, short) {
     const table = (_data && _data.hea) || {};
     const item = table[hea];
-    if (!item) return hea || '—';
-    if (!short) return item.label;
-    return { H: '피해대상', E: '환경', A: '행위' }[hea] || hea;
+    if (!short) return item ? item.label : (hea || '—');
+    return HEA_SHORT[hea] ? `[${hea}] ${HEA_SHORT[hea]}` : (hea || '—');
+  }
+
+  /** 목록 아래에 붙이는 한 줄 범례 */
+  function heaLegend() {
+    return 'E = 환경 개선 · A = 행동 개입 · H = 피해대상 보호·지원';
   }
   function heaDesc(hea) {
     const item = ((_data && _data.hea) || {})[hea];
@@ -110,7 +118,7 @@ const AuriPalette = (function () {
 
   return {
     load, ready, byName, byId, byField,
-    heaLabel, heaDesc, amountText, evidence, sourceShort,
+    heaLabel, heaLegend, heaDesc, amountText, evidence, sourceShort,
     get data() { return _data; },
     get note() { return _data ? _data.note : ''; },
     get count() { return _data ? _data.programs.length : 0; },

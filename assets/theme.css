@@ -314,7 +314,15 @@ input[type=range]{flex:1; min-width:90px; height:4px; margin:0; accent-color:var
   font-size:var(--fs-sm); color:var(--g3); margin-top:5px; line-height:var(--lh-body);
 }
 .rx-evidence .src{color:var(--g2); font-size:var(--fs-cap); white-space:nowrap}
+/* 팔레트에 효과크기가 없는 사업 — 비었다는 사실을 감추지 않습니다 */
+.rx-evidence.none{color:var(--g2); font-size:var(--fs-cap)}
 .rx-note{font-size:var(--fs-body); color:var(--g3); margin-top:4px; line-height:var(--lh-body)}
+
+/* HEA 범례 — 목록 맨 아래 한 줄 */
+.rx-legend{
+  padding-top:12px; margin-top:2px; border-top:1px solid var(--g1);
+  font-size:var(--fs-cap); color:var(--g2); letter-spacing:.02em;
+}
 
 /* ════ 요청 입력 칸 ═════════════════════════════════════════════ */
 

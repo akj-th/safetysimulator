@@ -540,6 +540,11 @@ function catBlock(name, count, text, low) {
 function renderChecks() {
   const groups = [];
 
+  /* 중점 3분야 — ①② 에서 서술한 분야와 같아야 ⑤가 어긋나지 않습니다 */
+  const focusKeys = new Set(
+    (_stats && _stats.data ? AuriStats.focusCategories(_stats.data) : []).map((f) => f.key)
+  );
+
   for (const r of _results) {
     const items = [];
 
@@ -549,8 +554,12 @@ function renderChecks() {
       items.push({ text: askToCheck(f.ask), src: f.id });
     }
 
-    /* 같은 분야의 출동자료 통계 */
-    if (_stats && _stats.data && _stats.data.categories[r.key]) {
+    /* 같은 분야의 출동자료 통계 — **중점 3분야만** 붙입니다.
+       ①②에서 서술하지 않은 분야에 출동자료 문장만 튀어나오면,
+       근거 없이 나온 말처럼 보이고 ①과 어긋나기도 합니다.
+       (실제로 산업재해에 "고령자 비중이 높음"이 붙어 ①의 20~49세 서술과
+        엇갈렸습니다.) 8/25 협의의 "중점 3분야 중심 서술"과도 맞습니다. */
+    if (_stats && _stats.data && focusKeys.has(r.key) && _stats.data.categories[r.key]) {
       for (const c of AuriStats.fieldChecks(_stats.data.categories[r.key], { inside: _stats.inside })) {
         items.push({ text: c, src: '출동자료' });
       }
@@ -629,7 +638,6 @@ window.addEventListener('load', async function () {
     listId: 'rxList',
     editBtnId: 'rxEditBtn', saveBtnId: 'rxSaveBtn',
     cancelBtnId: 'rxCancelBtn', addBtnId: 'rxAddBtn',
-    showNote: true,
     onChange: function () { auriRenderSteps(); },   // 다음 단계 잠금 해제
   });
 

@@ -229,7 +229,7 @@ async function generateAfter(useNote) {
       /* 인적 개입(안부확인·상담·교육)은 거리 사진에 나타나지 않으므로
          이미지 생성에서 뺍니다. 넣으면 모델이 없는 시설을 지어냅니다.
          목록·예산·문서에는 그대로 남습니다 — 빠지는 것은 그림뿐입니다. */
-      facilities: items.filter(function (it) { return auriRxIsVisual(it.name); })
+      facilities: items.filter(function (it) { return auriRxIsVisual(it); })
                        .map(function (it) { return it.name; }),
       model: document.getElementById('modelSel').value,
       note: note,
@@ -259,28 +259,43 @@ async function generateAfter(useNote) {
     _generating = false;
     document.getElementById('afterFoot').style.display = 'flex';
     document.getElementById('tweakToggle').textContent = '고칠 점 적어서 다시 만들기';
-    document.getElementById('genBtn').disabled = false;
+    /* 그릴 항목이 없으면 다시 잠깁니다 — 버튼 상태는 한 곳에서만 정합니다 */
+    showNonVisualNote(AuriRx.current());
   }
 }
 /* 거리 사진에 그릴 수 있는 항목의 개수.
    인적 개입(안부확인·상담·교육)은 사진에 나타나지 않습니다. */
 function countVisual(items) {
-  return items.filter(function (it) { return auriRxIsVisual(it.name); }).length;
+  return items.filter(function (it) { return auriRxIsVisual(it); }).length;
 }
 
 /* 그림에서 빠지는 항목이 있으면 그 이유를 화면에 적어 둡니다.
-   목록에는 있는데 이미지에 안 보이면 오작동으로 오해하기 때문입니다. */
+   목록에는 있는데 이미지에 안 보이면 오작동으로 오해하기 때문입니다.
+   버튼 글자도 함께 바꿉니다 — 눌리지 않는 버튼만 덩그러니 있으면
+   고장으로 보입니다. */
 function showNonVisualNote(items) {
-  const hidden = items.filter(function (it) { return !auriRxIsVisual(it.name); });
+  const hidden = items.filter(function (it) { return !auriRxIsVisual(it); });
+  const drawable = countVisual(items);
   const box = document.getElementById('nonVisualNote');
+  const btn = document.getElementById('genBtn');
+
+  if (drawable === 0) {
+    btn.textContent = items.length ? '그릴 항목이 없습니다' : '개선 이미지 생성';
+    btn.disabled = true;
+  } else {
+    btn.textContent = '개선 이미지 생성';
+    btn.disabled = false;
+  }
+
   if (!hidden.length) { box.style.display = 'none'; return; }
 
   box.style.display = 'flex';
   document.getElementById('nonVisualText').textContent =
     hidden.map(function (it) { return it.name; }).join(' · ') +
-    (countVisual(items) === 0
-      ? ' — 사람이 하는 사업이라 거리 사진에 그릴 것이 없습니다. 이미지 생성 대신 리포트와 진단서로 제시됩니다.'
-      : ' 은(는) 사람이 하는 사업이라 개선 후 이미지에는 나타나지 않습니다. 처방 목록·예산·진단서에는 그대로 들어갑니다.');
+    (drawable === 0
+      ? ' — 모두 사람이 하는 사업(H·A)이라 거리 사진에 그릴 것이 없습니다. '
+        + '이미지 대신 리포트와 진단서로 제시됩니다. 시설 사업을 넣으려면 수정을 눌러 추가하세요.'
+      : ' 은(는) 사람이 하는 사업(H·A)이라 개선 후 이미지에는 나타나지 않습니다. 처방 목록·예산·진단서에는 그대로 들어갑니다.');
 }
 
 window.addEventListener('load', async function () {
@@ -321,10 +336,8 @@ window.addEventListener('load', async function () {
     listId: 'rxList',
     editBtnId: 'rxEditBtn', saveBtnId: 'rxSaveBtn',
     cancelBtnId: 'rxCancelBtn', addBtnId: 'rxAddBtn',
-    showNote: false,
     onChange: function (next) {
-      document.getElementById('genBtn').disabled = countVisual(next) === 0;
-      showNonVisualNote(next);
+      showNonVisualNote(next);   // 버튼 잠금·안내문을 함께 정합니다
     },
   });
   AuriRx.render(items);
@@ -332,8 +345,6 @@ window.addEventListener('load', async function () {
 
   if (items.length === 0) {
     list.innerHTML = '<div class="empty">반영할 사업이 없습니다.<br>종합 리포트를 먼저 열어 처방을 생성하거나, 수정을 눌러 직접 추가하세요.</div>';
-    document.getElementById('genBtn').disabled = true;
-  } else if (countVisual(items) === 0) {
     document.getElementById('genBtn').disabled = true;
   }
 

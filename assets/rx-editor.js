@@ -67,12 +67,15 @@ const AuriRx = {
         : '';
 
       /* 효과크기와 출처 — 예산 근거 문서라 출처 표기가 중요합니다.
-         AURI 팔레트에 적힌 문장을 그대로 싣습니다(우리가 지어내지 않습니다). */
+         AURI 팔레트에 적힌 문장을 그대로 싣습니다(우리가 지어내지 않습니다).
+         ★ 리포트와 시각화 양쪽에 모두 보여 줍니다. 근거만 있고 효과가
+           없으면 "이 사업이 왜 효과가 있는가"를 화면에서 알 수 없습니다. */
       const ev = auriRxEvidence(it);
-      const evidence = AuriRx.opts.showNote && ev && ev.effect
+      const evidence = ev && ev.effect
         ? `<div class="rx-evidence">${ev.effect}` +
           (ev.sourceShort ? ` <span class="src">출처: ${ev.sourceShort}</span>` : '') + '</div>'
-        : '';
+        /* 비어 있으면 비어 있다고 적습니다 — 조용히 빠지면 있는 줄 압니다 */
+        : (it.custom ? '' : '<div class="rx-evidence none">성과증명 자료 없음 — 팔레트에 효과크기가 비어 있습니다</div>');
 
       /* 연구원이 직접 쓴 설명은 팔레트 문장과 별개로 남깁니다 */
       const userNote = (it.custom || it.edited) && it.note && (!program || it.note !== program.effect)
@@ -88,7 +91,9 @@ const AuriRx = {
             <div class="rx-basis">${auriRxBasis(it)}</div>
           </div>
         </div>`;
-    }).join('');
+    }).join('')
+    /* HEA 범례 — 알파벳만 보고는 무슨 분류인지 알 수 없습니다 */
+    + `<div class="rx-legend">${AuriPalette.heaLegend()}</div>`;
   },
 
   /* ── 편집 모드 ─────────────────────────────────────────────── */
@@ -123,6 +128,7 @@ const AuriRx = {
             <input type="text" id="rx-custom-${i}" placeholder="사업 이름 직접 입력"
                    value="${isCustomName ? safeName : ''}" style="display:${isCustomName ? 'block' : 'none'}">
             <textarea id="rx-note-${i}" placeholder="이 사업이 왜 필요한지 (비우면 팔레트의 효과크기가 쓰입니다)">${it.note || ''}</textarea>
+            <div class="rx-basis" id="rx-meta-${i}"></div>
             <div class="rx-basis">${it.custom ? '연구원 직접 추가' : `${it.category} · ${it.id}`}</div>
           </div>
         </div>`;
@@ -131,15 +137,57 @@ const AuriRx = {
     document.getElementById(this.opts.listId).innerHTML = rows.trim()
       ? rows
       : '<div class="empty">사업이 모두 삭제되었습니다. 항목 추가로 직접 넣을 수 있습니다.</div>';
+
+    /* 각 줄의 출처·금액 줄을 채웁니다 (드롭다운을 바꾸면 다시 채워집니다) */
+    this.draft.forEach(function (it, i) {
+      if (it.deleted) return;
+      AuriRx.renderEditMeta(i, it.custom ? null : AuriPalette.byName(it.name));
+    });
   },
 
-  /* 드롭다운에서 "직접 입력…"을 고르면 아래 입력칸을 엽니다 */
+  /* 드롭다운에서 사업을 바꾸면
+       · "직접 입력…"이면 아래 입력칸을 엽니다
+       · 팔레트 사업이면 설명·효과크기·출처·금액을 그 사업 것으로 갈아 끼웁니다
+
+     ★ 연구원이 직접 고쳐 쓴 설명은 덮어쓰지 않습니다. 사람이 쓴 글을
+       드롭다운 한 번에 날려 버리면 손댄 기록이 사라지기 때문입니다.
+       (판단 기준: 지금 칸의 내용이 '어느 팔레트 사업의 효과크기 원문'과
+        같으면 자동으로 채워진 것 → 갈아 끼움. 아니면 사람이 쓴 것 → 유지) */
   onNameChange(i) {
     const sel = document.getElementById('rx-name-' + i);
     const custom = document.getElementById('rx-custom-' + i);
+    const note = document.getElementById('rx-note-' + i);
     const isCustom = sel.value === '__custom__';
+
     custom.style.display = isCustom ? 'block' : 'none';
-    if (isCustom) custom.focus();
+    if (isCustom) { custom.focus(); this.renderEditMeta(i, null); return; }
+
+    const program = AuriPalette.byName(sel.value);
+    const current = (note.value || '').trim();
+    const isAuto = current === '' || AuriRx.isPaletteText(current);
+    if (program && isAuto) note.value = program.effect || '';
+
+    this.renderEditMeta(i, program);
+  },
+
+  /** 이 글이 팔레트에서 자동으로 들어온 문장인가 (사람이 쓴 것과 구분) */
+  isPaletteText(text) {
+    const t = String(text || '').trim();
+    if (!t) return true;
+    const all = (AuriPalette.data && AuriPalette.data.programs) || [];
+    return all.some(function (p) { return (p.effect || '').trim() === t; });
+  },
+
+  /* 편집 중인 줄 아래에 그 사업의 출처·금액을 보여 줍니다.
+     설명만 바뀌고 출처·금액이 그대로면 어느 사업을 고른 건지 헷갈립니다. */
+  renderEditMeta(i, program) {
+    const box = document.getElementById('rx-meta-' + i);
+    if (!box) return;
+    if (!program) { box.textContent = '연구원 직접 추가 — 출처·금액을 직접 적어 주세요'; return; }
+    const src = AuriPalette.sourceShort(program.source);
+    box.innerHTML =
+      `${AuriPalette.heaLabel(program.hea, true)} · ${AuriPalette.amountText(program)}` +
+      (src ? ` · 출처: ${src}` : ' · 출처 없음');
   },
 
   /* 입력창에 쳐 둔 값을 임시 목록으로 옮깁니다 (다시 그리기 전에 호출) */
