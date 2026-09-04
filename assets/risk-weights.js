@@ -52,10 +52,29 @@ const RISK_BANDS = [
   { upTo: 1.01, color: '#D83D64', label: '위험' },
 ];
 
-/* 종합 지수를 지역 안에서 상대 평가할 때 쓰는 기준 분위수.
-   0.99 = 그 지역 상위 1% 지점을 만점(위험)으로 봅니다.
-   낮추면 위험 판정 구간이 넓어집니다. */
-const RISK_TOP_QUANTILE = 0.99;
+/* ── 기준 분위수 (만점을 어디에 둘 것인가) ───────────────────────────
+   지수를 0~1로 환산하려면 "얼마면 만점인가"를 정해야 합니다. 최대값을
+   쓰면 유난히 몰린 한 칸이 나머지 전부를 0 근처로 눌러 버리므로,
+   상위 몇 %를 만점으로 봅니다.
+
+   ★ 두 곳에서 쓰는데 하는 일이 다릅니다. 따로 조절할 수 있게 나눠 두었습니다.
+     · 낮추면(예: 0.95) 만점 기준이 내려가 → 위험 판정 구간이 넓어집니다
+     · 올리면(예: 0.995) 기준이 올라가 → 위험 판정이 드물어집니다
+
+   ⚠️ 2026-09-04, 119 자료를 새 CSV(13.8만 건)로 바꾼 뒤 분포가 크게
+     내려갔습니다. 미추홀 중앙값 34 → 20, "주의 이상"이 51% → 22%.
+     분야 구성이 뒤바뀐 탓입니다(생활안전 77%→20%, 교통 15%→59%).
+     화면으로 확인한 뒤 이 두 값으로 조정하십시오.
+     ※ 분야별 가중치(RISK_WEIGHTS)는 AURI 확정 전까지 손대지 않습니다.  */
+
+/* ① 분야 안에서 건수를 0~1로 만들 때 (auriDensityScale)
+      그 분야에서 "이 정도면 많이 몰린 것"의 기준점입니다. */
+const RISK_DENSITY_QUANTILE = 0.99;
+
+/* ② 합산·평활을 마친 종합 지수를 0~1로 환산할 때 (auriCompositeField)
+      지도 색과 위험 판정에 직접 영향을 주는 값입니다.
+      "주의 이상"이 너무 적다고 느껴지면 여기부터 내려 보십시오. */
+const RISK_INDEX_QUANTILE = 0.99;
 
 /* 평활 반경 — 격자 한 칸의 몇 배까지 이웃 칸을 섞을 것인가.
    격자 칸의 값을 그대로 읽으면 칸 경계에서 값이 튑니다. 1m만 옮겨도
@@ -99,7 +118,7 @@ function auriQuantile(sorted, q) {
    나머지 전부를 0 근처로 눌러 버리는 것을 막기 위해서입니다. */
 function auriDensityScale(points) {
   const counts = points.map(function (p) { return p[2]; }).sort(function (a, b) { return a - b; });
-  const top = Math.max(2, auriQuantile(counts, RISK_TOP_QUANTILE));
+  const top = Math.max(2, auriQuantile(counts, RISK_DENSITY_QUANTILE));
   const denom = Math.log(1 + top);
   return function (n) {
     return Math.min(1, Math.log(1 + n) / denom);
@@ -207,7 +226,7 @@ function auriCompositeField(categories, cellSize) {
   for (let i = 0; i < raw.length; i++) smoothed[i] = smoothAt(raw[i][0], raw[i][1], false).sum;
 
   const sorted = smoothed.slice().sort(function (a, b) { return a - b; });
-  const top = auriQuantile(sorted, RISK_TOP_QUANTILE) || 1;
+  const top = auriQuantile(sorted, RISK_INDEX_QUANTILE) || 1;
 
   const cells = new Array(raw.length);
   for (let i = 0; i < raw.length; i++) {

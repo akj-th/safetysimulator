@@ -720,30 +720,61 @@ function readJsonBody(req) {
   });
 }
 
+/* ★ 내줄 수 있는 것만 적어 둔 목록 (화이트리스트)
+   ────────────────────────────────────────────────────────────────
+   예전에는 "이건 막는다" 목록이었는데, 그러면 폴더가 새로 생길 때마다
+   다시 뚫립니다. 실제로 data/raw/ 에는 환자 연령·성별·지번주소가 담긴
+   119 원본이, server/ 에는 API 키(.env)가 들어 있습니다.
+
+   그래서 **여기 적힌 것만** 내주고 나머지는 전부 403 입니다.
+   앱에 새 폴더가 필요해지면 이 목록에 한 줄 추가해야 합니다 —
+   깜빡하면 화면이 안 뜨므로 바로 알아챌 수 있습니다(조용히 새는 것보다 낫습니다).
+
+     ALLOW_DIRS   이 폴더 아래는 허용 (확장자도 함께 제한)
+     ALLOW_ROOT   프로젝트 최상단에서 허용할 파일 (.html 만)                */
+const ALLOW_DIRS = [
+  { dir: 'assets', ext: ['.css', '.js', '.json', '.svg', '.png', '.jpg'] },
+  { dir: 'data/incidents', ext: ['.json'] },
+  { dir: 'data/stats', ext: ['.json'] },
+];
+const ALLOW_ROOT_EXT = ['.html'];
+
+/** 이 경로를 내줘도 되는가 — 되면 true */
+function isAllowed(relPath) {
+  const rel = relPath.split(path.sep).join('/');       // 윈도우 \ 를 / 로
+  if (rel.includes('..')) return false;                // 상위 폴더 탈출 차단
+  const ext = path.extname(rel).toLowerCase();
+
+  /* 최상단 파일 — index.html, report.html … */
+  if (!rel.includes('/')) return ALLOW_ROOT_EXT.includes(ext);
+
+  return ALLOW_DIRS.some(function (a) {
+    return rel.startsWith(a.dir + '/') && a.ext.includes(ext);
+  });
+}
+
 async function serveStatic(req, res) {
-  const urlPath = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+  let urlPath;
+  try {
+    urlPath = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' }).end('잘못된 주소입니다.');
+    return;
+  }
+
   const filePath = path.resolve(SITE_ROOT, '.' + (urlPath === '/' ? '/index.html' : urlPath));
 
   // 프로젝트 폴더 밖의 파일은 절대 내주지 않습니다
   if (filePath !== SITE_ROOT && !filePath.startsWith(SITE_ROOT + path.sep)) {
-    res.writeHead(403).end('Forbidden');
+    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' }).end('접근할 수 없는 경로입니다.');
     return;
   }
 
-  /* ★ 원본 자료는 절대 내주지 않습니다.
-     data/raw/ 에는 환자 연령·성별·지번주소가 담긴 119 출동자료 원본과
-     API 키가 들어 있습니다. 이 서버는 데모를 위해 인터넷에 올라가므로,
-     막지 않으면 주소만 알면 누구나 받아 갈 수 있습니다.
-     앱이 쓰는 것은 집계된 data/incidents · data/stats 뿐입니다. */
-  const blocked = [
-    path.join(SITE_ROOT, 'data', 'raw'),
-    path.join(SITE_ROOT, 'server'),
-  ];
-  if (blocked.some((dir) => filePath === dir || filePath.startsWith(dir + path.sep))) {
-    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' })
-       .end('접근할 수 없는 경로입니다.');
+  if (!isAllowed(path.relative(SITE_ROOT, filePath))) {
+    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' }).end('접근할 수 없는 경로입니다.');
     return;
   }
+
   try {
     const data = await fs.readFile(filePath);
     res.writeHead(200, { 'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream' });
