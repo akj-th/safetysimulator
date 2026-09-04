@@ -297,6 +297,16 @@ input[type=range]{flex:1; min-width:90px; height:4px; margin:0; accent-color:var
   color:var(--main); background:none; padding:0; margin-left:10px;
 }
 
+/* 개입 유형 3분류 (2026-08-25 행안부 협의) — 인적 / 환경적 / 직접요인 저감.
+   리포트와 시각화가 같은 목록을 쓰므로 여기(공용)에 둡니다.
+   시설 설치만 나열하지 않는다는 것이 이 과업의 요구라, 비시설 사업인
+   '인적 개입'만 대조색으로 눈에 띄게 하고 나머지는 무채색으로 둡니다. */
+.rx-kind{
+  font-size:var(--fs-cap); font-weight:700; letter-spacing:.1em;
+  margin-left:9px; color:var(--g2);
+}
+.rx-kind.k-human{color:var(--contrast)}
+
 /* ════ 요청 입력 칸 ═════════════════════════════════════════════ */
 
 .revise-box{

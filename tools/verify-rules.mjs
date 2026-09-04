@@ -20,8 +20,8 @@ const { CATEGORIES } = await import('file://' + path.join(ROOT, 'server/checklis
 const rulesSrc = readFileSync(path.join(ROOT, 'assets/rules.js'), 'utf8');
 const sandbox = { sessionStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} }, console };
 vm.createContext(sandbox);
-vm.runInContext(rulesSrc + '\nthis.__exports = { RX_RULES, RX_CATALOG, RX_PRICES, auriPrescribe, auriCatalogHas };', sandbox);
-const { RX_RULES, RX_CATALOG, RX_PRICES, auriPrescribe, auriCatalogHas } = sandbox.__exports;
+vm.runInContext(rulesSrc + '\nthis.__exports = { RX_RULES, RX_CATALOG, RX_PRICES, RX_INTERVENTION, RX_REQUIRE_KIND, auriPrescribe, auriCatalogHas, auriRxKind };', sandbox);
+const { RX_RULES, RX_CATALOG, RX_PRICES, RX_INTERVENTION, RX_REQUIRE_KIND, auriPrescribe, auriCatalogHas, auriRxKind } = sandbox.__exports;
 
 const errors = [];
 const warnings = [];
@@ -63,6 +63,37 @@ RX_CATALOG.forEach((g) => g.items.forEach((name) => {
 }));
 Object.keys(RX_PRICES).forEach((name) => {
   if (!catalogNames.includes(name)) warnings.push(`[유령] RX_PRICES '${name}' 이 RX_CATALOG에 없음`);
+});
+
+// 개입 유형 3분류(RX_INTERVENTION)가 카탈로그 전체를 덮는지.
+// 빠지면 조용히 '환경적 개입'으로 처리되므로 경고가 아니라 오류로 잡습니다.
+const KINDS = ['human', 'environment', 'direct'];
+catalogNames.forEach((name) => {
+  if (!RX_INTERVENTION[name]) errors.push(`[누락] '${name}' 의 개입 유형(RX_INTERVENTION)이 없음`);
+  else if (!KINDS.includes(RX_INTERVENTION[name])) {
+    errors.push(`[오값] '${name}' 의 개입 유형 '${RX_INTERVENTION[name]}' 은 human/environment/direct 중 하나여야 함`);
+  }
+});
+Object.keys(RX_INTERVENTION).forEach((name) => {
+  if (!catalogNames.includes(name)) warnings.push(`[유령] RX_INTERVENTION '${name}' 이 RX_CATALOG에 없음`);
+});
+
+// 반드시 포함해야 하는 개입 유형이 그 분야에서 실제로 뽑힐 수 있는지
+Object.entries(RX_REQUIRE_KIND).forEach(([field, kind]) => {
+  const rule = RX_RULES[field];
+  if (!rule) { errors.push(`[누락] RX_REQUIRE_KIND 의 분야 '${field}' 가 RX_RULES에 없음`); return; }
+  const names = new Set();
+  Object.values(rule.byItem).forEach((list) => list.forEach((it) => names.add(it.name)));
+  ['danger', 'caution'].forEach((b) => rule.fallback[b].forEach((it) => names.add(it.name)));
+  if (![...names].some((n) => auriRxKind(n) === kind)) {
+    errors.push(`[불가] '${field}' 는 ${kind} 개입을 반드시 넣게 되어 있는데 후보에 하나도 없음`);
+  }
+  // 예비 목록에도 있어야 합니다 — 항목 판독이 없을 때도 규칙이 지켜져야 하므로
+  ['danger', 'caution'].forEach((b) => {
+    if (!rule.fallback[b].some((it) => auriRxKind(it.name) === kind)) {
+      warnings.push(`[예비목록] '${field}.fallback.${b}' 에 ${kind} 개입이 없어, 항목 판독이 없으면 규칙이 지켜지지 않음`);
+    }
+  });
 });
 
 // 실행 테스트 — auriPrescribe가 실제로 돌아가고, 처방이 항상 카탈로그 안의 것만 나오는지

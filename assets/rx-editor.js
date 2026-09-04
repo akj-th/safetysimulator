@@ -59,11 +59,15 @@ const AuriRx = {
                  : it.edited ? '<span class="mark-edited">수정됨</span>' : '';
       const note = AuriRx.opts.showNote && it.note
         ? `<div class="rx-note">${it.note}</div>` : '';
+      /* 개입 유형(인적/환경/직접) — 8/25 협의의 3분류.
+         시설 설치만 나열하지 않는다는 것을 화면에서 바로 보이게 합니다. */
+      const kind = it.kind || auriRxKind(it.name);
+      const kindTag = `<span class="rx-kind k-${kind}">${auriRxKindLabel(kind, true)}</span>`;
       return `
         <div class="rx-item">
           <span class="rx-priority ${it.priority.cls}">${it.priority.label}</span>
           <div class="rx-body">
-            <div class="rx-name">${it.name}<span class="rx-cat">${it.category}</span>${mark}</div>
+            <div class="rx-name">${it.name}${kindTag}<span class="rx-cat">${it.category}</span>${mark}</div>
             ${note}
             <div class="rx-basis">${auriRxBasis(it)}</div>
           </div>

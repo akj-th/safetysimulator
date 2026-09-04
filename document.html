@@ -126,12 +126,13 @@
         <table>
           <thead>
             <tr>
-              <th style="width:34%">시설물</th>
-              <th style="width:14%">해당 분야</th>
-              <th style="width:10%">우선순위</th>
+              <th style="width:30%">사업 항목</th>
+              <th style="width:12%">해당 분야</th>
+              <th style="width:12%">개입 유형</th>
+              <th style="width:9%">우선순위</th>
               <th style="width:8%">수량</th>
-              <th style="width:16%">표준단가</th>
-              <th style="width:18%">금액</th>
+              <th style="width:14%">표준단가</th>
+              <th style="width:15%">금액</th>
             </tr>
           </thead>
           <tbody id="budgetBody"></tbody>
@@ -288,7 +289,7 @@ window.addEventListener('load', function () {
   const bFoot = document.getElementById('budgetFoot');
 
   if (items.length === 0) {
-    bBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-soft);padding:18px">처방된 시설물이 없습니다. 종합 리포트를 먼저 열어 주세요.</td></tr>';
+    bBody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink-soft);padding:18px">처방된 시설물이 없습니다. 종합 리포트를 먼저 열어 주세요.</td></tr>';
   } else {
     let total = 0;
     let unpriced = 0;
@@ -306,6 +307,7 @@ window.addEventListener('load', function () {
         <tr>
           <td>${it.name}<br><span class="rule-id">${source}</span></td>
           <td>${it.category}</td>
+          <td>${auriRxKindLabel(it.kind || auriRxKind(it.name))}</td>
           <td>${it.priority.label}</td>
           <td class="num">${p ? p.qty + p.unit : '—'}</td>
           <td class="num">${p ? auriWon(p.price) : '단가 미산정'}</td>
@@ -315,7 +317,7 @@ window.addEventListener('load', function () {
 
     bFoot.innerHTML = `
       <tr class="sum">
-        <td colspan="4">합계 — 총 ${items.length}종${unpriced ? ` (단가 미산정 ${unpriced}종 제외)` : ''}</td>
+        <td colspan="5">합계 — 총 ${items.length}종${unpriced ? ` (단가 미산정 ${unpriced}종 제외)` : ''}</td>
         <td class="num">원</td>
         <td class="num">${auriWon(total)}</td>
       </tr>`;

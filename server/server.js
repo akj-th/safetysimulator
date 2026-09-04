@@ -401,8 +401,9 @@ The scene is a Korean urban street.`;
   }
 
   return `You are producing an "after improvement" visualization for a Korean public safety
-report. The result is attached to an official document, so accuracy matters more
-than beauty.
+report. The image sits next to the "before" photo in an official document, so it must
+satisfy two things at once: the background must be untouched, and the newly installed
+facilities must be obvious at a glance.
 
 TASK
 Edit the provided street photograph by adding ONLY the safety facilities listed below.${request}
@@ -417,10 +418,24 @@ PRESERVE THE ORIGINAL — this is the most important requirement:
 FACILITIES TO ADD
 ${list}
 
+MAKE THE CHANGE CLEARLY VISIBLE — reviewers said the before/after difference was too
+subtle to see. Within the "preserve the original" limits above:
+- Put each facility in the foreground or middle ground where the viewer looks first,
+  not far away at the edge of the frame. It must read at a glance, not on close study.
+- Size it as it would really be built. Err on the larger end of the realistic range.
+- Use the standard Korean public-facility finishes, which are already high-contrast:
+  safety-yellow and grey bollards and handrails, white and yellow road markings,
+  green or blue guide signage, galvanised steel posts, red fire equipment.
+- If a lighting facility is added, show its effect — a brighter pool of light on the
+  road surface under it. This is the one lighting change you may make; do not relight
+  the rest of the scene.
+- Do not achieve contrast by darkening, blurring, desaturating or vignetting the
+  original scene. The only difference between before and after must be the facilities
+  themselves.
+
 HOW TO ADD THEM
 - Place each facility where it would realistically be installed on this street.
 - Match the perspective, scale, shadows and lighting of the original photograph.
-- Use the ordinary Korean public design for these facilities.
 - Photorealistic. No labels, arrows, captions, callouts or watermarks.
 
 The scene is a Korean urban street.`;

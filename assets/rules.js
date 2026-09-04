@@ -25,22 +25,42 @@
 
 const RX_RULES = {
   suicide: {
+    /* ⚠️ 자살은 시설 중심이 아니라 사람 중심입니다 (2026-08-25 행안부 협의).
+       옥상 개폐장치·펜스는 접근을 막을 뿐 고립·우울이라는 근본 원인을
+       줄이지 못한다는 지적에 따라, 각 항목마다 인적 개입을 함께 두었고
+       RX_REQUIRE_KIND 로 처방에 최소 1개가 반드시 들어가게 했습니다. */
     byItem: {
-      'SUI-1': [{ id: 'R-SUI-01', name: '옥상 출입 자동개폐장치', note: '옥상 출입을 평시 통제하고 화재 시에만 자동 개방해, 투신 접근 경로를 차단합니다.' }],
+      'SUI-1': [
+        { id: 'R-SUI-01', name: '옥상 출입 자동개폐장치', note: '옥상 출입을 평시 통제하고 화재 시에만 자동 개방해, 투신 접근 경로를 차단합니다.' },
+        { id: 'R-SUI-07', name: '고립위험 주민 안부확인', note: '건물 내 고립위험 가구를 정기적으로 방문·연락해 위기 신호를 조기에 발견합니다.' },
+      ],
       'SUI-2': [
         { id: 'R-SUI-02', name: '교량 난간 증고·보강', note: '난간 높이를 기준치까지 올리고 발 디딜 곳을 없애 넘어서기 어렵게 만듭니다.' },
         { id: 'R-SUI-03', name: '투신방지 그물망', note: '난간을 넘더라도 추락으로 이어지지 않도록 하부에 그물망을 설치합니다.' },
       ],
-      'SUI-3': [{ id: 'R-SUI-04', name: '추락방지 안전펜스', note: '고지대·경사지 가장자리의 개방 구간에 추락방지 펜스를 설치합니다.' }],
-      'SUI-4': [{ id: 'R-SUI-05', name: '위기상담 연결 SOS 전화기', note: '고립된 공간에서 즉시 상담으로 연결되는 통로를 확보합니다.' }],
-      'SUI-5': [{ id: 'R-SUI-06', name: '생명존중 안전 사이니지', note: '상담 연결 정보와 문구를 시야에 노출해 위기 순간의 행동을 지연시킵니다.' }],
+      'SUI-3': [
+        { id: 'R-SUI-04', name: '추락방지 안전펜스', note: '고지대·경사지 가장자리의 개방 구간에 추락방지 펜스를 설치합니다.' },
+        { id: 'R-SUI-07', name: '고립위험 주민 안부확인', note: '위험 지점 주변 고립위험 가구를 정기적으로 방문·연락해 위기 신호를 조기에 발견합니다.' },
+      ],
+      'SUI-4': [
+        { id: 'R-SUI-08', name: '찾아가는 마음건강 상담', note: '고립된 생활공간으로 상담 인력이 찾아가 정신건강·복지 서비스로 연결합니다.' },
+        { id: 'R-SUI-05', name: '위기상담 연결 SOS 전화기', note: '고립된 공간에서 즉시 상담으로 연결되는 통로를 확보합니다.' },
+      ],
+      'SUI-5': [
+        { id: 'R-SUI-06', name: '생명존중 안전 사이니지', note: '상담 연결 정보와 문구를 시야에 노출해 위기 순간의 행동을 지연시킵니다.' },
+        { id: 'R-SUI-09', name: '자살예방 게이트키퍼 양성', note: '통·반장, 편의점·약국 등 주민 접점 인력을 위기 신호를 알아보는 발견자로 양성합니다.' },
+      ],
     },
     fallback: {
       danger: [
+        { id: 'R-SUI-07', name: '고립위험 주민 안부확인', note: '건물 내 고립위험 가구를 정기적으로 방문·연락해 위기 신호를 조기에 발견합니다.' },
         { id: 'R-SUI-01', name: '옥상 출입 자동개폐장치', note: '옥상 출입을 평시 통제하고 화재 시에만 자동 개방해, 투신 접근 경로를 차단합니다.' },
         { id: 'R-SUI-04', name: '추락방지 안전펜스', note: '고지대·경사지 가장자리의 개방 구간에 추락방지 펜스를 설치합니다.' },
       ],
-      caution: [{ id: 'R-SUI-06', name: '생명존중 안전 사이니지', note: '상담 연결 정보와 문구를 시야에 노출해 위기 순간의 행동을 지연시킵니다.' }],
+      caution: [
+        { id: 'R-SUI-08', name: '찾아가는 마음건강 상담', note: '고립된 생활공간으로 상담 인력이 찾아가 정신건강·복지 서비스로 연결합니다.' },
+        { id: 'R-SUI-06', name: '생명존중 안전 사이니지', note: '상담 연결 정보와 문구를 시야에 노출해 위기 순간의 행동을 지연시킵니다.' },
+      ],
     },
   },
 
@@ -94,7 +114,10 @@ const RX_RULES = {
       'FIR-3': [{ id: 'R-FIR-06', name: '화재감지 IoT 센서', note: '밀집 구조에서 연소 확대 전에 화재를 조기에 감지합니다.' }],
       'FIR-4': [{ id: 'R-FIR-06', name: '화재감지 IoT 센서', note: '노후 배선·설비 구간의 발화를 조기에 감지합니다.' }],
       'FIR-5': [{ id: 'R-FIR-07', name: '옥외 적치물 정비', note: '옥외에 쌓인 가연물을 정리해 발화·연소 확대 요인을 없앱니다.' }],
-      'FIR-6': [{ id: 'R-FIR-06', name: '화재감지 IoT 센서', note: '노후 건축물의 화재를 조기에 감지해 대피 시간을 확보합니다.' }],
+      'FIR-6': [
+        { id: 'R-FIR-06', name: '화재감지 IoT 센서', note: '노후 건축물의 화재를 조기에 감지해 대피 시간을 확보합니다.' },
+        { id: 'R-FIR-07', name: '취약가구 소화기·감지기 보급', note: '노후 주거지의 취약가구에 소화기와 단독경보형 감지기를 보급합니다.' },
+      ],
     },
     fallback: {
       danger: [
@@ -122,6 +145,7 @@ const RX_RULES = {
       'CRM-4': [
         { id: 'R-CRM-07', name: '스마트 안심 부스', note: '은폐 공간 인근에 대피·신고가 가능한 거점을 둡니다.' },
         { id: 'R-CRM-08', name: '안심 귀갓길 노면표시', note: '감시가 되는 경로로 보행 동선을 유도합니다.' },
+        { id: 'R-CRM-10', name: '자율방범대 운영 지원', note: '시설로 메우기 어려운 은폐 구간을 주민 순찰로 보완해 자연 감시를 늘립니다.' },
       ],
       'CRM-5': [{ id: 'R-CRM-08', name: '안심 귀갓길 노면표시', note: '자연 감시가 되는 경로로 보행 동선을 유도합니다.' }],
       'CRM-6': [{ id: 'R-CRM-09', name: '노후 벽면 환경 정비', note: '방치된 인상을 없애 범죄 유발 환경을 개선합니다.' }],
@@ -141,7 +165,10 @@ const RX_RULES = {
         { id: 'R-LIF-01', name: '보행로 단차 정비', note: '보도 턱과 요철을 제거해 보행 장애 요소를 없앱니다.' },
         { id: 'R-LIF-02', name: '점자블록 정비', note: '파손·누락된 점자블록을 규격에 맞게 다시 설치합니다.' },
       ],
-      'LIF-2': [{ id: 'R-LIF-03', name: '보행 안전 핸드레일', note: '경사로·계단 구간의 낙상 사고를 물리적으로 방지합니다.' }],
+      'LIF-2': [
+        { id: 'R-LIF-03', name: '보행 안전 핸드레일', note: '경사로·계단 구간의 낙상 사고를 물리적으로 방지합니다.' },
+        { id: 'R-LIF-09', name: '고령자 낙상예방 방문교육', note: '가정과 생활 동선의 위험 요소를 함께 점검하고 낙상 예방 행동을 안내합니다.' },
+      ],
       'LIF-3': [
         { id: 'R-LIF-04', name: '미끄럼 방지 포장', note: '결빙·우천 시 전도 사고를 줄이는 노면 마감을 적용합니다.' },
         { id: 'R-LIF-05', name: '노면 결빙방지 열선', note: '급경사·응달 구간의 결빙을 원천적으로 막습니다.' },
@@ -171,6 +198,7 @@ const RX_RULES = {
       'IND-5': [
         { id: 'R-IND-05', name: '하역·적재구역 노면표시', note: '도로면까지 나온 작업 구역의 경계를 명확히 합니다.' },
         { id: 'R-IND-03', name: '안전 사이니지·경고 표지', note: '작업이 이뤄지는 구간임을 통행자에게 고지합니다.' },
+        { id: 'R-IND-06', name: '소규모 사업장 안전보건 컨설팅', note: '추락·끼임 등 주요 사고 공정을 현장에서 진단하고 개선 방법을 안내합니다.' },
       ],
       'IND-6': [{ id: 'R-IND-02', name: '작업구간 방호 펜스', note: '노상에 놓인 자재·장비 구역을 통행 동선과 분리합니다.' }],
     },
@@ -189,9 +217,15 @@ const RX_RULES = {
         { id: 'R-INF-01', name: '대기공간 환기설비', note: '밀폐된 대기 공간에 강제 환기 설비를 넣어 비말 체류를 줄입니다.' },
         { id: 'R-INF-02', name: '개방형 대기공간 정비', note: '밀폐 구조를 자연 환기가 되는 개방형으로 바꿉니다.' },
       ],
-      'INF-2': [{ id: 'R-INF-03', name: '스마트 클린 쉘터', note: '밀집 대기 공간에 환기·소독 설비를 갖춰 비말 전파 위험을 낮춥니다.' }],
+      'INF-2': [
+        { id: 'R-INF-03', name: '스마트 클린 쉘터', note: '밀집 대기 공간에 환기·소독 설비를 갖춰 비말 전파 위험을 낮춥니다.' },
+        { id: 'R-INF-07', name: '찾아가는 감염병 검진', note: '밀집 공간을 이용하는 고위험 집단을 직접 찾아가 검진해 조기에 발견합니다.' },
+      ],
       'INF-3': [{ id: 'R-INF-04', name: '옥외 손 위생 스테이션', note: '접촉 감염을 차단하는 상시 위생 거점을 확보합니다.' }],
-      'INF-4': [{ id: 'R-INF-02', name: '개방형 대기공간 정비', note: '적치물을 정리하고 위생 관리가 되는 구조로 개선합니다.' }],
+      'INF-4': [
+        { id: 'R-INF-02', name: '개방형 대기공간 정비', note: '적치물을 정리하고 위생 관리가 되는 구조로 개선합니다.' },
+        { id: 'R-INF-08', name: '감염취약시설 종사자 감염관리 교육', note: '인근 요양·복지시설 종사자에게 위생·감염관리 수칙을 교육합니다.' },
+      ],
       'INF-5': [{ id: 'R-INF-05', name: '보도 신설·확폭', note: '마주 지나갈 때 거리를 둘 수 있도록 보행 폭을 확보합니다.' }],
       'INF-6': [{ id: 'R-INF-06', name: '항균 손잡이·표면 마감', note: '손이 자주 닿는 공용 시설물의 표면을 항균 마감으로 교체합니다.' }],
     },
@@ -217,6 +251,7 @@ const RX_RULES = {
    ──────────────────────────────────────────────────────────────────── */
 const RX_CATALOG = [
   { group: '자살 예방', items: [
+    '고립위험 주민 안부확인', '찾아가는 마음건강 상담', '자살예방 게이트키퍼 양성',
     '옥상 출입 자동개폐장치', '추락방지 안전펜스', '교량 난간 증고·보강',
     '생명존중 안전 사이니지', '위기상담 연결 SOS 전화기', '투신방지 그물망',
   ]},
@@ -236,21 +271,146 @@ const RX_CATALOG = [
     'CPTED 방범 CCTV', '안심 비상벨(SOS)', '범죄예방 환경디자인 조명',
     'LED 보안등 교체·증설', '안심 귀갓길 노면표시', '반사형 안전거울',
     '시야 확보 정비(벽면·식재)', '노후 벽면 환경 정비', '스마트 안심 부스',
+    '자율방범대 운영 지원',
   ]},
   { group: '생활안전', items: [
     '보행 안전 핸드레일', '미끄럼 방지 포장', '보행로 단차 정비',
     '점자블록 정비', '배수시설(측구·맨홀) 정비', '노면 결빙방지 열선',
     '보행자 우선도로 조성', '보행 장애물(입간판·적치물) 정비',
+    '고령자 낙상예방 방문교육',
   ]},
   { group: '산업재해', items: [
     '작업구간 방호 펜스', '안전 사이니지·경고 표지', '하역·적재구역 노면표시',
     '가설 보행자 통로', '작업구간 경광등·유도등',
+    '소규모 사업장 안전보건 컨설팅',
   ]},
   { group: '감염병', items: [
     '스마트 클린 쉘터', '옥외 손 위생 스테이션', '개방형 대기공간 정비',
     '대기공간 환기설비', '항균 손잡이·표면 마감',
+    '감염취약시설 종사자 감염관리 교육', '찾아가는 감염병 검진',
+  ]},
+  { group: '화재안전 (사업)', items: [
+    '취약가구 소화기·감지기 보급',
   ]},
 ];
+
+/* ────────────────────────────────────────────────────────────────────
+   개입 유형 3분류 (2026-08-25 행안부 협의)
+
+   "단순 시설 설치나 기존 사업 나열"이 아니라, 실제 사고·피해 감소에
+   직접 기여하는 사업으로 재정리하라는 요구에 따른 분류입니다.
+
+     human       인적 개입      — 사전 발견, 안부확인, 교육, 상담,
+                                  복지·보건·안전서비스 연계
+     environment 환경적 개입    — 사고가 나거나 피해가 커지기 쉬운
+                                  공간·시설·생활환경을 개선
+     direct      직접요인 저감  — 사고원인 또는 피해확대 요인을 직접 제거·차단
+
+   ★ 이 표는 담당자가 고치는 표입니다. 이름만 맞으면 되고, 규칙표를
+     건드릴 필요가 없도록 RX_PRICES 와 같은 방식(이름 → 값)으로 두었습니다.
+
+   ⚠️ 자살 분야 유의 — 8/25 협의에서 "옥상 개폐장치·CCTV·펜스 등 단순
+     시설사업은 고립·우울·사회적 단절 등 근본 위험요인을 줄이는 데 한계가
+     있다"는 지적이 있었습니다. 그래서 자살은 인적 개입이 반드시 한 개
+     이상 들어가도록 했습니다 (RX_REQUIRE_KIND).
+   ──────────────────────────────────────────────────────────────────── */
+const RX_INTERVENTION = {
+  /* ── 인적 개입 (비시설 사업) ─────────────────────────────────── */
+  '고립위험 주민 안부확인':               'human',
+  '찾아가는 마음건강 상담':               'human',
+  '자살예방 게이트키퍼 양성':             'human',
+  '위기상담 연결 SOS 전화기':             'human',
+  '자율방범대 운영 지원':                 'human',
+  '고령자 낙상예방 방문교육':             'human',
+  '소규모 사업장 안전보건 컨설팅':        'human',
+  '감염취약시설 종사자 감염관리 교육':    'human',
+  '찾아가는 감염병 검진':                 'human',
+
+  /* ── 직접요인 저감 ───────────────────────────────────────────── */
+  '옥상 출입 자동개폐장치':               'direct',
+  '추락방지 안전펜스':                    'direct',
+  '교량 난간 증고·보강':                  'direct',
+  '투신방지 그물망':                      'direct',
+  '보행자 방호울타리':                    'direct',
+  '차량진입억제용 볼라드':                'direct',
+  '고원식 횡단보도':                      'direct',
+  '과속방지턱':                           'direct',
+  '불법주정차 단속 CCTV':                 'direct',
+  '옥외 적치물 정비':                     'direct',
+  '보행 장애물(입간판·적치물) 정비':      'direct',
+  '시야 확보 정비(벽면·식재)':            'direct',
+  '작업구간 방호 펜스':                   'direct',
+  '가설 보행자 통로':                     'direct',
+  '스마트 소화전':                        'direct',
+  '옥외 소화기함':                        'direct',
+  '비상소화장치함':                       'direct',
+  '화재감지 IoT 센서':                    'direct',
+  '취약가구 소화기·감지기 보급':          'direct',
+  'CPTED 방범 CCTV':                      'direct',
+  '안심 비상벨(SOS)':                     'direct',
+  '노면 결빙방지 열선':                   'direct',
+  '배수시설(측구·맨홀) 정비':             'direct',
+  '대기공간 환기설비':                    'direct',
+  '항균 손잡이·표면 마감':                'direct',
+
+  /* ── 환경적 개입 ─────────────────────────────────────────────── */
+  '생명존중 안전 사이니지':               'environment',
+  '바닥형 보행신호등':                    'environment',
+  '고휘도 횡단보도 조명':                 'environment',
+  '스마트 횡단보도(보행자 감지)':         'environment',
+  '과속경고 전광표지':                    'environment',
+  '도로반사경':                           'environment',
+  '노면 색깔유도선':                      'environment',
+  '어린이보호구역 표지·노면표시':         'environment',
+  '보도 신설·확폭':                       'environment',
+  '소방차 진입로 노면표시':               'environment',
+  '소방차 전용구역 표시':                 'environment',
+  '범죄예방 환경디자인 조명':             'environment',
+  'LED 보안등 교체·증설':                 'environment',
+  '안심 귀갓길 노면표시':                 'environment',
+  '반사형 안전거울':                      'environment',
+  '노후 벽면 환경 정비':                  'environment',
+  '스마트 안심 부스':                     'environment',
+  '보행 안전 핸드레일':                   'environment',
+  '미끄럼 방지 포장':                     'environment',
+  '보행로 단차 정비':                     'environment',
+  '점자블록 정비':                        'environment',
+  '보행자 우선도로 조성':                 'environment',
+  '안전 사이니지·경고 표지':              'environment',
+  '하역·적재구역 노면표시':               'environment',
+  '작업구간 경광등·유도등':               'environment',
+  '스마트 클린 쉘터':                     'environment',
+  '옥외 손 위생 스테이션':                'environment',
+  '개방형 대기공간 정비':                 'environment',
+};
+
+const RX_INTERVENTION_LABEL = {
+  human:       { short: '인적',   label: '인적 개입' },
+  environment: { short: '환경',   label: '환경적 개입' },
+  direct:      { short: '직접',   label: '직접요인 저감' },
+};
+
+/* 이 분야에는 해당 개입 유형이 반드시 하나 이상 들어가야 합니다.
+   자살은 8/25 협의에서 "사람 중심 개입을 핵심으로" 하라고 정해졌습니다. */
+const RX_REQUIRE_KIND = { suicide: 'human' };
+
+/** 시설물·사업 이름 → 개입 유형 (모르면 환경적 개입으로 봅니다) */
+function auriRxKind(name) {
+  return RX_INTERVENTION[name] || 'environment';
+}
+
+/** 개입 유형 표시용 이름 */
+function auriRxKindLabel(kind, short) {
+  const k = RX_INTERVENTION_LABEL[kind] || RX_INTERVENTION_LABEL.environment;
+  return short ? k.short : k.label;
+}
+
+/** 이 항목이 거리 이미지에 그릴 수 있는 것인가.
+    인적 개입(안부확인·상담·교육)은 사진에 나타나지 않으므로
+    4단계 개선 후 이미지 생성에서 제외합니다. */
+function auriRxIsVisual(name) {
+  return auriRxKind(name) !== 'human';
+}
 
 /* ────────────────────────────────────────────────────────────────────
    표준단가표 (임시 추정값)
@@ -269,6 +429,19 @@ const RX_CATALOG = [
      price  단위당 단가 (원)
    ──────────────────────────────────────────────────────────────────── */
 const RX_PRICES = {
+  /* 비시설 사업 (인적 개입) — 단위가 시설물과 다릅니다.
+     '개소·년'은 격자 한 곳에서 1년간 운영하는 비용입니다. 안전사업지구
+     지정 기간을 몇 년으로 잡느냐에 따라 qty 를 늘려야 합니다. */
+  '고립위험 주민 안부확인':           { unit: '개소·년', qty: 1, price: 18000000 },
+  '찾아가는 마음건강 상담':           { unit: '개소·년', qty: 1, price: 24000000 },
+  '자살예방 게이트키퍼 양성':         { unit: '회',      qty: 4, price:  1500000 },
+  '자율방범대 운영 지원':             { unit: '개소·년', qty: 1, price: 12000000 },
+  '고령자 낙상예방 방문교육':         { unit: '회',      qty: 6, price:   900000 },
+  '소규모 사업장 안전보건 컨설팅':    { unit: '개소',    qty: 5, price:  1800000 },
+  '감염취약시설 종사자 감염관리 교육': { unit: '회',     qty: 4, price:  1200000 },
+  '찾아가는 감염병 검진':             { unit: '회',      qty: 2, price:  4500000 },
+  '취약가구 소화기·감지기 보급':      { unit: '가구',    qty: 40, price:   85000 },
+
   /* 자살 예방 */
   '옥상 출입 자동개폐장치':     { unit: '개소', qty: 2,  price:  2500000 },
   '추락방지 안전펜스':          { unit: 'm',    qty: 30, price:   250000 },
@@ -501,7 +674,32 @@ function auriPrescribe(results, overrides) {
     });
     pool.sort(function (a, b) { return b.fit - a.fit || a.order - b.order; });
 
-    /* ④ 상위 N개만 */
+    /* ④ 반드시 들어가야 하는 개입 유형이 있으면 자리를 하나 확보합니다.
+          자살은 "옥상 개폐장치·펜스 같은 시설만으로는 고립·우울이라는
+          근본 원인을 줄이지 못한다"는 8/25 협의 결론에 따라, 인적 개입이
+          최소 한 개 들어가도록 합니다 (RX_REQUIRE_KIND).
+
+          적합도 순서를 뒤엎지 않고, 상위 N개 안에 그 유형이 없을 때만
+          가장 적합도가 높은 해당 유형 후보를 맨 앞으로 끌어올립니다. */
+    /* 처방을 하나만 하는 '주의' 판정에는 적용하지 않습니다. 8/25 협의의
+       취지는 "시설 하나만 놓지 말고 사람 개입과 묶어 패키지로 하라"는
+       것이라, 한 자리뿐일 때 그 자리를 인적 개입으로 바꿔 버리면
+       오히려 물리적 대책이 통째로 빠집니다. */
+    const need = limit >= 2 ? RX_REQUIRE_KIND[r.key] : null;
+    if (need) {
+      const head = pool.slice(0, limit);
+      const hasKind = head.some(function (c) { return auriRxKind(c.item.name) === need; });
+      if (!hasKind) {
+        const idx = pool.findIndex(function (c) { return auriRxKind(c.item.name) === need; });
+        if (idx >= limit) {
+          const picked = pool.splice(idx, 1)[0];
+          picked.required = need;          // 근거 줄에 왜 들어갔는지 남깁니다
+          pool.unshift(picked);
+        }
+      }
+    }
+
+    /* ⑤ 상위 N개만 */
     let taken = 0;
     for (let i = 0; i < pool.length && taken < limit; i++) {
       const c = pool[i];
@@ -515,14 +713,18 @@ function auriPrescribe(results, overrides) {
       const auto = c.fit >= RX_MUST_FIT ? RX_PRIORITY.must : RX_PRIORITY.recommend;
       const t = c.triggers[0];
 
+      const finalName = e.name || item.name;
       out.push({
         id: item.id,
-        name: e.name || item.name,
+        name: finalName,
         note: e.note || item.note,
         category: r.name,
         score: r.score,
         levelLabel: r.level.label,
         fit: c.fit,
+        /* 개입 유형 3분류 (2026-08-25 협의) — 인적 / 환경적 / 직접요인 저감 */
+        kind: auriRxKind(finalName),
+        required: c.required || null,
         priority: e.priorityCls ? RX_PRIORITY[e.priorityCls] : auto,
         edited: !!(e.name || e.note || e.priorityCls),
         /* 이 시설물을 부른 체크리스트 항목 — 문서의 근거가 됩니다 */
@@ -541,6 +743,7 @@ function auriPrescribe(results, overrides) {
       category: item.category || '직접 지정',
       score: null,
       levelLabel: null,
+      kind: auriRxKind(item.name),
       priority: RX_PRIORITY[item.priorityCls] || RX_PRIORITY.recommend,
       custom: true,
     });
@@ -585,13 +788,18 @@ function auriRxBasis(it) {
 
   const fit = it.fit != null ? ` · 적합도 ${it.fit}` : '';
 
+  /* 8/25 협의로 반드시 넣기로 한 개입 유형이면 그 사실을 근거에 남깁니다.
+     "적합도가 낮은데 왜 들어갔나"를 되짚을 수 있어야 하기 때문입니다. */
+  const req = it.required
+    ? ` · ${auriRxKindLabel(it.required)} 필수 포함(2026-08-25 협의)` : '';
+
   if (it.trigger) {
     const seen = it.trigger.note ? ` — ${it.trigger.note}` : '';
     const also = it.trigger.count > 1 ? ` 외 ${it.trigger.count - 1}건` : '';
     return `근거: 사진 판독 ${it.trigger.id}${seen}${also} → 규칙 ${it.id} · ` +
-           `${it.category} ${it.levelLabel} 판정${fit}${edited}${tail}`;
+           `${it.category} ${it.levelLabel} 판정${fit}${req}${edited}${tail}`;
   }
-  return `근거: ${it.category} ${it.score}점 · ${it.levelLabel} 판정 → 규칙 ${it.id}${fit}${edited}${tail}`;
+  return `근거: ${it.category} ${it.score}점 · ${it.levelLabel} 판정 → 규칙 ${it.id}${fit}${req}${edited}${tail}`;
 }
 
 /* 최종 목록을 다음 단계로 넘깁니다. 규칙 엔진은 리포트 단계에서만 돌리고,
