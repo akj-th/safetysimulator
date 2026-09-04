@@ -83,6 +83,15 @@
   .area-bar .v{font-size:var(--fs-sm); color:var(--g3)}
   .area-bar .v b{color:var(--k); font-weight:700}
   .area-bar .in{color:var(--main); font-weight:700}
+  .area-bar .dim{color:var(--g2); font-size:var(--fs-cap); font-family:var(--mono)}
+
+  /* 중점 분야 대체 이력 — 조사지 안 표본이 모자란 지자체에만 */
+  .replaced-note{
+    margin:-14px 0 26px; padding:2px 0 2px 15px;
+    border-left:2px solid var(--g1);
+    font-size:var(--fs-sm); color:var(--g3); line-height:var(--lh-body);
+  }
+  .replaced-note b{color:var(--k); font-weight:700}
 
   /* 분야별 서술 묶음 */
   .cat-block{padding:16px 0; border-bottom:1px solid var(--g1)}
@@ -131,6 +140,15 @@
   .dong-cell.is-focus .n{color:var(--main)}
   .dong-cell.is-focus .c{color:var(--k)}
   .dong-foot{font-size:var(--fs-sm); color:var(--g2); line-height:var(--lh-body); margin:14px 0 0}
+
+  /* 사전진단서 2장·3.1 표 — 좁은 화면에서 표만 옆으로 밀립니다 */
+  .table-wrap{overflow-x:auto}
+  .table-wrap table{min-width:560px}
+  .table-wrap .focus td:first-child{font-weight:700; color:var(--k)}
+  .table-wrap .focus td:first-child::before{content:'● '; color:var(--main)}
+  .table-wrap .trend-up{color:var(--main); font-weight:700}
+  .table-wrap .trend-down{color:var(--g3)}
+  .table-wrap .dim{color:var(--g2)}
 </style>
 </head>
 <body data-step="3">
@@ -159,6 +177,8 @@
     <div><span class="k">중점 분야</span><span class="v" id="abFocus">—</span></div>
     <div><span class="k">이 지점</span><span class="v" id="abInside">—</span></div>
   </div>
+  <!-- 표본이 모자라 중점 분야를 바꾼 지자체에만 나타납니다 -->
+  <p class="replaced-note" id="areaReplaced" style="display:none"></p>
 
   <!-- 읍면동 종합 분석 — 주무관이 담당 동 단위로 사업을 관리하므로 먼저 보여 줍니다 -->
   <div class="panel" id="paneDong" style="display:none">
@@ -196,6 +216,31 @@
       <span class="tag" id="inputImageTag"></span>
     </div>
     <img class="input-image" id="inputImage" alt="진단 입력 이미지">
+  </div>
+
+  <!-- 2장 중점관리분야 현황 — 사전진단서 2.1 형식 -->
+  <div class="panel" id="paneTrend" style="display:none">
+    <div class="panel-head">
+      <h2>중점관리분야 발생 현황</h2>
+      <span class="tag">사전진단서 2.1</span>
+    </div>
+    <p class="dong-lead" id="trendLead"></p>
+    <div class="table-wrap">
+      <table id="trendTable"></table>
+    </div>
+    <p class="dong-foot" id="trendFoot"></p>
+  </div>
+
+  <!-- 3.1 안전분야별 사고 분포 및 점유율 — 사전진단서 [표 2] 형식 -->
+  <div class="panel" id="paneShare" style="display:none">
+    <div class="panel-head">
+      <h2>안전분야별 사고 분포 및 점유율</h2>
+      <span class="tag">사전진단서 [표 2]</span>
+    </div>
+    <div class="table-wrap">
+      <table id="shareTable"></table>
+    </div>
+    <p class="dong-foot" id="shareFoot"></p>
   </div>
 
   <!-- ① 인적 특성 — 누가 다치는가 (119 출동자료) -->
@@ -284,6 +329,7 @@ let _results = null;      // 분야별 점수 (사진 판독) — 주변 이력�
 let _localRisk = null;    // 주변 119 이력 종합 지수 (1단계에서 계산해 넘겨받음)
 let _rxDraft = null;      // 처방 편집 중인 임시 목록
 let _stats = null;        // 119 출동자료 통계 { data, inside } — 없으면 null
+let _national = null;     // 41개 지자체 합계 — 사전진단서 2.1 의 "평균 대비" 비교용
 
 /* ── 항목별 점수 ────────────────────────────────────────────────── */
 
@@ -420,10 +466,28 @@ function renderStats() {
   document.getElementById('abArea').innerHTML = summary.areaHa
     ? `<b>${summary.areaHa}ha</b> · ${summary.overlapN}개 분야 중첩`
     : '—';
-  document.getElementById('abFocus').innerHTML = `<b>${summary.focus}</b>`;
+  /* 중점 분야는 표본수를 함께 적습니다 — "왜 이 분야인가"의 1차 근거 */
+  document.getElementById('abFocus').innerHTML = focus.map(function (f) {
+    const s = (_stats.data.focusTypes.find((t) => t.key === f.key) || {}).sample;
+    return `<b>${f.label}</b>` + (s && s.n !== null ? `<span class="dim"> n=${s.n}</span>` : '');
+  }).join(' · ');
+
   document.getElementById('abInside').innerHTML = inside
     ? '<span class="in">조사지 안</span>'
     : '조사지 밖 — 지자체 전체 기준으로 서술';
+
+  /* 표본이 모자라 분야를 바꾼 곳이면 그 사실을 적습니다.
+     실장 보고에서 "왜 이 분야를 봤나"가 나올 수 있습니다. */
+  const replaced = AuriStats.replacedNote(data);
+  const rBox = document.getElementById('areaReplaced');
+  if (replaced) {
+    rBox.style.display = 'block';
+    rBox.innerHTML = `<b>중점 분야 대체</b> — ${replaced}. `
+      + '조사지 내 표본이 3건 미만이면 비율이 몇 건에 좌우되어 '
+      + '강원대가 대체 분야를 지정했습니다.';
+  } else {
+    rBox.style.display = 'none';
+  }
 
   /* 조사지 밖 지점은 "조사지 내 vs 전체" 비교가 성립하지 않습니다.
      그럴 때는 지자체 전체 분포만 씁니다. */
@@ -518,6 +582,118 @@ function renderDong(dongName) {
   document.getElementById('dongFoot').textContent =
     `표시된 건수는 이 동에서 발생한 119 출동 건수이고, 아래 %는 ${data.shortLabel} 전체 대비 비중입니다. ` +
     `붉은 라벨은 이 지자체의 중점 분야입니다. 아래 ①~⑥은 선택한 지점 한 곳에 대한 상세 분석입니다.`;
+}
+
+/* ── 사전진단서 2장 · 3.1 ──────────────────────────────────────────
+   AURI가 사람 손으로 쓴 사전진단서의 표를 같은 형식으로 만듭니다.
+   중간보고에서 "사전진단서 형식을 그대로 구현했다"고 보일 수 있어야 합니다.
+
+   ⚠️ 2.1 의 "시평균 대비 배수"는 사전진단서가 **인구 10만명당 발생률**로
+     계산한 값입니다. 우리는 인구 데이터를 받지 못해 그대로 재현할 수
+     없습니다. 대신 **41개 지자체 평균 건수 대비 배수**를 쓰고 화면에
+     그 사실을 적어 둡니다. 인구 자료를 받으면 이 계산만 바꾸면 됩니다. */
+function renderDiagnosisTables() {
+  if (!_stats || !_stats.data || !_national) return;
+  const data = _stats.data;
+  const focus = AuriStats.focusCategories(data);
+  if (!focus.length) return;
+
+  const order = AuriStats.categoryOrder;
+  const focusKeys = new Set(focus.map((f) => f.key));
+  const regionCount = _national.regionCount || 41;
+
+  /* ── 2.1 연도별 추이 + 41개 평균 대비 ── */
+  const years = ['2023', '2024', '2025'];
+  const rows = focus.map((f) => {
+    const y = f.cat.region.years || {};
+    const total = years.reduce((s, k) => s + (y[k] || 0), 0);
+    const first = y[years[0]] || 0, last = y[years[years.length - 1]] || 0;
+    const change = first ? Math.round((last - first) / first * 1000) / 10 : null;
+
+    const nat = _national.categories[f.key];
+    const natAvg = nat ? nat.n / regionCount : null;
+    const ratio = natAvg ? Number((total / 3 / (natAvg / 3)).toFixed(2)) : null;
+
+    return { f, y, total, change, natAvg: natAvg ? Math.round(natAvg) : null, ratio };
+  });
+
+  document.getElementById('paneTrend').style.display = 'block';
+  document.getElementById('trendTable').innerHTML = `
+    <thead>
+      <tr>
+        <th style="width:20%">중점 분야</th>
+        ${years.map((k) => `<th class="num" style="width:11%">${k}</th>`).join('')}
+        <th class="num" style="width:13%">3개년 합계</th>
+        <th class="num" style="width:12%">증감</th>
+        <th class="num" style="width:20%">41개 평균 대비</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map((r) => `
+        <tr>
+          <td>${r.f.label}</td>
+          ${years.map((k) => `<td class="num">${(r.y[k] || 0).toLocaleString()}</td>`).join('')}
+          <td class="num">${r.total.toLocaleString()}</td>
+          <td class="num ${r.change > 0 ? 'trend-up' : 'trend-down'}">${
+            r.change === null ? '—' : (r.change > 0 ? '+' : '') + r.change + '%'}</td>
+          <td class="num">${r.ratio === null ? '—'
+            : `<b>${r.ratio}배</b> <span class="dim">(평균 ${r.natAvg.toLocaleString()}건)</span>`}</td>
+        </tr>`).join('')}
+    </tbody>`;
+
+  /* 머리 문장 — 진단서 2.1 의 "(범죄) …" 서술과 같은 자리 */
+  const lead = rows.map((r) => {
+    const dir = r.change === null ? '' : (r.change > 0 ? `${r.change}% 증가` : `${Math.abs(r.change)}% 감소`);
+    return `<b>${r.f.label}</b>는 3개년 <b>${r.total.toLocaleString()}건</b>` +
+           (dir ? `으로 ${years[0]}년 대비 ${dir}` : '') +
+           (r.ratio !== null ? `, 41개 지자체 평균 대비 <b>${r.ratio}배</b>` : '');
+  }).join('. ');
+  document.getElementById('trendLead').innerHTML = lead + '.';
+
+  document.getElementById('trendFoot').innerHTML =
+    '⚠️ 사전진단서는 <b>인구 10만명당 발생률</b>로 시평균과 견주지만, 인구 자료를 받지 못해 '
+    + '여기서는 <b>41개 지자체 평균 건수</b>와 견주었습니다. 인구 규모가 다른 지자체끼리의 '
+    + '비교라 참고값으로만 읽어 주세요. 인구 자료를 받으면 이 열만 바뀝니다.'
+    + '<br>⚠️ 연도별 건수도 사전진단서 [표 1]과 분야에 따라 다릅니다 '
+    + '(부천 범죄: 진단서 2,133건 vs 우리 1,929건 · 자살은 926건으로 일치). '
+    + '아래 [표 2]의 시군구 전체 건수는 진단서와 정확히 같으므로, '
+    + '[표 1]이 중복매칭을 정리하기 전 수치로 보입니다. <b>AURI 확인 대기 중</b>입니다.';
+
+  /* ── 3.1 안전분야별 점유율 [표 2] ── */
+  const shareRows = order
+    .filter((k) => data.categories[k])
+    .map((k) => ({ key: k, c: data.categories[k] }))
+    .sort((a, b) => (b.c.count.share || 0) - (a.c.count.share || 0));
+
+  document.getElementById('paneShare').style.display = 'block';
+  document.getElementById('shareTable').innerHTML = `
+    <thead>
+      <tr>
+        <th style="width:22%">안전분야</th>
+        <th class="num" style="width:20%">시군구 전체</th>
+        <th class="num" style="width:20%">조사지 내</th>
+        <th class="num" style="width:16%">발생비율</th>
+        <th style="width:22%">비고</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${shareRows.map((r) => `
+        <tr class="${focusKeys.has(r.key) ? 'focus' : ''}">
+          <td>${r.c.label}</td>
+          <td class="num">${r.c.count.region.toLocaleString()}</td>
+          <td class="num">${r.c.count.inside.toLocaleString()}</td>
+          <td class="num">${r.c.count.share === null ? '—' : r.c.count.share + '%'}</td>
+          <td class="dim">${focusKeys.has(r.key)
+            ? (r.key === 'suicide' ? '중점 분야 · 정부중점관리대상' : '중점 분야')
+            : (r.c.sample.reliable ? '' : `표본 ${r.c.count.inside}건`)}</td>
+        </tr>`).join('')}
+    </tbody>`;
+
+  document.getElementById('shareFoot').innerHTML =
+    `조사지 내 <b>${data.totals.inside.toLocaleString()}건</b> / ${data.shortLabel} 전체 `
+    + `<b>${data.totals.region.toLocaleString()}건</b>. 발생비율은 그 분야 사고 중 조사지 안에서 `
+    + '일어난 비중입니다. 붉은 점은 중점 분야이며, '
+    + '<b>자살은 정부중점관리대상이라 발생비율과 무관하게 포함</b>됩니다.';
 }
 
 function catBlock(name, count, text, low) {
@@ -648,10 +824,19 @@ window.addEventListener('load', async function () {
   /* 통계는 파일을 받아와야 하므로 뒤늦게 채웁니다.
      못 받아와도(파일 없음·오프라인) 위 내용은 그대로 남습니다. */
   _stats = await AuriStats.load(picked.lat, picked.lng);
+  _national = await AuriStats.loadNational();
   if (_stats) {
-    renderDong(picked.dong);   // 읍면동 종합 → 그다음이 지점 상세
+    renderDong(picked.dong);          // 읍면동 종합 → 그다음이 지점 상세
+    renderDiagnosisTables();          // 사전진단서 2.1 · [표 2] 형식
     renderStats();
-    renderChecks();            // 출동자료에서 나온 확인 항목을 더해 다시 그립니다
+
+    /* 통계에서도 사업이 나옵니다 (RX_BY_STAT).
+       통계를 넘겨준 뒤 처방을 다시 계산합니다 — 규칙 엔진은 결정론적이라
+       같은 입력이면 같은 결과가 나오므로 두 번 돌려도 안전합니다. */
+    AuriRx.setStats(_stats);
+    recomputePrescriptions();
+
+    renderChecks();                   // 출동자료에서 나온 확인 항목을 더해 다시 그립니다
     sessionStorage.setItem('auri_region_stats', JSON.stringify({
       region: _stats.data.region,
       label: _stats.data.label,
@@ -659,6 +844,7 @@ window.addEventListener('load', async function () {
       inside: _stats.inside,
       dong: picked.dong || null,
       focusTypes: _stats.data.focusTypes,
+      replaced: _stats.data.replaced || null,
     }));
   }
 });

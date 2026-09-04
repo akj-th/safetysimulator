@@ -251,26 +251,69 @@ function areaToGeoJson(shapes) {
 
 function loadFocusTypes() {
   const sheets = readXlsx(XLSX_PATH);
-  const sheet = sheets.find((s) => s.name === '수정본');
-  if (!sheet) throw new Error('엑셀에 "수정본" 시트가 없습니다');
+  const fixed = sheets.find((s) => s.name === '수정본');
+  const sample = sheets.find((s) => s.name === '표본수_전체');
+  if (!fixed || !sample) throw new Error('엑셀에 "수정본" 또는 "표본수_전체" 시트가 없습니다');
 
-  /* 열 위치는 헤더가 병합돼 있어 이름으로 못 찾습니다. 실제 값 위치입니다:
-       2=지자체 · 4=위험도 · 17,18,19=확정 안전유형 3개 · 20=대체된 원래 분야
-       21,22=분야1·2 표본수(조사지 내) · 23=자살 표본수(구급+발생지점) */
+  /* ── 어느 시트가 확정본인가 ──────────────────────────────────────
+     `수정본` 시트의 17,18,19 열은 **대체 전** 값입니다.
+     실제로 표본이 모자라 분야를 바꾼 15개 지자체에서 두 시트가 어긋납니다.
+
+       홍천군  수정본 = 범죄 / 감염병 / 자살
+               표본수_전체 = 범죄 / 교통사고 / 자살   비고 "감염병 → 교통사고"
+
+     그래서 확정 3분야는 **`표본수_전체` 시트의 `신규 대표위험1·2` + 자살**로
+     읽습니다. 강진군처럼 대안이 없어 "기존 유지"인 곳만 수정본 값을 씁니다.
+     ('변경없음' 26곳은 두 시트가 같습니다 — 부천·미추홀 확인)                */
+
+  /* "범죄(n=530, 27.48%)" → { label, n, pct } */
+  const parsePick = (text) => {
+    const s = String(text || '').trim();
+    if (!s || s === '대안없음') return null;
+    const m = /^([^(]+?)\s*\(\s*n\s*=\s*([\d,]+)\s*,\s*([\d.]+)\s*%\s*\)/.exec(s);
+    if (!m) return { label: s, n: null, pct: null };
+    return { label: m[1].trim(), n: Number(m[2].replace(/,/g, '')), pct: Number(m[3]) };
+  };
+
+  /* 표본수_전체: 1=지자체 · 9,10=신규 대표위험1·2 · 11=비고(변경사항) */
+  const byName = new Map();
+  for (const row of sample.rows.slice(1)) {
+    if (!row || !row[1]) continue;
+    byName.set(String(row[1]).trim(), {
+      picks: [parsePick(row[9]), parsePick(row[10])],
+      note: String(row[11] || '').trim(),
+    });
+  }
+
   const out = {};
-  for (const row of sheet.rows.slice(4)) {
+  for (const row of fixed.rows.slice(4)) {
     if (!row || !row[2]) continue;
+    const rawName = String(row[2]).replace(/^[*※\s]+/, '').trim();
     const slug = slugForXlsx(row[2]);
     if (!slug) { console.warn(`  ⚠ 엑셀 지자체를 매칭하지 못했습니다: "${row[2]}"`); continue; }
+
+    const s = byName.get(rawName);
+    const fallback = [row[17], row[18]].filter(Boolean).map((k) => ({ label: String(k).trim(), n: null, pct: null }));
+    /* 대안이 없으면(강진군) 수정본 값을 그대로 씁니다 */
+    const picks = (s && s.picks[0]) ? s.picks.filter(Boolean) : fallback;
+
+    const labels = [...picks.map((p) => p.label), '자살'];
+    const changed = !!(s && s.note && s.note !== '변경없음');
+
     out[slug] = {
-      focusTypes: [row[17], row[18], row[19]]
-        .filter(Boolean)
-        .map((k) => ({ key: CATEGORY_BY_KOREAN[k.trim()] || null, label: k.trim() })),
-      replacedType: row[20] ? String(row[20]).trim() : null,
+      focusTypes: labels.map((label, i) => ({
+        key: CATEGORY_BY_KOREAN[label] || null,
+        /* 표기를 통일합니다 — 엑셀에 '산재'와 '산업재해'가 섞여 있습니다 */
+        label: CATEGORY_LABEL[CATEGORY_BY_KOREAN[label]] || label,
+        /* 조사지 내 표본수 — "왜 이 분야를 봤나"의 근거 */
+        sample: picks[i] ? { n: picks[i].n, pct: picks[i].pct } : null,
+      })),
+      /* 표본이 모자라 분야를 바꾼 이력. 실장 보고에서 "왜 이 분야인가"를
+         물으면 이 줄을 그대로 읽으면 됩니다. */
+      replaced: changed ? { note: s.note, before: [row[17], row[18]].filter(Boolean).map(String) } : null,
       meanRisk: row[4] ? Number(Number(row[4]).toFixed(3)) : null,
-      /* 표본수는 강원대가 자살에 '자살발생지점'까지 더해 센 값입니다.
-         우리 리포트 본문은 구급출동(자살 926건)만 쓰지만, 분야 선정이
-         왜 그렇게 됐는지 되짚을 수 있도록 참고값으로 함께 남깁니다. */
+      /* 자살 표본은 강원대가 '자살발생지점'까지 더해 센 값입니다.
+         우리 본문은 구급출동만 쓰지만, 분야 선정 근거로 함께 남깁니다. */
       sampleRef: { focus1: num(row[21]), focus2: num(row[22]), suicide: num(row[23]) },
     };
   }
@@ -498,7 +541,7 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
 
     /* 강원대가 확정한 중점 안전유형 3개 — 리포트는 이 3개를 중심으로 씁니다 */
     focusTypes: f.focusTypes || null,
-    replacedType: f.replacedType || null,
+    replaced: f.replaced || null,
     sampleRef: f.sampleRef || null,
 
     surveyArea: area ? {

@@ -156,6 +156,151 @@ const RX_WEAK = {
   'SUI-3': '고지대·경사지 추락방지에 해당하는 사업이 교량 기준으로만 있습니다',
 };
 
+/* ════════════════════════════════════════════════════════════════════
+   통계 → 사업 연결표 (RX_BY_STAT)
+
+   행안부 주무관 보완의견의 핵심은 "인적요인·사고유형 분석 결과에 맞는
+   개선사업"입니다.
+
+     (인적요인) 고령자 64.3%  ┐
+     (사고유형) 낙상 58%      ├→ 보행환경 개선 · 낙상예방 · 시야확보
+     (물적환경) 경사도 12%    ┘
+
+   사진 판독(byItem)이 "지금 이 자리에 무엇이 없는가"를 본다면,
+   여기는 "이 일대에서 누가 어떻게 다쳐 왔는가"를 봅니다.
+
+   ── 일부러 작게 유지합니다 ──────────────────────────────────────────
+   조건은 **연령 · 시간대 · 발생장소** 셋뿐입니다. 규칙이 늘어나면
+   "왜 이 사업인가"를 되짚기가 오히려 어려워집니다.
+
+   ── 감사 추적 ───────────────────────────────────────────────────────
+   여기서 나온 사업은 근거 줄이 `출동자료 —` 로 시작해 사진 판독과
+   구분됩니다. 조건에 쓰인 실제 수치도 함께 찍힙니다.
+
+     근거: 출동자료 — 조사지 내 65세 이상 41.2% (지역 28.5% 대비 1.4배)
+
+   ── 적용 범위 ───────────────────────────────────────────────────────
+   **중점 3분야에만** 적용하고, 분야당 **1종**만 더합니다.
+   (사진 판독 처방 2종 + 통계 1종 = 사전진단서의 분야당 3종과 비슷합니다)
+   ════════════════════════════════════════════════════════════════════ */
+
+/** 조사지 안 값을 쓰되, 조사지 밖 지점이면 지자체 전체 값을 봅니다 */
+function rxStatSide(cat, inside) { return (inside === false ? cat.region : cat.inside) || cat.region; }
+
+const RX_BY_STAT = [
+  {
+    id: 'ST-AGE-65',
+    label: '고령자 비중이 높음',
+    /* 조사지 안 65세 이상이 40% 넘고, 지자체 전체보다 뚜렷이 높을 때 */
+    test: function (cat, inside) {
+      const a = rxStatSide(cat, inside);
+      const r = cat.compare && cat.compare.ratio ? cat.compare.ratio.a65 : null;
+      return a && a.age.a65 !== null && a.age.a65 >= 40 && (inside === false || r === null || r >= 1.1);
+    },
+    say: function (cat, inside) {
+      const a = rxStatSide(cat, inside);
+      const b = cat.region;
+      const r = cat.compare && cat.compare.ratio ? cat.compare.ratio.a65 : null;
+      return `65세 이상 ${a.age.a65}%` + (r && inside !== false ? ` (지역 ${b.age.a65}% 대비 ${r}배)` : '');
+    },
+    programs: {
+      life: ['취약 어르신 낙상방지 안심홈 지원', '경사로 안전 손잡이 설치(핸드레일)'],
+      traffic: ['고령보행자 교통안전용품 지원', '고령운전자 운전면허 자진반납지원'],
+      infection: ['65세 이상 어르신 폐렴구균 예방접종 지원', '찾아가는 또는 무료 건강검진 실시'],
+      suicide: ['우리동네돌봄단(중장년·어르신·1인가구 안부 확인, 전화통화사업)', '인공지능(AI) 활용 노인말벗 서비스'],
+      fire: ['거동불편자 대상 자동소화패치 지원', '주택용 소방시설 지원'],
+      crime: ['1인가구 안심 장비 지원사업'],
+      industrial: ['농작업 안전재해예방 지원체계 구축'],
+    },
+  },
+  {
+    id: 'ST-AGE-U20',
+    label: '아동·청소년 비중이 높음',
+    test: function (cat, inside) {
+      const a = rxStatSide(cat, inside);
+      return a && a.age.u20 !== null && a.age.u20 >= 25;
+    },
+    say: function (cat, inside) {
+      const a = rxStatSide(cat, inside);
+      return `20세 이하 ${a.age.u20}%`;
+    },
+    programs: {
+      traffic: ['어린이 보호구역 개선사업', '어린이 교통안전용품지원'],
+      life: ['어린이 놀이시설 개선지원', '어린이집 손끼임 방지장치 설치 지원'],
+      infection: ['어린이 국가예방접종 지원', '돌봄시설(어린이집·유치원·아동복지시설 등) 종사자 잠복결핵감염 무료 검진'],
+      suicide: ['청소년 모바일 상담 다들어줄개', '청년마음건강지원사업'],
+      crime: ['청소년 쉼터 운영'],
+      fire: ['찾아가는 소방안전교육'],
+    },
+  },
+  {
+    id: 'ST-HOUR-NIGHT',
+    label: '야간 시간대에 몰림',
+    /* 가장 몰린 4시간대가 22시~06시 사이에서 시작하고 30% 이상일 때 */
+    test: function (cat, inside) {
+      const a = rxStatSide(cat, inside);
+      const p = a && a.hour ? a.hour.peak : null;
+      return !!(p && p.share >= 30 && (p.from >= 22 || p.from < 6));
+    },
+    say: function (cat, inside) {
+      const p = rxStatSide(cat, inside).hour.peak;
+      return `${p.from}~${p.to}시에 ${p.share}% 집중`;
+    },
+    programs: {
+      crime: ['안심이 앱 연동 스마트보안등 설치', '가로등형 방범 블랙박스 보안등 설치'],
+      traffic: ['야간 조명타워 설치', '고휘도 횡단보도 조명'],
+      suicide: ['교량·수변지역 비상벨·SOS 상담전화 설치', '생명사랑택시 운영'],
+      life: ['장마철 가로등 점검'],
+      fire: ['IoT 기반 무선 화재 감지기 설치'],
+    },
+  },
+  {
+    id: 'ST-PLACE-BIZ',
+    label: '상업시설에서 많이 발생',
+    test: function (cat, inside) {
+      const a = rxStatSide(cat, inside);
+      const top = a && a.placeGrouped ? a.placeGrouped.top : [];
+      const hit = top.find(function (x) { return x[0] === '상업시설'; });
+      return !!(hit && hit[1] >= 25);
+    },
+    say: function (cat, inside) {
+      const hit = rxStatSide(cat, inside).placeGrouped.top.find(function (x) { return x[0] === '상업시설'; });
+      return `발생 장소 상업시설 ${hit[1]}%`;
+    },
+    programs: {
+      crime: ['고위험시설 안전비상벨 설치 지원', '공중화장실 안심환경 개선사업 실시'],
+      fire: ['음식점 주방 화재안전컨설팅 실시', 'K급 소화기 비치 안내 및 지원'],
+      life: ['안전보안관 및 안전신고 포상제 운영'],
+      traffic: ['불법주정차 및 과속 무인단속시스템 설치'],
+      infection: ['다중이용시설 레지오넬라균 환경검사'],
+    },
+  },
+  {
+    id: 'ST-PLACE-HOME',
+    label: '주거공간에서 많이 발생',
+    test: function (cat, inside) {
+      const a = rxStatSide(cat, inside);
+      const top = a && a.placeGrouped ? a.placeGrouped.top : [];
+      const hit = top.find(function (x) { return x[0] === '집'; });
+      return !!(hit && hit[1] >= 50);
+    },
+    say: function (cat, inside) {
+      const hit = rxStatSide(cat, inside).placeGrouped.top.find(function (x) { return x[0] === '집'; });
+      return `발생 장소 주거공간 ${hit[1]}%`;
+    },
+    programs: {
+      suicide: ['고위험군 조기발굴·상담관리', 'AI 기반 고독사 예방·대응 서비스'],
+      fire: ['주택용 소방시설 지원', '공동주택 전기설비 안전진단 지원'],
+      life: ['주거환경 개선사업', '응급안전안심서비스'],
+      infection: ['저장강박 의심가구 주거환경 개선사업'],
+      crime: ['주거 안전취약가구 안심도어 지원사업'],
+    },
+  },
+];
+
+/** 통계에서 사업을 뽑을 때 한 분야에 더할 최대 개수 */
+const RX_STAT_MAX_PER_FIELD = 1;
+
 /* ── 반드시 포함해야 하는 개입 유형 ────────────────────────────────
    자살은 8/25 협의에서 "시설 설치 중심보다 인적 요인과 자연스러운 접촉
    기반의 사전예방사업을 강화"하기로 정해졌습니다. HEA 로 옮기면
@@ -287,7 +432,7 @@ function auriSaveOverrides(o) {
 /* 진단 결과 + 연구원 수정 → 최종 사업 목록.
    같은 입력이면 언제나 같은 결과가 나오는 결정론적 함수입니다.
    ★ 팔레트가 먼저 로드돼 있어야 합니다 (AuriPalette.load()). */
-function auriPrescribe(results, overrides) {
+function auriPrescribe(results, overrides, stats) {
   const ov = overrides || auriLoadOverrides();
   const out = [];
   const seen = {};
@@ -415,6 +560,58 @@ function auriPrescribe(results, overrides) {
     }
   });
 
+  /* ⑥ 통계에서 나오는 사업 — 사진에 안 보이지만 출동자료가 가리키는 것.
+        중점 3분야에만, 분야당 RX_STAT_MAX_PER_FIELD 개만 더합니다.
+        사진 판독 처방을 밀어내지 않고 **덧붙이는** 방식입니다. */
+  if (stats && stats.data && stats.data.focusTypes) {
+    const inside = stats.inside;
+    for (const t of stats.data.focusTypes) {
+      const cat = t.key && stats.data.categories ? stats.data.categories[t.key] : null;
+      if (!cat) continue;
+
+      /* 그 분야가 안전 판정이면 처방하지 않습니다 — 사진 판독과 같은 기준 */
+      const r = results.find(function (x) { return x.key === t.key; });
+      if (r && !RX_MAX_BY_LEVEL[r.level.key]) continue;
+
+      let added = 0;
+      for (const rule of RX_BY_STAT) {
+        if (added >= RX_STAT_MAX_PER_FIELD) break;
+        let ok = false;
+        try { ok = rule.test(cat, inside); } catch (e) { ok = false; }
+        if (!ok) continue;
+
+        for (const name of (rule.programs[t.key] || [])) {
+          const p = auriFindProgram(name);
+          if (!p || seen[p.id] || ov.removed.indexOf(p.id) !== -1) continue;
+          seen[p.id] = true;
+          added++;
+
+          const e = ov.edits[p.id] || {};
+          out.push({
+            id: p.id,
+            name: e.name || p.name,
+            note: e.note || p.effect || '',
+            source: p.source || '',
+            hea: p.hea,
+            amount: p.amount,
+            palette: p.group,
+            category: cat.label,
+            field: t.key,
+            score: r ? r.score : null,
+            levelLabel: r ? r.level.label : null,
+            fit: null,
+            /* ★ 사진이 아니라 출동자료에서 나왔다는 표시 — 감사 추적의 핵심 */
+            statTrigger: { id: rule.id, label: rule.label, detail: rule.say(cat, inside), inside: inside },
+            priority: e.priorityCls ? RX_PRIORITY[e.priorityCls] : RX_PRIORITY.recommend,
+            edited: !!(e.name || e.note || e.priorityCls),
+            trigger: null,
+          });
+          break;                       // 조건 하나당 사업 하나
+        }
+      }
+    }
+  }
+
   /* 연구원이 직접 추가한 사업은 적합도·개수와 무관하게 항상 포함됩니다 */
   const custom = [];
   ov.added.forEach(function (item) {
@@ -454,6 +651,14 @@ function auriRxBasis(it) {
   if (it.custom) return '근거: 연구원 직접 추가' + price;
   const edited = it.edited ? ' · 연구원 수정' : '';
   const fit = it.fit != null ? ` · 적합도 ${it.fit}` : '';
+
+  /* ★ 출동자료에서 나온 사업 — 사진 판독과 근거가 다르므로 줄머리를 바꿉니다.
+     "이 숫자가 사진에서 나왔는지 통계에서 나왔는지"를 되짚을 수 있어야 합니다. */
+  if (it.statTrigger) {
+    const where = it.statTrigger.inside === false ? '지자체 전체' : '조사지 내';
+    return `근거: 출동자료 ${it.category} — ${where} ${it.statTrigger.detail}` +
+           ` → ${it.statTrigger.label}${edited}${price}`;
+  }
 
   /* 8/25 협의로 반드시 넣기로 한 개입 유형이면 그 사실을 남깁니다.
      "적합도가 낮은데 왜 들어갔나"를 되짚을 수 있어야 하기 때문입니다. */

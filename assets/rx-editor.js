@@ -34,10 +34,15 @@ const AuriRx = {
     return JSON.parse(sessionStorage.getItem('auri_prescriptions') || '[]');
   },
 
+  /* 119 출동자료 통계 — 리포트 화면이 받아 온 뒤 넘겨줍니다.
+     통계에서도 사업이 나오므로(RX_BY_STAT) 처방 계산에 필요합니다. */
+  stats: null,
+  setStats(stats) { this.stats = stats; },
+
   /* 진단 점수 + 연구원 수정 → 최종 목록을 다시 계산하고 저장합니다 */
   recompute() {
     const results = JSON.parse(sessionStorage.getItem('auri_diagnosis_results') || '[]');
-    const items = auriPrescribe(results);
+    const items = auriPrescribe(results, null, this.stats);
     auriSavePrescriptions(items);
     this.render(items);
     if (this.opts.onChange) this.opts.onChange(items);

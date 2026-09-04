@@ -310,8 +310,41 @@ const AuriStats = (function () {
     return data.byDong[dongName] || null;
   }
 
+  /* 41개 지자체를 합친 값 — 사전진단서 2.1 의 "평균 대비" 비교에 씁니다.
+     ※ 사전진단서는 인구 10만명당 발생률로 비교하지만 인구 자료가 없어
+       건수 평균으로 대신합니다. 화면에 그 사실을 적어 둡니다. */
+  let _national = null;
+  async function loadNational() {
+    if (_national) return _national;
+    try {
+      const res = await fetch('data/stats/national.json');
+      if (!res.ok) return null;
+      _national = await res.json();
+    } catch (e) { return null; }
+    return _national;
+  }
+
+  /* 표본이 모자라 중점 분야를 바꾼 이력.
+     "왜 이 분야를 봤나"를 실장 보고에서 물으면 이 줄을 읽으면 됩니다. */
+  function replacedNote(data) {
+    if (!data || !data.replaced || !data.replaced.note) return null;
+    const note = data.replaced.note;
+    if (note === '대안없음 → 기존 유지') {
+      return '표본이 모자란 분야가 있으나 대체할 분야가 없어 기존 분야를 그대로 두었습니다.';
+    }
+    /* "감염병 → 교통사고" → 바뀐 분야의 원래 표본수를 함께 적습니다 */
+    const from = note.split('→')[0].split(',').map((s) => s.trim()).filter(Boolean);
+    const counts = from
+      .map((label) => {
+        const key = Object.keys(data.categories).find((k) => data.categories[k].label === label);
+        return key ? `${label} 조사지 내 ${data.categories[key].count.inside}건` : label;
+      })
+      .join(' · ');
+    return `${note} 로 대체 (${counts})`;
+  }
+
   return {
-    load,
+    load, loadNational, replacedNote,
     narrateHuman, narrateType, fieldChecks,
     regionSummary, focusCategories, dongSummary,
     pointInGeometry, ratioText, topText, sampleNote, josa, pctText,
