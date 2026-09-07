@@ -150,8 +150,8 @@
         </button>
         <label class="heat-op" id="heatOpacityWrap">
           <span>투명도</span>
-          <input type="range" id="heatOpacity" min="10" max="100" step="5" value="60">
-          <b id="heatOpacityVal">60%</b>
+          <input type="range" id="heatOpacity" min="10" max="100" step="5" value="75">
+          <b id="heatOpacityVal">75%</b>
         </label>
       </div>
 
@@ -495,7 +495,7 @@ function applyLayerVisibility() {
 
 let _heatIndex = null;        // data/heatmap/index.json
 let _heatOn = false;
-let _heatOpacity = 0.6;
+let _heatOpacity = 0.75;
 const _heatOverlays = {};     // 분야 key → naver.maps.GroundOverlay
 
 async function loadHeatIndex() {

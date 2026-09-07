@@ -3,7 +3,7 @@
  "generatedAt": "2026-09-07",
  "resolutionM": 40,
  "topQuantile": 0.99,
- "maxAlpha": 0.85,
+ "maxAlpha": 0.9,
  "note": "색은 그 지자체·그 분야 안에서의 상대값입니다. 지역 간·분야 간 색 비교는 할 수 없습니다.",
  "regions": {
   "andong": {

@@ -51,7 +51,25 @@ const TOP_QUANTILE = 0.99;
 const MIN_ALPHA_AT = 0.04;
 
 /** 가장 진한 곳의 불투명도 (0~1). 화면에서 다시 조절할 수 있습니다. */
-const MAX_ALPHA = 0.85;
+const MAX_ALPHA = 0.9;
+
+/* ── 색을 어떻게 입히는가 ──────────────────────────────────────────
+   한 가지 색을 두고 투명도만 바꾸면, 옅은 곳이 "색이 연한 것"이 아니라
+   "덜 덮인 것"으로 보여 바탕 지도와 뒤섞입니다.
+
+   그래서 **흰색 → 분야 색** 으로 색 자체를 옮기고, 거기에 투명도를 얹습니다.
+   옅은 곳은 흰빛, 짙은 곳은 분야 색이 되어 밀도 차이가 색으로 읽힙니다.
+
+     값 낮음 ──────────────────► 값 높음
+     흰색(반투명)   연한 색   진한 분야 색(불투명)                        */
+
+/** 투명도가 최대에 이르는 지점. 이 아래는 가장자리가 부드럽게 사라집니다.
+    올리면 옅은 영역이 더 투명해져 바탕 지도가 잘 보입니다. */
+const ALPHA_FULL_AT = 0.35;
+
+/** 색이 짙어지는 곡선. 1보다 작으면 중간값에서도 색이 빨리 올라옵니다.
+    (1 = 직선, 0.7 = 중간 밀도에서도 색이 뚜렷) */
+const COLOR_GAMMA = 0.75;
 
 /* 분야 → 폴더 이름. 교통사고는 구급·다발지역을 합친 **최종**을 씁니다
    (density/설명.txt: "구급출동 자료와 교통사고 다발지역 자료의 개별
@@ -133,19 +151,25 @@ function quantile(data, q) {
   return vals[Math.min(vals.length - 1, Math.max(0, Math.round((vals.length - 1) * q)))];
 }
 
-/** 축소한 격자 → RGBA. 값이 클수록 진하게, 없으면 완전 투명 */
+/** 축소한 격자 → RGBA. 흰색에서 분야 색으로 옮겨 가며, 가장자리만 투명해집니다 */
 function colorize(grid, rgb, top) {
   const px = new Uint8Array(grid.width * grid.height * 4);
   if (!top) return px;
+
   for (let i = 0; i < grid.data.length; i++) {
     const v = grid.data[i];
     if (!Number.isFinite(v)) continue;                 // 값 없음 → 투명
     const t = Math.min(1, v / top);
     if (t < MIN_ALPHA_AT) continue;                    // 너무 옅으면 투명
+
     const o = i * 4;
-    px[o] = rgb[0]; px[o + 1] = rgb[1]; px[o + 2] = rgb[2];
-    /* 제곱근을 씌워 낮은 값도 눈에 보이게 합니다 (선형이면 거의 안 보임) */
-    px[o + 3] = Math.round(Math.sqrt(t) * MAX_ALPHA * 255);
+    /* 색: 흰색 → 분야 색 */
+    const c = Math.pow(t, COLOR_GAMMA);
+    px[o]     = Math.round(255 + (rgb[0] - 255) * c);
+    px[o + 1] = Math.round(255 + (rgb[1] - 255) * c);
+    px[o + 2] = Math.round(255 + (rgb[2] - 255) * c);
+    /* 투명도: 가장자리만 부드럽게 사라지고 그 위로는 일정하게 */
+    px[o + 3] = Math.round(Math.min(1, t / ALPHA_FULL_AT) * MAX_ALPHA * 255);
   }
   return px;
 }
