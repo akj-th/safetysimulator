@@ -736,6 +736,8 @@ const ALLOW_DIRS = [
   { dir: 'assets', ext: ['.css', '.js', '.json', '.svg', '.png', '.jpg'] },
   { dir: 'data/incidents', ext: ['.json'] },
   { dir: 'data/stats', ext: ['.json'] },
+  /* 위험도 히트맵 — 원본 TIF(data/raw/)가 아니라 축소·색칠한 PNG 입니다 */
+  { dir: 'data/heatmap', ext: ['.png', '.json'] },
 ];
 const ALLOW_ROOT_EXT = ['.html'];
 
