@@ -468,12 +468,12 @@ const OPENAI_BASE = 'https://api.openai.com/v1';
      provider 가 같으면 호출 코드도 그대로 재사용됩니다.
 
    키가 없는 제공사의 모델은 화면 목록에 아예 나오지 않습니다. */
+/* 담당자 지시(2026-09-07)로 두 가지만 씁니다. 화면의 선택 상자는 이 목록을
+   그대로 받아 채우므로, 늘리려면 여기에 한 줄 더 넣으면 됩니다.
+   빼 둔 것: gemini-3.1-flash-image · gemini-2.5-flash-image · gpt-image-1-mini */
 const IMAGE_MODELS = [
-  { id: 'gemini-3-pro-image',     provider: 'gemini', label: 'Gemini 3 Pro · 고성능' },
-  { id: 'gemini-3.1-flash-image', provider: 'gemini', label: 'Gemini 3.1 Flash · 빠름' },
-  { id: 'gemini-2.5-flash-image', provider: 'gemini', label: 'Gemini 2.5 Flash' },
-  { id: 'gpt-image-1',            provider: 'openai', label: 'GPT Image 1 · 원본 보존' },
-  { id: 'gpt-image-1-mini',       provider: 'openai', label: 'GPT Image 1 mini · 저렴' },
+  { id: 'gemini-3-pro-image', provider: 'gemini', label: 'Gemini 3 Pro' },
+  { id: 'gpt-image-1',        provider: 'openai', label: 'GPT Image 1' },
 ];
 
 function providerKey(provider) {

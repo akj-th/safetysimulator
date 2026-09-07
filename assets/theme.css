@@ -311,6 +311,8 @@ input[type=range]{flex:1; min-width:90px; height:4px; margin:0; accent-color:var
   font-size:var(--fs-cap); font-weight:700; letter-spacing:.1em;
   margin-left:9px; color:var(--g2);
 }
+.rx-kind{margin:0 8px 0 0}          /* 맨 앞으로 옮겨서 왼쪽 여백을 뗍니다 */
+.rx-name .nm{font-weight:700}
 .rx-kind.k-E{color:var(--g3)}
 .rx-kind.k-A{color:var(--contrast)}
 .rx-kind.k-H{color:var(--main)}
@@ -441,13 +443,33 @@ tr.sum td{background:none; border-top:1px solid var(--k); border-bottom:none; fo
 .doc-basis .bi.k-warn{color:var(--main)}
 .doc-basis .bi-note{margin-top:6px; color:var(--main)}
 
+/* 인쇄용 사본 — 화면에서는 감춰 두고 인쇄에서만 보입니다.
+   입력칸을 그대로 찍으면 긴 글이 칸 안에서 잘리고 서체도 본문과 어긋납니다. */
+.doc-fill-print{display:none; white-space:pre-wrap}
+
 @media print{
-  .doc-fill-head, .doc-basis{display:none !important}
-  /* 인쇄할 때는 입력칸 테두리를 지우고 글만 남깁니다 */
-  .doc-fill-in{
-    border:none; padding:0; min-height:0; resize:none;
-    background:none; color:var(--g4);
+  /* AI가 썼다는 표시만 감춥니다 — 판단 근거는 종이에 남깁니다 */
+  .doc-fill-head{display:none !important}
+
+  /* 입력칸 대신 사본을 찍습니다. 사본은 본문 서식을 그대로 물려받습니다. */
+  .doc-fill-in{display:none !important}
+  .doc-fill-print{
+    display:block;
+    font:inherit; color:inherit; line-height:inherit;
+    margin:9px 0 9px 2px; text-align:justify;
   }
+
+  /* 판단 근거 — 본문 아래에 각주처럼 (담당자 확인 2026-09-07) */
+  .doc-basis{
+    display:block !important;
+    margin:6px 0 10px 2px; padding:7px 0 0;
+    border-left:none; border-top:1px dotted var(--g1);
+    font-size:9pt; line-height:1.6; color:var(--g3);
+  }
+  .doc-basis .bi{color:var(--g3) !important}
+  /* 우리 시스템 상태를 알리는 줄이라 문서에는 싣지 않습니다 */
+  .doc-basis .bi-note{display:none}
+
   /* 비어 있는 칸은 인쇄에서 자리만 차지하지 않게 접습니다 */
   .doc-fill.empty{display:none}
 }

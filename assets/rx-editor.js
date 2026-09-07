@@ -90,7 +90,7 @@ const AuriRx = {
         <div class="rx-item">
           <span class="rx-priority ${it.priority.cls}">${it.priority.label}</span>
           <div class="rx-body">
-            <div class="rx-name">${it.name}${heaTag}<span class="rx-cat">${it.category}</span>${mark}</div>
+            <div class="rx-name">${heaTag}<span class="nm">${it.name}</span><span class="rx-cat">${it.category}</span>${mark}</div>
             ${userNote}
             ${evidence}
             <div class="rx-basis">${auriRxBasis(it)}</div>

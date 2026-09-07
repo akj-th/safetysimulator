@@ -18,8 +18,18 @@
    확정한 글이기 때문입니다. 다만 화면에서는 반드시 보여야 합니다.
 
    ── 판단 근거 ──────────────────────────────────────────────────────
-   AI가 어떤 수치와 어떤 법령에 기대어 썼는지 함께 받아 화면에 폅니다.
+   AI가 어떤 수치와 어떤 법령에 기대어 썼는지 함께 받아 폅니다.
    근거를 못 찾은 부분은 "확인 필요"로 나옵니다 (server/legal.js 참고).
+   **인쇄물에도 본문 아래에 함께 실립니다** — 행정 문서라 무엇에 기대어
+   쓴 글인지가 종이에 남아야 합니다 (담당자 확인 2026-09-07).
+
+   ── 인쇄는 입력칸이 아니라 사본을 찍습니다 ─────────────────────────
+   입력칸(textarea)을 그대로 인쇄하면 두 가지가 어긋납니다.
+     · 글이 길면 칸 안에서 스크롤되어 **뒷부분이 잘립니다**
+     · 서체·크기가 본문과 달라 이질적으로 보입니다
+   그래서 같은 글을 담은 `.doc-fill-print` 사본을 옆에 두고, 인쇄할 때는
+   입력칸을 감추고 사본을 보입니다. 사본은 그냥 글이라 잘릴 일이 없고
+   본문과 같은 서식을 그대로 받습니다.
 
    법령은 **원문 대조를 마친 것만** 인용에 쓰입니다. 대조 전인 것은 AI에게
    보여 주지 않고, 화면에 "쓰지 않았다"고만 알립니다.
@@ -69,7 +79,9 @@ const AuriDocEdit = (function () {
         <textarea class="doc-fill-in" id="in-${id}" rows="3"
           placeholder="${safe(hint)}"
           oninput="AuriDocEdit.onEdit('${id}')">${safe(saved ? saved.text : '')}</textarea>
-        <div class="doc-basis screen-only" id="basis-${id}" ${saved && saved.basis ? '' : 'hidden'}>
+        <!-- 인쇄용 사본 — 화면에서는 감춰져 있습니다 -->
+        <div class="doc-fill-print" id="pr-${id}">${safe(saved ? saved.text : '')}</div>
+        <div class="doc-basis" id="basis-${id}" ${saved && saved.basis ? '' : 'hidden'}>
           ${saved && saved.basis ? basisHtml(saved.basis) : ''}
         </div>
       </div>`;
@@ -80,6 +92,14 @@ const AuriDocEdit = (function () {
     return '<b>판단 근거</b>' + basis.map(function (b) {
       return `<span class="bi k-${b.kind === '확인필요' ? 'warn' : 'ok'}">${b.kind}</span> ${b.detail}`;
     }).map(function (s) { return `<div>${s}</div>`; }).join('');
+  }
+
+  /** 인쇄용 사본을 본문과 맞춥니다 (빈 칸은 인쇄에서 통째로 접힙니다) */
+  function syncPrint(id, text) {
+    const box = document.getElementById('fill-' + id);
+    const pr = document.getElementById('pr-' + id);
+    if (pr) pr.textContent = text || '';
+    if (box) box.classList.toggle('empty', !String(text || '').trim());
   }
 
   /* 사람이 고치면 AI 표시를 뗍니다 — 그때부터는 사람이 쓴 글입니다 */
@@ -94,13 +114,19 @@ const AuriDocEdit = (function () {
       const mark = box.querySelector('.ai-mark');
       if (mark) mark.hidden = true;
     }
+    syncPrint(id, el.value);
     autoGrow(el);
   }
 
-  /** 내용에 맞춰 칸 높이를 늘립니다 (인쇄할 때 잘리면 안 됩니다) */
+  /**
+   * 내용에 맞춰 칸 높이를 늘립니다.
+   * 감춰진 탭에서는 scrollHeight 가 0 이라 높이를 잘못 잡습니다.
+   * 그때는 건드리지 않고, 탭을 열 때 refresh() 가 다시 부릅니다.
+   */
   function autoGrow(el) {
+    if (!el || el.offsetParent === null) return;
     el.style.height = 'auto';
-    el.style.height = Math.max(el.scrollHeight, 54) + 'px';
+    el.style.height = Math.max(el.scrollHeight + 2, 54) + 'px';
   }
 
   async function ask(id) {
@@ -122,6 +148,7 @@ const AuriDocEdit = (function () {
         context: box.dataset.ctx,
       });
       el.value = data.text || '';
+      syncPrint(id, el.value);
       autoGrow(el);
       set(id, el.value, true, data.basis || []);
 
@@ -145,9 +172,15 @@ const AuriDocEdit = (function () {
     }
   }
 
-  /** 문서를 다시 그린 뒤 칸 높이를 맞춥니다 */
+  /** 문서를 다시 그린 뒤(또는 탭을 연 뒤) 칸 높이와 인쇄용 사본을 맞춥니다 */
   function refresh() {
-    document.querySelectorAll('.doc-fill-in').forEach(autoGrow);
+    document.querySelectorAll('.doc-fill').forEach(function (box) {
+      const id = box.id.replace(/^fill-/, '');
+      const el = document.getElementById('in-' + id);
+      if (!el) return;
+      syncPrint(id, el.value);
+      autoGrow(el);
+    });
   }
 
   return { render, ask, onEdit, refresh, get, set };

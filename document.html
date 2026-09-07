@@ -40,6 +40,12 @@
 
 .doc table{width:100%; margin:12px 0 6px}
 .doc table.tight th, .doc table.tight td{padding:8px 10px; font-size:var(--fs-sm)}
+/* ★ 문서 표 머리행은 옅은 회색입니다 (담당자 확인 2026-09-07).
+   전 화면 기본값은 검정 바탕 + 흰 글씨지만(theme.css), 문서는 표가 많아
+   검정이 줄줄이 이어지면 화면에서도 인쇄물에서도 너무 강합니다.
+   목차 구분은 되면서 잉크를 덜 먹는 정도로 낮춥니다. 이 규칙은 .doc 안에만
+   적용되므로 지도·리포트 화면의 표는 그대로입니다. */
+.doc th{background:#F5F5F5; color:#000; border-bottom:1px solid var(--g1)}
 .doc caption{
   caption-side:top; text-align:left; font-weight:700; color:var(--k);
   font-size:var(--fs-body); padding-bottom:7px;
@@ -75,6 +81,9 @@
   width:100%; aspect-ratio:4/3; object-fit:cover; display:block;
   border:1px solid var(--g1); background:var(--w);
 }
+/* 위 display:block 이 hidden 속성보다 세서 그냥 두면 감춰지지 않습니다.
+   지도는 다 그려질 때까지 감춰 두어야 하므로 되살립니다. */
+img[hidden]{display:none !important}
 .field-pair .slot{
   display:flex; align-items:center; justify-content:center; text-align:center;
   padding:18px; font-size:var(--fs-sm); color:var(--g2); line-height:1.7;
@@ -84,10 +93,53 @@
 }
 
 /* 사진 목록 (화면 전용 관리 UI) */
-.photo-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px; margin-top:12px}
+/* ── 문서에 싣는 지도 ─────────────────────────────────────────────
+   화면에 지도를 띄우는 것이 아니라 캔버스에 그려 그림으로 넣습니다.
+   그래야 인쇄와 PDF 에 그대로 남습니다 (assets/doc-map.js 참고). */
+/* 한 절에 사진이 두 장 이상일 때 아래에 작게 붙입니다 */
+.photo-strip{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:10px 0 4px}
+.photo-strip figure{margin:0}
+.photo-strip img{width:100%; aspect-ratio:4/3; object-fit:cover; display:block; border:1px solid var(--g1)}
+.photo-strip figcaption{font-size:var(--fs-cap); color:var(--g2); margin-top:5px; line-height:1.55}
+
+.doc-map{margin:14px 0 6px}
+.doc-map img{width:100%; display:block; border:1px solid var(--g1)}
+.doc-map .wait{
+  width:100%; aspect-ratio:16/10; border:1px solid var(--g1);
+  display:flex; align-items:center; justify-content:center;
+  font-size:var(--fs-sm); color:var(--g2); background:var(--w); text-align:center;
+}
+.doc-map figcaption{
+  font-size:var(--fs-cap); color:var(--g2); text-align:center;
+  margin-top:7px; line-height:var(--lh-tight);
+}
+.map-legend{
+  display:flex; flex-wrap:wrap; gap:5px 16px; justify-content:center;
+  margin-top:7px; font-size:var(--fs-cap); color:var(--g3);
+}
+.map-legend i{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px}
+
+/* 위치를 지도에서 찍는 창 */
+.pick-wrap{
+  position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:90;
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.pick-box{background:var(--w); padding:20px; max-width:760px; width:100%}
+.pick-box canvas{width:100%; display:block; border:1px solid var(--g1); cursor:crosshair}
+.pick-box .hd{display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap}
+.pick-box .hd b{font-size:var(--fs-body)}
+.pick-box .hd span{font-size:var(--fs-cap); color:var(--g2)}
+.pick-box .ft{display:flex; gap:10px; justify-content:flex-end; margin-top:14px}
+
+.photo-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px; margin-top:12px}
 .photo-card{border:1px solid var(--g1); padding:9px}
 .photo-card img{width:100%; aspect-ratio:4/3; object-fit:cover; display:block}
 .photo-card .cap{font-size:var(--fs-cap); color:var(--g2); margin-top:6px; line-height:1.6; word-break:break-all}
+.photo-card select, .photo-card input[type=text]{
+  width:100%; margin-top:6px; padding:6px 8px; border:1px solid var(--g1);
+  font-family:inherit; font-size:var(--fs-cap); background:var(--w); border-radius:0;
+}
+.photo-card .row{display:flex; gap:6px; margin-top:6px; align-items:center}
 .photo-card .cap.no-gps{color:var(--main)}
 .photo-card input{margin-top:6px; padding:7px 9px; font-size:var(--fs-cap)}
 .photo-card .rm{margin-top:6px}
@@ -159,10 +211,13 @@
 
   .chapter{page-break-before:always; border-top:none; padding-top:0}
   .chapter:first-of-type{page-break-before:auto}
-  table, .field-pair, .chk-group, .ba-stack figure{page-break-inside:avoid}
+  table, .field-pair, .chk-group, .ba-stack figure,
+  .doc-map, .photo-strip figure{page-break-inside:avoid}
   .h-section{page-break-after:avoid}
 
-  th{background:#000 !important; color:#fff !important;
+  /* 머리행은 옅은 회색 — 검정은 인쇄물에서 너무 튑니다 (담당자 확인 2026-09-07).
+     목차 구분은 되면서 잉크를 덜 먹는 정도로 둡니다. */
+  th{background:#F5F5F5 !important; color:#000 !important;
      -webkit-print-color-adjust:exact; print-color-adjust:exact}
   /* 개입 유형 배경색은 인쇄에서도 남깁니다 (표에서 유형을 구분하는 장치) */
   .hea-E, .hea-A, .hea-H{-webkit-print-color-adjust:exact; print-color-adjust:exact}
@@ -214,6 +269,7 @@
 <script src="assets/field-check.js"></script>
 <script src="assets/doc-edit.js"></script>
 <script src="assets/site-photo.js"></script>
+<script src="assets/doc-map.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════════
    문서 만들기
@@ -452,6 +508,14 @@ function chapter3() {
       시 전체 대비 발생비율은
       ${shareRows.slice(0, 2).map((r) => `${r.c.label}(${r.c.count.share}%)`).join(', ')} 순으로 높아 취약</p>
 
+    <figure class="doc-map">
+      <img id="map-survey" alt="중점대상지 종합위험도" hidden>
+      <div class="wait" id="map-survey-wait">지도를 그리는 중입니다…</div>
+      <div class="map-legend" id="map-survey-legend"></div>
+      <figcaption>[그림 1] ${esc(_data.shortLabel)} 중점대상지 종합위험도 —
+        조사지 경계(붉은 점선)와 119 출동 지점(2023~2025)</figcaption>
+    </figure>
+
     <table class="tight">
       <caption>[표 2] 안전분야별 사고 분포 및 점유율</caption>
       <thead><tr>
@@ -516,24 +580,32 @@ function chapter4() {
     const r = _results.find((x) => x.key === f.key);
     const observed = r && r.observed && r.observed.length ? r.observed.join(' · ') : null;
     const mine = _items.filter((it) => it.field === f.key || it.category === f.label);
-    const photo = photos[i] || null;
+    /* 이 절에 배정된 사진. 여러 장이면 첫 장을 크게 싣고 나머지는 아래에 붙입니다 */
+    const mineP = photos.filter((p) => p.field === f.key);
+    const photo = mineP[0] || null;
+    const extra = mineP.slice(1);
 
     return `
       <h3 class="h-section">4.${i + 1} ${f.label}</h3>
 
       <div class="field-pair">
         <figure>
-          <div class="slot">${esc(_data.shortLabel)} ${f.label} 밀집도 지도<br>
-            <span style="font-size:var(--fs-cap)">1단계 지도 화면을 캡처해 넣으십시오</span></div>
-          <figcaption>${esc(_data.shortLabel)} ${f.label} 밀집도</figcaption>
+          <img id="map-${f.key}" alt="${f.label} 밀집도" hidden>
+          <div class="slot" id="map-${f.key}-wait">지도를 그리는 중입니다…</div>
+          <figcaption>${esc(_data.shortLabel)} ${f.label} 밀집도 — 진단 지점 반경 ${MAP_RADIUS_M}m</figcaption>
         </figure>
         <figure>
           ${photo
             ? `<img src="${photo.dataUrl}" alt="현장 사진">`
-            : '<div class="slot">현장 사진<br><span style="font-size:var(--fs-cap)">아래에서 업로드하면 여기에 실립니다</span></div>'}
+            : '<div class="slot">현장 사진<br><span style="font-size:var(--fs-cap)">아래 <b>현장 사진</b>에서 올리고 이 절을 고르면 여기에 실립니다</span></div>'}
           <figcaption>${photo ? esc(AuriSitePhoto.caption(photo)) + (photo.note ? ' — ' + esc(photo.note) : '') : '현장확인사항'}</figcaption>
         </figure>
       </div>
+
+      ${extra.length ? `<div class="photo-strip">${extra.map(function (p) {
+        return `<figure><img src="${p.dataUrl}" alt="현장 사진">
+          <figcaption>${esc(AuriSitePhoto.caption(p))}${p.note ? ' — ' + esc(p.note) : ''}</figcaption></figure>`;
+      }).join('')}</div>` : ''}
 
       <table class="tight">
         <caption>[표 ${3 + i}] 밀집구간별 사고 원인 및 개선방향 — ${f.label}</caption>
@@ -737,51 +809,227 @@ function fieldReport() {
    현장 사진 관리 (화면 전용) — EXIF 좌표·촬영시각을 읽어 붙입니다
    ════════════════════════════════════════════════════════════════════ */
 
+/* ════════════════════════════════════════════════════════════════════
+   문서에 싣는 지도 (2026-09-07)
+
+   ── 왜 지도 화면을 캡처하지 않는가 ─────────────────────────────────
+   네이버 지도는 화면에 뜬 것을 이미지로 저장할 수 없습니다. 타일이
+   다른 서버에서 오는데 그 서버가 "가져다 써도 된다"는 표시를 붙여 주지
+   않아 캔버스가 오염되기 때문입니다. html2canvas 를 써도 같은 곳에서
+   막힙니다 (스트리트뷰 캡처가 막힌 것과 같은 이유).
+
+   그래서 **우리가 직접 캔버스에 그립니다.** 배경은 국토교통부 브이월드
+   타일을 씁니다 — 공공 서비스이고 가져다 쓰는 것이 허용돼 있으며
+   인증키도 필요 없습니다. 자세한 것은 assets/doc-map.js 머리말 참고.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* 지도에 찍는 분야 색 — index.html 의 INCIDENT_CATEGORIES 와 같은 값입니다.
+   지도에서 본 색과 문서에서 본 색이 달라지면 안 되므로 맞춰 둡니다. */
+const MAP_COLORS = {
+  suicide: '#7B5EA7', traffic: '#2A78D6', fire: '#E34948', crime: '#E0761F',
+  life: '#1BAF7A', industrial: '#8A6D3B', infection: '#4A3AA7',
+};
+
+/* 4장 지도가 진단 지점 둘레로 잡는 반경 (m).
+   너무 좁으면 점이 몇 개 안 나오고, 너무 넓으면 그 자리가 안 보입니다. */
+const MAP_RADIUS_M = 450;
+
+let _incidents = null;                 // data/incidents/<지역>.json
+const _mapCache = {};                  // 한 번 그린 지도는 다시 그리지 않습니다
+
+async function loadIncidents(region) {
+  try {
+    const res = await fetch('data/incidents/' + region + '.json');
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;                       // 지도가 없어도 문서의 나머지는 그대로 나옵니다
+  }
+}
+
+/** 분야 하나의 출동 지점을 지도용 점으로 */
+function catPoints(key) {
+  const set = _incidents && _incidents.categories && _incidents.categories[key];
+  if (!set || !set.points) return [];
+  return set.points.map(function (p) {
+    return { lat: p[0], lng: p[1], weight: p[2], color: MAP_COLORS[key] || '#666666' };
+  });
+}
+
+/** 어떤 지도를 그릴지 — 3.1 한 장 + 중점분야마다 한 장 */
+function mapSpecs() {
+  if (!_incidents) return [];
+  const marker = { lat: Number(_picked.lat), lng: Number(_picked.lng) };
+  const out = [{
+    id: 'map-survey', w: 1000, h: 620,
+    legend: AuriStats.categoryOrder.filter((k) => catPoints(k).length),
+    opts: {
+      boundary: _data.surveyArea && _data.surveyArea.geometry,
+      points: AuriStats.categoryOrder.reduce((a, k) => a.concat(catPoints(k)), []),
+      marker: marker,
+    },
+  }];
+
+  _focus.forEach(function (f) {
+    out.push({
+      id: 'map-' + f.key, w: 760, h: 570,   // 4:3 — 칸과 비율을 맞춰 잘리지 않게
+      opts: {
+        /* 여백을 좁게 둡니다. 기본값(12%)이면 한 단계 멀어져 거리가 잘 안 보입니다 */
+        pad: 0.05,
+        focus: { lat: marker.lat, lng: marker.lng, radiusM: MAP_RADIUS_M },
+        points: catPoints(f.key),
+        marker: marker,
+        boundary: _data.surveyArea && _data.surveyArea.geometry,
+      },
+    });
+  });
+  return out;
+}
+
+/**
+ * 지도를 하나씩 그려 넣습니다.
+ * 타일을 받아야 해서 시간이 걸리므로 문서를 먼저 띄우고 뒤따라 채웁니다.
+ */
+async function renderMaps() {
+  for (const spec of mapSpecs()) {
+    const img = document.getElementById(spec.id);
+    const wait = document.getElementById(spec.id + '-wait');
+    if (!img) continue;
+
+    let url = _mapCache[spec.id];
+    if (!url) {
+      const out = await AuriDocMap.toImage(spec.w, spec.h, spec.opts);
+      if (!out) { if (wait) wait.textContent = '지도를 그릴 수 없습니다'; continue; }
+      url = _mapCache[spec.id] = out.dataUrl;
+    }
+    img.src = url;
+    img.hidden = false;
+    if (wait) wait.remove();
+
+    /* 범례는 색만 보고는 무슨 분야인지 알 수 없어서 붙입니다 */
+    const leg = document.getElementById(spec.id + '-legend');
+    if (leg && spec.legend) {
+      leg.innerHTML = spec.legend.map(function (k) {
+        const c = _data.categories[k];
+        return '<span><i style="background:' + (MAP_COLORS[k] || '#666') + '"></i>'
+             + (c ? c.label : k) + '</span>';
+      }).join('') + '<span><i style="background:#000"></i>진단 지점</span>';
+    }
+  }
+}
+
 function photoManager() {
   const photos = AuriSitePhoto.all();
-  return `
-  <div class="screen-only" style="margin-top:26px; padding-top:18px; border-top:1px solid var(--g1)">
-    <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap">
-      <b style="font-size:var(--fs-sm)">현장 사진</b>
-      <span style="font-size:var(--fs-cap); color:var(--g2)">
-        사진의 GPS 좌표와 촬영 시각을 읽어 캡션에 넣습니다. 브라우저에서만 처리하며 서버로 보내지 않습니다.</span>
-      <span style="flex:1"></span>
-      <label class="btn ghost sm" style="cursor:pointer">
-        사진 추가
-        <input type="file" accept="image/*" multiple hidden onchange="onPhotos(this)">
-      </label>
-    </div>
-    ${photos.length ? `<div class="photo-grid">${photos.map(function (p) {
-      const noGps = p.lat === null || p.lng === null;
-      return `
-        <div class="photo-card">
-          <img src="${p.dataUrl}" alt="${esc(p.name)}">
-          <div class="cap ${noGps ? 'no-gps' : ''}">${
-            noGps ? '위치 정보 없음 — 지도에서 위치를 지정해 주세요'
-                  : esc(AuriSitePhoto.caption(p))}</div>
-          ${noGps ? `<input type="text" placeholder="위도, 경도 (예: 37.4596, 126.6799)"
-                       onchange="onPhotoPos('${p.id}', this.value)">` : ''}
-          <input type="text" placeholder="설명 (선택)" value="${esc(p.note || '')}"
-                 onchange="AuriSitePhoto.setNote('${p.id}', this.value)">
-          <button type="button" class="btn-text danger rm" onclick="onPhotoRemove('${p.id}')">삭제</button>
-        </div>`;
-    }).join('')}</div>`
-    : '<p style="font-size:var(--fs-cap); color:var(--g2); margin-top:10px">아직 올린 사진이 없습니다. 카카오톡으로 받은 사진은 위치 정보가 지워져 있는 경우가 많습니다.</p>'}
-  </div>`;
+  const opts = _focus.map(function (f, i) {
+    return '<option value="' + f.key + '">4.' + (i + 1) + ' ' + f.label + '</option>';
+  }).join('');
+
+  return '\n' +
+  '<div class="screen-only" style="margin-top:26px; padding-top:18px; border-top:1px solid var(--g1)">' +
+    '<div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap">' +
+      '<b style="font-size:var(--fs-body)">현장 사진</b>' +
+      '<span style="flex:1"></span>' +
+      '<label class="btn ghost sm" style="cursor:pointer">사진 추가' +
+        '<input type="file" accept="image/*" multiple hidden onchange="onPhotos(this)"></label>' +
+    '</div>' +
+    '<p style="font-size:var(--fs-cap); color:var(--g2); margin:8px 0 0; line-height:1.7">' +
+      '사진의 GPS 좌표와 촬영 시각을 읽어 캡션에 넣습니다. ' +
+      '<b>사진을 서버로 보내지 않습니다</b> — 위치와 사람이 찍히므로 브라우저 안에서만 처리합니다.<br>' +
+      '카카오톡·메신저로 주고받은 사진은 좌표가 지워져 있습니다. 그때는 <b>지도에서 지정</b>을 누르세요.' +
+    '</p>' +
+    (photos.length
+      ? '<div class="photo-grid">' + photos.map(function (p) {
+          const noGps = p.lat === null || p.lng === null;
+          return '' +
+            '<div class="photo-card">' +
+              '<img src="' + p.dataUrl + '" alt="' + esc(p.name) + '">' +
+              '<div class="cap' + (noGps ? ' no-gps' : '') + '">' +
+                (noGps ? '위치 정보 없음 — 지도에서 지정해 주세요'
+                       : esc(AuriSitePhoto.caption(p))) + '</div>' +
+              '<select onchange="onPhotoField(\'' + p.id + '\', this.value)">' +
+                '<option value="">— 실을 곳 선택 —</option>' +
+                opts.replace('value="' + p.field + '"', 'value="' + p.field + '" selected') +
+              '</select>' +
+              (noGps
+                ? '<div class="row"><button type="button" class="btn ghost sm" style="flex:1"' +
+                  ' onclick="openMapPick(\'' + p.id + '\')">지도에서 지정</button></div>'
+                : '') +
+              '<input type="text" placeholder="설명 (선택)" value="' + esc(p.note || '') + '"' +
+                ' onchange="AuriSitePhoto.setNote(\'' + p.id + '\', this.value)">' +
+              '<button type="button" class="btn-text danger rm" onclick="onPhotoRemove(\'' + p.id + '\')">삭제</button>' +
+            '</div>';
+        }).join('') + '</div>'
+      : '<p style="font-size:var(--fs-cap); color:var(--g2); margin-top:12px">아직 올린 사진이 없습니다.</p>') +
+  '</div>';
 }
 
 async function onPhotos(input) {
   if (!input.files || !input.files.length) return;
+  const before = AuriSitePhoto.all().length;
   await AuriSitePhoto.add(Array.from(input.files));
   input.value = '';
+
+  /* 새로 올린 사진을 사진이 가장 적은 절에 하나씩 배정합니다.
+     세 장을 올리면 4.1·4.2·4.3 에 한 장씩 들어갑니다. 물론 바꿀 수 있습니다. */
+  const list = AuriSitePhoto.all();
+  for (let i = before; i < list.length; i++) {
+    const counts = _focus.map(function (f) {
+      return { key: f.key, n: AuriSitePhoto.byField(f.key).length };
+    }).sort(function (x, y) { return x.n - y.n; });
+    if (counts.length) AuriSitePhoto.setField(list[i].id, counts[0].key);
+  }
   renderAll();
 }
+
 function onPhotoRemove(id) { AuriSitePhoto.remove(id); renderAll(); }
-function onPhotoPos(id, text) {
-  const m = /(-?[\d.]+)\s*,\s*(-?[\d.]+)/.exec(text || '');
-  if (!m) { alert('위도, 경도를 쉼표로 나눠 적어 주세요. 예: 37.4596, 126.6799'); return; }
-  AuriSitePhoto.setPosition(id, Number(m[1]), Number(m[2]));
-  renderAll();
+function onPhotoField(id, key) { AuriSitePhoto.setField(id, key || null); renderAll(); }
+
+/* ── 사진 위치를 지도에서 찍기 ─────────────────────────────────────
+   좌표가 없는 사진(메신저로 받은 것)에 위치를 붙이는 창입니다.
+   지도는 문서에 싣는 것과 같은 방식으로 캔버스에 그리므로, 클릭한
+   자리를 그대로 위경도로 되돌릴 수 있습니다 (doc-map 의 toLatLng). */
+let _pickMap = null;
+
+async function openMapPick(photoId) {
+  const wrap = document.createElement('div');
+  wrap.className = 'pick-wrap';
+  wrap.innerHTML =
+    '<div class="pick-box">' +
+      '<div class="hd"><b>사진을 찍은 곳을 지도에서 눌러 주세요</b>' +
+        '<span>붉은 점선은 조사지 경계, 십자 표시는 진단 지점입니다.</span></div>' +
+      '<canvas id="pickCanvas" width="900" height="560"></canvas>' +
+      '<div class="ft">' +
+        '<span id="pickHint" style="flex:1; font-size:var(--fs-cap); color:var(--g2); align-self:center"></span>' +
+        '<button type="button" class="btn ghost sm" onclick="closeMapPick()">취소</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(wrap);
+
+  const canvas = document.getElementById('pickCanvas');
+  const out = await AuriDocMap.draw(canvas, {
+    boundary: _data.surveyArea && _data.surveyArea.geometry,
+    marker: { lat: Number(_picked.lat), lng: Number(_picked.lng) },
+    points: [],
+  });
+  if (!out) { closeMapPick(); alert('지도를 그릴 수 없습니다.'); return; }
+  _pickMap = out;
+
+  canvas.onclick = function (ev) {
+    const r = canvas.getBoundingClientRect();
+    /* 캔버스는 CSS 로 줄여 놓았으므로 실제 픽셀로 되돌립니다 */
+    const x = (ev.clientX - r.left) * canvas.width / r.width;
+    const y = (ev.clientY - r.top) * canvas.height / r.height;
+    const ll = _pickMap.toLatLng(x, y);
+    AuriSitePhoto.setPosition(photoId, ll.lat, ll.lng);
+    closeMapPick();
+    renderAll();
+  };
+}
+
+function closeMapPick() {
+  const w = document.querySelector('.pick-wrap');
+  if (w) w.remove();
+  _pickMap = null;
 }
 
 /* ── 탭 ──────────────────────────────────────────────────────────── */
@@ -805,6 +1053,9 @@ function renderAll() {
     cover() + chapter1() + chapter2() + chapter3() + chapter4() + chapter5();
   document.getElementById('docB').innerHTML = fieldReport();
   AuriDocEdit.refresh();
+  /* 지도는 타일을 받아야 해서 시간이 걸립니다. 문서를 먼저 띄우고 뒤따라 채웁니다.
+     한 번 그린 것은 _mapCache 에 남아 다시 그리지 않습니다. */
+  renderMaps();
 }
 
 window.addEventListener('load', async function () {
@@ -834,6 +1085,7 @@ window.addEventListener('load', async function () {
   }
   _data = _stats.data;
   _focus = AuriStats.focusCategories(_data);
+  _incidents = await loadIncidents(_data.region);   // 지도에 찍을 119 출동 지점
   document.title = `지자체 사전진단서 — ${_data.shortLabel}`;
 
   renderAll();

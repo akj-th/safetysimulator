@@ -175,6 +175,7 @@ const AuriSitePhoto = (function () {
         lat: exif.lat, lng: exif.lng,
         takenAt: exif.takenAt,
         note: '',
+        field: null,   // 어느 절에 실을지 — 부르는 쪽이 정합니다 (setField)
       });
     }
     save(list);
@@ -202,6 +203,23 @@ const AuriSitePhoto = (function () {
     save(list);
   }
 
+  /**
+   * 사전진단서 4장의 어느 절에 실을지 (분야 열쇠 — crime/fire/suicide …).
+   * 사진 자체는 분야를 모르므로 부르는 쪽이 정합니다.
+   */
+  function setField(id, field) {
+    const list = all();
+    const p = list.find(function (x) { return x.id === id; });
+    if (!p) return;
+    p.field = field || null;
+    save(list);
+  }
+
+  /** 그 절에 실릴 사진들 */
+  function byField(field) {
+    return all().filter(function (p) { return p.field === field; });
+  }
+
   /** 캡션 한 줄 — 촬영시각과 좌표 출처를 적습니다 */
   function caption(p) {
     const parts = [];
@@ -214,5 +232,5 @@ const AuriSitePhoto = (function () {
     return parts.join(' · ');
   }
 
-  return { all, add, remove, setPosition, setNote, caption, readExif };
+  return { all, add, remove, setPosition, setNote, setField, byField, caption, readExif };
 })();
