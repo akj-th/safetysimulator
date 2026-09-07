@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
 
 import { CATEGORIES, SCORING_GUIDE } from './checklist.js';
-import { legalBlock, UNVERIFIED } from './legal.js';
+import { legalBlock, PENDING } from './legal.js';
 
 const PORT = process.env.PORT || 8787;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -332,6 +332,10 @@ async function callAI(mediaType, base64Data, promptText) {
    해당하는 근거가 없으면 "관련 근거 확인 필요"로 두게 합니다.
    비어 있는 편이 틀린 조문보다 낫습니다.
 
+   ★ 원문 대조를 마친 조문만 넣습니다 (`verified: true`).
+   대조 전인 것을 넣고 화면에 경고만 띄우면 실무자가 그대로 인용합니다.
+   AI 에게 아예 보여 주지 않는 편이 확실합니다.
+
    돌려주는 값도 문단 하나가 아니라 { text, basis } 로 나눕니다.
    어느 수치와 어느 근거로 이 문장이 나왔는지 화면에서 보여야 하기 때문입니다.
    ════════════════════════════════════════════════════════════════════ */
@@ -421,8 +425,8 @@ async function handleOpinion(req, res) {
   sendJson(res, 200, {
     text: out.text,
     basis: out.basis || [],
-    /* 아직 원문 대조를 안 한 근거가 있으면 화면에 알려 줍니다 */
-    unverified: UNVERIFIED,
+    /* 대조 전이라 지시문에서 뺀 근거 — 화면에만 알립니다 (인용에는 쓰이지 않음) */
+    pending: PENDING,
   });
 }
 

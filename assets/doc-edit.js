@@ -21,6 +21,9 @@
    AI가 어떤 수치와 어떤 법령에 기대어 썼는지 함께 받아 화면에 폅니다.
    근거를 못 찾은 부분은 "확인 필요"로 나옵니다 (server/legal.js 참고).
 
+   법령은 **원문 대조를 마친 것만** 인용에 쓰입니다. 대조 전인 것은 AI에게
+   보여 주지 않고, 화면에 "쓰지 않았다"고만 알립니다.
+
    ── 저장 ───────────────────────────────────────────────────────────
    sessionStorage 에 담습니다. 탭을 옮기거나 다시 그려도 남습니다.
    ════════════════════════════════════════════════════════════════════ */
@@ -125,9 +128,10 @@ const AuriDocEdit = (function () {
       if (mark) mark.hidden = false;
       if (basisBox) {
         basisBox.innerHTML = basisHtml(data.basis)
-          + (data.unverified && data.unverified.length
-              ? `<div class="bi-note">⚠️ 아래 근거는 아직 원문 대조 전입니다: ${data.unverified.join(', ')}
-                 — 국가법령정보센터에서 확인해 주세요.</div>`
+          + (data.pending && data.pending.length
+              ? `<div class="bi-note">원문 대조 전이라 <b>인용하지 않은</b> 근거 ${data.pending.length}건:
+                 ${data.pending.map(function (p) { return p.where + ' ' + p.title; }).join(' · ')}
+                 — 국가법령정보센터에서 확인한 뒤 server/legal.js 의 verified 를 true 로 바꾸면 쓰입니다.</div>`
               : '');
         basisBox.hidden = false;
       }

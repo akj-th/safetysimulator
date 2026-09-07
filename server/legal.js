@@ -9,11 +9,14 @@
    절대 인용하지 못하게** 지시문에서 막습니다. 해당하는 근거가 없으면
    "관련 근거 확인 필요"로 두게 합니다. 비어 있는 편이 틀린 것보다 낫습니다.
 
-   ⚠️ 담당자 확인이 필요합니다 ──────────────────────────────────────
-   아래 항목은 과업 문서(시행계획서·협의회의록)에 나온 것을 정리한 것입니다.
-   **조문 번호와 문구를 국가법령정보센터(law.go.kr)에서 대조해 주세요.**
-   `verified: false` 인 항목은 아직 대조하지 않았다는 뜻이며, 화면과 문서에
-   그대로 표시됩니다.
+   ★ `verified: false` 는 지시문에 들어가지 않습니다 ────────────────
+   대조하지 않은 조문을 넣고 화면에 경고만 띄우면, 실무자가 그대로 인용해
+   행정 문서에 실릴 수 있습니다. 그래서 **AI 에게 아예 보여 주지 않습니다.**
+   `verifiedBasis()` 가 걸러 내고, 걸러진 항목은 `PENDING` 으로 화면에만
+   "대조 전이라 쓰지 않았음"이라고 알립니다.
+
+   대조하는 방법: 국가법령정보센터(law.go.kr)에서 조문 번호와 문구를 확인한 뒤
+   그 항목의 `verified` 를 `true` 로 바꾸면 그때부터 인용에 쓰입니다.
 
    지자체 조례는 지자체마다 다르므로 여기에 넣지 않았습니다.
    특정 지자체 조례를 인용해야 하면 그 지자체 것을 확인해 추가하십시오.
@@ -74,13 +77,29 @@ export const LEGAL_BASIS = [
   },
 ];
 
-/** 지시문에 넣을 근거 목록 (AI 가 이 밖의 것을 인용하지 못하게 합니다) */
+/** 원문 대조를 마쳐 인용해도 되는 것만 */
+export function verifiedBasis() {
+  return LEGAL_BASIS.filter((b) => b.verified);
+}
+
+/** 지시문에 넣을 근거 목록 — 대조를 마친 것만 들어갑니다 */
 export function legalBlock() {
-  return LEGAL_BASIS.map((b) => {
+  const ok = verifiedBasis();
+  if (!ok.length) {
+    return '(인용할 수 있는 근거 없음 — 법령·협의를 언급하지 말고 basis 에 kind:"확인필요" 로 적으십시오)';
+  }
+  return ok.map((b) => {
     const where = b.article === '—' ? b.law : `${b.law} ${b.article}`;
     return `- [${b.id}] ${where} (${b.title})\n  요지: ${b.gist}\n  쓸 수 있는 곳: ${b.useFor.join(', ')}`;
   }).join('\n');
 }
 
-/** 아직 대조하지 않은 근거 — 화면에 표시해 담당자가 확인하게 합니다 */
-export const UNVERIFIED = LEGAL_BASIS.filter((b) => !b.verified).map((b) => b.id);
+/**
+ * 아직 대조하지 않아 **쓰지 않은** 근거.
+ * AI 지시문에는 들어가지 않고, 화면에만 "이런 것이 빠져 있다"고 알립니다.
+ */
+export const PENDING = LEGAL_BASIS.filter((b) => !b.verified).map((b) => ({
+  id: b.id,
+  where: b.article === '—' ? b.law : `${b.law} ${b.article}`,
+  title: b.title,
+}));

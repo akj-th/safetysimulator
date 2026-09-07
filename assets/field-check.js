@@ -10,11 +10,16 @@
                        → 고치려면 물건을 놓거나 갈면 됩니다 (설치 사업)
      운영·관리         사람이 치우고 단속해야 할 것 — 적치물·불법주정차·방치
                        → 예산보다 관리 주체와 주기의 문제입니다
-     인적 특성         누가 언제 다치는가 — 연령대·시간대
-                       → 사진이 아니라 119 출동자료에서 나옵니다
+     이용자 특성 관련  누가 언제 쓰는가 — 연령대·시간대
+       확인            → 사진이 아니라 119 출동자료에서 나옵니다
 
    앞의 셋은 **사진 판독**에서, 마지막 하나는 **출동자료**에서 옵니다.
-   현장에서 눈으로 볼 것(1~3)과 배경 지식(4)이 섞이지 않게 나눈 것이기도 합니다.
+
+   ★ 네 범주 모두 **현장에서 할 행동**으로 적습니다.
+     "고령자 비중이 높음"은 통계 배경이라 현장에서 볼 수 없습니다.
+     "고령자 이용 많음 — 보행 손잡이, 경사로 기울기, 휴식 벤치, 야간 조도 확인"처럼
+     **무엇이 많다 — 무엇을 확인** 꼴로 씁니다. 문장은 assets/stats.js 의
+     AGE_CHECKS · HOUR_CHECKS · PLACE_CHECKS 세 표에 있습니다.
 
    ★ 어느 항목을 어느 범주에 넣을지는 판단입니다. 이 표만 고치면 됩니다.
      server/checklist.js 는 "무엇을 볼 것인가"만 다루므로 건드리지 않습니다.
@@ -24,7 +29,7 @@ const CHECK_GROUPS = [
   { key: 'space',    label: '물리적 공간 특성', desc: '폭·경사·시야·동선 등 공간의 생김새' },
   { key: 'facility', label: '시설·설비',        desc: '조명·CCTV·난간·소화전 등 설치물의 유무와 상태' },
   { key: 'manage',   label: '운영·관리',        desc: '적치물·불법주정차·방치 등 치우고 단속할 것' },
-  { key: 'people',   label: '인적 특성',        desc: '연령대·시간대 — 119 출동자료에서 나옵니다' },
+  { key: 'people',   label: '이용자 특성 관련 확인', desc: '연령대·시간대 — 119 출동자료에서 나옵니다' },
 ];
 
 /* 체크리스트 항목 번호 → 범주 (server/checklist.js 의 id 와 짝입니다) */
@@ -86,11 +91,6 @@ const CHECK_GROUP_BY_ITEM = {
   'INF-6': 'manage',   // 공용 시설물 오염·파손 방치
 };
 
-/** 통계에서 온 확인 항목의 범주 — 연령·시간대는 인적, 장소는 공간 */
-function auriStatCheckGroup(text) {
-  return /비중이 높음|시간대 집중/.test(text) ? 'people' : 'space';
-}
-
 /** 체크리스트 질문 → 현장에서 볼 문장 ("…있는가" → "…있는지 확인") */
 function auriAskToCheck(ask) {
   if (!ask) return '';
@@ -128,8 +128,10 @@ function auriFieldChecks(results, stats, focusKeys) {
     if (!stats || !stats.data || !focus.has(r.key)) return;
     const cat = stats.data.categories[r.key];
     if (!cat || typeof AuriStats === 'undefined') return;
+    /* 범주는 stats.js 가 문장과 함께 붙여 보냅니다 — 여기서 문장을 되짚지 않습니다 */
     AuriStats.fieldChecks(cat, { inside: stats.inside }).forEach(function (t) {
-      bucket[auriStatCheckGroup(t)].push({ text: t, field: r.name, src: '출동자료' });
+      const g = bucket[t.group] ? t.group : 'space';
+      bucket[g].push({ text: t.text, field: r.name, src: '출동자료' });
     });
   });
 

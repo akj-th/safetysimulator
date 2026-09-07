@@ -228,11 +228,13 @@ const AuriStats = (function () {
   /* ── ⑤ 현장확인 사항 (통계에서 나오는 부분) ──────────────────────
      사진으로는 알 수 없지만 통계가 가리키는 확인 항목입니다.
      사진 판독에서 나오는 항목은 report.html 이 따로 붙입니다. */
+  /* 문장은 모두 "무엇이 많다 — 무엇을 확인" 꼴입니다.
+     앞머리를 "…시간대 집중"처럼 통계 서술로 두면 현장에서 볼 수 없는 문장이 됩니다. */
   const HOUR_CHECKS = [
-    { from: 22, to: 6, text: '야간 시간대 집중 — 가로등 점등 상태와 실제 조도(럭스), 소등 구간 확인' },
-    { from: 6, to: 10, text: '출근 시간대 집중 — 통학·통근 동선의 보행 폭과 차량 상충 지점 확인' },
-    { from: 10, to: 16, text: '주간 시간대 집중 — 보행 동선의 단차·미끄럼, 그늘·휴식 공간 확인' },
-    { from: 16, to: 22, text: '퇴근·저녁 시간대 집중 — 상가 주변 적치물, 주정차, 조도 확인' },
+    { from: 22, to: 6, text: '야간 이용 많음 — 가로등 점등 상태와 실제 조도(럭스), 소등 구간 확인' },
+    { from: 6, to: 10, text: '출근·통학 시간대 이용 많음 — 통학·통근 동선의 보행 폭과 차량 상충 지점 확인' },
+    { from: 10, to: 16, text: '주간 이용 많음 — 보행 동선의 단차·미끄럼, 그늘·휴식 공간 확인' },
+    { from: 16, to: 22, text: '퇴근·저녁 이용 많음 — 상가 주변 적치물, 주정차, 조도 확인' },
   ];
 
   const PLACE_CHECKS = {
@@ -248,29 +250,40 @@ const AuriStats = (function () {
   };
 
   const AGE_CHECKS = {
-    a65: '고령자 비중이 높음 — 보행 손잡이, 경사로 기울기, 휴식 벤치, 야간 조도 확인',
-    u20: '아동·청소년 비중이 높음 — 통학 동선, 보호구역 표시, 놀이·체육시설 상태 확인',
-    a2049: '활동인구 비중이 높음 — 야간 통행 동선, 상가 주변 상충 지점, 이륜차 통행 확인',
+    a65: '고령자 이용 많음 — 보행 손잡이, 경사로 기울기, 휴식 벤치, 야간 조도 확인',
+    u20: '아동·청소년 이용 많음 — 통학 동선, 보호구역 표시, 놀이·체육시설 상태 확인',
+    a2049: '활동인구 이용 많음 — 야간 통행 동선, 상가 주변 상충 지점, 이륜차 통행 확인',
   };
 
-  /** 한 분야에 대해 통계가 가리키는 현장확인 항목 목록 */
+  /**
+   * 한 분야에 대해 통계가 가리키는 현장확인 항목 목록.
+   * 돌려주는 값: [{ text, group }] — group 은 field-check.js 의 범주 열쇠입니다.
+   *   people  누가·언제 쓰는가 (연령·시간대)
+   *   space   어디를 볼 것인가 (발생 장소)
+   */
   function fieldChecks(cat, opts) {
     if (!cat) return [];
     const A = (!opts || opts.inside !== false) ? cat.inside : cat.region;
     if (!A) return [];
     const out = [];
+    const seen = {};
+    const add = (text, group) => {
+      if (!text || seen[text]) return;
+      seen[text] = true;
+      out.push({ text: text, group: group });
+    };
 
     const human = narrateHuman(cat, opts);
-    if (human && AGE_CHECKS[human.lead.key]) out.push(AGE_CHECKS[human.lead.key]);
+    if (human && AGE_CHECKS[human.lead.key]) add(AGE_CHECKS[human.lead.key], 'people');
 
     for (const p of (A.placeGrouped ? A.placeGrouped.top : []).slice(0, 2)) {
-      if (PLACE_CHECKS[p[0]] && !out.includes(PLACE_CHECKS[p[0]])) out.push(PLACE_CHECKS[p[0]]);
+      add(PLACE_CHECKS[p[0]], 'space');
     }
 
     if (A.hour && A.hour.peak) {
       const h = A.hour.peak.from;
       const hit = HOUR_CHECKS.find((c) => (c.from <= c.to ? (h >= c.from && h < c.to) : (h >= c.from || h < c.to)));
-      if (hit) out.push(hit.text);
+      if (hit) add(hit.text, 'people');
     }
 
     return out;
