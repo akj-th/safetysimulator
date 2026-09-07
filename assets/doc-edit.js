@@ -130,8 +130,10 @@ const AuriDocEdit = (function () {
         basisBox.innerHTML = basisHtml(data.basis)
           + (data.pending && data.pending.length
               ? `<div class="bi-note">원문 대조 전이라 <b>인용하지 않은</b> 근거 ${data.pending.length}건:
-                 ${data.pending.map(function (p) { return p.where + ' ' + p.title; }).join(' · ')}
-                 — 국가법령정보센터에서 확인한 뒤 server/legal.js 의 verified 를 true 로 바꾸면 쓰입니다.</div>`
+                 ${data.pending.map(function (p) {
+                     return '[' + p.kindLabel + '] ' + p.where + ' ' + p.title;
+                   }).join(' · ')}
+                 — 원문을 확인한 뒤 server/legal.js 의 verified 를 true 로 바꾸면 쓰입니다.</div>`
               : '');
         basisBox.hidden = false;
       }
