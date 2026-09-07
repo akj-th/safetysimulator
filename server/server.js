@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
 
 import { CATEGORIES, SCORING_GUIDE } from './checklist.js';
+import { legalBlock, UNVERIFIED } from './legal.js';
 
 const PORT = process.env.PORT || 8787;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -317,6 +318,112 @@ async function callAI(mediaType, base64Data, promptText) {
     `  · 사용 토큰: 입력 ${response.usage.input_tokens}, 출력 ${response.usage.output_tokens}`
   );
   return JSON.parse(textBlock.text);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   진단서 서술 문단 초안 (AI 의견)
+
+   (소결) 같은 자리는 수치에서 자동으로 이끌어낼 수 없는 **판단**입니다.
+   그래서 평소에는 비워 두고, 연구원이 버튼을 눌렀을 때만 초안을 만듭니다.
+
+   ★ 지어낸 법령을 막는 방법 ────────────────────────────────────────
+   "법령을 근거로 쓰라"고만 하면 없는 조항을 만들어 냅니다. 그래서
+   **인용 가능한 근거를 server/legal.js 에 적어 두고 그 밖은 금지**합니다.
+   해당하는 근거가 없으면 "관련 근거 확인 필요"로 두게 합니다.
+   비어 있는 편이 틀린 조문보다 낫습니다.
+
+   돌려주는 값도 문단 하나가 아니라 { text, basis } 로 나눕니다.
+   어느 수치와 어느 근거로 이 문장이 나왔는지 화면에서 보여야 하기 때문입니다.
+   ════════════════════════════════════════════════════════════════════ */
+
+const OPINION_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['text', 'basis'],
+  properties: {
+    text: {
+      type: 'string',
+      description: '문서에 그대로 실을 문단. 명사형으로 끝내고, 주어진 수치만 사용한다.',
+    },
+    basis: {
+      type: 'array',
+      description: '이 문단의 판단 근거. 화면에만 보이고 문서에는 실리지 않는다.',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['kind', 'detail'],
+        properties: {
+          kind: { type: 'string', enum: ['수치', '법령', '협의', '확인필요'] },
+          detail: { type: 'string' },
+        },
+      },
+    },
+  },
+};
+
+function buildOpinionPrompt(section, context) {
+  return `당신은 지자체 안전사업지구 사전진단서를 쓰는 실무자입니다.
+아래 자리에 들어갈 문단의 **초안**을 작성하십시오.
+
+── 작성할 자리 ──
+${section}
+
+── 주어진 자료 (이 안의 수치만 사용) ──
+${context}
+
+── 인용할 수 있는 근거 (이 목록 밖은 절대 인용 금지) ──
+${legalBlock()}
+
+── 반드시 지킬 것 ──
+1. 위 "주어진 자료"에 없는 수치를 만들어 내지 마십시오. 통계를 추정하지 마십시오.
+2. 위 근거 목록에 **없는** 법령·조례·조문 번호를 절대 쓰지 마십시오.
+   해당하는 근거가 없으면 basis 에 kind:"확인필요" 로 적고 본문에서는 법령을 언급하지 마십시오.
+   지어낸 조문이 하나라도 있으면 이 문서 전체를 쓸 수 없게 됩니다.
+3. 조례는 지자체마다 다르므로 인용하지 마십시오.
+4. 문장은 **명사형**으로 끝내십시오 (행정 문서 표준).
+   예) "…구조적 관리가 필요한 것으로 판단됨", "…개입 강화가 요구됨"
+5. 3~5문장, 400자 내외로 쓰십시오.
+6. 확정되지 않은 것을 단정하지 마십시오. 자료가 없으면 "현장 확인 필요"로 두십시오.
+
+basis 에는 이 문단이 무엇에 기대고 있는지 적으십시오.
+  kind "수치"    — 주어진 자료에서 실제로 쓴 값
+  kind "법령"    — 위 목록의 [ID] 와 함께
+  kind "협의"    — 위 목록의 협의 항목
+  kind "확인필요" — 근거를 찾지 못해 비워 둔 부분`;
+}
+
+async function callOpinionAI(promptText) {
+  const response = await anthropic.messages.create({
+    model: 'claude-opus-5',
+    max_tokens: 4000,
+    output_config: { format: { type: 'json_schema', schema: OPINION_SCHEMA } },
+    messages: [{ role: 'user', content: [{ type: 'text', text: promptText }] }],
+  });
+  if (response.stop_reason === 'refusal') throw new Error('AI가 작성을 거부했습니다.');
+  const block = response.content.find(function (b) { return b.type === 'text'; });
+  if (!block) throw new Error('AI 응답에서 문단을 찾지 못했습니다.');
+  console.log(`  · 사용 토큰: 입력 ${response.usage.input_tokens}, 출력 ${response.usage.output_tokens}`);
+  return JSON.parse(block.text);
+}
+
+async function handleOpinion(req, res) {
+  if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) {
+    return sendJson(res, 401, { error: '접속 암호가 필요합니다.', needCode: true });
+  }
+  checkQuota(req);
+
+  const body = await readJsonBody(req);
+  if (!body.section) return sendJson(res, 400, { error: '어느 자리에 쓸 문단인지 알려 주세요.' });
+
+  console.log(`[의견 생성] ${String(body.section).slice(0, 60)}`);
+  const out = await callOpinionAI(buildOpinionPrompt(body.section, body.context || '(제공된 자료 없음)'));
+
+  sendJson(res, 200, {
+    text: out.text,
+    basis: out.basis || [],
+    /* 아직 원문 대조를 안 한 근거가 있으면 화면에 알려 줍니다 */
+    unverified: UNVERIFIED,
+  });
 }
 
 /* ── 진단 요청 처리 ──────────────────────────────────────────────────── */
@@ -800,6 +907,8 @@ const server = http.createServer(async function (req, res) {
       await handleDiagnose(req, res, true);   // 연구원 지적을 반영한 재판독
     } else if (req.method === 'POST' && req.url === '/api/generate') {
       await handleGenerate(req, res);         // 개선 후 이미지 생성
+    } else if (req.method === 'POST' && req.url === '/api/opinion') {
+      await handleOpinion(req, res);          // 진단서 서술 문단 초안
     } else if (req.method === 'GET' && req.url === '/api/models') {
       /* 화면의 모델 선택 상자가 이 목록으로 채워집니다.
          키가 없는 제공사의 모델은 애초에 내려보내지 않습니다.

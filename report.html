@@ -109,6 +109,7 @@
   .check-group{padding:14px 0; border-bottom:1px solid var(--g1)}
   .check-group:last-child{border-bottom:none}
   .check-group .g-name{font-size:var(--fs-body); font-weight:700; color:var(--k); margin-bottom:7px}
+  .check-group .g-desc{font-size:var(--fs-cap); color:var(--g2); font-weight:400; margin-left:9px}
   .check-group ul{margin:0; padding-left:19px}
   .check-group li{font-size:var(--fs-body); color:var(--g3); line-height:var(--lh-body); margin:4px 0}
   .check-group li .src{font-size:var(--fs-cap); color:var(--g2); margin-left:7px; font-family:var(--mono)}
@@ -323,6 +324,7 @@
 <script src="assets/ui.js"></script>
 <script src="assets/risk-weights.js"></script>
 <script src="assets/stats.js"></script>
+<script src="assets/field-check.js"></script>
 <script src="assets/palette.js"></script>
 <script src="assets/rules.js"></script>
 <script src="assets/rx-editor.js"></script>
@@ -716,59 +718,24 @@ function catBlock(name, count, text, low) {
      · 출동자료 통계가 가리키는 것 (연령·장소·시간대) → 일대에서 볼 것
    어느 쪽에서 나왔는지 꼬리표를 달아 근거를 되짚을 수 있게 합니다. */
 function renderChecks() {
-  const groups = [];
-
-  /* 중점 3분야 — ①② 에서 서술한 분야와 같아야 ⑤가 어긋나지 않습니다 */
-  const focusKeys = new Set(
-    (_stats && _stats.data ? AuriStats.focusCategories(_stats.data) : []).map((f) => f.key)
-  );
-
-  for (const r of _results) {
-    const items = [];
-
-    /* 사진에서 문제로 확인된 항목 */
-    for (const f of (r.findings || [])) {
-      if (!f.risk) continue;
-      items.push({ text: askToCheck(f.ask), src: f.id });
-    }
-
-    /* 같은 분야의 출동자료 통계 — **중점 3분야만** 붙입니다.
-       ①②에서 서술하지 않은 분야에 출동자료 문장만 튀어나오면,
-       근거 없이 나온 말처럼 보이고 ①과 어긋나기도 합니다.
-       (실제로 산업재해에 "고령자 비중이 높음"이 붙어 ①의 20~49세 서술과
-        엇갈렸습니다.) 8/25 협의의 "중점 3분야 중심 서술"과도 맞습니다. */
-    if (_stats && _stats.data && focusKeys.has(r.key) && _stats.data.categories[r.key]) {
-      for (const c of AuriStats.fieldChecks(_stats.data.categories[r.key], { inside: _stats.inside })) {
-        items.push({ text: c, src: '출동자료' });
-      }
-    }
-
-    /* 안전 판정이고 확인할 것도 없으면 굳이 줄을 만들지 않습니다 */
-    if (!items.length) continue;
-    groups.push(`
-      <div class="check-group">
-        <div class="g-name">${r.name} <span class="badge ${r.level.key}">${r.level.label}</span></div>
-        <ul>${items.map((i) => `<li>${i.text}<span class="src">${i.src}</span></li>`).join('')}</ul>
-      </div>`);
-  }
+  /* 분류·문장 만들기는 assets/field-check.js 가 맡습니다.
+     현장용 리포트(document.html)와 같은 규칙을 써야 두 문서가 어긋나지 않습니다. */
+  const focus = _stats && _stats.data ? AuriStats.focusCategories(_stats.data) : [];
+  const focusKeys = new Set(focus.map(function (f) { return f.key; }));
+  const groups = auriFieldChecks(_results, _stats, focusKeys);
 
   document.getElementById('checkList').innerHTML = groups.length
-    ? groups.join('')
+    ? groups.map(function (g) {
+        return '<div class="check-group">'
+          + '<div class="g-name">' + g.label
+          + ' <span class="g-desc">' + g.desc + '</span></div><ul>'
+          + g.items.map(function (it) {
+              return '<li>' + it.text
+                + '<span class="src">' + it.fields.join(', ') + '</span></li>';
+            }).join('')
+          + '</ul></div>';
+      }).join('')
     : '<div class="empty">현장에서 따로 확인할 항목이 없습니다.</div>';
-}
-
-/* 체크리스트 질문을 현장 확인 문장으로 바꿉니다.
-   "가로등이 설치되어 있는가" → "가로등이 설치되어 있는지 확인" */
-function askToCheck(ask) {
-  if (!ask) return '';
-  return ask
-    .replace(/인가\??$/, '인지 확인')
-    .replace(/있는가\??$/, '있는지 확인')
-    .replace(/없는가\??$/, '없는지 확인')
-    .replace(/되는가\??$/, '되는지 확인')
-    .replace(/막히는가\??$/, '막히는지 확인')
-    .replace(/보이는가\??$/, '보이는지 확인')
-    .replace(/가\??$/, '지 확인');
 }
 
 /* ── 개선 사업 처방 ─────────────────────────────────────────────

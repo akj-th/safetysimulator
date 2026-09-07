@@ -20,6 +20,11 @@
     gap:12px; text-align:center; padding:34px;
     background:var(--w); border:1px solid var(--g1);
   }
+  /* 생성 이미지에 반드시 따라붙는 문구 */
+  .ba-disclaimer{
+    font-size:var(--fs-cap); color:var(--g3); line-height:var(--lh-tight);
+    padding:8px 0 0; border-top:1px solid var(--g1); margin-top:9px;
+  }
   .ba-blank svg{width:24px; height:24px; color:var(--g1)}
   .ba-blank .t{font-size:var(--fs-lead); font-weight:700; color:var(--k)}
   .ba-blank .m{font-size:var(--fs-sm); color:var(--g3); max-width:340px; line-height:var(--lh-body)}
@@ -111,6 +116,9 @@
       <span class="tag pending" id="afterTag">생성 중</span>
     </div>
     <img class="ba-img" id="afterImg" alt="개선 후 이미지" style="display:none">
+    <!-- AURI 화상회의(2026-09-07) 요구 — 생성 이미지에는 반드시 이 문구가 따라붙습니다.
+         진단서 서식4(document.html)에도 같은 문구가 들어갑니다. -->
+    <div class="ba-disclaimer" id="afterNote" style="display:none">AI가 생성한 참고용 예시 이미지로, 실제 시공 결과를 보장하지 않습니다.</div>
     <div class="ba-blank" id="afterBlank">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
       <div class="t" id="afterMsg">이미지를 만들고 있습니다</div>
@@ -217,6 +225,7 @@ async function generateAfter(useNote) {
   _generating = true;
   panel.style.display = 'block';
   img.style.display = 'none';
+  document.getElementById('afterNote').style.display = 'none';
   blank.style.display = 'flex';
   document.getElementById('afterMsg').textContent =
     note ? '요청하신 대로 고치고 있습니다' : '이미지를 만들고 있습니다';
@@ -247,6 +256,7 @@ async function generateAfter(useNote) {
     _lastGenerated = data.dataUrl;
     img.src = data.dataUrl;
     img.style.display = 'block';
+    document.getElementById('afterNote').style.display = '';
     blank.style.display = 'none';
     document.getElementById('afterTag').textContent =
       (data.model || '생성 완료') + (fromGenerated ? ' · 이어서 수정' : '');

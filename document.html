@@ -9,19 +9,20 @@
 <link rel="stylesheet" href="assets/theme.css">
 <style>
 /* ════════════════════════════════════════════════════════════════════
-   지자체 사전진단서 — AURI 「사전진단서_경기 부천시」 양식
+   문서 두 종 — 사전진단서 / 현장용 리포트
 
-   화면에서는 편집·확인용으로 보고, 인쇄(Ctrl+P)하면 A4 세로 문서가
-   그대로 나옵니다. 화면용 요소(상단바·버튼·안내문)는 인쇄에서 빠집니다.
+   AURI 요청으로 문서를 둘로 나눴습니다.
+     사전진단서   AURI 양식 그대로. 원문에 없는 요소는 넣지 않습니다
+     현장용 리포트 현장에서 볼 것만. 통계 서술은 최소로
+
+   탭으로 오가고, **인쇄하면 지금 보고 있는 문서만** 나옵니다.
    ════════════════════════════════════════════════════════════════════ */
 
-/* ── 지면 ────────────────────────────────────────────────────────── */
 .doc{
   max-width:820px; margin:0 auto; background:var(--w);
   font-size:var(--fs-body); color:var(--g4); line-height:1.85;
 }
 
-/* 장(章) — 인쇄할 때 새 쪽에서 시작합니다 */
 .chapter{padding:0 0 34px}
 .chapter + .chapter{border-top:1px solid var(--g1); padding-top:34px}
 
@@ -29,24 +30,14 @@
   font-size:var(--fs-h2); font-weight:700; color:var(--k);
   margin:0 0 20px; padding-bottom:11px; border-bottom:2px solid var(--k);
 }
-.h-section{
-  font-size:var(--fs-lead); font-weight:700; color:var(--k);
-  margin:26px 0 12px;
-}
-.h-sub{
-  font-size:var(--fs-body); font-weight:700; color:var(--g4);
-  margin:18px 0 8px;
-}
+.h-section{font-size:var(--fs-lead); font-weight:700; color:var(--k); margin:26px 0 12px}
 
 /* 원문의 "○ (항목) 내용" 형식 */
 .bullet{margin:9px 0 9px 2px; padding-left:19px; position:relative; text-align:justify}
 .bullet::before{content:'○'; position:absolute; left:0; color:var(--g2)}
 .bullet .tag{font-weight:700; color:var(--k)}
 .bullet b{color:var(--k); font-weight:700}
-.bullet.dash::before{content:'-'; }
-.bullet.dash{margin-left:19px; font-size:var(--fs-sm)}
 
-/* 표 — theme.css 를 따르되 문서용으로 조금 좁게 */
 .doc table{width:100%; margin:12px 0 6px}
 .doc table.tight th, .doc table.tight td{padding:8px 10px; font-size:var(--fs-sm)}
 .doc caption{
@@ -55,18 +46,9 @@
 }
 .note-under{font-size:var(--fs-cap); color:var(--g2); line-height:1.7; margin:6px 0 0}
 
-/* 아직 채우지 못한 자리 — 실무자가 현장에서 적습니다 */
-.tofill{
-  margin:10px 0; padding:12px 15px;
-  border:1px dashed var(--g1); background:none;
-  font-size:var(--fs-sm); color:var(--g2); line-height:var(--lh-body);
-}
-.tofill b{color:var(--g3)}
-.tofill .why{display:block; margin-top:5px; font-size:var(--fs-cap)}
-
 /* ── 표지 ────────────────────────────────────────────────────────── */
 .cover{
-  min-height:78vh; display:flex; flex-direction:column;
+  min-height:70vh; display:flex; flex-direction:column;
   align-items:center; justify-content:center; text-align:center; gap:18px;
 }
 .cover .kicker{font-size:var(--fs-cap); font-weight:700; letter-spacing:.3em; color:var(--g2)}
@@ -75,34 +57,116 @@
 .cover .meta{margin-top:30px; font-size:var(--fs-sm); color:var(--g2); line-height:1.9}
 .cover .rule{width:60px; height:2px; background:var(--k)}
 
+/* ── 탭 ──────────────────────────────────────────────────────────── */
+.doc-tabs{display:flex; gap:0; border-bottom:1px solid var(--g1); margin-bottom:30px}
+.doc-tab{
+  padding:13px 22px; border:none; background:none; cursor:pointer;
+  font-family:inherit; font-size:var(--fs-body); color:var(--g2);
+  border-bottom:2px solid transparent; margin-bottom:-1px;
+}
+.doc-tab.on{color:var(--k); font-weight:700; border-bottom-color:var(--k)}
+.doc-tab:hover{color:var(--k)}
+
+/* ── 4장: 좌 지도 / 우 현장사진 (원문 배치) ───────────────────────── */
+.field-pair{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:12px 0 4px}
+@media(max-width:700px){ .field-pair{grid-template-columns:1fr} }
+.field-pair figure{margin:0}
+.field-pair img, .field-pair .slot{
+  width:100%; aspect-ratio:4/3; object-fit:cover; display:block;
+  border:1px solid var(--g1); background:var(--w);
+}
+.field-pair .slot{
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  padding:18px; font-size:var(--fs-sm); color:var(--g2); line-height:1.7;
+}
+.field-pair figcaption{
+  font-size:var(--fs-cap); color:var(--g2); margin-top:7px; line-height:1.6;
+}
+
+/* 사진 목록 (화면 전용 관리 UI) */
+.photo-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px; margin-top:12px}
+.photo-card{border:1px solid var(--g1); padding:9px}
+.photo-card img{width:100%; aspect-ratio:4/3; object-fit:cover; display:block}
+.photo-card .cap{font-size:var(--fs-cap); color:var(--g2); margin-top:6px; line-height:1.6; word-break:break-all}
+.photo-card .cap.no-gps{color:var(--main)}
+.photo-card input{margin-top:6px; padding:7px 9px; font-size:var(--fs-cap)}
+.photo-card .rm{margin-top:6px}
+
+/* ── 현장용 리포트 ───────────────────────────────────────────────── */
+.field-head{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+  border-top:1px solid var(--k); border-bottom:1px solid var(--g1);
+}
+@media(max-width:700px){ .field-head{grid-template-columns:1fr} }
+.field-head .cell{padding:14px 18px 14px 0}
+.field-head .k{font-size:var(--fs-cap); font-weight:700; letter-spacing:.12em; color:var(--g2)}
+.field-head .v{font-size:var(--fs-body); color:var(--k); margin-top:5px; font-weight:700}
+.field-head .s{font-size:var(--fs-cap); color:var(--g2); margin-top:3px}
+
+/* 현장 확인사항 — 범주별 */
+.chk-group{margin:18px 0}
+.chk-group .g-head{
+  display:flex; align-items:baseline; gap:10px;
+  padding-bottom:7px; border-bottom:1px solid var(--k);
+}
+.chk-group .g-name{font-size:var(--fs-body); font-weight:700; color:var(--k)}
+.chk-group .g-desc{font-size:var(--fs-cap); color:var(--g2)}
+.chk-group ul{margin:10px 0 0; padding-left:0; list-style:none}
+.chk-group li{
+  display:flex; gap:11px; align-items:flex-start;
+  padding:9px 0; border-bottom:1px solid var(--g1); line-height:1.7;
+}
+.chk-group li .box{
+  flex:none; width:13px; height:13px; margin-top:5px;
+  border:1px solid var(--g2);
+}
+.chk-group li .tx{flex:1; min-width:0}
+.chk-group li .fd{font-size:var(--fs-cap); color:var(--g2); margin-left:7px; white-space:nowrap}
+
+/* 개선 전/후 — 상하로 크게 (좌우로 놓으니 작아서 안 보인다는 의견) */
+.ba-stack{margin:14px 0}
+.ba-stack figure{margin:0 0 22px}
+.ba-stack img{width:100%; display:block; border:1px solid var(--g1); background:var(--w)}
+.ba-stack .slot{
+  width:100%; aspect-ratio:16/9; border:1px solid var(--g1);
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  padding:24px; font-size:var(--fs-sm); color:var(--g2);
+}
+.ba-stack figcaption{
+  font-size:var(--fs-cap); font-weight:700; letter-spacing:.12em; color:var(--g2);
+  margin-top:9px;
+}
+/* AI 생성 이미지라는 사실은 인쇄물에도 반드시 남습니다 */
+.ba-disclaimer{
+  margin-top:7px; padding:9px 12px; border-left:2px solid var(--main);
+  font-size:var(--fs-sm); color:var(--g3); line-height:1.7;
+}
+
 /* ── 인쇄 ────────────────────────────────────────────────────────── */
 @page{ size:A4 portrait; margin:18mm 16mm 20mm; }
 
 @media print{
   body{background:#fff}
-  /* 화면 전용 요소는 인쇄에서 뺍니다 */
-  .topbar, .page-head, .picked, .btn, .note, .screen-only{display:none !important}
+  .topbar, .page-head, .picked, .btn, .note, .screen-only, .doc-tabs{display:none !important}
   .wrap{max-width:none; padding:0}
   .doc{max-width:none; font-size:10.5pt; line-height:1.7}
+  /* 지금 보고 있는 문서만 인쇄합니다 */
+  .doc[hidden]{display:none !important}
 
-  .h-chapter{font-size:15pt} .h-section{font-size:12pt} .h-sub{font-size:11pt}
-  .cover{min-height:0; height:245mm; page-break-after:always}
+  .h-chapter{font-size:15pt} .h-section{font-size:12pt}
+  .cover{min-height:0; height:240mm; page-break-after:always}
   .cover h1{font-size:30pt}
 
-  /* 장마다 새 쪽에서 시작 */
   .chapter{page-break-before:always; border-top:none; padding-top:0}
   .chapter:first-of-type{page-break-before:auto}
-  /* 표와 소제목이 쪽 경계에서 잘리지 않게 */
-  table, .tofill, .cat-block{page-break-inside:avoid}
-  .h-section, .h-sub{page-break-after:avoid}
+  table, .field-pair, .chk-group, .ba-stack figure{page-break-inside:avoid}
+  .h-section{page-break-after:avoid}
 
   th{background:#000 !important; color:#fff !important;
      -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  /* 개입 유형 배경색은 인쇄에서도 남깁니다 (표에서 유형을 구분하는 장치) */
+  .hea-E, .hea-A, .hea-H{-webkit-print-color-adjust:exact; print-color-adjust:exact}
 
-  /* 쪽마다 반복되는 바닥글.
-     크롬은 position:fixed 요소를 인쇄할 때 모든 쪽에 다시 그립니다.
-     쪽 번호는 CSS 로 넣을 수 없어(크롬이 @page 여백 상자를 지원하지 않음)
-     브라우저 인쇄 설정의 "머리글/바닥글"을 켜서 씁니다. */
   .print-foot{
     display:block !important;
     position:fixed; bottom:0; left:0; right:0;
@@ -118,27 +182,27 @@
 <header class="topbar" id="topbar"></header>
 
 <main class="wrap">
-  <!-- 화면에서만 보이는 안내·버튼 -->
   <div class="page-head screen-only" style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; max-width:none; flex-wrap:wrap">
     <div style="max-width:720px">
-      <h1>지자체 사전진단서</h1>
-      <p class="sub">AURI 사전진단서 양식으로 정리합니다. 인쇄(Ctrl+P)하면 A4 세로 문서로 저장됩니다.</p>
+      <h1>진단 문서</h1>
+      <p class="sub">사전진단서는 AURI 양식 그대로, 현장용 리포트는 현장에서 볼 것만 담습니다. 인쇄하면 지금 보고 있는 문서만 나옵니다.</p>
     </div>
     <button class="btn ghost" onclick="window.print()">인쇄 / PDF 저장</button>
   </div>
 
-  <p class="note screen-only">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-    점선 상자는 <b>현장에서 채우는 자리</b>입니다. 인쇄하면 상단바·버튼·이 안내문은 빠지고 문서만 나옵니다.
-    쪽 번호는 브라우저 인쇄 설정에서 <b>머리글/바닥글</b>을 켜면 붙습니다.
-  </p>
-
-  <div class="doc" id="doc">
-    <!-- 자바스크립트가 채웁니다 -->
-    <div class="doc-empty" id="docEmpty" style="display:none"></div>
+  <div class="doc-tabs screen-only">
+    <button type="button" class="doc-tab on" id="tabA" onclick="showDoc('a')">사전진단서</button>
+    <button type="button" class="doc-tab" id="tabB" onclick="showDoc('b')">현장용 리포트</button>
   </div>
 
-  <!-- 인쇄할 때 쪽마다 반복되는 바닥글 -->
+  <p class="note screen-only" id="docNote">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+    <span id="docNoteText"></span>
+  </p>
+
+  <div class="doc" id="docA"></div>
+  <div class="doc" id="docB" hidden></div>
+
   <div class="print-foot" id="printFoot">지자체 사전진단서</div>
 </main>
 
@@ -147,21 +211,18 @@
 <script src="assets/palette.js"></script>
 <script src="assets/stats.js"></script>
 <script src="assets/rules.js"></script>
+<script src="assets/field-check.js"></script>
+<script src="assets/doc-edit.js"></script>
+<script src="assets/site-photo.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════════
-   사전진단서 만들기
+   문서 만들기
 
    ── 문장을 규칙으로 만드는 이유 ─────────────────────────────────────
-   이 문서는 예산 산출의 근거가 됩니다. AI에게 문장을 쓰게 하면 숫자를
-   지어낼 수 있고, 그러면 감사 추적이 깨집니다. 그래서 **증감 패턴에 따라
-   문장을 갈라 쓰는 규칙**으로만 만듭니다 (아래 trendSentence 참고).
-
-   ── 어디서 오는가 ───────────────────────────────────────────────────
-     1장  전 지자체 공통 고정 문구
-     2장  data/stats (연도별 추이 · 반복 발생 지점)
-     3장  data/stats (조사지 점유율 · 읍면동)
-     4장  사진 AI 판독 + 처방 규칙 엔진 (리포트와 같은 내용)
-     5장  팔레트 · 예산 · 개선 전후 이미지
+   이 문서는 예산 산출의 근거가 됩니다. AI가 숫자를 지어내면 감사 추적이
+   깨지므로, 수치가 들어가는 문장은 **증감 패턴에 따라 갈라 쓰는 규칙**으로만
+   만듭니다. AI는 (소결)처럼 **판단이 필요한 자리에서 버튼을 눌렀을 때만**
+   초안을 냅니다 (assets/doc-edit.js).
    ════════════════════════════════════════════════════════════════════ */
 
 const YEARS = ['2023', '2024', '2025'];
@@ -169,71 +230,34 @@ const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const nf = (n) => (n == null ? '—' : Number(n).toLocaleString());
 
-/* ── 비어 있는 자리 ────────────────────────────────────────────────
-   문서 전체에서 빈칸을 같은 모양으로 씁니다.
-
-     [무엇을 적는 자리인가] → [왜 비어 있는가] → [어떻게 채우는가]
-
-   리포트 ④ 대응역량과 같은 말투입니다. 자리마다 다르게 쓰면
-   "이건 아직 안 만든 것"인지 "원래 사람이 쓰는 것"인지 헷갈립니다. */
-function tofill(title, what, missing, how) {
-  return `<div class="tofill">
-    <b>${title}</b> ${what}을 적는 자리입니다.
-    <b>${missing} 현재는 비어 있습니다.</b>
-    <span class="why">${how}</span>
-  </div>`;
-}
+let _data = null, _national = null, _focus = [], _stats = null;
+let _results = [], _items = [], _picked = null;
 
 /* ── 2.1 서술 문장 (규칙 기반) ────────────────────────────────────
-   증가 / 감소 / 등락 세 갈래로 나눠 씁니다. 원문의 말투를 따랐습니다.
-
-     증가  "2023년 N건에서 2025년 M건으로 지속 증가(X%↑)하며"
-     감소  "2023년 N건에서 2025년 M건으로 지속 감소하고 있으나"
-     등락  "2023년 N건에서 2024년 M건으로 감소했다가 2025년 K건으로 급증하는 등락"   */
+   증가 / 감소 / 등락 / 보합 네 갈래. 문장은 명사형으로 끝냅니다. */
 function trendSentence(label, years, ratio) {
   const a = years['2023'] || 0, b = years['2024'] || 0, c = years['2025'] || 0;
   const total = a + b + c;
-  const pctChange = a ? Math.round((c - a) / a * 1000) / 10 : null;
-
-  /* 원문처럼 연도를 함께 적습니다 — "2023년 666건에서 2024년 496건으로…" */
+  const pct = a ? Math.round((c - a) / a * 1000) / 10 : null;
   const y1 = `${YEARS[1]}년 ${nf(b)}건`, y2 = `${YEARS[2]}년 ${nf(c)}건`;
 
-  /* 추세는 몸통(shape)과 연결어미를 따로 만듭니다.
-     평균보다 높으면 역접(…있으나), 아니면 순접(…있으며)을 붙입니다.
-     "감소하고 있으나 … 평균 이하" 처럼 앞뒤가 어긋나지 않게 하려는 것입니다. */
   let shape, kind, end;
   if (a <= b && b <= c && c > a) {
-    kind = 'up';
-    shape = `${nf(a)}건에서 ${y2}으로 지속 증가(${pctChange}%↑)`;
-    end = ['하며', '하며'];
+    kind = 'up'; shape = `${nf(a)}건에서 ${y2}으로 지속 증가(${pct}%↑)`; end = ['하며', '하며'];
   } else if (a >= b && b >= c && c < a) {
-    kind = 'down';
-    shape = `${nf(a)}건에서 ${y2}으로 지속 감소(${Math.abs(pctChange)}%↓)`;
-    end = ['하고 있으나', '하고 있으며'];
+    kind = 'down'; shape = `${nf(a)}건에서 ${y2}으로 지속 감소(${Math.abs(pct)}%↓)`; end = ['하고 있으나', '하고 있으며'];
   } else if (b < a && c > b) {
-    kind = 'swing';
-    shape = `${nf(a)}건에서 ${y1}으로 감소했다가 ${y2}으로 ${c > a ? '급증' : '반등'}하는 등락을 보이`;
-    end = ['나', '며'];
+    kind = 'swing'; shape = `${nf(a)}건에서 ${y1}으로 감소했다가 ${y2}으로 ${c > a ? '급증' : '반등'}하는 등락을 보이`; end = ['나', '며'];
   } else if (b > a && c < b) {
-    kind = 'swing';
-    shape = `${nf(a)}건에서 ${y1}으로 증가했다가 ${y2}으로 감소하는 등락을 보이`;
-    end = ['나', '며'];
+    kind = 'swing'; shape = `${nf(a)}건에서 ${y1}으로 증가했다가 ${y2}으로 감소하는 등락을 보이`; end = ['나', '며'];
   } else {
-    kind = 'flat';
-    shape = `3개년 ${nf(total)}건으로 뚜렷한 추세 없이 유지되고 있`;
-    end = ['으나', '으며'];
+    kind = 'flat'; shape = `3개년 ${nf(total)}건으로 뚜렷한 추세 없이 유지되고 있`; end = ['으나', '으며'];
   }
-  /* 평균 이상이면 역접, 아니면 순접 */
   shape += (ratio !== null && ratio >= 1.1) ? end[0] : end[1];
 
-  /* 문장은 명사형으로 끝냅니다 — 행정 문서 표준이자 원문의 말투입니다.
-     원문 예: "…시평균 대비 1.74배로 등락과 무관하게 시평균을 상당히 상회"
-
-     "추세와 무관하게"는 **감소·등락인데도 평균보다 높을 때**만 붙입니다.
-     증가 추세에 붙이면 앞뒤가 맞지 않습니다.                              */
+  /* "추세와 무관하게"는 감소·등락인데도 평균보다 높을 때만 붙입니다 */
   const despite = (kind === 'down' || kind === 'swing') ? '추세와 무관하게 ' : '';
   const much = ratio >= 2 ? '크게 ' : '';
-
   const cmp = ratio === null ? ' 비교 가능한 평균값 없음'
     : ratio >= 1.1 ? ` 3개년 발생 건수는 41개 지자체 평균 대비 <b>${ratio}배</b>로 ${despite}평균을 ${much}상회`
     : ratio <= 0.9 ? ` 3개년 발생 건수는 41개 지자체 평균 대비 <b>${ratio}배</b>로 평균 이하 수준`
@@ -242,7 +266,28 @@ function trendSentence(label, years, ratio) {
   return `<span class="tag">(${label})</span> ${label} 발생 건수는 ${YEARS[0]}년 ${shape},${cmp}`;
 }
 
-/* ── 1장 — 전 지자체 공통 고정 문구 ─────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════
+   사전진단서 — AURI 양식 그대로
+   표지 / 1.개요 / 2.중점관리분야 / 3.공간분석 / 4.밀집구간별 / 5.부록
+   ════════════════════════════════════════════════════════════════════ */
+
+function cover() {
+  const now = new Date();
+  const d = `${now.getFullYear()}. ${String(now.getMonth() + 1).padStart(2, '0')}. ${String(now.getDate()).padStart(2, '0')}.`;
+  return `
+  <section class="cover">
+    <div class="kicker">안전사업지구 사업모델 개발 연구용역</div>
+    <h1>지자체 사전진단서</h1>
+    <div class="rule"></div>
+    <p class="region">— ${esc(_data ? _data.label : (_picked.addr || '대상지'))} —</p>
+    <div class="meta">
+      작성일 ${d}<br>
+      자료원 119 구급출동 데이터 (2023~2025년)<br>
+      건축공간연구원 · Atelier KJ
+    </div>
+  </section>`;
+}
+
 function chapter1() {
   return `
   <section class="chapter">
@@ -267,8 +312,6 @@ function chapter1() {
         <tr><td>건축물·도로데이터 (용도, 사용승인일자, 도로폭 등)</td></tr>
       </tbody>
     </table>
-    <p class="note-under">※ 본 진단서는 <b>구급출동 데이터(2023~2025년)</b>를 기초자료로 작성.
-      자살스팟·TAAS·인구·건축물 데이터는 미수신 상태이며, 해당 항목은 문서에 그 사실을 명시</p>
 
     <h3 class="h-section">1.2 복합위험지역 및 대상지 선정 기준</h3>
     <p class="bullet"><span class="tag">(분야별 복합위험지역 도출)</span>
@@ -285,62 +328,54 @@ function chapter1() {
   </section>`;
 }
 
-/* ── 2장 — 중점관리분야 현황 ────────────────────────────────────── */
-function chapter2(data, national, focus) {
-  const regionCount = (national && national.regionCount) || 41;
-
-  const rows = focus.map(function (f) {
+function chapter2() {
+  const count = (_national && _national.regionCount) || 41;
+  const rows = _focus.map(function (f) {
     const y = f.cat.region.years || {};
     const total = YEARS.reduce((s, k) => s + (y[k] || 0), 0);
-    const nat = national && national.categories[f.key];
-    const avg = nat ? nat.n / regionCount : null;
-    return {
-      f: f, y: y, total: total,
-      avg: avg ? Math.round(avg) : null,
-      ratio: avg ? Number((total / avg).toFixed(2)) : null,
-    };
+    const nat = _national && _national.categories[f.key];
+    const avg = nat ? nat.n / count : null;
+    return { f, y, total, avg: avg ? Math.round(avg) : null, ratio: avg ? Number((total / avg).toFixed(2)) : null };
   });
 
-  /* (타 지자체 비교) — 배수를 한 줄로 모읍니다 */
-  const cmpLine = rows.filter((r) => r.ratio !== null)
-    .map((r) => `${r.f.label} ${r.ratio}배`).join(' · ');
   const high = rows.filter((r) => r.ratio !== null && r.ratio >= 1.1).map((r) => r.f.label);
   const low = rows.filter((r) => r.ratio !== null && r.ratio <= 0.9).map((r) => r.f.label);
+  const cmpLine = rows.filter((r) => r.ratio !== null).map((r) => `${r.f.label} ${r.ratio}배`).join(' · ');
 
-  /* 2.2 반복 발생 지점 */
-  const repeats = focus.map(function (f) {
-    const rp = f.cat.repeat;
-    if (!rp) return null;
-    return { label: f.label, rp: rp };
-  }).filter(Boolean);
+  /* AI 초안에 넘길 자료 — 화면에 보이는 수치를 그대로 문자열로 */
+  const ctx2 = `지자체: ${_data.label}
+중점관리분야: ${_focus.map((f) => f.label).join(', ')}
+` + rows.map((r) => `${r.f.label}: ${YEARS.map((y) => y + '년 ' + (r.y[y] || 0) + '건').join(', ')}`
+      + ` / 3개년 합계 ${r.total}건 / 41개 지자체 평균 ${r.avg}건 대비 ${r.ratio}배`).join('\n');
+
+  const repeats = _focus.map((f) => (f.cat.repeat ? { label: f.label, rp: f.cat.repeat } : null)).filter(Boolean);
+  const ctx22 = repeats.map((r) =>
+    `${r.label}: ${r.rp.threshold}회 이상 반복 지점 ${r.rp.spots.region}개소(조사지 내 ${r.rp.spots.inside}개소), `
+    + `반복 지점 발생 ${r.rp.incidents.region}건, 한 지점 최다 ${r.rp.maxAtOneSpot}회, `
+    + `집중 읍면동 ${r.rp.topDongs.map((d) => d.dong + ' ' + d.spots + '개소').join(', ')}`).join('\n');
 
   return `
   <section class="chapter">
-    <h2 class="h-chapter">2. ${esc(data.shortLabel)} 중점관리분야 현황</h2>
+    <h2 class="h-chapter">2. ${esc(_data.shortLabel)} 중점관리분야 현황</h2>
 
     <h3 class="h-section">2.1 중점관리분야별 사고 발생 일반 현황</h3>
     <p class="bullet"><span class="tag">(중점관리분야)</span>
-      공간분석 결과 ${esc(data.label)}의 중점대상지는
-      <b>${focus.map((f) => f.label).join('·')}</b> 분야로 도출
-      ${data.replaced ? `<br><span style="font-size:var(--fs-sm);color:var(--g2)">※ ${esc(AuriStats.replacedNote(data) || '')}</span>` : ''}</p>
+      공간분석 결과 ${esc(_data.label)}의 중점대상지는
+      <b>${_focus.map((f) => f.label).join('·')}</b> 분야로 도출</p>
 
     ${rows.map((r) => `<p class="bullet">${trendSentence(r.f.label, r.y, r.ratio)}</p>`).join('')}
 
     <p class="bullet"><span class="tag">(타 지자체 비교)</span>
       ${cmpLine ? `41개 지자체 평균 대비 ${cmpLine}로 나타남` : '비교 가능한 값이 없음'}${
-        high.length
-          ? `. <b>${high.join('·')}</b>${AuriStats.josa(high[high.length - 1], '이', '가')} 평균을 상회`
-          : ''}${
-        low.length
-          ? `, ${low.join('·')}${AuriStats.josa(low[low.length - 1], '은', '는')} 평균 이하`
-          : ''}</p>
+        high.length ? `. <b>${high.join('·')}</b>${AuriStats.josa(high[high.length - 1], '이', '가')} 평균을 상회` : ''}${
+        low.length ? `, ${low.join('·')}${AuriStats.josa(low[low.length - 1], '은', '는')} 평균 이하` : ''}</p>
 
-    ${tofill('(소결)', '위 수치를 근거로 한 종합 판단',
-      '수치에서 자동으로 이끌어낼 수 없는 정책적 해석이라',
-      '원문은 "구조적 관리가 필요한 지역으로 판단됨"처럼 분야별 관리 방향을 제시합니다. 검토 후 직접 채워 주세요.')}
+    ${AuriDocEdit.render('c2-sum', '(소결)',
+      '위 수치를 근거로 한 종합 판단을 적습니다. 예) 구조적 관리가 필요한 지역으로 판단됨 — 분야별 관리 방향 포함',
+      ctx2)}
 
     <table class="tight">
-      <caption>[표 1] ${esc(data.shortLabel)} 중점관리분야 발생 일반 현황</caption>
+      <caption>[표 1] ${esc(_data.shortLabel)} 중점관리분야 발생 일반 현황</caption>
       <thead>
         <tr>
           <th rowspan="2" style="width:18%">구분</th>
@@ -363,63 +398,56 @@ function chapter2(data, national, focus) {
           </tr>`).join('')}
       </tbody>
     </table>
-    <p class="note-under">※ 원문 [표 1]은 <b>인구 10만명당 발생률</b>로 시평균과 비교하나, 인구 데이터를 받지 못해
-      <b>41개 지자체 평균 건수</b>와 비교. 인구 규모가 다른 지자체 간 비교이므로 참고값<br>
-      ※ 연도별 건수는 중복매칭 정리 <b>후</b> 기준이며, 원문 [표 1]과 분야에 따라 차이 있음 (AURI 확인 중)</p>
+    <p class="note-under">* 인구 데이터 미수신으로 41개 지자체 평균 건수와 비교. 인구 10만명당 발생률 확보 시 대체 예정</p>
 
     <h3 class="h-section">2.2 중점관리분야별 사고 발생 분석 현황</h3>
     ${repeats.length ? repeats.map((r) => `
       <p class="bullet"><span class="tag">(${r.label})</span>
-        3개년(’23~’25년) 내 ${esc(data.shortLabel)}에서 <b>${r.rp.threshold}회 이상</b>
-        ${r.label}${AuriStats.josa(r.label, '이', '가')}
-        반복 발생한 지점은 총 <b>${r.rp.spots.region}개소</b>
+        3개년(’23~’25년) 내 ${esc(_data.shortLabel)}에서 <b>${r.rp.threshold}회 이상</b>
+        ${r.label}${AuriStats.josa(r.label, '이', '가')} 반복 발생한 지점은 총 <b>${r.rp.spots.region}개소</b>
         (조사지 내 ${r.rp.spots.inside}개소)로 나타남.
-        해당 지점들에서만 ${nf(r.rp.incidents.region)}건이 발생했으며, 한 지점 최다 ${r.rp.maxAtOneSpot}회.
-        ${r.rp.topDongs.length
-          ? `특히 ${r.rp.topDongs.map((d) => `${d.dong}(${d.spots}개소)`).join(', ')}에 몰려 있음`
-          : ''}</p>`).join('')
+        해당 지점에서만 ${nf(r.rp.incidents.region)}건이 발생했으며 한 지점 최다 ${r.rp.maxAtOneSpot}회.
+        ${r.rp.topDongs.length ? `특히 ${r.rp.topDongs.map((d) => `${d.dong}(${d.spots}개소)`).join(', ')}에 집중` : ''}</p>`).join('')
       : '<p class="bullet">반복 발생 지점을 산출할 자료 없음</p>'}
 
-    ${tofill('(발생 장소의 공간적 특성)', '반복 발생 지점이 어떤 장소인지',
-      '건축물 용도 자료를 받지 못해',
-      '119 자료의 발생장소는 \'집·상업시설\' 수준이라 "부천역 일대", "부천성모병원 등 대형 의료기관", '
-      + '"사적 영역인 공동주택" 같은 서술이 나오지 않습니다. 현장조사 때 확인해 채워 주세요.')}
+    ${AuriDocEdit.render('c2-space', '(발생 장소의 공간적 특성)',
+      '반복 발생 지점이 어떤 장소인지 적습니다. 예) 대중교통 거점인 ○○역 일대, 대형 의료기관, 사적 영역인 공동주택 — 건축물 용도 자료 수신 전까지는 현장조사로 확인',
+      '')}
 
-    ${tofill('(소결)', '분야별 반복 발생 양상을 묶은 정리',
-      '위 공간적 특성이 채워져야 쓸 수 있는 문단이라',
-      '원문은 "역세권·상업지역 범죄예방 환경개선, 고밀 주거지·의료기관 연계 감염병 관리"처럼 '
-      + '분야별 대응 방향을 구분해 제시합니다. 현장조사 뒤 채워 주세요.')}
-
-    <p class="note-under">※ 반복 발생 지점은 <b>지번주소가 같은 곳</b>을 한 지점으로 산정.
-      임계값은 분야별로 상이 (원문 기준: 범죄 5회·감염병 2회·자살 3회)</p>
+    ${AuriDocEdit.render('c2-sum2', '(소결)',
+      '분야별 반복 발생 양상을 묶어 정리합니다. 예) 역세권·상업지역 범죄예방 환경개선, 고밀 주거지·의료기관 연계 감염병 관리',
+      ctx22)}
   </section>`;
 }
 
-/* ── 3장 — 안전사고 공간분석 ────────────────────────────────────── */
-function chapter3(data, focus, dongName) {
+function chapter3() {
   const order = AuriStats.categoryOrder;
-  const focusKeys = new Set(focus.map((f) => f.key));
-
-  const shareRows = order.filter((k) => data.categories[k])
-    .map((k) => ({ key: k, c: data.categories[k] }))
+  const focusKeys = new Set(_focus.map((f) => f.key));
+  const shareRows = order.filter((k) => _data.categories[k])
+    .map((k) => ({ key: k, c: _data.categories[k] }))
     .sort((a, b) => (b.c.count.share || 0) - (a.c.count.share || 0));
-
-  const top = shareRows[0];
   const biggest = shareRows.slice().sort((a, b) => b.c.count.inside - a.c.count.inside)[0];
 
-  /* 3.2 — 이 지점이 속한 동 + 조사지와 겹치는 동들 */
-  const dongRows = Object.entries(data.byDong || {})
-    .map(([name, d]) => ({ name: name, d: d }))
+  const dongRows = Object.entries(_data.byDong || {})
+    .map(([name, d]) => ({ name, d }))
     .filter((x) => x.d.total.inside > 0)
     .sort((a, b) => b.d.total.inside - a.d.total.inside)
     .slice(0, 8);
+
+  const ctx3 = shareRows.map((r) =>
+    `${r.c.label}: 시군구 전체 ${r.c.count.region}건, 조사지 내 ${r.c.count.inside}건, 발생비율 ${r.c.count.share}%`).join('\n');
+  const ctxDong = dongRows.map((x) => {
+    const top = Object.entries(x.d.categories).sort((a, b) => b[1].count.region - a[1].count.region)[0];
+    return `${x.name}: 조사지 내 ${x.d.total.inside}건 / 동 전체 ${x.d.total.region}건`
+      + (top ? `, 주요 분야 ${top[1].label} ${top[1].count.region}건` : '');
+  }).join('\n');
 
   return `
   <section class="chapter">
     <h2 class="h-chapter">3. 안전사고 공간분석</h2>
 
     <h3 class="h-section">3.1 GIS 기반 사고 밀집지역 도출</h3>
-    <p class="bullet">사고 밀집지역인 ${esc(data.shortLabel)} 중점대상지는
+    <p class="bullet">사고 밀집지역인 ${esc(_data.shortLabel)} 중점대상지는
       ${biggest ? `<b>${biggest.c.label}</b> 사고 절대 빈도(${nf(biggest.c.count.inside)}건)가 가장 높고,` : ''}
       시 전체 대비 발생비율은
       ${shareRows.slice(0, 2).map((r) => `${r.c.label}(${r.c.count.share}%)`).join(', ')} 순으로 높아 취약</p>
@@ -441,17 +469,11 @@ function chapter3(data, focus, dongName) {
             <td class="num">${nf(r.c.count.inside)}</td>
             <td class="num">${r.c.count.share === null ? '—' : r.c.count.share}</td>
             <td style="font-size:var(--fs-cap);color:var(--g2)">${
-              r.key === 'suicide' ? '정부중점관리대상' :
-              focusKeys.has(r.key) ? '중점관리분야' :
-              (r.c.sample.reliable ? '' : `표본 ${r.c.count.inside}건`)}</td>
+              r.key === 'suicide' ? '정부중점관리대상' : (focusKeys.has(r.key) ? '중점관리분야' : '')}</td>
           </tr>`).join('')}
       </tbody>
     </table>
     <p class="note-under">* 자살은 정부중점관리대상으로 발생비율과 관계없이 중점관리분야로 선정</p>
-
-    ${tofill('(중점대상지 종합위험도)', '조사지 밀집도 지도',
-      '지도 이미지를 문서에 자동으로 넣는 기능이 없어',
-      '1단계 지도 화면을 캡처해 붙이거나 GIS 히트맵(<code>data/raw/gis_0901/</code>)을 씁니다.')}
 
     <h3 class="h-section">3.2 읍면동별 사고 발생률</h3>
     ${dongRows.length ? `
@@ -468,7 +490,7 @@ function chapter3(data, focus, dongName) {
               .sort((a, b) => b[1].count.region - a[1].count.region).slice(0, 3)
               .map(([, c]) => `${c.label} ${nf(c.count.region)}건`).join(', ');
             return `<tr>
-              <td>${esc(x.name)}${x.name === dongName ? ' <span style="color:var(--main)">◀ 선택 지점</span>' : ''}</td>
+              <td>${esc(x.name)}</td>
               <td class="num">${nf(x.d.total.inside)}</td>
               <td class="num">${nf(x.d.total.region)}</td>
               <td style="font-size:var(--fs-sm)">${cats}</td>
@@ -477,37 +499,41 @@ function chapter3(data, focus, dongName) {
         </tbody>
       </table>` : '<p class="bullet">조사지와 겹치는 읍면동 자료 없음</p>'}
 
-    ${tofill('(읍면동별 서술)', '동별 상권 성격과 주요 시설',
-      '건축물 용도·상권 자료를 받지 못해',
-      '원문은 "(심곡동) 숙박·상업 및 다세대 주거지 중심 총 136건 발생, 남녀 성비 균등하나 '
-      + '10~30대 청년·청소년층 집중"처럼 서술합니다. 연령·성별은 위 표에서 나오므로 '
-      + '<b>장소 성격만</b> 현장조사 때 확인해 채워 주세요.')}
+    ${AuriDocEdit.render('c3-dong', '(읍면동별 서술)',
+      '동별 상권 성격과 주요 시설을 적습니다. 예) (○○동) 숙박·상업 및 다세대 주거지 중심 총 ○○건 발생, 10~30대 청년층 집중',
+      ctxDong)}
   </section>`;
 }
 
-/* ── 4장 — 밀집구간별 사고 원인 및 개선방향 ─────────────────────── */
-function chapter4(data, focus, inside, results, items) {
-  const opts = { inside: inside };
+/* 4장 — 원문처럼 분야마다 [좌: 지도 / 우: 현장 사진] + 3행 표 */
+function chapter4() {
+  const photos = AuriSitePhoto.all();
 
-  const blocks = focus.map(function (f, i) {
+  const blocks = _focus.map(function (f, i) {
+    const opts = { inside: _stats.inside };
     const human = AuriStats.narrateHuman(f.cat, opts);
     const type = AuriStats.narrateType(f.cat, opts);
-
-    /* 물적환경 — 사진 AI 판독 결과 */
-    const r = results.find((x) => x.key === f.key);
+    const r = _results.find((x) => x.key === f.key);
     const observed = r && r.observed && r.observed.length ? r.observed.join(' · ') : null;
-    const findings = r ? (r.findings || []).filter((x) => x.risk) : [];
-
-    /* 맞춤형 사업 — 규칙 엔진이 뽑은 것 중 이 분야 것 */
-    const mine = items.filter((it) => it.field === f.key || it.category === f.label);
-
-    /* 현장 확인사항 */
-    const checks = [];
-    for (const x of findings) checks.push(askToCheck(x.ask));
-    for (const c of AuriStats.fieldChecks(f.cat, opts)) checks.push(c);
+    const mine = _items.filter((it) => it.field === f.key || it.category === f.label);
+    const photo = photos[i] || null;
 
     return `
       <h3 class="h-section">4.${i + 1} ${f.label}</h3>
+
+      <div class="field-pair">
+        <figure>
+          <div class="slot">${esc(_data.shortLabel)} ${f.label} 밀집도 지도<br>
+            <span style="font-size:var(--fs-cap)">1단계 지도 화면을 캡처해 넣으십시오</span></div>
+          <figcaption>${esc(_data.shortLabel)} ${f.label} 밀집도</figcaption>
+        </figure>
+        <figure>
+          ${photo
+            ? `<img src="${photo.dataUrl}" alt="현장 사진">`
+            : '<div class="slot">현장 사진<br><span style="font-size:var(--fs-cap)">아래에서 업로드하면 여기에 실립니다</span></div>'}
+          <figcaption>${photo ? esc(AuriSitePhoto.caption(photo)) + (photo.note ? ' — ' + esc(photo.note) : '') : '현장확인사항'}</figcaption>
+        </figure>
+      </div>
 
       <table class="tight">
         <caption>[표 ${3 + i}] 밀집구간별 사고 원인 및 개선방향 — ${f.label}</caption>
@@ -519,30 +545,20 @@ function chapter4(data, focus, inside, results, items) {
               ${type ? `<p class="bullet"><span class="tag">(사고유형)</span> ${type.text}</p>` : ''}
               <p class="bullet"><span class="tag">(물적환경)</span> ${
                 observed ? esc(observed)
-                : (r ? `사진 판독 ${r.level.label} 판정(${r.score}점). 확인된 문제 항목 ${findings.length}건.`
-                     : '사진 판독 결과 없음')}</p>
-              ${r && r.level.key === 'lv-safe'
-                ? '<p class="bullet" style="color:var(--g2)">사진 판독에서 이 분야의 뚜렷한 취약 요소는 확인되지 않음</p>' : ''}
+                : (r ? `사진 판독 ${r.level.label} 판정(${r.score}점)` : '사진 판독 결과 없음')}</p>
             </td>
           </tr>
           <tr>
             <th style="vertical-align:top">맞춤형 사업</th>
-            <td>${mine.length ? mine.map((it) => {
+            <td>${mine.length ? mine.map(function (it) {
               const p = AuriPalette.byName(it.name);
-              const ev = p && p.effect ? p.effect : null;
-              return `<p class="bullet" style="margin-top:0">
+              return `<p class="bullet ${it.hea ? 'hea-' + it.hea : ''}" style="margin-top:0; padding:6px 8px 6px 25px">
                 <b>${esc(it.name)}</b>
-                <span style="font-size:var(--fs-cap);color:var(--g2)"> ${AuriPalette.heaLabel(it.hea, true)} · ${it.priority.label}</span>
-                ${ev ? `<br><span style="font-size:var(--fs-sm)">${esc(ev)}</span>` : ''}
+                <span class="hea-tag k-${it.hea}">${AuriPalette.heaLabel(it.hea, true)}</span>
+                ${p && p.effect ? `<br><span style="font-size:var(--fs-sm)">${esc(p.effect)}</span>` : ''}
                 ${p && p.source ? `<br><span style="font-size:var(--fs-cap);color:var(--g2)">출처: ${esc(p.source)}</span>` : ''}
               </p>`;
             }).join('') : '<p class="bullet" style="margin-top:0">처방된 사업 없음</p>'}</td>
-          </tr>
-          <tr>
-            <th style="vertical-align:top">현장 확인사항</th>
-            <td>${checks.length
-              ? `<ul style="margin:0; padding-left:18px">${checks.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>`
-              : '현장에서 따로 확인할 항목 없음'}</td>
           </tr>
         </tbody>
       </table>`;
@@ -551,174 +567,277 @@ function chapter4(data, focus, inside, results, items) {
   return `
   <section class="chapter">
     <h2 class="h-chapter">4. 밀집구간별 사고 원인 및 개선방향</h2>
-    <p class="note-under" style="margin-bottom:14px">
-      ※ 인적요인·사고유형은 119 출동자료 3개년 집계, 물적환경은 선택 지점의 거리 이미지 판독 결과.
-      맞춤형 사업은 두 근거에서 규칙으로 도출</p>
     ${blocks}
-    ${tofill('(밀집도 지도 · 현장 사진)', '분야별 밀집도 지도와 현장확인사항 사진',
-      '이미지를 문서에 자동으로 넣는 기능이 없어',
-      '원문은 분야마다 좌측에 밀집도 지도, 우측에 현장 사진을 넣습니다. 현장조사 사진과 지도 캡처를 붙여 주세요.')}
+    ${photoManager()}
   </section>`;
 }
 
-/* 체크리스트 질문 → 현장 확인 문장 (리포트와 같은 규칙) */
-function askToCheck(ask) {
-  if (!ask) return '';
-  return String(ask)
-    .replace(/인가\??$/, '인지 확인').replace(/있는가\??$/, '있는지 확인')
-    .replace(/없는가\??$/, '없는지 확인').replace(/되는가\??$/, '되는지 확인')
-    .replace(/막히는가\??$/, '막히는지 확인').replace(/보이는가\??$/, '보이는지 확인')
-    .replace(/가\??$/, '지 확인');
-}
-
-/* ── 5장 — 부록 ──────────────────────────────────────────────────── */
-function chapter5(items, picked, results) {
+function chapter5() {
   let total = 0, unpriced = 0;
-  const rows = items.map(function (it) {
+  const rows = _items.map(function (it) {
     const p = AuriPalette.byName(it.name);
     const a = p ? p.amount : null;
     if (a && a.won) total += a.won; else unpriced++;
     return `
-      <tr>
-        <td>${esc(it.name)}<br><span style="font-family:var(--mono);font-size:var(--fs-cap);color:var(--g2)">${
-          it.custom ? '연구원 직접 추가' : esc(it.id)}</span></td>
+      <tr class="${it.hea ? 'hea-' + it.hea : ''}">
+        <td>${esc(it.name)}</td>
         <td>${esc(it.category)}</td>
-        <td>${it.hea ? AuriPalette.heaLabel(it.hea) : '—'}</td>
+        <td><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span></td>
         <td>${it.priority.label}</td>
         <td class="num">${a && a.won ? auriWon(a.won) + (a.unit ? ' / ' + a.unit : '') : '산출 근거 필요'}</td>
       </tr>`;
   }).join('');
 
-  const refs = items.map(function (it) {
-    const p = AuriPalette.byName(it.name);
-    const a = p ? p.amount : null;
-    return (a && !a.won && a.text) ? `<li><b>${esc(it.name)}</b> — ${esc(a.text)}</li>` : '';
-  }).filter(Boolean).join('');
-
-  const before = sessionStorage.getItem('auri_input_image');
-  const after = sessionStorage.getItem('auri_after_image');
-  const beforeUrl = before ? JSON.parse(before).dataUrl : null;
-
   return `
   <section class="chapter">
     <h2 class="h-chapter">5. 부록</h2>
-
-    <h3 class="h-section">5.1 맞춤형 사업 목록 및 사업비</h3>
-    ${items.length ? `
+    <h3 class="h-section">5.1 맞춤형 사업 목록</h3>
+    ${_items.length ? `
       <table class="tight">
         <thead><tr>
-          <th style="width:34%">사업 항목</th><th style="width:14%">분야</th>
-          <th style="width:18%">개입 유형</th><th style="width:12%">우선순위</th>
-          <th class="num" style="width:22%">사업비</th>
+          <th style="width:36%">사업 항목</th><th style="width:13%">분야</th>
+          <th style="width:16%">개입 유형</th><th style="width:12%">우선순위</th>
+          <th class="num" style="width:23%">사업비</th>
         </tr></thead>
         <tbody>${rows}</tbody>
         <tfoot><tr class="sum">
-          <td colspan="4">합계 — 총 ${items.length}종${unpriced ? ` (산출 근거 필요 ${unpriced}종 제외)` : ''}</td>
+          <td colspan="4">합계 — 총 ${_items.length}종${unpriced ? ` (산출 근거 필요 ${unpriced}종 제외)` : ''}</td>
           <td class="num">${total ? auriWon(total) : '산출 불가'}</td>
         </tr></tfoot>
       </table>
-      <p class="note-under">※ AURI 사업 팔레트에 <b>단위와 금액이 분명히 적힌 사업만</b> 금액 산정.
-        나머지는 지자체 총액·범위·국비 분담 등으로 기재되어 격자 단가로 사용 불가하여 제외. 부가세 제외.
-        ${refs ? `<br>참고로 적힌 금액 문구:<ul style="margin:5px 0 0;padding-left:18px">${refs}</ul>` : ''}</p>`
+      <p class="note-under">
+        * 개입 유형 — <span class="hea-tag k-H">[H] 피해대상</span> 보호·지원 ·
+        <span class="hea-tag k-E">[E] 환경</span> 개선 ·
+        <span class="hea-tag k-A">[A] 행위</span> 개입<br>
+        * 사업비는 단위와 금액이 분명한 사업만 산정. 지자체 총액·범위·국비 분담 기재분은 제외. 부가세 제외</p>`
+      : '<p class="bullet">처방된 사업 없음</p>'}
+  </section>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   현장용 리포트 — 현장에서 볼 것만
+
+   통계 서술은 넣지 않습니다. 현장에서 필요한 것은
+   "어디를 · 무엇을 볼 것인가"와 "어떻게 바뀌는가" 입니다.
+   ════════════════════════════════════════════════════════════════════ */
+
+function fieldReport() {
+  const focusKeys = new Set(_focus.map((f) => f.key));
+  const groups = auriFieldChecks(_results, _stats, focusKeys);
+  const photos = AuriSitePhoto.all();
+
+  const before = sessionStorage.getItem('auri_input_image');
+  const beforeUrl = before ? JSON.parse(before).dataUrl : null;
+  const after = sessionStorage.getItem('auri_after_image');
+
+  const risky = _results.filter((r) => r.level.key !== 'lv-safe')
+                        .sort((a, b) => b.score - a.score);
+
+  return `
+  <section class="chapter">
+    <h2 class="h-chapter">현장 확인 리포트</h2>
+
+    <div class="field-head">
+      <div class="cell">
+        <div class="k">진단 위치</div>
+        <div class="v">${esc(_picked.addr || '주소 미상')}</div>
+        <div class="s">위도 ${_picked.lat}, 경도 ${_picked.lng}${_picked.dong ? ' · ' + esc(_picked.dong) : ''}</div>
+      </div>
+      <div class="cell">
+        <div class="k">주의 이상 분야</div>
+        <div class="v">${risky.length ? risky.map((r) => r.name).join(', ') : '없음'}</div>
+        <div class="s">${risky.length ? risky.map((r) => `${r.name} ${r.score}점`).join(' · ') : '전 분야 안전 판정'}</div>
+      </div>
+      <div class="cell">
+        <div class="k">확인 항목</div>
+        <div class="v">${groups.reduce((n, g) => n + g.items.length, 0)}건</div>
+        <div class="s">${groups.map((g) => `${g.label} ${g.items.length}`).join(' · ')}</div>
+      </div>
+    </div>
+
+    <h3 class="h-section">현장 확인사항</h3>
+    ${groups.length ? groups.map((g) => `
+      <div class="chk-group">
+        <div class="g-head">
+          <span class="g-name">${g.label}</span>
+          <span class="g-desc">${g.desc}</span>
+        </div>
+        <ul>
+          ${g.items.map((it) => `
+            <li>
+              <span class="box"></span>
+              <span class="tx">${esc(it.text)}<span class="fd">${esc(it.fields.join(', '))}</span></span>
+            </li>`).join('')}
+        </ul>
+      </div>`).join('') : '<p class="bullet">현장에서 따로 확인할 항목 없음</p>'}
+
+    ${AuriDocEdit.render('field-memo', '(현장 메모)',
+      '현장에서 확인한 내용을 적습니다. 사진과 함께 남기면 이후 사업 구상에 쓰입니다.', '')}
+  </section>
+
+  <section class="chapter">
+    <h2 class="h-chapter">개선 전 · 개선 후</h2>
+    <div class="ba-stack">
+      <figure>
+        ${beforeUrl ? `<img src="${beforeUrl}" alt="개선 전">`
+          : '<div class="slot">개선 전 이미지 없음 — 2단계에서 사진을 캡처·업로드하십시오</div>'}
+        <figcaption>개선 전 (현황)</figcaption>
+      </figure>
+      <figure>
+        ${after ? `<img src="${after}" alt="개선 후">`
+          : '<div class="slot">개선 후 이미지 없음 — 4단계에서 생성하십시오</div>'}
+        <figcaption>개선 후 (사업 반영)</figcaption>
+        <div class="ba-disclaimer">
+          AI가 생성한 참고용 예시 이미지로, 실제 시공 결과를 보장하지 않습니다.
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="chapter">
+    <h2 class="h-chapter">처방 사업 목록</h2>
+    ${_items.length ? `
+      <table class="tight">
+        <thead><tr>
+          <th style="width:38%">사업 항목</th><th style="width:14%">분야</th>
+          <th style="width:16%">개입 유형</th><th style="width:12%">우선순위</th>
+          <th style="width:20%">이미지 반영</th>
+        </tr></thead>
+        <tbody>
+          ${_items.map((it) => `
+            <tr class="${it.hea ? 'hea-' + it.hea : ''}">
+              <td>${esc(it.name)}</td>
+              <td>${esc(it.category)}</td>
+              <td><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span></td>
+              <td>${it.priority.label}</td>
+              <td style="font-size:var(--fs-cap);color:var(--g2)">${auriRxIsVisual(it) ? '반영됨' : '거리 사진에 표현 불가'}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+      <p class="note-under">
+        * 개입 유형 — <span class="hea-tag k-H">[H] 피해대상</span> 보호·지원 ·
+        <span class="hea-tag k-E">[E] 환경</span> 개선 ·
+        <span class="hea-tag k-A">[A] 행위</span> 개입<br>
+        * 교육·단속·상담 등은 거리 사진에 나타나지 않아 개선 후 이미지에 반영되지 않음</p>`
       : '<p class="bullet">처방된 사업 없음</p>'}
 
-    <h3 class="h-section">5.2 개선 전 · 개선 후 비교도</h3>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px">
-      <figure style="margin:0">
-        ${beforeUrl
-          ? `<img src="${beforeUrl}" alt="개선 전" style="width:100%; border:1px solid var(--g1)">`
-          : '<div class="tofill" style="text-align:center">2단계에서 사진을 캡처·업로드하지 않아 <b>현재는 비어 있습니다.</b></div>'}
-        <figcaption style="text-align:center; font-size:var(--fs-cap); color:var(--g2); margin-top:7px">개선 전 (현황)</figcaption>
-      </figure>
-      <figure style="margin:0">
-        ${after
-          ? `<img src="${after}" alt="개선 후" style="width:100%; border:1px solid var(--g1)">`
-          : '<div class="tofill" style="text-align:center">4단계에서 개선 이미지를 생성하지 않아 <b>현재는 비어 있습니다.</b></div>'}
-        <figcaption style="text-align:center; font-size:var(--fs-cap); color:var(--g2); margin-top:7px">개선 후 (사업 반영)</figcaption>
-      </figure>
-    </div>
-    <p class="note-under">※ 개선 후 이미지에는 <b>환경적 개입(E)</b>만 반영.
-      교육·단속·상담 등은 거리 사진에 나타나지 않아 목록·사업비에만 계상</p>
-
-    <h3 class="h-section">5.3 진단 근거</h3>
-    <table class="tight">
-      <thead><tr><th style="width:20%">분야</th><th class="num" style="width:16%">사진 판독</th>
-        <th style="width:14%">판정</th><th style="width:50%">판독 근거</th></tr></thead>
-      <tbody>
-        ${results.map((r) => `<tr>
-          <td>${r.name}</td><td class="num">${r.score}점</td>
-          <td>${r.level.label}${r.edited ? ' · 연구원 보정' : ''}</td>
-          <td style="font-size:var(--fs-sm)">${r.observed && r.observed.length ? esc(r.observed.join(' · ')) : '—'}</td>
-        </tr>`).join('')}
-      </tbody>
-    </table>
-    <p class="note-under">대상지 ${esc(picked.addr || '주소 미상')} (위도 ${picked.lat}, 경도 ${picked.lng})</p>
+    ${photos.length ? `
+      <h3 class="h-section">현장 사진</h3>
+      <div class="field-pair">
+        ${photos.map((p) => `
+          <figure>
+            <img src="${p.dataUrl}" alt="현장 사진">
+            <figcaption>${esc(AuriSitePhoto.caption(p))}${p.note ? '<br>' + esc(p.note) : ''}</figcaption>
+          </figure>`).join('')}
+      </div>` : ''}
   </section>`;
 }
 
-/* ── 표지 ────────────────────────────────────────────────────────── */
-function cover(data, picked) {
-  const now = new Date();
-  const d = `${now.getFullYear()}. ${String(now.getMonth() + 1).padStart(2, '0')}. ${String(now.getDate()).padStart(2, '0')}.`;
-  const parts = (data ? data.label : '').split(' ');
+/* ════════════════════════════════════════════════════════════════════
+   현장 사진 관리 (화면 전용) — EXIF 좌표·촬영시각을 읽어 붙입니다
+   ════════════════════════════════════════════════════════════════════ */
+
+function photoManager() {
+  const photos = AuriSitePhoto.all();
   return `
-  <section class="cover">
-    <div class="kicker">안전사업지구 사업모델 개발 연구용역</div>
-    <h1>지자체 사전진단서</h1>
-    <div class="rule"></div>
-    <p class="region">— ${esc(parts.join(' ') || picked.addr || '대상지')} —</p>
-    <div class="meta">
-      작성일 ${d}<br>
-      자료원 119 구급출동 데이터 (2023~2025년) · 거리 이미지 판독<br>
-      건축공간연구원 · Atelier KJ
+  <div class="screen-only" style="margin-top:26px; padding-top:18px; border-top:1px solid var(--g1)">
+    <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap">
+      <b style="font-size:var(--fs-sm)">현장 사진</b>
+      <span style="font-size:var(--fs-cap); color:var(--g2)">
+        사진의 GPS 좌표와 촬영 시각을 읽어 캡션에 넣습니다. 브라우저에서만 처리하며 서버로 보내지 않습니다.</span>
+      <span style="flex:1"></span>
+      <label class="btn ghost sm" style="cursor:pointer">
+        사진 추가
+        <input type="file" accept="image/*" multiple hidden onchange="onPhotos(this)">
+      </label>
     </div>
-  </section>`;
+    ${photos.length ? `<div class="photo-grid">${photos.map(function (p) {
+      const noGps = p.lat === null || p.lng === null;
+      return `
+        <div class="photo-card">
+          <img src="${p.dataUrl}" alt="${esc(p.name)}">
+          <div class="cap ${noGps ? 'no-gps' : ''}">${
+            noGps ? '위치 정보 없음 — 지도에서 위치를 지정해 주세요'
+                  : esc(AuriSitePhoto.caption(p))}</div>
+          ${noGps ? `<input type="text" placeholder="위도, 경도 (예: 37.4596, 126.6799)"
+                       onchange="onPhotoPos('${p.id}', this.value)">` : ''}
+          <input type="text" placeholder="설명 (선택)" value="${esc(p.note || '')}"
+                 onchange="AuriSitePhoto.setNote('${p.id}', this.value)">
+          <button type="button" class="btn-text danger rm" onclick="onPhotoRemove('${p.id}')">삭제</button>
+        </div>`;
+    }).join('')}</div>`
+    : '<p style="font-size:var(--fs-cap); color:var(--g2); margin-top:10px">아직 올린 사진이 없습니다. 카카오톡으로 받은 사진은 위치 정보가 지워져 있는 경우가 많습니다.</p>'}
+  </div>`;
 }
 
-/* ── 페이지 시작 ─────────────────────────────────────────────────── */
+async function onPhotos(input) {
+  if (!input.files || !input.files.length) return;
+  await AuriSitePhoto.add(Array.from(input.files));
+  input.value = '';
+  renderAll();
+}
+function onPhotoRemove(id) { AuriSitePhoto.remove(id); renderAll(); }
+function onPhotoPos(id, text) {
+  const m = /(-?[\d.]+)\s*,\s*(-?[\d.]+)/.exec(text || '');
+  if (!m) { alert('위도, 경도를 쉼표로 나눠 적어 주세요. 예: 37.4596, 126.6799'); return; }
+  AuriSitePhoto.setPosition(id, Number(m[1]), Number(m[2]));
+  renderAll();
+}
+
+/* ── 탭 ──────────────────────────────────────────────────────────── */
+function showDoc(which) {
+  const a = which === 'a';
+  document.getElementById('docA').hidden = !a;
+  document.getElementById('docB').hidden = a;
+  document.getElementById('tabA').classList.toggle('on', a);
+  document.getElementById('tabB').classList.toggle('on', !a);
+  document.getElementById('printFoot').textContent =
+    (a ? '지자체 사전진단서' : '현장 확인 리포트') + (_data ? ' — ' + _data.label : '');
+  document.getElementById('docNoteText').innerHTML = a
+    ? 'AURI 사전진단서 양식 그대로입니다. 점선 없는 <b>입력칸</b>은 직접 쓰거나 <b>AI 의견 생성</b>으로 초안을 받을 수 있습니다. AI 초안 표시와 판단 근거는 화면에만 보이고 인쇄물에는 나오지 않습니다.'
+    : '현장에서 볼 것만 담았습니다. 확인사항은 <b>네모 칸에 체크</b>하며 쓰도록 만들었습니다.';
+  AuriDocEdit.refresh();
+}
+
+/* ── 그리기 ──────────────────────────────────────────────────────── */
+function renderAll() {
+  document.getElementById('docA').innerHTML =
+    cover() + chapter1() + chapter2() + chapter3() + chapter4() + chapter5();
+  document.getElementById('docB').innerHTML = fieldReport();
+  AuriDocEdit.refresh();
+}
+
 window.addEventListener('load', async function () {
   await AuriPalette.load();
 
   const loc = sessionStorage.getItem('auri_picked_location');
   const resultsRaw = sessionStorage.getItem('auri_diagnosis_results');
   const rxRaw = sessionStorage.getItem('auri_prescriptions');
-  const docEl = document.getElementById('doc');
 
   if (!loc || !resultsRaw) {
-    docEl.innerHTML = '<div class="doc-empty">진단 데이터가 없습니다.<br>'
-      + '위치 선택 → 진단 → 종합 리포트 순서로 진행해 주세요.</div>';
+    document.getElementById('docA').innerHTML =
+      '<div class="doc-empty">진단 데이터가 없습니다.<br>위치 선택 → 진단 → 종합 리포트 순서로 진행해 주세요.</div>';
+    document.querySelector('.doc-tabs').style.display = 'none';
     return;
   }
 
-  const picked = JSON.parse(loc);
-  const results = JSON.parse(resultsRaw);
-  const items = rxRaw ? JSON.parse(rxRaw) : [];
+  _picked = JSON.parse(loc);
+  _results = JSON.parse(resultsRaw);
+  _items = rxRaw ? JSON.parse(rxRaw) : [];
 
-  /* 통계는 뒤늦게 도착하므로 먼저 표지·1장을 그려 둡니다 */
-  docEl.innerHTML = cover(null, picked) + chapter1();
-
-  const stats = await AuriStats.load(Number(picked.lat), Number(picked.lng));
-  const national = await AuriStats.loadNational();
-  if (!stats) {
-    docEl.innerHTML += '<section class="chapter"><h2 class="h-chapter">2~5. 통계 자료 없음</h2>'
-      + '<p class="bullet">이 지점의 지자체 통계를 불러오지 못했습니다.</p></section>';
+  _stats = await AuriStats.load(Number(_picked.lat), Number(_picked.lng));
+  _national = await AuriStats.loadNational();
+  if (!_stats) {
+    document.getElementById('docA').innerHTML =
+      '<div class="doc-empty">이 지점의 지자체 통계를 불러오지 못했습니다.</div>';
     return;
   }
+  _data = _stats.data;
+  _focus = AuriStats.focusCategories(_data);
+  document.title = `지자체 사전진단서 — ${_data.shortLabel}`;
 
-  const data = stats.data;
-  const focus = AuriStats.focusCategories(data);
-
-  document.getElementById('printFoot').textContent =
-    `지자체 사전진단서 — ${data.label}`;
-  document.title = `지자체 사전진단서 — ${data.shortLabel}`;
-
-  docEl.innerHTML =
-    cover(data, picked)
-    + chapter1()
-    + chapter2(data, national, focus)
-    + chapter3(data, focus, picked.dong)
-    + chapter4(data, focus, stats.inside, results, items)
-    + chapter5(items, picked, results);
+  renderAll();
+  showDoc('a');
 });
 </script>
 </body>

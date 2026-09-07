@@ -1,0 +1,148 @@
+/* ════════════════════════════════════════════════════════════════════
+   문서의 빈칸 — 편집 가능한 칸 + AI 초안
+
+   ── 왜 바꿨는가 ────────────────────────────────────────────────────
+   전에는 "여기는 사람이 채우는 자리입니다"라는 **고정 안내문**이었습니다.
+   웹에서 고칠 수도 없고, 인쇄하면 그 안내문이 보고서에 그대로 실렸습니다.
+
+   이제는 **빈 입력칸**입니다. 안내문은 placeholder 로 들어가 화면에만
+   보이고 인쇄에는 나오지 않습니다.
+
+   ── AI 초안 ────────────────────────────────────────────────────────
+   버튼을 눌렀을 때만 AI가 초안을 만듭니다. 평소에는 비어 있습니다.
+   만들어진 글은 사람이 고칠 수 있고, **한 글자라도 고치면 AI 표시가
+   사라집니다** — 그때부터는 사람이 쓴 글이기 때문입니다.
+
+   AI 표시는 **화면에만** 보이고 인쇄에는 나오지 않습니다. 최종 문서에
+   "AI가 썼다"고 적히면 행정 문서로 쓰기 어렵고, 어차피 사람이 검토해
+   확정한 글이기 때문입니다. 다만 화면에서는 반드시 보여야 합니다.
+
+   ── 판단 근거 ──────────────────────────────────────────────────────
+   AI가 어떤 수치와 어떤 법령에 기대어 썼는지 함께 받아 화면에 폅니다.
+   근거를 못 찾은 부분은 "확인 필요"로 나옵니다 (server/legal.js 참고).
+
+   ── 저장 ───────────────────────────────────────────────────────────
+   sessionStorage 에 담습니다. 탭을 옮기거나 다시 그려도 남습니다.
+   ════════════════════════════════════════════════════════════════════ */
+
+const AuriDocEdit = (function () {
+  const STORE_KEY = 'auri_doc_notes';
+
+  function load() {
+    try { return JSON.parse(sessionStorage.getItem(STORE_KEY) || '{}'); }
+    catch (e) { return {}; }
+  }
+  function save(all) { sessionStorage.setItem(STORE_KEY, JSON.stringify(all)); }
+
+  function get(id) { return load()[id] || null; }
+
+  function set(id, value, byAi, basis) {
+    const all = load();
+    if (!value) delete all[id];
+    else all[id] = { text: value, ai: !!byAi, basis: basis || null };
+    save(all);
+  }
+
+  /**
+   * 편집 가능한 칸 하나를 그립니다.
+   *   id       저장 열쇠 (문서 안에서 고유해야 합니다)
+   *   title    (소결) 처럼 앞에 붙는 이름
+   *   hint     빈칸일 때 보이는 안내 — placeholder 로 들어갑니다
+   *   context  AI에게 넘길 자료 (수치·판정 등). 없으면 버튼이 나오지 않습니다
+   */
+  function render(id, title, hint, context) {
+    const saved = get(id);
+    const safe = (s) => String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    return `
+      <div class="doc-fill" id="fill-${id}" data-ctx="${safe(context || '')}" data-title="${safe(title)}">
+        <div class="doc-fill-head screen-only">
+          <span class="ttl">${safe(title)}</span>
+          <span class="ai-mark" ${saved && saved.ai ? '' : 'hidden'}>AI 초안 — 검토 후 확정하세요</span>
+          <span class="sp"></span>
+          ${context ? `<button type="button" class="btn-text" onclick="AuriDocEdit.ask('${id}')">AI 의견 생성</button>` : ''}
+        </div>
+        <textarea class="doc-fill-in" id="in-${id}" rows="3"
+          placeholder="${safe(hint)}"
+          oninput="AuriDocEdit.onEdit('${id}')">${safe(saved ? saved.text : '')}</textarea>
+        <div class="doc-basis screen-only" id="basis-${id}" ${saved && saved.basis ? '' : 'hidden'}>
+          ${saved && saved.basis ? basisHtml(saved.basis) : ''}
+        </div>
+      </div>`;
+  }
+
+  function basisHtml(basis) {
+    if (!basis || !basis.length) return '';
+    return '<b>판단 근거</b>' + basis.map(function (b) {
+      return `<span class="bi k-${b.kind === '확인필요' ? 'warn' : 'ok'}">${b.kind}</span> ${b.detail}`;
+    }).map(function (s) { return `<div>${s}</div>`; }).join('');
+  }
+
+  /* 사람이 고치면 AI 표시를 뗍니다 — 그때부터는 사람이 쓴 글입니다 */
+  function onEdit(id) {
+    const el = document.getElementById('in-' + id);
+    const prev = get(id);
+    const changed = !prev || prev.text !== el.value;
+    set(id, el.value, changed ? false : (prev && prev.ai), prev ? prev.basis : null);
+
+    const box = document.getElementById('fill-' + id);
+    if (changed && box) {
+      const mark = box.querySelector('.ai-mark');
+      if (mark) mark.hidden = true;
+    }
+    autoGrow(el);
+  }
+
+  /** 내용에 맞춰 칸 높이를 늘립니다 (인쇄할 때 잘리면 안 됩니다) */
+  function autoGrow(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.max(el.scrollHeight, 54) + 'px';
+  }
+
+  async function ask(id) {
+    const box = document.getElementById('fill-' + id);
+    const el = document.getElementById('in-' + id);
+    const btn = box.querySelector('button');
+    const mark = box.querySelector('.ai-mark');
+    const basisBox = document.getElementById('basis-' + id);
+
+    if (el.value.trim() && !confirm('이미 적힌 내용을 AI 초안으로 바꿉니다. 계속할까요?')) return;
+
+    btn.disabled = true;
+    const label = btn.textContent;
+    btn.textContent = '생성 중…';
+
+    try {
+      const data = await auriCallServer('/api/opinion', {
+        section: box.dataset.title + ' — ' + (el.placeholder || ''),
+        context: box.dataset.ctx,
+      });
+      el.value = data.text || '';
+      autoGrow(el);
+      set(id, el.value, true, data.basis || []);
+
+      if (mark) mark.hidden = false;
+      if (basisBox) {
+        basisBox.innerHTML = basisHtml(data.basis)
+          + (data.unverified && data.unverified.length
+              ? `<div class="bi-note">⚠️ 아래 근거는 아직 원문 대조 전입니다: ${data.unverified.join(', ')}
+                 — 국가법령정보센터에서 확인해 주세요.</div>`
+              : '');
+        basisBox.hidden = false;
+      }
+    } catch (e) {
+      alert(e.message || 'AI 의견을 만들지 못했습니다.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+  }
+
+  /** 문서를 다시 그린 뒤 칸 높이를 맞춥니다 */
+  function refresh() {
+    document.querySelectorAll('.doc-fill-in').forEach(autoGrow);
+  }
+
+  return { render, ask, onEdit, refresh, get, set };
+})();
