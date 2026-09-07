@@ -32,19 +32,25 @@
 
   /* 참고 레이어 — 한 줄에 하나씩, 켜고 끄는 스위치 */
   /* 7개 분야가 넓은 화면에서는 한 줄에 모두 들어갑니다 */
-  /* 히트맵 줄 — 분야 레이어 아래에 한 줄로 붙습니다 */
+  /* 히트맵 줄 — 종합 위험도 바로 아래, 같은 묶음으로 보이게 검은 선을 씁니다.
+     아래 7개 분야의 "표시 방식"을 바꾸는 스위치라 위쪽에 둡니다. */
   .heat-bar{
-    display:flex; align-items:center; gap:22px; flex-wrap:wrap;
-    margin-top:13px; padding-top:13px; border-top:1px solid var(--g1);
+    display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+    border-bottom:1px solid var(--k);
   }
-  .heat-bar .layer-row{flex:none; min-width:200px}
+  .heat-bar .layer-row{flex:1; min-width:230px; border-bottom:none; color:var(--k)}
+  .heat-bar .layer-row .nm{flex:none; font-weight:700}
+  .heat-bar .hint{flex:1; font-size:var(--fs-cap); color:var(--g2); font-weight:400}
+  /* 점이 아니라 면을 켜는 스위치라 네모로 구분합니다 */
+  .heat-bar .dot.sq{border-radius:0; width:11px; height:11px; background:var(--contrast)}
+
   .heat-op{
-    display:flex; align-items:center; gap:9px;
+    display:flex; align-items:center; gap:9px; padding-bottom:2px;
     font-size:var(--fs-cap); color:var(--g2); letter-spacing:.05em;
   }
-  .heat-op input{width:120px; accent-color:var(--main)}
+  .heat-op input{width:110px; accent-color:var(--contrast)}
   .heat-op b{color:var(--g3); font-weight:700; min-width:34px}
-  .heat-op.off{opacity:.4; pointer-events:none}
+  .heat-op.off{opacity:.35; pointer-events:none}
 
   .layer-rows{display:grid; grid-template-columns:repeat(7,1fr); gap:0 22px}
   @media(max-width:1100px){.layer-rows{grid-template-columns:repeat(4,1fr); gap:0 30px}}
@@ -131,15 +137,15 @@
       <span class="tag" id="layerRegion">지역 확인 중</span>
     </div>
     <div class="panel-body">
+      <!-- 위쪽 두 줄은 지도 전체를 한 장으로 요약하는 레이어입니다 -->
       <div class="layer-total" id="layerTotal"></div>
-      <div class="layer-rows" id="layerChips"></div>
 
-      <!-- 강원대 밀도분석 히트맵 — 분야 레이어를 켠 상태에서만 의미가 있습니다 -->
+      <!-- 히트맵 — 켜면 아래 7개 분야가 점 대신 밀도면으로 바뀝니다 -->
       <div class="heat-bar" id="heatBar" style="display:none">
         <button type="button" class="layer-row" id="heatToggle" aria-pressed="false">
-          <span class="dot" style="background:linear-gradient(90deg,#2A78D6,#E34948)"></span>
+          <span class="dot sq"></span>
           <span class="nm">위험도 히트맵</span>
-          <span class="hint">강원대 밀도분석</span>
+          <span class="hint">아래 분야를 점 대신 밀도면으로</span>
           <span class="sw"><i></i></span>
         </button>
         <label class="heat-op" id="heatOpacityWrap">
@@ -149,11 +155,14 @@
         </label>
       </div>
 
+      <div class="layer-rows" id="layerChips"></div>
+
       <p class="note" style="margin-top:15px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
         분야를 눌러 지난 3년간의 응급신고 발생 지점을 지도에 겹쳐 봅니다. 신고가 많이 쌓인 곳일수록 크고 진하게 표시됩니다.
         <b>종합 위험도</b>는 7개 분야를 아래 가중치로 합산해 한 장으로 보여 줍니다. 진할수록 여러 위험이 함께 몰린 곳입니다.
-        <b>위험도 히트맵</b>은 강원대가 QGIS로 만든 밀도분석 결과를 그대로 얹은 것으로, <b>켜 둔 분야의 히트맵만</b> 깔립니다.
+        <b>위험도 히트맵</b>을 켜면 아래 분야가 <b>점 대신 밀도면</b>으로 바뀝니다. 점과 면을 함께 켜면 서로를 가려 읽기 어렵기 때문입니다.
+        (종합 위험도는 계산 방식이 달라 언제나 점으로 표시됩니다.)
         <span class="weights" id="weightLine"></span>
       </p>
     </div>
@@ -441,12 +450,30 @@ function buildCompositeLayer(data, host) {
 function toggleIncidentLayer(key, row) {
   const entry = _incidentLayers[key];
   entry.active = !entry.active;
-  entry.layer.setMap(entry.active ? _map : null);
 
   row.classList.toggle('on', entry.active);
   row.setAttribute('aria-pressed', entry.active ? 'true' : 'false');
 
-  syncHeatmap();          // 켜진 분야가 바뀌면 히트맵도 따라갑니다
+  applyLayerVisibility();
+}
+
+/* ── 무엇을 지도에 올릴지 한 곳에서 정합니다 ──────────────────────
+   점과 히트맵을 함께 켜면 서로를 가려 아무것도 읽을 수 없습니다.
+   그래서 **같은 분야에 대해 둘 중 하나만** 올립니다.
+
+     히트맵 꺼짐 → 켜 둔 분야를 격자 점으로
+     히트맵 켜짐 → 켜 둔 분야를 밀도면으로 (점은 감춤)
+
+   종합 위험도는 히트맵이 없는(7개 분야를 합산한 우리 계산값) 레이어라
+   히트맵 상태와 무관하게 언제나 점으로 그립니다.                     */
+function applyLayerVisibility() {
+  for (const key in _incidentLayers) {
+    const entry = _incidentLayers[key];
+    const isTotal = key === '_total';
+    const showPoints = entry.active && (isTotal || !_heatOn);
+    entry.layer.setMap(showPoints ? _map : null);
+  }
+  syncHeatmap();
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -488,14 +515,24 @@ async function prepareHeatmap(regionSlug) {
   const idx = await loadHeatIndex();
   const has = !!(idx.regions && idx.regions[regionSlug]);
   document.getElementById('heatBar').style.display = has ? 'flex' : 'none';
-  if (!has) return;
 
   /* 지역이 바뀌면 앞 지역의 그림을 걷어 냅니다 */
   for (const key in _heatOverlays) {
     _heatOverlays[key].setMap(null);
     delete _heatOverlays[key];
   }
-  syncHeatmap();
+
+  /* 히트맵이 없는 지자체로 옮겼는데 스위치가 켜진 채로 남으면,
+     점은 감춰지고 면은 없어서 지도가 텅 빕니다. 스위치를 되돌립니다. */
+  if (!has && _heatOn) {
+    _heatOn = false;
+    const btn = document.getElementById('heatToggle');
+    btn.classList.remove('on');
+    btn.setAttribute('aria-pressed', 'false');
+    document.getElementById('heatOpacityWrap').classList.add('off');
+  }
+
+  applyLayerVisibility();
 }
 
 /** 켜진 분야에 맞춰 히트맵을 붙이거나 뗍니다 (필요할 때만 내려받음) */
@@ -544,7 +581,7 @@ function setupHeatControls() {
     btn.classList.toggle('on', _heatOn);
     btn.setAttribute('aria-pressed', _heatOn ? 'true' : 'false');
     wrap.classList.toggle('off', !_heatOn);
-    syncHeatmap();
+    applyLayerVisibility();     // 점 ↔ 면을 함께 바꿉니다
   });
 
   slider.addEventListener('input', function () {
