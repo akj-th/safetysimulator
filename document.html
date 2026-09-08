@@ -270,6 +270,7 @@ img[hidden]{display:none !important}
 <script src="assets/doc-edit.js"></script>
 <script src="assets/site-photo.js"></script>
 <script src="assets/doc-map.js"></script>
+<script src="assets/physical.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════════
    문서 만들기
@@ -579,6 +580,13 @@ function chapter4() {
     const type = AuriStats.narrateType(f.cat, opts);
     const r = _results.find((x) => x.key === f.key);
     const observed = r && r.observed && r.observed.length ? r.observed.join(' · ') : null;
+
+    /* 물적환경 회귀분석 — 7개 지자체에만 있습니다.
+       조사지 내에 유의한 요인이 없으면 지자체 전체 결과로 대신하고,
+       어느 쪽인지는 문장 앞머리에 그대로 적힙니다. */
+    const phys = AuriPhysical.narrate(_data.region, f.key, {
+      catLabel: f.label, fallback: true, limit: 4,
+    });
     const mine = _items.filter((it) => it.field === f.key || it.category === f.label);
     /* 이 절에 배정된 사진. 여러 장이면 첫 장을 크게 싣고 나머지는 아래에 붙입니다 */
     const mineP = photos.filter((p) => p.field === f.key);
@@ -618,6 +626,8 @@ function chapter4() {
               <p class="bullet"><span class="tag">(물적환경)</span> ${
                 observed ? esc(observed)
                 : (r ? `사진 판독 ${r.level.label} 판정(${r.score}점)` : '사진 판독 결과 없음')}</p>
+              ${phys ? `<p class="bullet"><span class="tag">(관련요인)</span> ${esc(phys.text)}
+                <br><span style="font-size:var(--fs-cap);color:var(--g2)">${esc(phys.basis)} · 출처: ${esc(AuriPhysical.source())}</span></p>` : ''}
             </td>
           </tr>
           <tr>
@@ -1059,7 +1069,9 @@ function renderAll() {
 }
 
 window.addEventListener('load', async function () {
-  await AuriPalette.load();
+  /* 물적환경 회귀분석은 7개 지자체에만 있습니다. 없으면 조용히 비고,
+     4장의 (물적환경) 줄은 사진 판독만으로 채워집니다. */
+  await Promise.all([AuriPalette.load(), AuriPhysical.load()]);
 
   const loc = sessionStorage.getItem('auri_picked_location');
   const resultsRaw = sessionStorage.getItem('auri_diagnosis_results');

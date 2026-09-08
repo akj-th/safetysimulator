@@ -37,8 +37,21 @@
    그래서 `gist` 는 **사람이 읽는 메모**일 뿐 지시문에 넣지 않습니다
    (협의 문서만 예외 — 원문이 우리 손에 있어 요지를 책임질 수 있습니다).
 
-   지자체 조례는 지자체마다 다르므로 여기에 넣지 않았습니다.
-   특정 지자체 조례를 인용해야 하면 그 지자체 것을 확인해 추가하십시오.
+     ordinance 조례        지자체 조례   지자체마다 다름. **확인 전에는
+                                         인용하지 않습니다**
+
+   ── 조례를 왜 아직 넣지 않는가 (2026-09-07 AURI 요청) ───────────────
+   AURI 가 "해당 지자체 재난안전 관련 조례(예: 부천시)"를 근거로 넣자고
+   요청했습니다. 다만 조례는 **41개 지자체가 각각 다르고**, 이름·조 번호·
+   현행 여부를 하나도 확인하지 못했습니다.
+
+   확인 안 된 조례를 AI 에게 보여 주면 "부천시 안전도시 조성 조례 제5조"
+   같은 그럴듯한 문장을 만들어 냅니다. 그래서 아래 항목은 `verified: false`
+   로 두었습니다 — **지시문에 들어가지 않고**, 화면에만 "관련 조례 확인 필요"
+   로 표시됩니다.
+
+   나중에 채우는 법: 지자체별로 조례를 확인한 뒤 `ORDINANCE_BY_REGION` 에
+   지자체 열쇠로 한 줄씩 넣고 `verified: true` 로 바꾸면 됩니다.
    ════════════════════════════════════════════════════════════════════ */
 
 export const LEGAL_BASIS = [
@@ -113,7 +126,28 @@ export const LEGAL_BASIS = [
     useFor: ['서술 구성의 근거'],
     verified: true,   // 원문 PDF 확인
   },
+  {
+    /* ⏸ 지자체 조례 — 확인 전이라 **인용하지 않습니다** (2026-09-07 AURI 요청)
+       41개 지자체가 각각 다른 조례를 가지고 있어, 한 줄로 적어 둘 수 없습니다.
+       화면에는 "관련 조례 확인 필요"로 뜨고 AI 지시문에는 들어가지 않습니다. */
+    id: 'ORDINANCE-LOCAL',
+    kind: 'ordinance',
+    law: '해당 지자체 재난안전 관련 조례',
+    article: '—',
+    title: '지자체별 확인 필요',
+    asOf: null,
+    cite: '(확인 후 기입)',
+    gist: '지자체마다 조례 이름과 조 번호가 다릅니다. 확인한 지자체부터 '
+        + 'ORDINANCE_BY_REGION 에 넣고 verified 를 true 로 바꾸면 인용에 쓰입니다.',
+    useFor: ['지자체 자체 사업 근거'],
+    verified: false,  // ⏸ 원문 미확인 — 지어낼 위험이 커서 지시문에서 제외
+  },
 ];
+
+/* 지자체별 조례 — 확인한 것부터 채웁니다. 지금은 비어 있습니다.
+   보기)  bucheon: { cite: '부천시 ○○ 조례 제○조(제목)', verified: true }  */
+export const ORDINANCE_BY_REGION = {
+};
 
 /** 유형별 이름과 인용 규칙 — 지시문과 화면이 같은 말을 쓰도록 한 곳에 둡니다 */
 export const BASIS_KINDS = {
@@ -128,6 +162,10 @@ export const BASIS_KINDS = {
   consult: {
     label: '협의',
     rule: '요지를 풀어 써도 됨. 문서 이름과 날짜를 함께 적을 것',
+  },
+  ordinance: {
+    label: '조례',
+    rule: '지자체마다 다르므로 확인 전에는 인용 금지',
   },
 };
 
@@ -148,7 +186,9 @@ export function legalBlock() {
     return '(인용할 수 있는 근거 없음 — 법령·정책·협의를 언급하지 말고 basis 에 kind:"확인필요" 로 적으십시오)';
   }
 
-  return ['law', 'policy', 'consult'].map(function (kind) {
+  /* 조례도 순회에 넣어 둡니다 — 지금은 verified:false 라 걸러지지만,
+     나중에 확인해 true 로 바꾸면 고칠 곳 없이 저절로 들어갑니다. */
+  return ['law', 'policy', 'consult', 'ordinance'].map(function (kind) {
     const rows = ok.filter((b) => b.kind === kind);
     if (!rows.length) return '';
     const k = BASIS_KINDS[kind];

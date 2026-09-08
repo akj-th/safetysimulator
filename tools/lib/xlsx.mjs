@@ -47,6 +47,18 @@ const unescapeXml = (s) => s
   .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
   .replace(/&amp;/g, '&');
 
+/* ── 태그 앞에 붙은 이름표(접두사) 떼기 ────────────────────────────
+   프로그램마다 태그를 적는 방식이 다릅니다.
+
+     엑셀(Microsoft)  <row><c r="A1"><v>3</v></c></row>
+     한셀(한글과컴퓨터) <x:row><x:c r="A1"><x:v>3</x:v></x:c></x:row>
+
+   내용은 같고 앞에 `x:` 라는 이름표만 더 붙은 것입니다. 아래 읽는 규칙을
+   전부 두 가지로 만들면 규칙이 두 배가 되므로, **읽기 전에 이름표를 떼어**
+   한 가지 모양으로 맞춥니다. (강원대 자료가 한셀로 작성돼 있습니다)
+   ──────────────────────────────────────────────────────────────── */
+const stripNs = (xml) => (xml || '').replace(/<(\/?)[A-Za-z][\w.-]*:/g, '<$1');
+
 /* ── 셀 배경색 읽기 ───────────────────────────────────────────────
    사업 팔레트가 **셀 배경색으로 기존/신규를 구분**해 놓아서 필요합니다.
    값만 읽으면 두 목록이 구분되지 않습니다.
@@ -59,11 +71,11 @@ const unescapeXml = (s) => s
 /** 테마 색 12개를 순서대로 뽑습니다 (theme="N" 의 N 이 이 배열의 자리) */
 function readThemeColors(themeXml) {
   if (!themeXml) return [];
-  const scheme = /<a:clrScheme[\s\S]*?<\/a:clrScheme>/.exec(themeXml);
+  const scheme = /<clrScheme[\s\S]*?<\/clrScheme>/.exec(stripNs(themeXml));
   if (!scheme) return [];
 
   const colors = [];
-  for (const m of scheme[0].matchAll(/<a:(?:srgbClr val="([0-9A-Fa-f]{6})"|sysClr[^>]*lastClr="([0-9A-Fa-f]{6})")/g)) {
+  for (const m of scheme[0].matchAll(/<(?:srgbClr val="([0-9A-Fa-f]{6})"|sysClr[^>]*lastClr="([0-9A-Fa-f]{6})")/g)) {
     colors.push((m[1] || m[2]).toUpperCase());
   }
   /* 파일에는 dk1,lt1,dk2,lt2 순으로 적히지만 theme 번호는 lt1,dk1,lt2,dk2 순입니다 */
@@ -86,8 +98,9 @@ function applyTint(hex, tint) {
 }
 
 /** styles.xml → [셀 s번호 → { fillId, rgb }] */
-function readCellFills(stylesXml, themeColors) {
-  if (!stylesXml) return [];
+function readCellFills(rawStylesXml, themeColors) {
+  if (!rawStylesXml) return [];
+  const stylesXml = stripNs(rawStylesXml);
 
   /* fills 목록 — 각 fill 의 실제 색을 구합니다 */
   const fillsBlock = /<fills[\s\S]*?<\/fills>/.exec(stylesXml);
@@ -136,7 +149,7 @@ export function readXlsx(xlsxPath, opts) {
   /* 문자열은 sharedStrings.xml 에 한 번만 저장되고 시트는 번호로 참조합니다 */
   const shared = [];
   if (z['xl/sharedStrings.xml']) {
-    const x = z['xl/sharedStrings.xml'].toString('utf8');
+    const x = stripNs(z['xl/sharedStrings.xml'].toString('utf8'));
     for (const si of x.matchAll(/<si>([\s\S]*?)<\/si>/g)) {
       let s = '';
       for (const t of si[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)) s += t[1];
@@ -144,8 +157,31 @@ export function readXlsx(xlsxPath, opts) {
     }
   }
 
-  const workbook = z['xl/workbook.xml'].toString('utf8');
-  const names = [...workbook.matchAll(/<sheet[^>]*name="([^"]*)"/g)].map((m) => unescapeXml(m[1]));
+  const workbook = stripNs(z['xl/workbook.xml'].toString('utf8'));
+
+  /* ── 시트 이름 ↔ 시트 파일 잇기 ────────────────────────────────
+     workbook.xml 은 시트를 `r:id="rId5"` 처럼 번호표로만 가리키고,
+     그 번호표가 실제로 어느 파일인지는 workbook.xml.rels 에 적혀 있습니다.
+
+     예전에는 "workbook 에 적힌 순서 = sheet1,2,3… 순서" 라고 **넘겨짚었는데**,
+     이 둘이 어긋난 파일이 오면 감염병 자료가 교통사고 이름표를 달고 들어옵니다.
+     조용히 틀리는 종류의 오류라 rels 를 실제로 따라가도록 고쳤습니다.
+     ──────────────────────────────────────────────────────────── */
+  const relTarget = {};
+  if (z['xl/_rels/workbook.xml.rels']) {
+    const rels = stripNs(z['xl/_rels/workbook.xml.rels'].toString('utf8'));
+    for (const m of rels.matchAll(/<Relationship\b([^>]*)\/?>/g)) {
+      const id = /Id="([^"]*)"/.exec(m[1]);
+      const target = /Target="([^"]*)"/.exec(m[1]);
+      if (id && target) relTarget[id[1]] = 'xl/' + target[1].replace(/^\.?\//, '');
+    }
+  }
+
+  const sheetDefs = [...workbook.matchAll(/<sheet\s([^>]*?)\/?>/g)].map((m) => {
+    const name = /name="([^"]*)"/.exec(m[1]);
+    const rid = /r:id="([^"]*)"/.exec(m[1]);
+    return { name: name ? unescapeXml(name[1]) : '', file: rid ? relTarget[rid[1]] : null };
+  }).filter((s) => s.name);
 
   const themeColors = wantFills
     ? readThemeColors(z['xl/theme/theme1.xml'] && z['xl/theme/theme1.xml'].toString('utf8'))
@@ -154,12 +190,14 @@ export function readXlsx(xlsxPath, opts) {
     ? readCellFills(z['xl/styles.xml'] && z['xl/styles.xml'].toString('utf8'), themeColors)
     : [];
 
-  const sheetFiles = Object.keys(z)
+  /* rels 가 없는 파일을 대비한 예비책 — 파일 이름 순서로 잇습니다 */
+  const byOrder = Object.keys(z)
     .filter((k) => /^xl\/worksheets\/sheet\d+\.xml$/.test(k))
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  return sheetFiles.map((key, si) => {
-    const x = z[key].toString('utf8');
+  return sheetDefs.map((def, si) => {
+    const key = (def.file && z[def.file]) ? def.file : byOrder[si];
+    const x = key && z[key] ? stripNs(z[key].toString('utf8')) : '';
     const rows = [];
     const fills = [];
     /* 빈 칸도 <c s="…"/> 로 서식만 적혀 있을 수 있어 자기닫힘 태그까지 받습니다 */
@@ -190,7 +228,7 @@ export function readXlsx(xlsxPath, opts) {
       rows.push(cells);
       if (wantFills) fills.push(cellFillRow);
     }
-    const sheet = { name: names[si] || key, rows };
+    const sheet = { name: def.name || key, rows };
     if (wantFills) sheet.fills = fills;
     return sheet;
   });
