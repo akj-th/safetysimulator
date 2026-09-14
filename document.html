@@ -615,12 +615,12 @@ function heaSection() {
   if (!dongs.length) return '';
 
   const cell = (score) => {
-    if (score === null || score === undefined) return '<td class="num hea-na">—</td>';
+    if (score === null || score === undefined) return '<td class="num hea-na">-</td>';
     const b = AuriDongHea.band(score);
     return `<td class="num" style="color:${b.color};${b.key === 'high' ? 'font-weight:700' : ''}">${score}</td>`;
   };
-  /* 실은 동 중 어느 곳에도 값이 없는 지표 행은 뺍니다 (빈 줄을 보이지 않음) */
-  const shownInds = AuriDongHea.INDICATORS.filter((ind) => dongs.some((d) => d.indicators[ind.key] !== null && d.indicators[ind.key] !== undefined));
+  /* 행은 요청 구성 그대로 모두 둡니다 — 값이 없는 칸은 "-" (2026-09-15 담당자 지시) */
+  const shownInds = AuriDongHea.INDICATORS;
   const AXIS_LABEL = { H: 'H<br><span>피해대상</span>', E: 'E<br><span>환경</span>', A: 'A<br><span>행위·관리</span>' };
   /* 표를 나눌 때는 고르게 — 8곳이면 7+1 이 아니라 4+4 */
   const tableCount = Math.ceil(dongs.length / HEA_COLS_PER_TABLE);
@@ -647,23 +647,18 @@ function heaSection() {
     </table>`;
   }).join('');
 
-  /* 산출 근거만 — 마지막 줄은 구현 중 문구 (AuriDongHea.basisNotes) */
-  const basis = AuriDongHea.basisNotes(data);
-  const disclaimer = basis.pop();
+  /* 각주 — 어떻게 산출했는지만 간략히, 마지막 줄 개발 중 문구 한 줄 (2026-09-15 담당자 지시).
+     안내·한계 문구(보조 절 표기, 비교 불가, 임시 기준, 빈칸 범례)는 넣지 않습니다. */
   const hNote = AuriDongHea.hBasis(data) === 'population'
-    ? 'H 연령·성별: 집단별 [동 출동 ÷ 동 거주 인구]를 지자체 평균과 비교한 배수(인구 대비 출동률)의 순위'
-    : 'H 연령·성별: 동 출동 환자 중 해당 집단 비율을 지자체 전체 출동 환자와 비교한 배수(출동 구성비)의 순위';
-  const hasE = shownInds.some((x) => x.axis === 'E');
+    ? '연령×성별 거주 인구 대비 출동률'
+    : '연령×성별 출동 환자 구성비';
   return `
     <h3 class="h-section">3.3 읍면동별 HEA 취약도 지표</h3>
-    <p class="hea-lead">※ AURI 사전진단서 원문 구성에 없는 보조 절 — 읍면동(법정동) 단위 취약 요인을 HEA 기준으로 정리한 표</p>
-    <p class="bullet">조사지와 겹치는 읍면동${insideCount ? ` ${insideCount}곳` : ''}을 중심으로 H(피해대상)·E(환경)·A(행위·관리) 지표를
-      ${esc(_data.shortLabel)} 안의 상대 순위로 산출함</p>
+    <p class="bullet">조사지와 겹치는 읍면동${insideCount ? ` ${insideCount}곳` : ''}을 중심으로 H(피해대상)·E(환경)·A(행위·관리) 지표를 산출함</p>
     ${tables}
-    <p class="note-under">* 점수는 지자체 안 상대 순위(0~100) — 67 이상 상위 · 34~66 중위 · 33 이하 하위<br>
-      * ${hNote}${hasE ? ' · E: Σ(회귀계수 × 동 평균 표준점수)' : ''} · A 반복발생: 같은 지번 반복 지점 수 · 야간비중: 22~06시 · 장소편중: 1위 장소 비중<br>
-      ${basis.map((t) => `* ${esc(t)}`).join('<br>')}<br>
-      ${esc(disclaimer)}</p>`;
+    <p class="note-under">* 119 구급출동자료(2023~2025)·강원대 물적환경 분석 결과를 바탕으로 읍면동별 지표를 산출하고, ${esc(_data.shortLabel)} 안의 순위(0~100)로 환산함 — 67 이상 상위 · 34~66 중위 · 33 이하 하위<br>
+      * H: ${hNote}를 지자체 평균과 비교 · E: 회귀분석 계수 × 시설 밀도·거리 · A: 반복 발생 지점 · 야간(22~06시) 비중 · 발생 장소 편중 · 종합: H·E·A 평균<br>
+      * HEA 취약도 지표는 현재 개발 중인 모델로 산출한 참고값으로, 정확하지 않을 수 있음</p>`;
 }
 
 /* 4장 — 원문처럼 분야마다 [좌: 지도 / 우: 현장 사진] + 3행 표 */
