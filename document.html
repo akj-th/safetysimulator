@@ -593,36 +593,34 @@ function chapter3() {
 /* ── 3.3 읍면동별 HEA 취약도 지표 (2026-09-15 담당자 요청) ─────────────────
    ⚠️ AURI 사전진단서 원문에 없는 절입니다. 담당자가 명시적으로 요청해 넣었습니다
       ("진단서에 HEA 지표 표 추가") — 사전진단서에 원문 밖 요소를 넣지 않는 원칙의 예외.
-   행 = HEA 지표, 열 = 읍면동. 칸 = 지자체 안 상대 순위(0~100) 또는 비어 있는 이유.
+   행 = HEA 지표, 열 = 읍면동. 칸 = 지자체 안 상대 순위(0~100).
+   ★ 2026-09-15 담당자 지시(중간보고용): **점수가 있는 동·지표만 싣고, 비어 있는 이유는 적지 않습니다.**
+     점수가 하나도 없는 지자체는 절 자체를 싣지 않습니다. 빠진 자료 목록은 담당자에게 따로 전달.
    값은 data/dong/<지역>.json (tools/build-dong-hea.mjs) — 여기서는 옮겨 적기만 합니다. */
 const HEA_COLS_PER_TABLE = 7;     // A4 세로에 읽히는 열 수 (넘치면 표를 나누되 고르게)
 const HEA_MAX_DONGS = 12;         // 표 두 개까지 — 나머지는 지도에서
 
 function heaSection() {
   const data = _dongHea;
-  if (!data) {
-    return `<h3 class="h-section">3.3 읍면동별 HEA 취약도 지표</h3>
-      <p class="bullet">동별 HEA 산출 자료 없음</p>`;
-  }
-  /* 어느 동을 싣는가 — 조사지와 겹치는 동을 먼저, 종합 점수 높은 순 */
-  const byScore = (a, b) => (b.scores.total ?? -1) - (a.scores.total ?? -1) || b.n - a.n;
-  let dongs = data.dongs.filter((d) => d.inside > 0).sort(byScore);
+  if (!data) return '';
+  /* 어느 동을 싣는가 — 종합 점수가 있는 동만. 조사지와 겹치는 동을 먼저, 종합 점수 높은 순 */
+  const byScore = (a, b) => b.scores.total - a.scores.total || b.n - a.n;
+  const scored = data.dongs.filter((d) => d.scores.total !== null && d.scores.total !== undefined);
+  let dongs = scored.filter((d) => d.inside > 0).sort(byScore);
   const insideCount = dongs.length;
   if (dongs.length < HEA_COLS_PER_TABLE) {
-    dongs = dongs.concat(data.dongs.filter((d) => !(d.inside > 0) && d.scores.total !== null).sort(byScore))
-      .slice(0, HEA_COLS_PER_TABLE);
+    dongs = dongs.concat(scored.filter((d) => !(d.inside > 0)).sort(byScore)).slice(0, HEA_COLS_PER_TABLE);
   }
   dongs = dongs.slice(0, HEA_MAX_DONGS);
-  if (!dongs.length) return `<h3 class="h-section">3.3 읍면동별 HEA 취약도 지표</h3><p class="bullet">점수를 낼 수 있는 읍면동 없음 (표본 부족)</p>`;
+  if (!dongs.length) return '';
 
-  const cell = (score, reason) => {
-    if (score === null || score === undefined) return `<td class="num hea-na">${esc(reason)}</td>`;
+  const cell = (score) => {
+    if (score === null || score === undefined) return '<td class="num hea-na">—</td>';
     const b = AuriDongHea.band(score);
     return `<td class="num" style="color:${b.color};${b.key === 'high' ? 'font-weight:700' : ''}">${score}</td>`;
   };
-  /* 축이 하나도 없는 동 — 비교할 동이 모자라 순위를 못 낸 지자체면 그렇게 적습니다 */
-  const cmpInd = Object.values((data.comparison && data.comparison.indicators) || {});
-  const noAxisReason = cmpInd.some((c) => c.raw > 0) && !cmpInd.some((c) => c.scored) ? '비교 동 부족' : '표본 부족';
+  /* 실은 동 중 어느 곳에도 값이 없는 지표 행은 뺍니다 (빈 줄을 보이지 않음) */
+  const shownInds = AuriDongHea.INDICATORS.filter((ind) => dongs.some((d) => d.indicators[ind.key] !== null && d.indicators[ind.key] !== undefined));
   const AXIS_LABEL = { H: 'H<br><span>피해대상</span>', E: 'E<br><span>환경</span>', A: 'A<br><span>행위·관리</span>' };
   /* 표를 나눌 때는 고르게 — 8곳이면 7+1 이 아니라 4+4 */
   const tableCount = Math.ceil(dongs.length / HEA_COLS_PER_TABLE);
@@ -632,15 +630,15 @@ function heaSection() {
 
   const tables = chunks.map((cols, ci) => {
     const rows = ['H', 'E', 'A'].map((axis) => {
-      const inds = AuriDongHea.INDICATORS.filter((x) => x.axis === axis);
+      const inds = shownInds.filter((x) => x.axis === axis);
       return inds.map((ind, k) => `<tr>
           ${k === 0 ? `<th rowspan="${inds.length}" class="hea-axis">${AXIS_LABEL[axis]}</th>` : ''}
           <th class="hea-ind">${ind.label}</th>
-          ${cols.map((d) => cell(d.indicators[ind.key], AuriDongHea.emptyReason(data, ind.key, d))).join('')}
+          ${cols.map((d) => cell(d.indicators[ind.key])).join('')}
         </tr>`).join('');
     }).join('');
     const total = `<tr class="hea-total"><th colspan="2">종합</th>
-        ${cols.map((d) => cell(d.scores.total, d.scores.totalAxes.length ? '축 부족' : noAxisReason)).join('')}</tr>`;
+        ${cols.map((d) => cell(d.scores.total)).join('')}</tr>`;
     return `<table class="tight hea-table">
       <caption>[표 2-1] ${esc(_data.shortLabel)} 읍면동별 HEA 취약도 지표${chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : ''}</caption>
       <thead><tr><th colspan="2" style="width:22%">지표</th>
@@ -649,23 +647,23 @@ function heaSection() {
     </table>`;
   }).join('');
 
-  const notes = AuriDongHea.caveats(data);
-  /* 종합 점수를 낸 동이 하나도 없으면 표 위에 이유를 먼저 적습니다 — 빈 표가 오류로 읽히지 않게 */
-  const sum = AuriDongHea.scoreSummary(data, 'total');
+  /* 산출 근거만 — 마지막 줄은 구현 중 문구 (AuriDongHea.basisNotes) */
+  const basis = AuriDongHea.basisNotes(data);
+  const disclaimer = basis.pop();
   const hNote = AuriDongHea.hBasis(data) === 'population'
-    ? 'H 연령·성별: 집단별 [동 출동 ÷ 동 거주 인구]를 지역 평균과 비교한 배수(인구 대비 출동률)의 순위 — 거주 인구 중 비중이 아니라 사는 사람 수에 비해 출동이 얼마나 많은가'
-    : 'H 연령·성별: 동 출동 환자 중 해당 집단 비율 ÷ 지역 전체 출동 환자 중 비율(출동 구성비 배수)의 순위 — 거주 인구 대비가 아님';
+    ? 'H 연령·성별: 집단별 [동 출동 ÷ 동 거주 인구]를 지자체 평균과 비교한 배수(인구 대비 출동률)의 순위'
+    : 'H 연령·성별: 동 출동 환자 중 해당 집단 비율을 지자체 전체 출동 환자와 비교한 배수(출동 구성비)의 순위';
+  const hasE = shownInds.some((x) => x.axis === 'E');
   return `
     <h3 class="h-section">3.3 읍면동별 HEA 취약도 지표</h3>
     <p class="hea-lead">※ AURI 사전진단서 원문 구성에 없는 보조 절 — 읍면동(법정동) 단위 취약 요인을 HEA 기준으로 정리한 표</p>
-    <p class="bullet">조사지와 겹치는 읍면동 ${insideCount}곳을 중심으로 H(피해대상)·E(환경)·A(행위·관리) 지표를
-      ${esc(_data.shortLabel)} 안의 상대 순위로 산출함${data.dongs.length > dongs.length ? ` (전체 ${data.dongs.length}개 동 중 ${dongs.length}개 게재 — 나머지는 지도 화면)` : ''}</p>
-    ${sum && sum.empty ? `<p class="bullet hea-empty">${esc(sum.text)}</p>` : ''}
+    <p class="bullet">조사지와 겹치는 읍면동${insideCount ? ` ${insideCount}곳` : ''}을 중심으로 H(피해대상)·E(환경)·A(행위·관리) 지표를
+      ${esc(_data.shortLabel)} 안의 상대 순위로 산출함</p>
     ${tables}
-    <p class="note-under">* 점수는 지자체 안 상대 순위(0~100) — 67 이상 상위 · 34~66 중위 · 33 이하 하위. 다른 지자체와 비교 불가<br>
-      * ${hNote} · E: Σ(회귀계수 × 동 평균 표준점수) · A 반복발생: 같은 지번 반복 지점 수 · 야간비중: 22~06시 · 장소편중: 1위 장소 비중(기타 제외)<br>
-      * "미수신" = 그 지표에 해당하는 유의 변수의 TIF 미수신 · "표본 부족" = 동의 해당 분야 출동 10건 미만 · "비교 동 부족" = 값이 있는 동이 3곳 미만이라 순위를 매기지 않음 · "인구 매칭 불가" = 행정동 인구를 이 법정동에 이름으로 붙이지 못함 · "자료 없음" = 회귀분석 대상 지자체 아님<br>
-      ${notes.map((t) => `* ${esc(t)}`).join('<br>')}</p>`;
+    <p class="note-under">* 점수는 지자체 안 상대 순위(0~100) — 67 이상 상위 · 34~66 중위 · 33 이하 하위<br>
+      * ${hNote}${hasE ? ' · E: Σ(회귀계수 × 동 평균 표준점수)' : ''} · A 반복발생: 같은 지번 반복 지점 수 · 야간비중: 22~06시 · 장소편중: 1위 장소 비중<br>
+      ${basis.map((t) => `* ${esc(t)}`).join('<br>')}<br>
+      ${esc(disclaimer)}</p>`;
 }
 
 /* 4장 — 원문처럼 분야마다 [좌: 지도 / 우: 현장 사진] + 3행 표 */

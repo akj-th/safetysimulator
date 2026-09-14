@@ -169,13 +169,12 @@ const AuriDongHea = (function () {
   /** H 근거 한 줄 — 무엇의 배수인지 반드시 드러나게 씁니다.
    *  인구 기준: "거주 인구 대비 출동률이 지역의 N배" / 구성비 기준: "출동 환자 중 비중이 지역 출동의 N배(인구 대비 아님)" */
   function hText(g, comp) {
-    if (!g) return null;
-    if (g.status) return `H ${g.status}`;
+    if (!g || g.status) return null;              // 산출 못 한 경우는 웹에 적지 않음 (2026-09-15 보고용)
     if (g.basis === 'population') {
       return `H ${g.label} — 거주 인구 대비 출동률이 지역 평균의 ${g.ratio}배 (인구 1천 명당 연 ${g.rate}건, 지역 ${g.regionRate}건)`
         + (comp ? ` · 참고: 출동 환자 중 ${comp.label} ${comp.incShare}%(지역 ${comp.regionIncShare}%)` : '');
     }
-    return `H ${g.label} — 출동 환자 중 비중 ${g.incShare}%로 지역 출동 환자 중 비중(${g.regionIncShare}%)의 ${g.ratio}배 (거주 인구 대비 아님)`;
+    return `H ${g.label} — 출동 환자 중 비중 ${g.incShare}%로 지역 출동 환자 중 비중(${g.regionIncShare}%)의 ${g.ratio}배 (출동 환자 기준)`;
   }
 
   /** 지도 말풍선·표 각주용 근거 몇 줄 */
@@ -197,12 +196,54 @@ const AuriDongHea = (function () {
         const top = b.E.parts.slice().sort((x, y) => Math.abs(y.contrib) - Math.abs(x.contrib))[0];
         bits.push(`E 주요 ${top.name}(${top.contrib > 0 ? '+' : ''}${top.contrib})`);
       }
-      lines.push(`${c.label} ${b.n}건 — ${bits.join(' · ')}`);
+      if (bits.length) lines.push(`${c.label} ${b.n}건 — ${bits.join(' · ')}`);
     }
     return lines;
   }
 
-  /** 화면·문서 공통 머리말 — 기준이 임시라는 사실과 자료 상태 */
+  /* ── 웹 표시용 산출 근거 (2026-09-15 담당자 지시 — 중간보고용) ─────────────
+     웹에는 **무엇으로 계산했는가만** 적고, 비어 있는 자료·못 낸 이유는 적지 않습니다.
+     빠진 자료 목록은 담당자에게 따로 전달했습니다(CLAUDE.md "동별 HEA").
+     아래 caveats()·emptyReason()·axisReason()·scoreSummary() 는 나중에 다시 켤 수 있게 남겨 둡니다. */
+  const DISCLAIMER = '* 해당 기능은 구현중이므로 정확하지 않을 수 있음';
+
+  /** 산출 근거 몇 줄 + 마지막 줄 구현 중 문구 */
+  function basisNotes(data) {
+    if (!data) return [];
+    const cats = data.heaCategories || [];
+    const n = (data.dongs || []).reduce((s, d) => s + cats.reduce((t, c) => t + (d.byCat && d.byCat[c.key] ? d.byCat[c.key].n : 0), 0), 0);
+    const out = [
+      `출동자료: 119 구급출동 2023~2025 · 중점 분야 ${cats.map((c) => c.label).join('·')} ${n.toLocaleString()}건 · 강원대 사고유형 분류`,
+      `공간 단위: 법정 읍면동 (국토교통부 행정구역 경계)`,
+      hBasis(data) === 'population'
+        ? 'H(피해대상): 주민등록 연령별 인구 대비 연령×성별 출동률을 지자체 평균과 비교'
+        : 'H(피해대상): 연령×성별 출동 환자 구성비를 지자체 전체와 비교',
+    ];
+    if (data.eStatus === 'ok') {
+      const vars = new Set();
+      for (const c of cats) for (const v of ((data.eCoverage[c.key] || {}).vars || [])) if (v.tif) vars.add(v.v);
+      if (vars.size) out.push(`E(환경): 강원대 물적환경 회귀분석 유의 변수 ${vars.size}종의 계수 × 시설 밀도·거리`);
+    }
+    out.push('A(행위·관리): 반복 발생 지점 · 야간(22~06시) 비중 · 발생 장소 편중');
+    out.push(`점수: ${data.shortLabel || data.label} 안의 상대 순위(0~100)`);
+    out.push(DISCLAIMER);
+    return out;
+  }
+
+  /** 지도 채움 — 축마다 색 하나, 진하기(투명도)로 점수를 보입니다. 색은 HEA 색 구분(theme.css)과 같게 */
+  const FILL_COLOR = { H: '#D83D64', E: '#333333', A: '#2793C9', total: '#000000' };
+  const FILL_MIN = 0.06, FILL_MAX = 0.62;
+  function fillOf(mode, score) {
+    if (score === null || score === undefined) return { color: FILL_COLOR[mode] || '#000000', opacity: 0 };
+    return { color: FILL_COLOR[mode] || '#000000', opacity: FILL_MIN + (FILL_MAX - FILL_MIN) * Math.max(0, Math.min(100, score)) / 100 };
+  }
+
+  /** 이 지자체에 점수가 하나라도 있는가 — 없으면 화면에서 기능 자체를 감춥니다 */
+  function hasAnyScore(data, axis) {
+    return !!(data && data.dongs && data.dongs.some((d) => (axis ? [axis] : ['H', 'E', 'A', 'total']).some((k) => d.scores[k] !== null && d.scores[k] !== undefined)));
+  }
+
+  /** 화면·문서 공통 머리말 — 기준이 임시라는 사실과 자료 상태 (지금은 웹에 쓰지 않음) */
   function caveats(data) {
     if (!data) return [];
     const out = [
@@ -229,7 +270,8 @@ const AuriDongHea = (function () {
     return out;
   }
 
-  return { load, AXES, INDICATORS, band, eStatusText, eCoverageText, emptyReason, axisReason, scoreSummary, hBasis, hText, evidence, caveats };
+  return { load, AXES, INDICATORS, band, eStatusText, eCoverageText, emptyReason, axisReason, scoreSummary, hBasis, hText, evidence, caveats,
+    basisNotes, fillOf, FILL_COLOR, hasAnyScore, DISCLAIMER };
 })();
 
 if (typeof window !== 'undefined') window.AuriDongHea = AuriDongHea;
