@@ -94,6 +94,14 @@
   .hea-legend[hidden]{display:none}
   .hea-legend i{display:block; width:140px; height:10px; border:1px solid var(--g1)}
   .hea-legend em{font-style:normal; color:var(--g2); margin-left:8px}
+  /* 지도 위 동 이름 + 점수 — 채움 위에 흰 테두리 글자로 읽히게 */
+  .hea-lbl{
+    transform:translate(-50%,-50%); white-space:nowrap; text-align:center; cursor:pointer;
+    font-family:Pretendard,sans-serif; line-height:1.15; pointer-events:auto;
+    text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;
+  }
+  .hea-lbl .nm{display:block; font-size:11px; color:#333}
+  .hea-lbl b{display:block; font-size:17px; font-weight:800}
   /* 마지막 줄 = 구현 중 문구 */
   .hea-notes li:last-child{color:var(--g2)}
   .hea-notes li:last-child::before{content:''}
@@ -522,6 +530,16 @@ function setHeaMode(mode) {
       }
       _hea.lines.push(shape);
     }
+    /* 동 가운데에 이름 + 점수 숫자 (색은 상위·중위·하위). 점수 없는 동은 글자를 올리지 않음 */
+    if (!d.center || score === null || score === undefined) continue;
+    const bd = AuriDongHea.band(score);
+    const m = new naver.maps.Marker({
+      map: _map, position: new naver.maps.LatLng(d.center[0], d.center[1]),
+      icon: { content: `<div class="hea-lbl"><span class="nm">${d.name}</span><b style="color:${bd.color}">${score}</b></div>`, anchor: new naver.maps.Point(0, 0) },
+      zIndex: 50,
+    });
+    naver.maps.Event.addListener(m, 'click', () => showHeaInfo(d, m));
+    _hea.labels.push(m);
   }
 }
 
