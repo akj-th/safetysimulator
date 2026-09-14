@@ -240,14 +240,17 @@ img[hidden]{display:none !important}
   <div class="page-head screen-only" style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; max-width:none; flex-wrap:wrap">
     <div style="max-width:720px">
       <h1>진단 문서</h1>
-      <p class="sub">사전진단서는 AURI 양식 그대로, 현장용 리포트는 현장에서 볼 것만 담습니다. 인쇄하면 지금 보고 있는 문서만 나옵니다.</p>
+      <p class="sub">현장용 리포트로 현장에 나가기 전 확인할 것을 먼저 보고, 사전진단서는 AURI 양식 그대로 그다음에 정리합니다. 인쇄하면 지금 보고 있는 문서만 나옵니다.</p>
     </div>
     <button class="btn ghost" onclick="window.print()">인쇄 / PDF 저장</button>
   </div>
 
+  <!-- ★ 순서: 현장용 리포트 → 사전진단서 (2026-09-14 AURI 회의)
+       "현장에 나가기 전 예비 확인을 먼저 하고, 사전진단서가 그다음 결과로 나오는 순서가 맞다"
+       안쪽 이름(A=사전진단서, B=현장용)은 그대로 두고 보이는 순서와 첫 선택만 바꿨습니다. -->
   <div class="doc-tabs screen-only">
-    <button type="button" class="doc-tab on" id="tabA" onclick="showDoc('a')">사전진단서</button>
-    <button type="button" class="doc-tab" id="tabB" onclick="showDoc('b')">현장용 리포트</button>
+    <button type="button" class="doc-tab on" id="tabB" onclick="showDoc('b')">현장용 리포트</button>
+    <button type="button" class="doc-tab" id="tabA" onclick="showDoc('a')">사전진단서</button>
   </div>
 
   <p class="note screen-only" id="docNote">
@@ -255,13 +258,14 @@ img[hidden]{display:none !important}
     <span id="docNoteText"></span>
   </p>
 
-  <div class="doc" id="docA"></div>
-  <div class="doc" id="docB" hidden></div>
+  <div class="doc" id="docB"></div>
+  <div class="doc" id="docA" hidden></div>
 
-  <div class="print-foot" id="printFoot">지자체 사전진단서</div>
+  <div class="print-foot" id="printFoot">현장 확인 리포트</div>
 </main>
 
 <script src="assets/ui.js"></script>
+<script src="assets/auth.js"></script>
 <script src="assets/risk-weights.js"></script>
 <script src="assets/palette.js"></script>
 <script src="assets/stats.js"></script>
@@ -769,10 +773,10 @@ function fieldReport() {
         ${after ? `<img src="${after}" alt="개선 후">`
           : '<div class="slot">개선 후 이미지 없음 — 4단계에서 생성하십시오</div>'}
         <figcaption>개선 후 (사업 반영)</figcaption>
-        <div class="ba-disclaimer">
-          AI가 생성한 참고용 예시 이미지로, 실제 시공 결과를 보장하지 않습니다.
-        </div>
       </figure>
+      <!-- 면책 문구는 개선 전/후 두 장 아래에 **항상** 붙습니다 — 이미지가 아직 없어도,
+           인쇄해도 (2026-09-14). 문구는 assets/ui.js 의 AURI_AI_DISCLAIMER 한 곳. -->
+      <div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>
     </div>
   </section>
 
@@ -1078,7 +1082,7 @@ window.addEventListener('load', async function () {
   const rxRaw = sessionStorage.getItem('auri_prescriptions');
 
   if (!loc || !resultsRaw) {
-    document.getElementById('docA').innerHTML =
+    document.getElementById('docB').innerHTML =
       '<div class="doc-empty">진단 데이터가 없습니다.<br>위치 선택 → 진단 → 종합 리포트 순서로 진행해 주세요.</div>';
     document.querySelector('.doc-tabs').style.display = 'none';
     return;
@@ -1091,7 +1095,7 @@ window.addEventListener('load', async function () {
   _stats = await AuriStats.load(Number(_picked.lat), Number(_picked.lng));
   _national = await AuriStats.loadNational();
   if (!_stats) {
-    document.getElementById('docA').innerHTML =
+    document.getElementById('docB').innerHTML =
       '<div class="doc-empty">이 지점의 지자체 통계를 불러오지 못했습니다.</div>';
     return;
   }
@@ -1101,7 +1105,7 @@ window.addEventListener('load', async function () {
   document.title = `지자체 사전진단서 — ${_data.shortLabel}`;
 
   renderAll();
-  showDoc('a');
+  showDoc('b');     // 처음 여는 탭은 현장용 리포트 (2026-09-14)
 });
 </script>
 </body>

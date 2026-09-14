@@ -92,7 +92,17 @@ async function auriCallServer(path, payload, retried) {
 
   const data = await res.json();
 
-  /* 접속 암호를 쓰는 서버면 한 번만 물어보고 저장합니다 */
+  /* 계정 로그인이 만료됐으면 로그인 화면으로 (2026-09-14).
+     지금 탭의 진단 자료(sessionStorage)는 그대로 두므로 다시 로그인하면 이어서 할 수 있습니다. */
+  if (res.status === 401 && data.needLogin) {
+    alert('로그인 시간이 만료되었습니다. 다시 로그인해 주세요.');
+    if (window.AuriAuth) window.AuriAuth.goLogin('expired');
+    else location.href = 'login.html?expired=1';
+    throw Object.assign(new Error('로그인이 필요합니다.'), { shown: true });
+  }
+
+  /* 접속 암호를 쓰는 서버면 한 번만 물어보고 저장합니다
+     (AUTH_MODE=code 로 되돌렸을 때만 쓰입니다) */
   if (res.status === 401 && data.needCode) {
     localStorage.removeItem('auri_access_code');
     if (retried) throw Object.assign(new Error('접속 암호가 올바르지 않습니다.'), { shown: true });
@@ -103,8 +113,21 @@ async function auriCallServer(path, payload, retried) {
   }
 
   if (!res.ok) throw Object.assign(new Error(data.error || `서버 오류 (HTTP ${res.status})`), { shown: true });
+  /* AI 기능을 쓰면 서버가 로그인 시간을 30분으로 되돌립니다 — 화면의 남은 시간도 맞춥니다 */
+  if (window.AuriAuth) window.AuriAuth.refresh();
   return data;
 }
+
+/* ── AI 생성 이미지 면책 문구 (2026-09-14 AURI 회의) ─────────────────
+   개선 후 이미지가 나오는 모든 자리(시각화 · 현장용 리포트)와 인쇄물에 붙습니다.
+   문구는 **여기 한 곳**에만 적습니다 — 화면마다 따로 적으면 서로 달라집니다.
+
+   배경: 자문회의에서 교통 전문가가 회전교차로 사진에 횡단보도가 그려진 것을
+   지적했습니다(회전교차로에는 보통 두지 않음). 생성 모델은 법규를 모르므로
+   법령에 맞지 않는 배치가 나올 수 있다는 점을 늘 적어 둡니다. */
+const AURI_AI_DISCLAIMER =
+  'AI가 생성한 참고용 예시 이미지입니다. 시설물의 종류·위치·규격은 ' +
+  '관계 법령 및 설치기준에 따른 전문가 검토가 필요합니다.';
 
 /* 9단계 눈금 그리기. 채워진 칸 수가 단계입니다. */
 function auriScaleHTML(step) {

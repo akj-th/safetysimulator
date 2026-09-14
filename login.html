@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로그인 — 안전사업지구 진단 시뮬레이터</title>
+
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+/* ════════════════════════════════════════════════════════════════════
+   로그인 · 가입 신청 (2026-09-14)
+
+   이 화면만 로그인 없이 열립니다. 나머지 화면은 서버가 로그인을 확인한
+   뒤에만 내줍니다(server.js). 가입 신청은 관리자가 승인해야 쓸 수 있습니다.
+   ════════════════════════════════════════════════════════════════════ */
+.login-wrap{max-width:460px; margin:0 auto; padding:64px var(--gutter) 96px}
+.login-brand{display:flex; flex-direction:column; gap:14px; margin-bottom:34px}
+.login-brand img{height:34px; width:auto; align-self:flex-start}
+.login-brand .sub{margin-top:0}
+
+.login-tabs{display:flex; border-bottom:1px solid var(--g1); margin-bottom:26px}
+.login-tab{
+  padding:12px 20px 12px 0; margin-right:22px; border:none; background:none; cursor:pointer;
+  font-family:inherit; font-size:var(--fs-body); color:var(--g2);
+  border-bottom:2px solid transparent; margin-bottom:-1px;
+}
+.login-tab.on{color:var(--k); font-weight:700; border-bottom-color:var(--k)}
+
+.fld{margin-bottom:16px}
+.fld label{display:block; font-size:var(--fs-sm); font-weight:700; color:var(--k); margin-bottom:7px}
+.fld .hint{font-size:var(--fs-cap); color:var(--g2); margin-top:5px; line-height:1.6}
+.form-foot{margin-top:24px}
+.form-foot .btn{width:100%}
+
+/* 안내 줄 — 박스 없이 위아래 선으로만 */
+.msg{padding:12px 0; margin:0 0 20px; border-top:1px solid var(--g1); border-bottom:1px solid var(--g1);
+  font-size:var(--fs-sm); line-height:1.7; color:var(--g4)}
+.msg.err{color:var(--main); border-color:var(--main)}
+.msg.ok{color:var(--k); border-color:var(--k)}
+
+.login-note{margin-top:40px; font-size:var(--fs-cap); color:var(--g2); line-height:1.8}
+</style>
+</head>
+<body>
+
+<main class="login-wrap">
+  <div class="login-brand">
+    <img src="assets/logo_auri.svg" alt="건축공간연구원 AURI">
+    <h1>안전사업지구 진단 시뮬레이터</h1>
+    <p class="sub">승인된 계정으로만 이용할 수 있습니다.</p>
+  </div>
+
+  <div id="msg" class="msg" hidden></div>
+
+  <div class="login-tabs" id="tabs">
+    <button type="button" class="login-tab on" data-tab="login">로그인</button>
+    <button type="button" class="login-tab" data-tab="signup">가입 신청</button>
+  </div>
+
+  <!-- 로그인 -->
+  <form id="loginForm" autocomplete="on">
+    <div class="fld">
+      <label for="lgId">아이디</label>
+      <input type="text" id="lgId" name="username" autocomplete="username" required>
+    </div>
+    <div class="fld">
+      <label for="lgPw">비밀번호</label>
+      <input type="password" id="lgPw" name="password" autocomplete="current-password" required>
+    </div>
+    <div class="form-foot"><button class="btn" type="submit" id="lgBtn">로그인</button></div>
+  </form>
+
+  <!-- 가입 신청 -->
+  <form id="signupForm" hidden>
+    <div class="fld">
+      <label for="suId">아이디</label>
+      <input type="text" id="suId" autocomplete="username" required>
+      <div class="hint">영문·숫자·_ . - 로 4~30자</div>
+    </div>
+    <div class="fld">
+      <label for="suPw">비밀번호</label>
+      <input type="password" id="suPw" autocomplete="new-password" required>
+      <div class="hint">8자 이상</div>
+    </div>
+    <div class="fld">
+      <label for="suPw2">비밀번호 확인</label>
+      <input type="password" id="suPw2" autocomplete="new-password" required>
+    </div>
+    <div class="fld">
+      <label for="suName">이름</label>
+      <input type="text" id="suName" autocomplete="name" required>
+    </div>
+    <div class="fld">
+      <label for="suOrg">소속</label>
+      <input type="text" id="suOrg" autocomplete="organization" placeholder="예) 건축공간연구원, ○○시 안전총괄과" required>
+    </div>
+    <div class="form-foot"><button class="btn" type="submit" id="suBtn">가입 신청</button></div>
+  </form>
+
+  <p class="login-note">
+    가입 신청 후 관리자가 승인하면 로그인할 수 있습니다.<br>
+    로그인은 마지막 사용 후 30분이 지나면 자동으로 끝납니다.<br>
+    접속 기록(계정·시각·IP)과 진단 실행 기록(계정·시각·위치)이 남습니다.
+  </p>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+function showMsg(text, kind) {
+  const el = $('msg');
+  el.textContent = text;
+  el.className = 'msg' + (kind ? ' ' + kind : '');
+  el.hidden = !text;
+}
+
+function setTab(tab) {
+  document.querySelectorAll('.login-tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
+  $('loginForm').hidden = tab !== 'login';
+  $('signupForm').hidden = tab !== 'signup';
+}
+$('tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tab]');
+  if (b) { setTab(b.dataset.tab); showMsg(''); }
+});
+
+/* 로그인 뒤 돌아갈 곳 — 우리 사이트 안의 주소만 받습니다.
+   `//다른사이트` 같은 값으로 밖으로 내보내는 것을 막습니다. */
+function nextUrl() {
+  const n = new URLSearchParams(location.search).get('next') || '';
+  return /^\/(?!\/)[^\s]*$/.test(n) && !n.startsWith('/login.html') ? n : 'index.html';
+}
+
+async function post(url, body) {
+  const res = await fetch(url, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  });
+  let data = {};
+  try { data = await res.json(); } catch (e) { /* 본문 없음 */ }
+  return { res, data };
+}
+
+$('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('lgBtn');
+  btn.disabled = true;
+  showMsg('');
+  try {
+    const username = $('lgId').value.trim();
+    const { res, data } = await post('/api/auth/login', { username, password: $('lgPw').value });
+    if (!res.ok) {
+      showMsg(data.error || '로그인하지 못했습니다.', 'err');
+      if (res.status !== 403) $('lgPw').value = '';
+      return;
+    }
+    /* 다른 계정으로 바꿔 들어오면 이 탭에 남은 앞사람 진단 자료를 지웁니다 */
+    const last = sessionStorage.getItem('auri_last_user');
+    if (last && last !== data.user.username) {
+      Object.keys(sessionStorage).filter((k) => k.startsWith('auri_')).forEach((k) => sessionStorage.removeItem(k));
+    }
+    sessionStorage.setItem('auri_last_user', data.user.username);
+    location.href = nextUrl();
+  } catch (err) {
+    showMsg('서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$('signupForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if ($('suPw').value !== $('suPw2').value) { showMsg('비밀번호 확인이 일치하지 않습니다.', 'err'); return; }
+  const btn = $('suBtn');
+  btn.disabled = true;
+  showMsg('');
+  try {
+    const { res, data } = await post('/api/auth/signup', {
+      username: $('suId').value.trim(), password: $('suPw').value,
+      name: $('suName').value.trim(), org: $('suOrg').value.trim(),
+    });
+    if (!res.ok) { showMsg(data.error || '가입 신청을 접수하지 못했습니다.', 'err'); return; }
+    $('signupForm').reset();
+    setTab('login');
+    showMsg(data.message || '가입 신청이 접수되었습니다. 관리자 승인 후 로그인할 수 있습니다.', 'ok');
+  } catch (err) {
+    showMsg('서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* 처음 열 때 — 이미 로그인돼 있거나, 계정 방식이 꺼져 있으면 바로 넘어갑니다 */
+(async function () {
+  const q = new URLSearchParams(location.search);
+  if (q.get('expired')) showMsg('로그인 시간이 만료되었습니다. 다시 로그인해 주세요.');
+  if (q.get('logout')) showMsg('로그아웃되었습니다.', 'ok');
+  try {
+    const me = await (await fetch('/api/auth/me', { cache: 'no-store' })).json();
+    if (me.mode !== 'account') { location.replace(nextUrl()); return; }
+    if (me.ready === false) {
+      showMsg('로그인 설정이 끝나지 않아 지금은 이용할 수 없습니다. 관리자에게 문의해 주세요.', 'err');
+      document.querySelectorAll('form button').forEach((b) => { b.disabled = true; });
+      return;
+    }
+    if (me.user) location.replace(nextUrl());
+  } catch (e) {
+    showMsg('서버에 연결하지 못했습니다.', 'err');
+  }
+  $('lgId').focus();
+})();
+</script>
+</body>
+</html>

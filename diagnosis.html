@@ -142,6 +142,7 @@
 </main>
 
 <script src="assets/ui.js"></script>
+<script src="assets/auth.js"></script>
 <script>
 let _pano = null;
 let _panoPov = null;
@@ -423,6 +424,15 @@ function showServerError(err) {
 
 /* ── AI 진단 실행 ───────────────────────────────────────────────── */
 
+/* 진단 실행 기록에 남길 위치 (2026-09-14 — 누가 언제 어느 지점을 진단했는지).
+   좌표와 주소만 보냅니다. 서버가 주소로 지자체 이름을 찾아 함께 적습니다. */
+function pickedForLog() {
+  try {
+    const p = JSON.parse(sessionStorage.getItem('auri_picked_location') || 'null');
+    return p ? { lat: p.lat, lng: p.lng, addr: p.addr || '' } : null;
+  } catch (e) { return null; }
+}
+
 async function runDiagnosis() {
   if (_busy) return;
   if (!inputImage) { showCaptureError('먼저 스트리트뷰를 캡처하거나 사진을 업로드해 주세요.'); return; }
@@ -434,7 +444,7 @@ async function runDiagnosis() {
     '<div class="loading">AI가 사진을 판독하고 있습니다. 20초 정도 걸립니다.</div>';
 
   try {
-    const data = await auriCallServer('/api/diagnose', { imageDataUrl: inputImage.dataUrl });
+    const data = await auriCallServer('/api/diagnose', { imageDataUrl: inputImage.dataUrl, location: pickedForLog() });
     renderResults(toResults(data));
     setTag(data.imageQuality === 'unusable' ? 'AI 판독 · 이미지 부적합' : 'AI 판독 결과');
     if (data.imageQuality === 'unusable') {
@@ -485,7 +495,7 @@ async function sendRevise() {
 
   try {
     const data = await auriCallServer('/api/revise', {
-      imageDataUrl: inputImage.dataUrl, previous: previous, note: note,
+      imageDataUrl: inputImage.dataUrl, previous: previous, note: note, location: pickedForLog(),
     });
 
     const results = toResults(data).map(function (r) {

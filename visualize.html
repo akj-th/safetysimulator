@@ -116,14 +116,15 @@
       <span class="tag pending" id="afterTag">생성 중</span>
     </div>
     <img class="ba-img" id="afterImg" alt="개선 후 이미지" style="display:none">
-    <!-- AURI 화상회의(2026-09-07) 요구 — 생성 이미지에는 반드시 이 문구가 따라붙습니다.
-         진단서 서식4(document.html)에도 같은 문구가 들어갑니다. -->
-    <div class="ba-disclaimer" id="afterNote" style="display:none">AI가 생성한 참고용 예시 이미지로, 실제 시공 결과를 보장하지 않습니다.</div>
+    <!-- 생성 이미지 자리에는 이 문구가 **항상** 보입니다 (09-07 → 09-14 상시 표기로 강화).
+         생성 중에도 · 실패해도 떠 있습니다. 글은 assets/ui.js 의 AURI_AI_DISCLAIMER 로 채웁니다.
+         현장용 리포트(document.html)에도 같은 문구가 들어갑니다. -->
     <div class="ba-blank" id="afterBlank">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
       <div class="t" id="afterMsg">이미지를 만들고 있습니다</div>
       <div class="m" id="afterSub">30초 정도 걸립니다.</div>
     </div>
+    <div class="ba-disclaimer" id="afterNote"></div>
     <!-- 고쳤으면 하는 점을 적어 다시 만드는 칸 -->
     <div class="revise-box" id="tweakBox" style="display:none">
       <div class="lab">어떻게 고쳤으면 하나요?</div>
@@ -170,6 +171,7 @@
 </main>
 
 <script src="assets/ui.js"></script>
+<script src="assets/auth.js"></script>
 <script src="assets/palette.js"></script>
 <script src="assets/rules.js"></script>
 <script src="assets/rx-editor.js"></script>
@@ -225,7 +227,6 @@ async function generateAfter(useNote) {
   _generating = true;
   panel.style.display = 'block';
   img.style.display = 'none';
-  document.getElementById('afterNote').style.display = 'none';
   blank.style.display = 'flex';
   document.getElementById('afterMsg').textContent =
     note ? '요청하신 대로 고치고 있습니다' : '이미지를 만들고 있습니다';
@@ -256,7 +257,6 @@ async function generateAfter(useNote) {
     _lastGenerated = data.dataUrl;
     img.src = data.dataUrl;
     img.style.display = 'block';
-    document.getElementById('afterNote').style.display = '';
     blank.style.display = 'none';
     document.getElementById('afterTag').textContent =
       (data.model || '생성 완료') + (fromGenerated ? ' · 이어서 수정' : '');
@@ -317,6 +317,7 @@ function showNonVisualNote(items) {
 }
 
 window.addEventListener('load', async function () {
+  document.getElementById('afterNote').textContent = AURI_AI_DISCLAIMER;   // 면책 문구 (ui.js 한 곳)
   await AuriPalette.load();   // 사업 이름·HEA·금액이 여기서 옵니다
   const loc = sessionStorage.getItem('auri_picked_location');
   const rxRaw = sessionStorage.getItem('auri_prescriptions');

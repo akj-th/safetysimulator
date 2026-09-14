@@ -20,6 +20,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 import { CATEGORIES, SCORING_GUIDE } from './checklist.js';
 import { legalBlock, PENDING } from './legal.js';
+import * as auth from './auth.js';
 
 const PORT = process.env.PORT || 8787;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -33,18 +34,31 @@ const DAILY_LIMIT = Number(process.env.DAILY_LIMIT || 200);        // 하루 전
 const HOURLY_LIMIT_PER_IP = Number(process.env.HOURLY_LIMIT_PER_IP || 20); // 한 사람당 1시간
 
 /* 접속 암호 (선택). 환경변수 ACCESS_CODE 를 정해 두면 그 암호를 아는
-   사람만 AI 진단을 쓸 수 있습니다. 비워 두면 누구나 쓸 수 있습니다. */
+   사람만 AI 진단을 쓸 수 있습니다. 비워 두면 누구나 쓸 수 있습니다.
+
+   ⏸ 2026-09-14 부터 **쓰지 않습니다** — 계정 로그인(AUTH_MODE=account)으로
+   바뀌었습니다. 지우지 않고 남겨 둔 것은 되돌리기 위해서입니다.
+   계정 방식에 문제가 생기면 렌더 환경변수 AUTH_MODE 를 code 로 바꾸면
+   이 암호 방식이 그대로 다시 켜집니다. */
 const ACCESS_CODE = process.env.ACCESS_CODE || '';
+
+/* ── 접근통제 방식 (2026-09-14) ───────────────────────────────────────
+     account  계정 로그인 + 관리자 승인 (기본값, 렌더 PostgreSQL 필요)
+     code     예전 접속 암호(ACCESS_CODE) 방식 — **되돌리기용**
+     off      아무것도 확인하지 않음 — **내 컴퓨터에서 개발할 때만**
+
+   ★ account 인데 DB 에 연결하지 못하면 사이트를 **닫습니다.**
+     열어 둔 채로 두면 로그인 없이 누구나 들어오기 때문입니다.
+     조용히 열리는 것보다 "설정이 끝나지 않았다"고 닫히는 편이 안전합니다. */
+const AUTH_MODE = ['account', 'code', 'off'].includes(process.env.AUTH_MODE)
+  ? process.env.AUTH_MODE : 'account';
 
 let _day = '';
 let _dayCount = 0;
 const _ipHits = new Map();
 
-function clientIp(req) {
-  // 배포 서비스는 실제 접속자 IP를 이 헤더에 담아 전달합니다
-  const fwd = req.headers['x-forwarded-for'];
-  return (fwd ? String(fwd).split(',')[0] : req.socket.remoteAddress || '').trim();
-}
+/* 접속자 IP — 요금 상한·로그인 기록이 **같은 방식**으로 읽도록 auth.js 한 곳에 둡니다 */
+const clientIp = auth.clientIp;
 
 function checkQuota(req) {
   const today = new Date().toISOString().slice(0, 10);
@@ -71,6 +85,33 @@ function checkQuota(req) {
   _ipHits.set(ip, hits);
   _dayCount++;
   console.log(`  · 오늘 누적 ${_dayCount}/${DAILY_LIMIT}회`);
+}
+
+/* ── AI 기능 문지기 ─────────────────────────────────────────────────
+   진단·재판독·이미지 생성·의견 초안이 모두 이 함수 하나를 거칩니다.
+   통과하면 로그인한 사람 정보를, 막히면 null 을 돌려주고 응답도 여기서 보냅니다.
+   (예전에는 세 곳에 접속 암호 확인이 흩어져 있었습니다) */
+async function guardApi(req, res) {
+  if (AUTH_MODE === 'off') return { user: null };
+
+  if (AUTH_MODE === 'code') {
+    if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) {
+      sendJson(res, 401, { error: '접속 암호가 필요합니다.', needCode: true });
+      return null;
+    }
+    return { user: null };
+  }
+
+  if (!auth.authReady()) {
+    sendJson(res, 503, { error: '로그인 설정이 끝나지 않아 사용할 수 없습니다. 관리자에게 문의해 주세요.' });
+    return null;
+  }
+  const user = await auth.currentUser(req, { touch: true });
+  if (!user) {
+    sendJson(res, 401, { error: '로그인이 만료되었습니다. 다시 로그인해 주세요.', needLogin: true });
+    return null;
+  }
+  return { user };
 }
 
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -425,9 +466,7 @@ async function callOpinionAI(promptText) {
 }
 
 async function handleOpinion(req, res) {
-  if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) {
-    return sendJson(res, 401, { error: '접속 암호가 필요합니다.', needCode: true });
-  }
+  if (!(await guardApi(req, res))) return;
   checkQuota(req);
 
   const body = await readJsonBody(req);
@@ -525,10 +564,23 @@ PRESERVE EVERYTHING ELSE
 The scene is a Korean urban street.`;
   }
 
+  /* ── 강조 정도 (2026-09-14 조정) ──────────────────────────────────
+     08-03 알파 (8b7cdb0)  눈에 띄게 하라는 말 없음 → "차이가 잘 안 보인다"
+     09-04 강화 (d184b46)  한눈에 · 크게 · 고대비 색 · 밝은 조명 웅덩이 → "너무 튀어 주변과 안 어울린다"
+     09-14 (지금)  그 사이 — 전후를 나란히 놓으면 **알아볼 수 있는** 정도,
+                   재질·채도·밝기·선명도는 **주변 사진에 맞춤**
+
+     강화판에서 과하게 만든 문구 네 개만 낮췄습니다.
+       ① "obvious at a glance / where the viewer looks first" → 보이는 자리이되 실제 설치 위치 우선
+       ② "Err on the larger end"                             → 실제 크기 그대로
+       ③ "finishes, which are already high-contrast"        → 표준 디자인·색 + 사진의 노출·채도에 맞춤
+       ④ "a brighter pool of light"                          → 은은하고 자연스러운 정도, 번짐·후광 금지
+     원본을 어둡게·흐리게 해서 대비를 만드는 것은 **계속 금지**입니다.            */
   return `You are producing an "after improvement" visualization for a Korean public safety
 report. The image sits next to the "before" photo in an official document, so it must
-satisfy two things at once: the background must be untouched, and the newly installed
-facilities must be obvious at a glance.
+satisfy two things at once: the background must be untouched, and the added facilities
+must be identifiable when the two photos are compared side by side — while looking like
+they genuinely belong in this street.
 
 TASK
 Edit the provided street photograph by adding ONLY the safety facilities listed below.${request}
@@ -543,20 +595,29 @@ PRESERVE THE ORIGINAL — this is the most important requirement:
 FACILITIES TO ADD
 ${list}
 
-MAKE THE CHANGE CLEARLY VISIBLE — reviewers said the before/after difference was too
-subtle to see. Within the "preserve the original" limits above:
-- Put each facility in the foreground or middle ground where the viewer looks first,
-  not far away at the edge of the frame. It must read at a glance, not on close study.
-- Size it as it would really be built. Err on the larger end of the realistic range.
-- Use the standard Korean public-facility finishes, which are already high-contrast:
-  safety-yellow and grey bollards and handrails, white and yellow road markings,
-  green or blue guide signage, galvanised steel posts, red fire equipment.
-- If a lighting facility is added, show its effect — a brighter pool of light on the
-  road surface under it. This is the one lighting change you may make; do not relight
-  the rest of the scene.
-- Do not achieve contrast by darkening, blurring, desaturating or vignetting the
-  original scene. The only difference between before and after must be the facilities
-  themselves.
+KEEP THE FACILITIES IDENTIFIABLE — reviewers need to find the change by comparing the
+two photos. Within the "preserve the original" limits above:
+- Choose a realistic installation point that is clearly in view — not tiny in the far
+  distance and not cut off at the frame edge. A realistic location comes first.
+- Size each facility exactly as it would really be built. Do not enlarge it.
+- Use the ordinary Korean public design and standard colours for these facilities.
+
+BLEND WITH THE SCENE — reviewers said the previous version stood out too much and did not
+harmonise with its surroundings. The facilities must look installed, not pasted on:
+- Match the photo's exposure, white balance, colour saturation, contrast, haze and
+  sharpness. A facility must not be brighter, more saturated or crisper than the
+  objects next to it at the same distance.
+- Match material and condition to the nearby street furniture: the same matte or
+  weathered surfaces, light dust and wear. No glossy highlights, no fresh-paint look,
+  no showroom-new finish.
+- Match the photo's grain, noise, compression and depth of field.
+- Cast shadows and reflections consistent with the existing light direction and softness.
+- If a lighting facility is added, show only a modest, natural increase in light on the
+  ground directly beneath it, consistent with the scene's time of day. No glow, halo,
+  bloom or spotlight effect, and do not relight the rest of the scene.
+- Do not make a facility stand out by boosting its own brightness or saturation, and do
+  not create contrast by darkening, blurring, desaturating or vignetting the original
+  scene. The only difference between before and after must be the facilities themselves.
 
 HOW TO ADD THEM
 - Place each facility where it would realistically be installed on this street.
@@ -700,9 +761,7 @@ async function handleGenerate(req, res) {
              'OPENAI_API_KEY 를 채운 뒤 서버를 다시 켜 주세요.',
     });
   }
-  if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) {
-    return sendJson(res, 401, { error: '접속 암호가 필요합니다.', needCode: true });
-  }
+  if (!(await guardApi(req, res))) return;
   checkQuota(req);
 
   const body = await readJsonBody(req);
@@ -732,10 +791,8 @@ async function handleGenerate(req, res) {
 }
 
 async function handleDiagnose(req, res, isRevise) {
-  // 접속 암호를 정해 둔 경우에만 확인합니다
-  if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) {
-    return sendJson(res, 401, { error: '접속 암호가 필요합니다.', needCode: true });
-  }
+  const gate = await guardApi(req, res);
+  if (!gate) return;
   checkQuota(req);
 
   const body = await readJsonBody(req);
@@ -757,6 +814,13 @@ async function handleDiagnose(req, res, isRevise) {
   } else {
     console.log(`[진단 요청] ${mediaType}, ${Math.round(base64Data.length / 1024)}KB`);
     promptText = buildPrompt();
+  }
+
+  /* 진단 실행 기록 — 누가 · 언제 · 어느 지점 (8/25 협의 "접근통제").
+     요청이 제대로 갖춰진 뒤, AI 를 부르기 **직전**에 남깁니다.
+     AI 호출이 실패해도 "진단을 시도했다"는 사실은 남아야 하기 때문입니다. */
+  if (AUTH_MODE === 'account') {
+    await auth.logDiagnosis(req, gate.user, isRevise ? 'revise' : 'diagnose', body.location, SITE_ROOT);
   }
 
   const raw = await callAI(mediaType, base64Data, promptText);
@@ -880,6 +944,101 @@ function isAllowed(relPath) {
   });
 }
 
+/* 로그인 전에도 내줄 수 있는 것 — 로그인 화면이 뜨는 데 필요한 만큼만 */
+function isPublicPath(rel) {
+  if (rel === 'login.html') return true;
+  return rel.startsWith('assets/') && ['.css', '.js', '.svg', '.png', '.jpg'].includes(path.extname(rel).toLowerCase());
+}
+
+/* DB 에 연결하지 못했을 때 모든 화면 대신 보여 주는 안내 */
+const SETUP_PAGE = `<!doctype html><meta charset="utf-8"><title>설정 필요</title>
+<body style="font-family:Pretendard,sans-serif;max-width:640px;margin:80px auto;padding:0 24px;line-height:1.7;color:#333">
+<h1 style="font-size:24px">로그인 설정이 끝나지 않았습니다</h1>
+<p>계정 로그인(AUTH_MODE=account)이 켜져 있지만 데이터베이스에 연결하지 못했습니다.
+로그인 없이 열리지 않도록 화면을 닫아 두었습니다.</p>
+<p style="font-size:14px;color:#666">관리자: 렌더 웹 서비스의 Environment 에 <b>DATABASE_URL</b> 이 있는지,
+DB 가 Available 상태인지 확인해 주세요. 급하면 <b>AUTH_MODE=code</b> 로 바꾸면 예전 접속 암호 방식으로 돌아갑니다.</p>
+</body>`;
+
+/* ── 계정 · 관리자 API ─────────────────────────────────────────────── */
+async function handleAuthApi(req, res, pathname) {
+  if (pathname === '/api/auth/me' && req.method === 'GET') {
+    /* 방식이 무엇인지 화면에 알려 줍니다 — code/off 면 화면이 계정 표시를 감춥니다 */
+    if (AUTH_MODE !== 'account') return sendJson(res, 200, { mode: AUTH_MODE, user: null });
+    if (!auth.authReady()) return sendJson(res, 200, { mode: AUTH_MODE, ready: false, user: null });
+    const user = await auth.currentUser(req, { touch: false });
+    return sendJson(res, 200, {
+      mode: AUTH_MODE, ready: true, user: user, serverNow: new Date(),
+      expiresAt: user ? user.expiresAt : null, sessionMinutes: auth.SESSION_MINUTES,
+    });
+  }
+
+  if (AUTH_MODE !== 'account') return sendJson(res, 404, { error: '계정 로그인이 꺼져 있습니다.' });
+  if (!auth.authReady()) return sendJson(res, 503, { error: '로그인 설정이 끝나지 않았습니다. 관리자에게 문의해 주세요.' });
+
+  if (req.method === 'POST' && pathname === '/api/auth/login') {
+    const r = await auth.login(req, res, await readJsonBody(req));
+    const { status, ...body } = r;
+    return sendJson(res, status, body);
+  }
+  if (req.method === 'POST' && pathname === '/api/auth/signup') {
+    const { status, ...body } = await auth.signup(await readJsonBody(req));
+    return sendJson(res, status, body);
+  }
+  if (req.method === 'POST' && pathname === '/api/auth/logout') {
+    await auth.logout(req, res);
+    return sendJson(res, 200, { ok: true });
+  }
+  if (req.method === 'POST' && pathname === '/api/auth/extend') {
+    const user = await auth.currentUser(req, { touch: true });
+    if (!user) return sendJson(res, 401, { error: '로그인이 만료되었습니다.', needLogin: true });
+    return sendJson(res, 200, { ok: true, expiresAt: user.expiresAt, serverNow: new Date() });
+  }
+
+  /* 여기부터 관리자만 */
+  if (pathname.startsWith('/api/admin/')) {
+    const admin = await auth.currentUser(req, { touch: true });
+    if (!admin) return sendJson(res, 401, { error: '로그인이 만료되었습니다.', needLogin: true });
+    if (admin.role !== 'admin') return sendJson(res, 403, { error: '관리자만 쓸 수 있습니다.' });
+
+    const url = new URL(req.url, 'http://localhost');
+    if (req.method === 'GET' && pathname === '/api/admin/users') {
+      return sendJson(res, 200, { users: await auth.listUsers() });
+    }
+    if (req.method === 'POST' && pathname === '/api/admin/users/action') {
+      const b = await readJsonBody(req);
+      const { status, ...body } = await auth.decideUser(admin, b.id, b.action);
+      return sendJson(res, status, body);
+    }
+    if (req.method === 'GET' && (pathname === '/api/admin/logs' || pathname === '/api/admin/logs.csv')) {
+      const type = url.searchParams.get('type');
+      const rows = await auth.listLogs(type, url.searchParams.get('limit') || (pathname.endsWith('.csv') ? 5000 : 300));
+      if (!rows) return sendJson(res, 400, { error: 'type 은 login 또는 diagnosis 여야 합니다.' });
+      if (pathname === '/api/admin/logs') return sendJson(res, 200, { rows });
+      return sendCsv(res, `${type}_log_${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    }
+  }
+  return sendJson(res, 404, { error: '없는 주소입니다.' });
+}
+
+/* 기록 내려받기 — 엑셀에서 한글이 깨지지 않게 BOM 을 붙이고 시각은 한국 시간으로 */
+function sendCsv(res, filename, rows) {
+  const kst = (v) => (v instanceof Date || /^\d{4}-\d{2}-\d{2}T/.test(String(v)))
+    ? new Date(v).toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' }) : v;
+  const cell = (v) => {
+    const s = v == null ? '' : String(kst(v));
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  const cols = rows.length ? Object.keys(rows[0]) : [];
+  const text = '﻿' + [cols.join(','), ...rows.map((r) => cols.map((c) => cell(r[c])).join(','))].join('\r\n');
+  res.writeHead(200, {
+    'Content-Type': 'text/csv; charset=utf-8',
+    'Content-Disposition': `attachment; filename="${filename}"`,
+    'Cache-Control': 'no-store',
+  });
+  res.end(text);
+}
+
 async function serveStatic(req, res) {
   let urlPath;
   try {
@@ -897,14 +1056,50 @@ async function serveStatic(req, res) {
     return;
   }
 
-  if (!isAllowed(path.relative(SITE_ROOT, filePath))) {
+  const rel = path.relative(SITE_ROOT, filePath).split(path.sep).join('/');
+  if (!isAllowed(rel)) {
     res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' }).end('접근할 수 없는 경로입니다.');
     return;
   }
 
+  const ext = path.extname(filePath).toLowerCase();
+
+  /* ── 로그인 문 (AUTH_MODE=account) ─────────────────────────────────
+     화면과 자료는 **서버가** 로그인 여부를 보고 내줍니다. 브라우저 쪽에서만
+     막으면 주소를 직접 치고 들어올 수 있기 때문입니다.
+     로그인 전에도 받을 수 있는 것은 로그인 화면과 그 화면이 쓰는
+     디자인·스크립트·로고뿐입니다(자료 .json 은 로그인 뒤에만).          */
+  if (AUTH_MODE === 'account' && !isPublicPath(rel)) {
+    if (!auth.authReady()) {
+      res.writeHead(503, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(SETUP_PAGE);
+      return;
+    }
+    /* 화면(HTML)을 열 때만 만료를 밉니다. 화면 하나가 자료를 수십 개 받는데
+       그때마다 DB 에 쓰면 느려집니다. */
+    const user = await auth.currentUser(req, { touch: ext === '.html' });
+    if (!user) {
+      if (ext === '.html') {
+        res.writeHead(302, { Location: '/login.html?next=' + encodeURIComponent(urlPath), 'Cache-Control': 'no-store' });
+        res.end();
+      } else {
+        res.writeHead(401, { 'Content-Type': 'text/plain; charset=utf-8' }).end('로그인이 필요합니다.');
+      }
+      return;
+    }
+    if (rel === 'admin.html' && user.role !== 'admin') {
+      res.writeHead(302, { Location: '/index.html' }).end();
+      return;
+    }
+  }
+
   try {
     const data = await fs.readFile(filePath);
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream' });
+    res.writeHead(200, {
+      'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream',
+      /* 화면은 저장해 두지 말 것 — 로그아웃 뒤 "뒤로 가기"로 다시 보이지 않게 */
+      ...(ext === '.html' ? { 'Cache-Control': 'no-store' } : {}),
+    });
     res.end(data);
   } catch {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('파일을 찾을 수 없습니다.');
@@ -917,8 +1112,14 @@ const server = http.createServer(async function (req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-access-code');
 
   try {
+    const pathname = new URL(req.url, 'http://localhost').pathname;
     if (req.method === 'OPTIONS') {
       res.writeHead(204).end();
+    } else if (pathname.startsWith('/api/auth/') || pathname.startsWith('/api/admin/')) {
+      await handleAuthApi(req, res, pathname);    // 로그인 · 가입 · 관리자
+    } else if (req.method === 'GET' && req.url === '/api/models' && AUTH_MODE === 'account' &&
+               !(await auth.currentUser(req, { touch: false }))) {
+      sendJson(res, 401, { error: '로그인이 필요합니다.', needLogin: true });
     } else if (req.method === 'POST' && req.url === '/api/diagnose') {
       await handleDiagnose(req, res, false);
     } else if (req.method === 'POST' && req.url === '/api/revise') {
@@ -966,13 +1167,33 @@ const server = http.createServer(async function (req, res) {
   }
 });
 
+/* ── 계정 DB 준비 ─────────────────────────────────────────────────────
+   켜질 때 DB 에 못 붙으면(렌더 DB 가 막 깨어나는 중 등) 30초마다 다시 시도합니다.
+   그동안 사이트는 닫혀 있고, 붙는 순간 저절로 열립니다. */
+if (AUTH_MODE === 'account') {
+  const first = await auth.initAuth();
+  if (!first.ready) {
+    const timer = setInterval(async function () {
+      const r = await auth.initAuth();
+      if (r.ready) { clearInterval(timer); console.log('[계정] DB 연결 성공 — 로그인 사용 가능'); }
+    }, 30000);
+  }
+}
+
 server.listen(PORT, function () {
   console.log('');
   console.log('  AI 안전진단 서버가 켜졌습니다.');
   console.log(`  브라우저에서 이 주소를 여세요 →  http://localhost:${PORT}`);
   console.log('');
   console.log(`  요금 상한: 하루 ${DAILY_LIMIT}회 / 한 사람당 1시간 ${HOURLY_LIMIT_PER_IP}회`);
-  console.log(`  접속 암호: ${ACCESS_CODE ? '사용 중' : '없음 (누구나 사용 가능)'}`);
+  if (AUTH_MODE === 'account') {
+    console.log(`  접근통제: 계정 로그인 — ${auth.authReady() ? 'DB 연결됨' : '⚠ DB 미연결, 사이트 닫힘 (DATABASE_URL 확인)'}`);
+    if (ACCESS_CODE) console.log('    · ACCESS_CODE 는 설정돼 있지만 쓰지 않습니다 (AUTH_MODE=code 로 되돌릴 수 있음)');
+  } else if (AUTH_MODE === 'code') {
+    console.log(`  접근통제: 접속 암호 — ${ACCESS_CODE ? '사용 중' : '없음 (누구나 사용 가능)'}`);
+  } else {
+    console.log('  접근통제: 꺼짐 (AUTH_MODE=off) — ⚠ 내 컴퓨터에서 개발할 때만 쓰세요');
+  }
   const imgs = usableImageModels();
   console.log(`  이미지 생성: ${imgs.length
     ? `${imgs.length}종 사용 가능 — ${imgs.map(function (m) { return m.id; }).join(', ')}`

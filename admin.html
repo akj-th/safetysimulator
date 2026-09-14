@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>계정 관리 — 안전사업지구 진단 시뮬레이터</title>
+
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+/* ════════════════════════════════════════════════════════════════════
+   계정 관리 (관리자 전용, 2026-09-14)
+
+   서버가 관리자만 이 화면을 내줍니다(server.js). 여기서 하는 일:
+     가입 신청 승인 · 거부 / 계정 비활성화 · 다시 사용 / 접속·진단 기록 보기
+
+   관리자 계정 자체는 이 화면에서 바꿀 수 없습니다 — 렌더 환경변수
+   ADMIN_ID · ADMIN_PW 로만 관리합니다(실수로 모두 잠기는 것 방지).
+   ════════════════════════════════════════════════════════════════════ */
+.sec{border-top:1px solid var(--g1); margin-top:34px; padding-top:14px}
+.sec-head{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:6px}
+.sec-head h2{flex:1; min-width:0}
+.count{font-size:var(--fs-sm); color:var(--g2)}
+.tbl-wrap{overflow-x:auto}
+.tbl-wrap table{font-size:var(--fs-sm)}
+.tbl-wrap th, .tbl-wrap td{padding:10px 11px; white-space:nowrap}
+.tbl-wrap td.wrap{white-space:normal; min-width:180px}
+.acts{display:flex; gap:14px}
+.st{font-weight:700}
+.st-pending{color:var(--main)}
+.st-active{color:var(--k)}
+.st-disabled, .st-rejected{color:var(--g2)}
+.empty{padding:18px 0; color:var(--g2); font-size:var(--fs-sm)}
+.log-tabs{display:flex; gap:22px}
+.log-tab{border:none; background:none; padding:4px 0; cursor:pointer; font-family:inherit;
+  font-size:var(--fs-sm); color:var(--g2); border-bottom:2px solid transparent}
+.log-tab.on{color:var(--k); font-weight:700; border-bottom-color:var(--k)}
+.fail{color:var(--main)}
+</style>
+</head>
+<body data-step="0">
+
+<header class="topbar" id="topbar"></header>
+
+<main class="wrap">
+  <div class="page-head">
+    <h1>계정 관리</h1>
+    <p class="sub">가입 신청을 승인하고, 접속·진단 기록을 확인합니다.</p>
+  </div>
+
+  <section class="sec">
+    <div class="sec-head"><h2>가입 신청</h2><span class="count" id="pendingCount"></span></div>
+    <div class="tbl-wrap" id="pendingBox"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>전체 계정</h2><span class="count" id="userCount"></span></div>
+    <div class="tbl-wrap" id="usersBox"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>기록</h2>
+      <div class="log-tabs" id="logTabs">
+        <button type="button" class="log-tab on" data-type="diagnosis">진단 실행 이력</button>
+        <button type="button" class="log-tab" data-type="login">로그인 이력</button>
+      </div>
+      <a class="btn-text" id="csvLink" href="/api/admin/logs.csv?type=diagnosis">엑셀(CSV) 내려받기</a>
+    </div>
+    <p class="count">최근 300건 · 시각은 한국 시간 · 내려받기는 최근 5,000건</p>
+    <div class="tbl-wrap" id="logBox"></div>
+  </section>
+</main>
+
+<script src="assets/ui.js"></script>
+<script src="assets/auth.js"></script>
+<script>
+const esc = (s) => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const kst = (v) => v ? new Date(v).toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' }).slice(0, 16) : '—';
+
+const STATUS = {
+  pending: '승인 대기', active: '사용 중', disabled: '비활성화', rejected: '거부됨',
+};
+const KIND = { diagnose: '진단', revise: '재판독' };
+const REASON = {
+  bad_credentials: '아이디·비밀번호 틀림', pending: '승인 대기', disabled: '비활성화', rejected: '거부됨',
+};
+
+async function api(url, opts) {
+  const res = await fetch(url, Object.assign({ cache: 'no-store' }, opts));
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) { AuriAuth.goLogin('expired'); throw new Error('로그인 만료'); }
+  if (!res.ok) throw new Error(data.error || `오류 (HTTP ${res.status})`);
+  return data;
+}
+
+/* 상태마다 누를 수 있는 버튼 — 서버의 ACTIONS 표와 같은 조합입니다 */
+function actionsFor(u) {
+  if (u.role === 'admin') return '<span class="count">환경변수로 관리</span>';
+  const b = (act, label, cls) => `<button type="button" class="btn-text ${cls || ''}" data-id="${u.id}" data-act="${act}">${label}</button>`;
+  if (u.status === 'pending') return `<div class="acts">${b('approve', '승인')}${b('reject', '거부', 'danger')}</div>`;
+  if (u.status === 'active') return `<div class="acts">${b('disable', '비활성화', 'danger')}</div>`;
+  if (u.status === 'disabled') return `<div class="acts">${b('enable', '다시 사용')}</div>`;
+  if (u.status === 'rejected') return `<div class="acts">${b('approve', '승인')}</div>`;
+  return '';
+}
+
+function userTable(list, pendingView) {
+  if (!list.length) return `<div class="empty">${pendingView ? '대기 중인 가입 신청이 없습니다.' : '계정이 없습니다.'}</div>`;
+  return `<table><thead><tr>
+      <th>아이디</th><th>이름</th><th>소속</th><th>상태</th>
+      <th>${pendingView ? '신청 시각' : '마지막 로그인'}</th>${pendingView ? '' : '<th>처리</th>'}<th></th>
+    </tr></thead><tbody>
+    ${list.map((u) => `<tr>
+      <td>${esc(u.username)}${u.role === 'admin' ? ' <span class="tag">관리자</span>' : ''}</td>
+      <td>${esc(u.name)}</td>
+      <td class="wrap">${esc(u.org)}</td>
+      <td><span class="st st-${u.status}">${STATUS[u.status] || esc(u.status)}</span></td>
+      <td>${kst(pendingView ? u.created_at : u.last_login_at)}</td>
+      ${pendingView ? '' : `<td>${u.decided_by ? esc(u.decided_by) + ' · ' + kst(u.decided_at) : '—'}</td>`}
+      <td>${actionsFor(u)}</td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+
+async function loadUsers() {
+  const { users } = await api('/api/admin/users');
+  const pending = users.filter((u) => u.status === 'pending');
+  document.getElementById('pendingCount').textContent = `${pending.length}건`;
+  document.getElementById('userCount').textContent = `${users.length}명`;
+  document.getElementById('pendingBox').innerHTML = userTable(pending, true);
+  document.getElementById('usersBox').innerHTML = userTable(users.filter((u) => u.status !== 'pending'), false);
+}
+
+let _logType = 'diagnosis';
+async function loadLogs() {
+  const { rows } = await api('/api/admin/logs?type=' + _logType);
+  const box = document.getElementById('logBox');
+  document.getElementById('csvLink').href = '/api/admin/logs.csv?type=' + _logType;
+  if (!rows.length) { box.innerHTML = '<div class="empty">기록이 없습니다.</div>'; return; }
+  if (_logType === 'diagnosis') {
+    box.innerHTML = `<table><thead><tr><th>시각</th><th>계정</th><th>구분</th><th>지자체</th><th>좌표</th><th>주소</th><th>IP</th></tr></thead><tbody>
+      ${rows.map((r) => `<tr>
+        <td>${kst(r.at)}</td><td>${esc(r.username || '—')}</td><td>${KIND[r.kind] || esc(r.kind)}</td>
+        <td>${esc(r.region || '—')}</td>
+        <td>${r.lat != null ? Number(r.lat).toFixed(5) + ', ' + Number(r.lng).toFixed(5) : '—'}</td>
+        <td class="wrap">${esc(r.addr || '—')}</td><td>${esc(r.ip)}</td>
+      </tr>`).join('')}</tbody></table>`;
+  } else {
+    box.innerHTML = `<table><thead><tr><th>시각</th><th>계정</th><th>결과</th><th>IP</th></tr></thead><tbody>
+      ${rows.map((r) => `<tr>
+        <td>${kst(r.at)}</td><td>${esc(r.username || '—')}</td>
+        <td>${r.success ? '성공' : `<span class="fail">실패 — ${REASON[r.reason] || esc(r.reason)}</span>`}</td>
+        <td>${esc(r.ip)}</td>
+      </tr>`).join('')}</tbody></table>`;
+  }
+}
+
+const CONFIRM = {
+  approve: '이 계정을 승인할까요? 승인하면 바로 로그인할 수 있습니다.',
+  reject: '이 가입 신청을 거부할까요?',
+  disable: '이 계정을 비활성화할까요? 로그인 중이면 즉시 끊깁니다.',
+  enable: '이 계정을 다시 사용하게 할까요?',
+};
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-act][data-id]');
+  if (btn) {
+    if (!confirm(CONFIRM[btn.dataset.act])) return;
+    btn.disabled = true;
+    try {
+      await api('/api/admin/users/action', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: Number(btn.dataset.id), action: btn.dataset.act }),
+      });
+      await loadUsers();
+    } catch (err) { alert(err.message); btn.disabled = false; }
+    return;
+  }
+  const tab = e.target.closest('.log-tab');
+  if (tab) {
+    _logType = tab.dataset.type;
+    document.querySelectorAll('.log-tab').forEach((t) => t.classList.toggle('on', t === tab));
+    loadLogs().catch((err) => alert(err.message));
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadUsers().catch((err) => { document.getElementById('pendingBox').innerHTML = `<div class="empty">${esc(err.message)}</div>`; });
+  loadLogs().catch((err) => { document.getElementById('logBox').innerHTML = `<div class="empty">${esc(err.message)}</div>`; });
+});
+</script>
+</body>
+</html>

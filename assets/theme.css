@@ -140,6 +140,22 @@ body{
   .brand{padding:12px 0}
 }
 
+/* ── 로그인 계정 줄 (assets/auth.js, 2026-09-14) ─────────────────
+   상단 바 위에 얇게 한 줄. 상단 바 안에 넣으면 단계 표시와 자리를 다퉈
+   좁은 화면에서 줄이 깨지므로 따로 둡니다. 계정 방식이 꺼져 있으면 안 나옵니다. */
+.account-bar{border-bottom:1px solid var(--g1); background:var(--w)}
+.account-inner{
+  max-width:var(--maxw); margin:0 auto; padding:7px var(--gutter);
+  display:flex; align-items:center; justify-content:flex-end; gap:18px; flex-wrap:wrap;
+  font-size:var(--fs-cap); color:var(--g3);
+}
+.account-inner .acc-who b{color:var(--k); font-weight:700}
+.account-inner .acc-timer{font-family:var(--mono); color:var(--g3)}
+.account-inner .btn-text{font-size:var(--fs-cap); text-decoration:none}
+/* 5분 남았을 때 — 메인 컬러는 이 경고 한 줄에만 */
+.account-bar.is-warn{border-bottom-color:var(--main)}
+.account-bar .acc-warn{color:var(--main); font-weight:700}
+
 /* ════ 본문 ═════════════════════════════════════════════════════ */
 
 .wrap{max-width:var(--maxw); margin:0 auto; padding:46px var(--gutter) 96px}
@@ -216,15 +232,15 @@ h2{font-size:var(--fs-h2); font-weight:700; color:var(--k); letter-spacing:-.01e
 
 /* ════ 입력 ═════════════════════════════════════════════════════ */
 
-input[type=text], textarea, select{
+input[type=text], input[type=password], textarea, select{
   font-family:inherit; font-size:var(--fs-body); color:var(--g4);
   padding:13px 14px;
   border:1px solid var(--g1); border-radius:0;
   background:var(--w); outline:none; width:100%;
   transition:border-color .12s;
 }
-input[type=text]:focus, textarea:focus, select:focus{border-color:var(--k)}
-input[type=text]::placeholder, textarea::placeholder{color:var(--g2)}
+input[type=text]:focus, input[type=password]:focus, textarea:focus, select:focus{border-color:var(--k)}
+input[type=text]::placeholder, input[type=password]::placeholder, textarea::placeholder{color:var(--g2)}
 textarea{resize:vertical; line-height:var(--lh-body)}
 
 /* ════ 선택 위치 표시줄 ════════════════════════════════════════ */
