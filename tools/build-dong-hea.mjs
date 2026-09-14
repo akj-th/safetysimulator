@@ -71,14 +71,34 @@ const BOUNDARY_GROUP_FIELD = 'COL_ADM_SE';
 const BOUNDARY_PICK_SHARE = 0.05;           // 출동 지점의 5% 이상이 떨어지는 시군구만 (경계 걸침·오지오코딩 무시)
 const BOUNDARY_CRS = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
 
-/* ── 인구 통계 — 도착 전 ─────────────────────────────────────────────
-   지금 H 의 "편중"은 **출동자료 안의 구성비**끼리 비교합니다
-   (그 동 출동 중 20대 여성 비율 ÷ 지역 전체 출동 중 20대 여성 비율).
-   인구 자료가 오면 **인구 대비 발생률**끼리 비교하는 것이 맞습니다
-   (그 동 20대 여성 인구당 발생 ÷ 지역 20대 여성 인구당 발생).
-   ▶ 파일이 생기면 loadPopulation() 을 형식에 맞게 채우세요. 그 전까지는
-     null 을 돌려주고 출동자료 기준으로 계산합니다. */
+/* ── 인구 통계 (2026-09-15 연령별 인구 수신) ─────────────────────────
+   H 의 "편중"을 **인구 대비 출동률**끼리 비교합니다.
+     그 동 20대 여성 출동 ÷ 그 동 20대 여성 인구   vs   지역 20대 여성 출동 ÷ 지역 20대 여성 인구
+   → "20대 여성이 **사는 만큼보다** 이 동에서 출동이 몇 배 많은가".
+   ⚠️ "출동 중 20대 여성 비중"(출동 구성비)과는 다른 값입니다. 구성비는 근거로만 함께 남깁니다.
+
+   파일  주민등록 연령별인구현황(행정안전부) 202608 — 행정동 × 10세 구간 × 남녀, EUC-KR
+   ★ 행정동 → 법정동 연계표가 없어 **이름으로 맞춥니다** (POPULATION_LINK_RULES).
+     심곡1동·심곡2동 → 심곡동 / 돈암제1동 → 돈암동 / 숭의1.3동 → 숭의동 / 고강본동 → 고강동
+     경계 파일에 그 법정동 이름이 있을 때만 붙이고, 못 붙인 행정동은 목록으로 남깁니다.
+   ⚠️ 한 행정동이 여러 법정동에 걸치면(예: 공주 중학동 → 중동·반죽동 …) 이름으로는 못 나눕니다.
+     그런 법정동은 인구가 없어 H 를 **비웁니다**("인구 매칭 불가"). 추정해 나누지 않습니다.
+     반대로 이름이 같은 행정동이 옆 법정동 일부를 함께 품으면 인구가 조금 크게 잡힐 수 있습니다.
+     → 행안부 행정동·법정동 연계표를 받으면 linkPopulation() 한 곳만 바꾸면 됩니다.
+   ⚠️ 출동 위치 기준 집계라 **거주자가 아닌 방문자**의 출동도 들어갑니다(상업지 동은 배수가 커짐). */
 const POPULATION_DIR = path.join(ROOT, 'data/raw/population');
+const POPULATION_AGE_FILE = /연령별인구현황.*\.csv$/i;
+/** 집단 인구가 이보다 적으면 그 집단은 편중 후보에서 뺍니다. 근거: 인구 수십 명 집단은
+ *  출동 3건만으로 배수가 10배를 넘어 순위를 지배함 (임시 기준) */
+const H_MIN_GROUP_POP = 100;
+/** 출동자료 기간(2023~2025) — 인구 1천 명당 연간 출동 표기용 */
+const INCIDENT_YEARS = 3;
+/** 행정동 이름 → 법정동 이름 후보. 앞에서부터 시도해 경계 파일에 있는 첫 이름을 씁니다 */
+const POPULATION_LINK_RULES = [
+  (n) => n,
+  (n) => n.replace(/제?\d[\d.,·]*동$/, '동'),              // 심곡1동 · 돈암제1동 · 숭의1.3동 → ○○동
+  (n) => n.replace(/제?\d[\d.,·]*동$/, '동').replace(/본동$/, '동'), // 고강본동 → 고강동
+];
 
 /* ── 임시 기준 (H) ── 확정 기준 오면 교체 ─────────────────────────── */
 /** 동의 그 분야에서 연령·성별이 모두 있는 건수가 이보다 적으면 "표본 부족".
@@ -257,13 +277,72 @@ function percentile(map) {
    ▶ 연령별 · 법정동(또는 행정동 경계와 함께) 인구가 오면 이 함수에서 읽어
      H 편중 계산을 발생률 비교로 바꾸면 됩니다. */
 function loadPopulation() {
-  if (!fs.existsSync(POPULATION_DIR)) return { status: 'none', note: '인구 통계 수신 전 — H 편중은 출동자료 구성비 기준' };
-  const files = fs.readdirSync(POPULATION_DIR).filter((f) => /\.csv$/i.test(f));
+  const none = { status: 'none', note: '연령별 인구 통계 없음 — H 는 출동자료 구성비 기준(인구 대비 아님)' };
+  if (!fs.existsSync(POPULATION_DIR)) return none;
+  const file = fs.readdirSync(POPULATION_DIR).find((f) => POPULATION_AGE_FILE.test(f));
+  if (!file) return none;
+  const buf = fs.readFileSync(path.join(POPULATION_DIR, file));
+  let text = new TextDecoder('utf-8').decode(buf);
+  if (text.includes('�')) text = new TextDecoder('euc-kr').decode(buf);
+  const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  const cells = (l) => l.replace(/^﻿/, '').replace(/^"|"$/g, '').split('","').map((c) => c.trim());
+  const head = cells(lines[0]);
+  /* "2026년08월_남_20~29세" → { sex:'남', band:'20-29' } — 80세 이상은 80~89·90~99·100세 이상을 합칩니다 */
+  const cols = [];
+  head.forEach((h, i) => {
+    const m = /_(남|여)_(\d+)~\d+세$/.exec(h) || /_(남|여)_(100)세 이상$/.exec(h);
+    if (!m) return;
+    const lo = Number(m[2]);
+    cols.push({ i, sex: m[1], band: lo >= 80 ? '80+' : `${lo}-${lo + 9}` });
+  });
+  if (cols.length < 18) return { ...none, note: `${file} 머리글에서 남녀·연령 칸을 찾지 못함 — H 는 출동자료 구성비 기준` };
+  const rows = [];
+  for (const l of lines.slice(1)) {
+    const c = cells(l);
+    const m = /^(.*?)\s*\((\d{10})\)$/.exec(c[0]);
+    if (!m || m[2].slice(5) === '00000') continue;       // 시도·시군구·구 합계 줄은 건너뜀 (행정동 줄만)
+    const pop = {};
+    for (const col of cols) {
+      const k = `${col.band}|${col.sex}`;
+      pop[k] = (pop[k] || 0) + (Number(c[col.i].replace(/,/g, '')) || 0);
+    }
+    rows.push({ code: m[2], name: m[1].split(/\s+/).pop(), pop });
+  }
   return {
-    status: 'not-applicable', files,
-    note: '인구 통계를 받았으나 행정동 단위이고 연령별 인구가 없어 H(연령×성별 편중)에 적용하지 않음 — 출동자료 구성비 기준 유지',
+    status: 'ok', files: [file], rows,
+    note: `주민등록 연령별 인구(${file.slice(0, 6)}, 행정동) — 행정동 이름을 법정동에 맞춰 인구 대비 출동률로 H 산출`,
   };
 }
+
+/** 한 지자체의 행정동 인구를 법정동으로 모읍니다 (이름 대응). 경계가 없으면 null */
+function linkPopulation(boundary) {
+  if (population.status !== 'ok' || !boundary) return null;
+  const codes = boundary.sggCodes;
+  /* 시 코드(끝자리 0)는 그 아래 일반구(41192·41194…)까지 포함 */
+  const inRegion = (code) => codes.some((c) => code.startsWith(c) || (c.endsWith('0') && code.slice(0, 4) === c.slice(0, 4)));
+  const names = new Set(Object.keys(boundary.byName));
+  const region = {}, byDong = {}, links = {}, unmatched = [];
+  let adminTotal = 0, adminMatched = 0, popTotal = 0, popMatched = 0;
+  const add = (to, pop) => { for (const [k, v] of Object.entries(pop)) to[k] = (to[k] || 0) + v; };
+  for (const row of population.rows) {
+    if (!inRegion(row.code)) continue;
+    const total = Object.values(row.pop).reduce((a, b) => a + b, 0);
+    adminTotal++; popTotal += total;
+    add(region, row.pop);
+    const hit = POPULATION_LINK_RULES.map((f) => f(row.name)).find((n) => names.has(n));
+    if (!hit) { unmatched.push({ name: row.name, pop: total }); continue; }
+    adminMatched++; popMatched += total;
+    add((byDong[hit] ||= {}), row.pop);
+    (links[hit] ||= []).push(row.name);
+  }
+  if (!adminTotal) return null;
+  return {
+    region, byDong, links, unmatched,
+    summary: { adminTotal, adminMatched, dongsWithPop: Object.keys(byDong).length, dongsTotal: names.size, popShare: r1(popMatched / popTotal * 100) },
+  };
+}
+const popOf = (P, keys) => keys.reduce((s, k) => s + (P[k] || 0), 0);
+const sumPop = (P) => Object.values(P).reduce((a, b) => a + b, 0);
 
 /* 경계 파일 전체를 한 번만 읽어 시군구 묶음으로 정리합니다 */
 let _boundaryGroups = null;
@@ -438,6 +517,8 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
   const dongNames = Object.keys(s.dongs).filter((d) => d !== '(미상)').sort();
   /* 출동자료의 동 이름이 경계에 없는 경우 — 이름 표기가 다르거나 경계 밖 */
   const unmatched = boundary ? dongNames.filter((d) => !boundary.byName[d]) : [];
+  /* 행정동 인구 → 법정동 (이름 대응). null 이면 H 는 출동 구성비 기준 */
+  const link = linkPopulation(boundary);
 
   /* ── H · A 분야별 원점수 ──────────────────────────────────────── */
   const raw = {};                     // cat → indicator → {dong: value}
@@ -453,40 +534,78 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
       if (!D) continue;
       const det = ((detail[dong] ||= {})[cat] = { n: D.n });
 
-      /* H — 연령×성별 중 지역 대비 가장 몰린 집단 */
-      if (D.ageSexN >= H_MIN_DONG_N && R.ageSexN) {
+      /* H — 연령×성별 중 지역 대비 가장 몰린 집단.
+         인구가 이어진 동: 인구 대비 출동률 배수 (basis 'population')
+         인구 자료 자체가 없는 지자체: 출동 구성비 배수 (basis 'composition')
+         인구 자료는 있는데 이 법정동에 붙은 행정동이 없으면: 비움 ("인구 매칭 불가") */
+      const P = link ? link.byDong[dong] : null;
+      const basis = link ? (P ? 'population' : 'no-match') : 'composition';
+      const PT = P ? sumPop(P) : 0;
+      const sexLabel = (x) => (x === '남' ? '남성' : '여성');
+      /* k 집단 하나의 배수와 근거. popKeys(k) = 그 집단에 해당하는 인구 칸들 */
+      const measure = (cnt, dN, rCnt, rN, popKeys) => {
+        if (basis === 'population') {
+          const pd = popOf(P, popKeys), pr = popOf(link.region, popKeys);
+          if (pd < H_MIN_GROUP_POP || !pr) return null;
+          return {
+            ratio: (cnt / pd) / (rCnt / pr),
+            pop: pd,
+            rate: r2(cnt / pd * 1000 / INCIDENT_YEARS),          // 인구 1천 명당 연간 출동
+            regionRate: r2(rCnt / pr * 1000 / INCIDENT_YEARS),
+            popShare: r1(pd / PT * 100),                          // 그 동 거주 인구 중 비중
+            incShare: r1(cnt / dN * 100),                         // 그 동 출동 중 비중
+          };
+        }
+        return { ratio: (cnt / dN) / (rCnt / rN), incShare: r1(cnt / dN * 100), regionIncShare: r1(rCnt / rN * 100) };
+      };
+      const bestOf = (dMap, dN, rMap, rN, popKeysOf) => {
         let best = null;
+        for (const [k, cnt] of Object.entries(dMap)) {
+          if (cnt < H_MIN_GROUP_N || !rMap[k]) continue;
+          const m = measure(cnt, dN, rMap[k], rN, popKeysOf(k));
+          if (m && (!best || m.ratio > best.ratio)) best = { k, cnt, ...m };
+        }
+        return best;
+      };
+      const out = (b, label) => { const { k, cnt, ratio, ...rest } = b; return { label, ratio: r2(ratio), n: cnt, basis, ...rest }; };
+      const BANDS_OF_SEX = (x) => H_AGE_BANDS.map((b) => `${b}|${x}`);
+
+      if (D.ageSexN < H_MIN_DONG_N || !R.ageSexN) det.hGroup = { status: '표본 부족' };
+      else if (basis === 'no-match') det.hGroup = { status: '인구 매칭 불가' };
+      else {
+        const best = bestOf(D.ageSex, D.ageSexN, R.ageSex, R.ageSexN, (g) => [g]);
+        if (best) {
+          const [band, sex] = best.k.split('|');
+          ind.hGroup[dong] = best.ratio;
+          det.hGroup = out(best, `${bandLabel(band)} ${sexLabel(sex)}`);
+        } else det.hGroup = { status: basis === 'population' ? `편중 집단 없음 (집단별 ${H_MIN_GROUP_N}건·인구 ${H_MIN_GROUP_POP}명 미만)` : `편중 집단 없음 (집단별 ${H_MIN_GROUP_N}건 미만)` };
+      }
+      /* 출동 구성비 배수 — 인구 기준으로 계산해도 "출동 중 비중"을 근거로 함께 남김 */
+      if (D.ageSexN >= H_MIN_DONG_N && R.ageSexN && basis !== 'composition') {
+        let comp = null;
         for (const [g, cnt] of Object.entries(D.ageSex)) {
           if (cnt < H_MIN_GROUP_N || !R.ageSex[g]) continue;
           const ratio = (cnt / D.ageSexN) / (R.ageSex[g] / R.ageSexN);
-          if (!best || ratio > best.ratio) best = { g, ratio, cnt };
+          if (!comp || ratio > comp.ratio) comp = { g, ratio, cnt };
         }
-        if (best) {
-          const [band, sex] = best.g.split('|');
-          ind.hGroup[dong] = best.ratio;
-          det.hGroup = { label: `${bandLabel(band)} ${sex === '남' ? '남성' : '여성'}`, ratio: r2(best.ratio), n: best.cnt };
-        } else det.hGroup = { status: `편중 집단 없음 (집단별 ${H_MIN_GROUP_N}건 미만)` };
-      } else det.hGroup = { status: '표본 부족' };
+        if (comp) {
+          const [band, sex] = comp.g.split('|');
+          det.hGroupComp = { label: `${bandLabel(band)} ${sexLabel(sex)}`, ratio: r2(comp.ratio), n: comp.cnt,
+            incShare: r1(comp.cnt / D.ageSexN * 100), regionIncShare: r1(R.ageSex[comp.g] / R.ageSexN * 100) };
+        }
+      }
 
       if (D.ageN >= H_MIN_DONG_N && R.ageN) {
-        let best = null;
-        for (const [b, cnt] of Object.entries(D.age)) {
-          if (cnt < H_MIN_GROUP_N || !R.age[b]) continue;
-          const ratio = (cnt / D.ageN) / (R.age[b] / R.ageN);
-          if (!best || ratio > best.ratio) best = { b, ratio, cnt };
+        if (basis !== 'no-match') {
+          const best = bestOf(D.age, D.ageN, R.age, R.ageN, (b) => [`${b}|남`, `${b}|여`]);
+          if (best) { ind.hAge[dong] = best.ratio; det.hAge = out(best, bandLabel(best.k)); }
         }
-        if (best) { ind.hAge[dong] = best.ratio; det.hAge = { label: bandLabel(best.b), ratio: r2(best.ratio), n: best.cnt }; }
         det.share65 = r1(D.a65 / D.ageN * 100); det.region65 = r1(R.a65 / R.ageN * 100);
         det.share19 = r1(D.u19 / D.ageN * 100); det.region19 = r1(R.u19 / R.ageN * 100);
       }
-      if (D.sexN >= H_MIN_DONG_N && R.sexN) {
-        let best = null;
-        for (const [x, cnt] of Object.entries(D.sex)) {
-          if (cnt < H_MIN_GROUP_N || !R.sex[x]) continue;
-          const ratio = (cnt / D.sexN) / (R.sex[x] / R.sexN);
-          if (!best || ratio > best.ratio) best = { x, ratio, cnt };
-        }
-        if (best) { ind.hSex[dong] = best.ratio; det.hSex = { label: best.x === '남' ? '남성' : '여성', ratio: r2(best.ratio), n: best.cnt }; }
+      if (D.sexN >= H_MIN_DONG_N && R.sexN && basis !== 'no-match') {
+        const best = bestOf(D.sex, D.sexN, R.sex, R.sexN, (x) => BANDS_OF_SEX(x));
+        if (best) { ind.hSex[dong] = best.ratio; det.hSex = out(best, sexLabel(best.k)); }
       }
 
       /* A — 반복 발생 지점 수 (그 동 안에서 같은 지번주소가 임계값 이상).
@@ -598,7 +717,7 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
       const e = P.e_total ? (P.e_total[dong] ?? null) : null;
       byCat[cat] = {
         n: det ? det.n : 0,
-        H: { score: h, group: det && det.hGroup, age: det && det.hAge ? { ...det.hAge, score: P.hAge[dong] ?? null } : null, sex: det && det.hSex ? { ...det.hSex, score: P.hSex[dong] ?? null } : null,
+        H: { score: h, group: det && det.hGroup, groupComp: det ? det.hGroupComp || null : null, age: det && det.hAge ? { ...det.hAge, score: P.hAge[dong] ?? null } : null, sex: det && det.hSex ? { ...det.hSex, score: P.hSex[dong] ?? null } : null,
              share65: det ? det.share65 ?? null : null, region65: det ? det.region65 ?? null : null, share19: det ? det.share19 ?? null : null, region19: det ? det.region19 ?? null : null },
         A: { score: a, repeat: det && det.repeat ? { ...det.repeat, score: P.aRepeat[dong] ?? null } : null,
              night: det && det.night ? { ...det.night, score: P.aNight[dong] ?? null } : null,
@@ -687,17 +806,24 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
           dongs: Object.keys(boundary.byName).length,
           unmatched: unmatched.map((d) => ({ name: d, n: Object.values(s.dongs[d]).reduce((a, b) => a + b.n, 0) })) }
       : { status: 'none', note: '동 경계를 찾지 못함 — 점수 위치는 출동 좌표 평균, 경계선·E 없음' },
-    population,
+    population: {
+      status: population.status, files: population.files || [], note: population.note,
+      /* 이 지자체에서 H 를 무엇으로 쟀는가 — 문장·표가 이 값을 보고 기준을 적습니다 */
+      hBasis: link ? 'population' : 'composition',
+      link: link ? { ...link.summary, unmatched: link.unmatched, links: link.links } : null,
+    },
     heaCategories: heaCats.map((k) => ({ key: k, label: CATEGORY_LABEL[k] })),
     eStatus: eStatusOfRegion,
     eCoverage,
     thresholds: {
-      H_MIN_DONG_N, H_MIN_GROUP_N, A_MIN_DONG_N, NIGHT, A_PLACE_EXCLUDE, CENTER_MIN_N, REPEAT_THRESHOLD, TOTAL_MIN_AXES, PERCENTILE_MIN_DONGS,
+      H_MIN_DONG_N, H_MIN_GROUP_N, H_MIN_GROUP_POP, INCIDENT_YEARS, A_MIN_DONG_N, NIGHT, A_PLACE_EXCLUDE, CENTER_MIN_N, REPEAT_THRESHOLD, TOTAL_MIN_AXES, PERCENTILE_MIN_DONGS,
       temporary: ['H', 'A'],
     },
     comparison,
     method: {
-      H: '분야별로 연령(10년 단위)×성별 집단 중 동 출동 구성비 ÷ 지역 전체 구성비가 가장 큰 집단의 배수 → 지자체 안 백분위. 보조로 65세 이상·19세 이하 비중 (임시 기준)',
+      H: link
+        ? '분야별로 연령(10년 단위)×성별 집단 중 [동 출동 ÷ 동 거주 인구] ÷ [지역 출동 ÷ 지역 거주 인구] 가 가장 큰 집단의 배수(인구 대비 출동률 배수) → 지자체 안 백분위. 인구는 주민등록 행정동을 법정동 이름에 맞춰 합산. 출동 구성비 배수는 근거로만 표기 (임시 기준)'
+        : '분야별로 연령(10년 단위)×성별 집단 중 동 출동 구성비 ÷ 지역 전체 출동 구성비가 가장 큰 집단의 배수(출동 중 비중 비교, 인구 대비 아님) → 지자체 안 백분위 (임시 기준)',
       E: 'Σ(회귀계수 β × 동 평균값의 표준점수 z). 강원대 지역 전체 회귀분석의 유의 변수 중 TIF 가 있는 것만 → 백분위',
       A: '반복 발생 지점 수 · 야간(22~06시) 비중 · 1위 장소 비중(기타 제외)을 각각 백분위로 바꿔 평균 (임시 기준)',
       total: '중점 3분야의 H·E·A 를 각각 평균해 지자체 안 백분위로 맞춘 뒤, 있는 축끼리 평균',
@@ -709,7 +835,8 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
   const scored = dongs.filter((d) => d.scores.total !== null).length;
   indexOut.push({ region: slug, label: meta.label, dongs: dongs.length, scored, eStatus: eStatusOfRegion, boundary: json.boundary.status });
   const cov = heaCats.map((c) => `${CATEGORY_LABEL[c]} E ${eCoverage[c] && eCoverage[c].total !== undefined ? `${eCoverage[c].have}/${eCoverage[c].total}` : '—'}`).join(' · ');
-  const bnote = boundary ? `경계 ${Object.keys(boundary.byName).length}동(${boundary.sggCodes.join('+')})${unmatched.length ? ` · 이름 불일치 ${unmatched.length}` : ''}` : '경계 없음';
+  const bnote = (boundary ? `경계 ${Object.keys(boundary.byName).length}동(${boundary.sggCodes.join('+')})${unmatched.length ? ` · 이름 불일치 ${unmatched.length}` : ''}` : '경계 없음')
+    + (link ? ` · 인구 ${link.summary.dongsWithPop}동(행정동 ${link.summary.adminMatched}/${link.summary.adminTotal}, 인구 ${link.summary.popShare}%)` : ' · 인구 없음');
   console.log(`  ${slug.padEnd(11)} 동 ${String(dongs.length).padStart(3)}개 (점수 ${String(scored).padStart(3)}) · ${bnote} · E ${eStatusOfRegion.padEnd(13)} · ${cov} · ${kb}KB`);
 }
 

@@ -90,6 +90,9 @@
   .hea-notes{margin:0 0 4px; padding:0; list-style:none; font-size:var(--fs-cap); color:var(--g3); line-height:1.8}
   .hea-notes li::before{content:'· '; color:var(--g2)}
   .hea-notes li.warn{color:var(--main)}
+  /* 지금 켠 점수를 낸 동 수 — 하나도 없으면 이유를 굵게 (빈 지도가 오류로 보이지 않게) */
+  .hea-status{margin:2px 0 6px; font-size:var(--fs-sm); color:var(--g3)}
+  .hea-status.empty{color:var(--main); font-weight:700}
   /* 지도 위 점수 글자 — 상자 없이 흰 테두리 글자로 읽히게 */
   .hea-lbl{
     transform:translate(-50%,-50%); white-space:nowrap; text-align:center; cursor:pointer;
@@ -168,6 +171,7 @@
             <button type="button" data-mode="total" title="종합 — H·E·A 백분위 평균">종합</button>
           </div>
         </div>
+        <p class="hea-status" id="heaStatus" hidden></p>
         <ul class="hea-notes" id="heaNotes"></ul>
       </div>
     </div>
@@ -495,6 +499,10 @@ function setHeaMode(mode) {
   document.querySelectorAll('#heaSeg button').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
   clearDongHea();
   const data = _hea.data;
+  const status = document.getElementById('heaStatus');
+  const sum = mode && data ? AuriDongHea.scoreSummary(data, mode) : null;
+  status.hidden = !sum;
+  if (sum) { status.textContent = sum.text; status.classList.toggle('empty', sum.empty); }
   if (!mode || !data || !_map) return;
 
   for (const d of data.dongs) {
@@ -527,10 +535,13 @@ function showHeaInfo(d, marker) {
   const s = d.scores;
   const f = (v) => (v === null || v === undefined ? '—' : v);
   const lines = AuriDongHea.evidence(d, data).map((t) => `<div style="margin-top:3px">${t}</div>`).join('');
-  const html = `<div style="padding:12px 14px;font-size:13px;line-height:1.6;max-width:320px;font-family:Pretendard,sans-serif">
+  /* 비어 있는 점수마다 이유를 한 줄씩 — "—" 만 보이면 오류로 오인됩니다 */
+  const empties = ['H', 'E', 'A', 'total'].filter((k) => s[k] === null || s[k] === undefined)
+    .map((k) => `<div>${k === 'total' ? '종합' : k} 비어 있음 — ${AuriDongHea.axisReason(d, data, k)}</div>`).join('');
+  const html = `<div style="padding:12px 14px;font-size:13px;line-height:1.6;max-width:340px;font-family:Pretendard,sans-serif">
     <b style="font-size:15px">${d.name}</b> <span style="color:#999">출동 ${d.n.toLocaleString()}건</span>
-    <div style="margin-top:6px">H ${f(s.H)} · E ${f(s.E)} · A ${f(s.A)} · <b>종합 ${f(s.total)}</b>
-      ${s.total === null ? '<span style="color:#999"> (축 2개 미만)</span>' : ''}</div>
+    <div style="margin-top:6px">H ${f(s.H)} · E ${f(s.E)} · A ${f(s.A)} · <b>종합 ${f(s.total)}</b></div>
+    ${empties ? `<div style="margin-top:4px;color:#D83D64;font-size:12px">${empties}</div>` : ''}
     <div style="margin-top:6px;color:#666;font-size:12px">${lines || '근거 자료 없음'}</div>
     <div style="margin-top:6px;color:#999;font-size:11px">지자체 안 상대 순위 · H·A 임시 기준</div></div>`;
   if (_hea.info) _hea.info.close();

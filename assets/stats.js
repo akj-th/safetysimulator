@@ -152,12 +152,14 @@ const AuriStats = (function () {
       ? bands.slice().sort((a, b) => Math.abs(b.diff || 0) - Math.abs(a.diff || 0))[0]
       : bands.slice().sort((a, b) => b.v - a.v)[0];
 
+    /* ★ 비율의 분모는 **구급출동 환자**입니다(거주 인구가 아님). 2026-09-15 담당자 지적 —
+       "20대 여성 거주 비중"과 "20대 여성 출동 비중"은 다른 값이므로 문장에 "출동 환자 중"을 넣습니다. */
     const parts = [];
     if (useInside && lead.ratio !== null && lead.base !== null) {
-      parts.push(`${where}에서 ${lead.label} 비율이 <b>${pctText(lead.v)}</b>로 나타나, ` +
-                 `지역 전체 ${pctText(lead.base)} 대비 <b>${ratioText(lead.ratio)}</b> 나타남`);
+      parts.push(`${where} 구급출동 환자 중 ${lead.label} 비율이 <b>${pctText(lead.v)}</b>로 나타나, ` +
+                 `지역 전체 출동 환자 ${pctText(lead.base)} 대비 <b>${ratioText(lead.ratio)}</b> 나타남`);
     } else {
-      parts.push(`${where} ${lead.label} 비율이 <b>${pctText(lead.v)}</b>로 가장 높게 나타남`);
+      parts.push(`${where} 구급출동 환자 중 ${lead.label} 비율이 <b>${pctText(lead.v)}</b>로 가장 높게 나타남`);
     }
 
     /* 성별은 한쪽으로 눈에 띄게 기울 때만 적습니다 — 55:45 정도는 특징이 아닙니다 */
@@ -172,11 +174,11 @@ const AuriStats = (function () {
              "69.1%로 지역 전체 69.1%보다 높음" 같은 빈 문장을 막습니다. */
           const gap = v - baseV;
           if (Math.abs(gap) >= 0.5) {
-            parts.push(`${who} 비율도 ${where} <b>${pctText(v)}</b>로 ` +
-                       `지역 전체 ${pctText(baseV)}보다 ${gap > 0 ? '높음' : '낮음'}`);
+            parts.push(`${who} 비율도 ${where} 출동 환자 중 <b>${pctText(v)}</b>로 ` +
+                       `지역 전체 출동 환자 ${pctText(baseV)}보다 ${gap > 0 ? '높음' : '낮음'}`);
           }
         } else {
-          parts.push(`${who} 비율이 <b>${pctText(v)}</b>로 두드러짐`);
+          parts.push(`출동 환자 중 ${who} 비율이 <b>${pctText(v)}</b>로 두드러짐`);
         }
       }
     }

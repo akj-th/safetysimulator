@@ -58,6 +58,9 @@
 .hea-table th.hea-axis span, .hea-table .hea-out{font-size:var(--fs-cap); font-weight:400; color:var(--g2)}
 .hea-table th.hea-ind{width:13%; font-weight:400; background:#FAFAFA}
 .hea-table td.hea-na{font-size:var(--fs-cap); color:var(--g2)}
+/* 3.3 은 AURI 원문에 없는 보조 절 — 원문과 구분되게 머리에 한 줄 (인쇄에도 남김) */
+.hea-lead{margin:-2px 0 8px; font-size:var(--fs-sm); color:var(--g3)}
+.hea-empty{color:var(--main); font-weight:700}
 .hea-table tr.hea-total th, .hea-table tr.hea-total td{border-top:1px solid var(--k); font-weight:700}
 
 /* ── 표지 ────────────────────────────────────────────────────────── */
@@ -633,7 +636,7 @@ function heaSection() {
       return inds.map((ind, k) => `<tr>
           ${k === 0 ? `<th rowspan="${inds.length}" class="hea-axis">${AXIS_LABEL[axis]}</th>` : ''}
           <th class="hea-ind">${ind.label}</th>
-          ${cols.map((d) => cell(d.indicators[ind.key], AuriDongHea.emptyReason(data, ind.key))).join('')}
+          ${cols.map((d) => cell(d.indicators[ind.key], AuriDongHea.emptyReason(data, ind.key, d))).join('')}
         </tr>`).join('');
     }).join('');
     const total = `<tr class="hea-total"><th colspan="2">종합</th>
@@ -647,14 +650,21 @@ function heaSection() {
   }).join('');
 
   const notes = AuriDongHea.caveats(data);
+  /* 종합 점수를 낸 동이 하나도 없으면 표 위에 이유를 먼저 적습니다 — 빈 표가 오류로 읽히지 않게 */
+  const sum = AuriDongHea.scoreSummary(data, 'total');
+  const hNote = AuriDongHea.hBasis(data) === 'population'
+    ? 'H 연령·성별: 집단별 [동 출동 ÷ 동 거주 인구]를 지역 평균과 비교한 배수(인구 대비 출동률)의 순위 — 거주 인구 중 비중이 아니라 사는 사람 수에 비해 출동이 얼마나 많은가'
+    : 'H 연령·성별: 동 출동 환자 중 해당 집단 비율 ÷ 지역 전체 출동 환자 중 비율(출동 구성비 배수)의 순위 — 거주 인구 대비가 아님';
   return `
     <h3 class="h-section">3.3 읍면동별 HEA 취약도 지표</h3>
+    <p class="hea-lead">※ AURI 사전진단서 원문 구성에 없는 보조 절 — 읍면동(법정동) 단위 취약 요인을 HEA 기준으로 정리한 표</p>
     <p class="bullet">조사지와 겹치는 읍면동 ${insideCount}곳을 중심으로 H(피해대상)·E(환경)·A(행위·관리) 지표를
       ${esc(_data.shortLabel)} 안의 상대 순위로 산출함${data.dongs.length > dongs.length ? ` (전체 ${data.dongs.length}개 동 중 ${dongs.length}개 게재 — 나머지는 지도 화면)` : ''}</p>
+    ${sum && sum.empty ? `<p class="bullet hea-empty">${esc(sum.text)}</p>` : ''}
     ${tables}
     <p class="note-under">* 점수는 지자체 안 상대 순위(0~100) — 67 이상 상위 · 34~66 중위 · 33 이하 하위. 다른 지자체와 비교 불가<br>
-      * H 연령·성별: 동 출동 중 해당 집단 비율 ÷ 지역 전체 비율(편중 배수)의 순위 · E: Σ(회귀계수 × 동 평균 표준점수) · A 반복발생: 같은 지번 반복 지점 수 · 야간비중: 22~06시 · 장소편중: 1위 장소 비중(기타 제외)<br>
-      * "미수신" = 그 지표에 해당하는 유의 변수의 TIF 미수신 · "표본 부족" = 동의 해당 분야 출동 10건 미만 · "비교 동 부족" = 값이 있는 동이 3곳 미만이라 순위를 매기지 않음 · "자료 없음" = 회귀분석 대상 지자체 아님<br>
+      * ${hNote} · E: Σ(회귀계수 × 동 평균 표준점수) · A 반복발생: 같은 지번 반복 지점 수 · 야간비중: 22~06시 · 장소편중: 1위 장소 비중(기타 제외)<br>
+      * "미수신" = 그 지표에 해당하는 유의 변수의 TIF 미수신 · "표본 부족" = 동의 해당 분야 출동 10건 미만 · "비교 동 부족" = 값이 있는 동이 3곳 미만이라 순위를 매기지 않음 · "인구 매칭 불가" = 행정동 인구를 이 법정동에 이름으로 붙이지 못함 · "자료 없음" = 회귀분석 대상 지자체 아님<br>
       ${notes.map((t) => `* ${esc(t)}`).join('<br>')}</p>`;
 }
 

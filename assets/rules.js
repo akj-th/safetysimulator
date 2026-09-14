@@ -196,8 +196,45 @@ function rxPlaceTop(cat, inside) {
   const a = rxStatSide(cat, inside);
   if (!a) return [];
   if (typeof AuriStats !== 'undefined' && AuriStats.placeTop) return AuriStats.placeTop(cat, a);
-  if (cat.atypeOk && cat.atypeAxis === 'place' && a.atype && a.atype.n) return a.atype.top;
+  if (rxPlaceIsAtype(cat, inside)) return a.atype.top;
   return a.placeGrouped ? a.placeGrouped.top : [];
+}
+
+/** 이 분포가 강원대 분류(A_type) 장소인가 — stats.js placeTop 과 같은 조건 */
+function rxPlaceIsAtype(cat, inside) {
+  const a = rxStatSide(cat, inside);
+  return !!(a && cat.atypeOk && cat.atypeAxis === 'place' && a.atype && a.atype.n);
+}
+
+/* ── 장소 규칙 임계값 (2026-09-15 A_type 재보정) ─────────────────────────
+   옛 기준(주거 50% · 상업 25%)은 119 **발생장** 분포에 맞춰 둔 값입니다.
+   강원대 분류는 발생장 "집"을 건축물 용도로 다시 나눠서 같은 현장이 다른 비율로 나옵니다.
+   (41곳 원본 교차표, 화재·범죄·자살)
+     발생장 "집" → 공동주택+단독주택 72~83% · **상업시설 9~13%**(상가주택 등) · 기타·산업시설 등
+   그래서 A_type 에서는 주거 비율이 낮게, 상업시설 비율이 높게 나옵니다.
+
+   조정 방법 — 41곳 × 분야 × 조사지/전체(분야마다 82경우)에서
+     ① 같은 곳의 새 비율 ÷ 옛 비율 평균으로 옛 기준을 환산하고
+     ② 옛 기준으로 켜지던 경우와 몇 건이 일치하는지 확인했습니다.
+   | 규칙 | 분야 | 새/옛 비율 | 기준 | 옛 결과와 일치 (그대로 두면) |
+   | 주거 | 화재 | 0.79 | 40 | 69/82 (64) |
+   | 주거 | 범죄 | 0.69 | 40 | 81/82 (81) |
+   | 주거 | 자살 | 0.74 | 40 | 71/82 (59) |
+   | 상업 | 범죄 | 1.18 | 30 | 74/82 (74 — 켜짐 수 72→62 로 옛 64 에 맞음) |
+   | 상업 | 화재 | 2.04 | 50 | 74/82 (63) |
+   | 상업 | 자살 | 1.98 | 50 | 78/82 (76) |
+   발생장을 그대로 쓰는 분야(교통·생활안전·산재·감염병)는 옛 기준 그대로입니다.
+   ※ 임시 기준 — 강원대 분류 기준 확정 뒤 다시 볼 값입니다. */
+const RX_PLACE_MIN = {
+  home: { legacy: 50, atype: { fire: 40, crime: 40, suicide: 40 } },
+  biz: { legacy: 25, atype: { fire: 50, crime: 30, suicide: 50 } },
+};
+const RX_LABEL_KEY = { '화재': 'fire', '범죄': 'crime', '자살': 'suicide', '교통사고': 'traffic', '생활안전': 'life', '산업재해': 'industrial', '감염병': 'infection' };
+function rxPlaceMin(kind, cat, inside) {
+  const t = RX_PLACE_MIN[kind];
+  if (!rxPlaceIsAtype(cat, inside)) return t.legacy;
+  const key = RX_LABEL_KEY[cat.label];
+  return t.atype[key] !== undefined ? t.atype[key] : t.legacy;
 }
 
 /* 주거공간 = 강원대 분류의 공동주택 + 단독주택, 또는 발생장의 "집".
@@ -284,10 +321,10 @@ const RX_BY_STAT = [
     label: '상업시설에서 많이 발생',
     test: function (cat, inside) {
       const hit = rxPlaceShare(cat, inside, ['상업시설']);
-      return !!(hit && hit.share >= 25);
+      return !!(hit && hit.share >= rxPlaceMin('biz', cat, inside));
     },
     say: function (cat, inside) {
-      return `발생 장소 상업시설 ${rxPlaceShare(cat, inside, ['상업시설']).share}%`;
+      return `발생 장소 상업시설 ${rxPlaceShare(cat, inside, ['상업시설']).share}% (기준 ${rxPlaceMin('biz', cat, inside)}%${rxPlaceIsAtype(cat, inside) ? ' · 강원대 분류' : ''})`;
     },
     programs: {
       crime: ['고위험시설 안전비상벨 설치 지원', '공중화장실 안심환경 개선사업 실시'],
@@ -301,14 +338,16 @@ const RX_BY_STAT = [
     id: 'ST-PLACE-HOME',
     label: '주거공간에서 많이 발생',
     /* 2026-09-15 — 강원대 분류는 "집"을 공동주택·단독주택으로 나눠서, "집"만 찾으면
-       화재·범죄·자살에서 이 규칙이 **조용히 꺼집니다**. 둘을 합산해 같은 50% 기준으로 봅니다. */
+       화재·범죄·자살에서 이 규칙이 **조용히 꺼집니다**. 둘을 합산하고,
+       기준은 RX_PLACE_MIN(A_type 40% · 발생장 50%)을 봅니다. */
     test: function (cat, inside) {
       const hit = rxPlaceShare(cat, inside, RX_HOME_PLACES);
-      return !!(hit && hit.share >= 50);
+      return !!(hit && hit.share >= rxPlaceMin('home', cat, inside));
     },
     say: function (cat, inside) {
       const hit = rxPlaceShare(cat, inside, RX_HOME_PLACES);
-      return `발생 장소 주거공간 ${hit.share}%` + (hit.parts.length > 1 ? ` (${hit.parts.join(' + ')})` : '');
+      return `발생 장소 주거공간 ${hit.share}%` + (hit.parts.length > 1 ? ` (${hit.parts.join(' + ')})` : '')
+        + ` (기준 ${rxPlaceMin('home', cat, inside)}%${rxPlaceIsAtype(cat, inside) ? ' · 강원대 분류' : ''})`;
     },
     programs: {
       suicide: ['고위험군 조기발굴·상담관리', 'AI 기반 고독사 예방·대응 서비스'],

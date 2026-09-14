@@ -92,12 +92,29 @@ const AuriDongHea = (function () {
     };
   }
 
-  /** 지표 칸이 비어 있을 때의 이유 (진단서 표의 칸에 적음) */
-  function emptyReason(data, key) {
+  const MIN_N = (data) => (data && data.thresholds && data.thresholds.H_MIN_DONG_N) || 10;
+  const MIN_DONGS = (data) => (data && data.comparison && data.comparison.minDongs) || 3;
+
+  /** H 를 무엇으로 쟀는가 — 'population'(인구 대비 출동률) · 'composition'(출동 구성비) */
+  function hBasis(data) {
+    return data && data.population && data.population.hBasis === 'population' ? 'population' : 'composition';
+  }
+
+  /** 중점 분야에서 이 동의 H 가 "인구 매칭 불가"인가 */
+  function noPopMatch(dong, data) {
+    return !!(dong && dong.byCat && (data.heaCategories || []).some((c) => {
+      const b = dong.byCat[c.key];
+      return b && b.H && b.H.group && b.H.group.status === '인구 매칭 불가';
+    }));
+  }
+
+  /** 지표 칸이 비어 있을 때의 이유 (진단서 표의 칸·지도 말풍선에 적음). dong 을 주면 그 동의 사정까지 봅니다 */
+  function emptyReason(data, key, dong) {
     if (!data) return '자료 없음';
     /* 원값은 있는데 그런 동이 너무 적어 순위를 못 낸 경우 (PERCENTILE_MIN_DONGS) */
     const cmp = data.comparison && data.comparison.indicators && data.comparison.indicators[key];
     if (cmp && cmp.raw > 0 && !cmp.scored) return '비교 동 부족';
+    if (key.startsWith('h') && noPopMatch(dong, data)) return '인구 매칭 불가';
     if (key.startsWith('e')) {
       if (data.eStatus === 'no-regression') return '자료 없음';
       if (data.eStatus === 'no-boundary') return '경계 없음';
@@ -112,6 +129,55 @@ const AuriDongHea = (function () {
     return '표본 부족';
   }
 
+  /** 축 점수(H·E·A·종합)가 이 동에서 비어 있는 이유 — 지도 말풍선용 */
+  function axisReason(dong, data, axis) {
+    if (!dong || !data) return '자료 없음';
+    if (axis === 'total') return `축 ${(data.thresholds && data.thresholds.TOTAL_MIN_AXES) || 2}개 미만`;
+    if (axis === 'E') {
+      if (data.eStatus !== 'ok') return data.eStatus === 'no-regression' ? '자료 없음(회귀분석 대상 아님)' : '자료 없음';
+      return '해당 변수 없음';
+    }
+    const cmpAxis = data.comparison && data.comparison.axes && data.comparison.axes[axis];
+    const inds = INDICATORS.filter((x) => x.axis === axis).map((x) => data.comparison && data.comparison.indicators[x.key]).filter(Boolean);
+    if (inds.some((c) => c.raw > 0) && !inds.some((c) => c.scored)) return `비교 동 부족(값 있는 동 ${MIN_DONGS(data)}곳 미만)`;
+    if (axis === 'H' && noPopMatch(dong, data)) return '인구 매칭 불가(행정동 이름이 이 법정동과 달라 인구를 붙이지 못함)';
+    const maxN = Math.max(0, ...(data.heaCategories || []).map((c) => (dong.byCat && dong.byCat[c.key] ? dong.byCat[c.key].n : 0)));
+    if (maxN < MIN_N(data)) return `표본 부족(중점 분야 출동 ${MIN_N(data)}건 미만)`;
+    return cmpAxis && !cmpAxis.scored ? '비교 동 부족' : '편중 집단 없음';
+  }
+
+  /** 지금 보는 점수(H·E·A·종합)를 낸 동이 몇 곳인지 + 하나도 없으면 왜 없는지.
+   *  ★ 빈 지도·빈 표가 오류로 보이지 않게 이유를 문장으로 돌려줍니다 (2026-09-15 담당자 요청) */
+  function scoreSummary(data, axis) {
+    if (!data) return null;
+    const total = data.dongs.length;
+    const scored = data.dongs.filter((d) => d.scores[axis] !== null && d.scores[axis] !== undefined).length;
+    const name = axis === 'total' ? '종합' : axis;
+    if (scored) return { scored, total, empty: false, text: `${name} 점수를 낸 읍면동 ${scored}/${total}곳 — 나머지는 동을 누르면 비어 있는 이유가 나옵니다` };
+    let why;
+    if (axis === 'E' && data.eStatus !== 'ok') why = eStatusText(data) || 'E 자료 없음';
+    else {
+      const inds = Object.values((data.comparison && data.comparison.indicators) || {});
+      why = inds.some((c) => c.raw > 0) && !inds.some((c) => c.scored)
+        ? `동별 중점 분야 출동이 ${MIN_N(data)}건 이상인 동이 ${MIN_DONGS(data)}곳 미만이라 순위를 매길 수 없어 산출하지 않았습니다`
+        : `동별 중점 분야 출동이 ${MIN_N(data)}건 미만이라 산출하지 않았습니다`;
+    }
+    return { scored: 0, total, empty: true,
+      text: `${data.shortLabel || data.label}은(는) ${name} 점수를 낸 읍면동이 없습니다 — ${why}. 기준에 못 미쳐 비워 둔 것이며 오류가 아닙니다.` };
+  }
+
+  /** H 근거 한 줄 — 무엇의 배수인지 반드시 드러나게 씁니다.
+   *  인구 기준: "거주 인구 대비 출동률이 지역의 N배" / 구성비 기준: "출동 환자 중 비중이 지역 출동의 N배(인구 대비 아님)" */
+  function hText(g, comp) {
+    if (!g) return null;
+    if (g.status) return `H ${g.status}`;
+    if (g.basis === 'population') {
+      return `H ${g.label} — 거주 인구 대비 출동률이 지역 평균의 ${g.ratio}배 (인구 1천 명당 연 ${g.rate}건, 지역 ${g.regionRate}건)`
+        + (comp ? ` · 참고: 출동 환자 중 ${comp.label} ${comp.incShare}%(지역 ${comp.regionIncShare}%)` : '');
+    }
+    return `H ${g.label} — 출동 환자 중 비중 ${g.incShare}%가 지역 출동의 ${g.regionIncShare}%보다 ${g.ratio}배 (인구 대비 아님)`;
+  }
+
   /** 지도 말풍선·표 각주용 근거 몇 줄 */
   function evidence(dong, data) {
     const lines = [];
@@ -121,8 +187,8 @@ const AuriDongHea = (function () {
       if (!b) continue;
       const bits = [];
       const g = b.H && b.H.group;
-      if (g && g.label) bits.push(`H ${g.label} ${g.ratio}배`);
-      else if (g && g.status) bits.push(`H ${g.status}`);
+      const ht = hText(g, b.H && b.H.groupComp);
+      if (ht) bits.push(ht);
       const a = b.A || {};
       if (a.repeat && a.repeat.spots !== undefined) bits.push(`반복 ${a.repeat.spots}곳(${a.repeat.threshold}회↑)`);
       if (a.night && a.night.share !== undefined && a.night.share !== null) bits.push(`야간 ${a.night.share}%`);
@@ -147,7 +213,14 @@ const AuriDongHea = (function () {
     const minD = data.comparison && data.comparison.minDongs;
     const inds = data.comparison ? INDICATORS.filter((x) => { const c = data.comparison.indicators[x.key]; return c && c.raw > 0 && !c.scored; }) : [];
     if (inds.length) out.push(`${inds.map((x) => `${x.axis} ${x.label}`).join('·')} 지표는 값이 있는 동이 ${minD}곳 미만이라 순위를 매기지 않았습니다(비교 동 부족)`);
-    if (data.population && data.population.status !== 'ok') out.push(data.population.note);
+    const pop = data.population || {};
+    if (hBasis(data) === 'population' && pop.link) {
+      const L = pop.link;
+      out.push(`H 는 주민등록 연령별 인구 대비 출동률(행정동 인구를 법정동 이름에 맞춰 합산 · 인구가 붙은 법정동 ${L.dongsWithPop}/${L.dongsTotal}곳, 인구의 ${L.popShare}%)`
+        + (L.unmatched && L.unmatched.length ? ` — 이름으로 못 붙인 행정동: ${L.unmatched.map((u) => u.name).join('·')}` : ''));
+    } else {
+      out.push(`H 는 출동 환자 구성비 비교(거주 인구 대비 아님) — ${pop.note || '연령별 인구 없음'}`);
+    }
     const e = eStatusText(data);
     if (e) out.push(e);
     const cov = eCoverageText(data);
@@ -156,7 +229,7 @@ const AuriDongHea = (function () {
     return out;
   }
 
-  return { load, AXES, INDICATORS, band, eStatusText, eCoverageText, emptyReason, evidence, caveats };
+  return { load, AXES, INDICATORS, band, eStatusText, eCoverageText, emptyReason, axisReason, scoreSummary, hBasis, hText, evidence, caveats };
 })();
 
 if (typeof window !== 'undefined') window.AuriDongHea = AuriDongHea;
