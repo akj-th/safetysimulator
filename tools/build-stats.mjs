@@ -30,7 +30,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import proj4 from 'proj4';
 
-import { readCsvFile } from './lib/csv.mjs';
+import { openIncidents, INCIDENT_FILES, ATYPE_AXIS } from './lib/incidents.mjs';
 import { readPolygons, readDbf, pointInShape, inBBox } from './lib/shapefile.mjs';
 import { readXlsx } from './lib/xlsx.mjs';
 import {
@@ -40,7 +40,6 @@ import {
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
-const CSV_DIR = path.join(ROOT, 'data/raw/incidents_0826');
 const SHP_DIR = path.join(ROOT, 'data/raw/gis_0901/최종 조사지');
 const XLSX_PATH = path.join(ROOT, 'data/raw/analysis_0901/대표_위험_선정_기준_표본수추가.xlsx');
 const OUT_GRID = path.join(ROOT, 'data/incidents');
@@ -60,16 +59,8 @@ const WGS84 = '+proj=longlat +datum=WGS84 +no_defs';
 const toGrid = proj4(WGS84, EPSG5186);
 const toLatLng = proj4(EPSG5186, WGS84);
 
-/** 파일 이름 → 분야 key (파일마다 분야가 하나씩입니다) */
-const FILE_CATEGORY = {
-  '0826감염병_최종.csv': 'infection',
-  '0826교통사고_최종.csv': 'traffic',
-  '0826범죄_최종.csv': 'crime',
-  '0826산업재해_최종.csv': 'industrial',
-  '0826생활안전_최종.csv': 'life',
-  '0826자살_최종.csv': 'suicide',
-  '0826화재_최종.csv': 'fire',
-};
+/* 분야별 CSV 파일 이름·화재 결합은 lib/incidents.mjs 한 곳에 있습니다
+   (2026-09-15 — 강원대 A_type 판 `_유형.csv` 로 교체). */
 
 /* ── 발생장 묶음 — 지금은 **묶지 않습니다** (2026-09-07 AURI 확인) ──────
    전에는 사전진단서를 따라 `도로` + `도로외교통지역` 을 **"교통지역"** 하나로
@@ -132,6 +123,8 @@ function newAcc() {
     type: { n: 0, counts: {} },
     symptom: { n: 0, counts: {} },    // 환자증 (증상)
     cause: { n: 0, counts: {} },      // 질병외_ (외상 원인)
+    /* 강원대 분류 (2026-09-15). 분야마다 장소/사고유형/교통수단 중 하나 — ATYPE_AXIS */
+    atype: { n: 0, counts: {} },
     hour: { n: 0, bins: new Array(24).fill(0) },
   };
 }
@@ -159,7 +152,7 @@ function addRow(acc, row) {
   }
 
   for (const [field, value] of [['place', row.place], ['type', row.type],
-                                ['symptom', row.symptom], ['cause', row.cause]]) {
+                                ['symptom', row.symptom], ['cause', row.cause], ['atype', row.atype]]) {
     if (value) { acc[field].n++; bump(acc[field].counts, value); }
   }
 
@@ -171,9 +164,13 @@ function addRow(acc, row) {
 const pct = (a, b) => (b > 0 ? Number((a / b * 100).toFixed(1)) : null);
 
 /** 비율 상위 목록. [이름, 비율%, 건수] 로 돌려줍니다 */
+/* 건수가 같으면 이름순 — 원본 파일의 줄 순서가 바뀌어도 목록 순서가 흔들리지 않게
+   (2026-09-15 생활안전 CSV 줄 순서가 바뀌면서 동점 항목 순서가 뒤바뀐 것을 보고 고침) */
+const byCountThenName = (a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+
 function topList(bag, limit = 8) {
   return Object.entries(bag.counts)
-    .sort((a, b) => b[1] - a[1])
+    .sort(byCountThenName)
     .slice(0, limit)
     .map(([name, n]) => [name, pct(n, bag.n), n]);
 }
@@ -186,7 +183,7 @@ function topGrouped(bag, limit = 8) {
     merged[key] = (merged[key] || 0) + n;
   }
   return Object.entries(merged)
-    .sort((a, b) => b[1] - a[1])
+    .sort(byCountThenName)
     .slice(0, limit)
     .map(([name, n]) => [name, pct(n, bag.n), n]);
 }
@@ -224,6 +221,8 @@ function exportAcc(acc) {
     type: { n: acc.type.n, top: topList(acc.type) },
     symptom: { n: acc.symptom.n, top: topList(acc.symptom) },
     cause: { n: acc.cause.n, top: topList(acc.cause) },
+    /* 분류가 많은 분야(산재 18종)도 잘리지 않게 넉넉히 둡니다 */
+    atype: { n: acc.atype.n, top: topList(acc.atype, 20) },
     hour: { n: acc.hour.n, bins: acc.hour.bins, peak: peakWindow(acc.hour) },
   };
 }
@@ -255,7 +254,7 @@ function exportRepeat(spots, threshold) {
       inside: inside.reduce((n, v) => n + v.inside, 0),
     },
     maxAtOneSpot: region.reduce((m, v) => Math.max(m, v.region), 0),
-    topDongs: Object.entries(byDong).sort((a, b) => b[1] - a[1]).slice(0, 3)
+    topDongs: Object.entries(byDong).sort(byCountThenName).slice(0, 3)
       .map(([dong, n]) => ({ dong, spots: n })),
   };
 }
@@ -421,11 +420,20 @@ let grandTotal = 0, dropped = 0, relabelled = 0, noCoord = 0, codeMismatch = 0;
 const droppedKeys = new Map();
 
 console.log('\n119 출동자료를 읽습니다…');
-for (const [file, category] of Object.entries(FILE_CATEGORY)) {
-  const filePath = path.join(CSV_DIR, file);
-  if (!fs.existsSync(filePath)) { console.warn(`  ⚠ 파일 없음: ${file}`); continue; }
+const atypeNotes = {};      // 분야 → 파일 결합 안내 (화재)
+const atypeOk = {};         // 분야 → A_type 을 확보했는가
 
-  const csv = readCsvFile(fs, filePath);
+for (const category of CATEGORY_ORDER) {
+  let csv;
+  try {
+    csv = openIncidents(fs, ROOT, category);
+  } catch (e) {
+    console.warn(`  ⚠ ${INCIDENT_FILES[category]} 를 열지 못했습니다: ${e.message}`);
+    continue;
+  }
+  const file = csv.file;
+  atypeOk[category] = csv.atypeOk;
+  if (csv.note) { atypeNotes[category] = csv.note; console.log(`  · ${csv.note}`); }
   const C = {
     sido: csv.col('긴급구'), sgg: csv.col('긴급_1'), dong: csv.col('긴급_12'),
     safety: csv.col('안전유'), code: csv.col('분류기'), year: csv.col('분류연'),
@@ -437,7 +445,8 @@ for (const [file, category] of Object.entries(FILE_CATEGORY)) {
   };
 
   let used = 0;
-  for (const r of csv.rows) {
+  for (let ri = 0; ri < csv.rows.length; ri++) {
+    const r = csv.rows[ri];
     /* 분야는 `안전유`(한글) 칸을 따릅니다 — 13.8만 건 전부 파일과 일치합니다.
        `분류기`(영문 코드)는 2건이 어긋나 있어(감염병 행에 LIFE) 쓰지 않습니다.
        강원대 집계도 안전유 기준이라 이렇게 해야 숫자가 맞습니다. */
@@ -480,7 +489,8 @@ for (const [file, category] of Object.entries(FILE_CATEGORY)) {
       age: Number.isInteger(ageRaw) && ageRaw >= 0 && ageRaw < 130 ? ageRaw : null,
       sex: (r[C.sex] || '').trim(),
       place: (r[C.place] || '').trim(),
-      type: (r[C.type] || '').trim(),
+      type: csv.type(ri),                 // 원래 사고유형 (화재는 옛 파일에서)
+      atype: csv.atype(ri),               // 강원대 분류
       symptom: (r[C.symptom] || '').trim(),
       cause: (r[C.cause] || '').trim(),
       hour: Number.isInteger(hourRaw) && hourRaw >= 0 && hourRaw < 24 ? hourRaw : null,
@@ -527,7 +537,7 @@ if (noCoord) console.log(`  ⚠ 좌표 없음: ${noCoord}건`);
 fs.mkdirSync(OUT_GRID, { recursive: true });
 fs.mkdirSync(path.join(OUT_STATS, 'regions'), { recursive: true });
 
-const SOURCE_NOTE = '119 출동자료 (AURI 제공, 2026-08-26 최종본) · 2023~2025년 · 개인정보 항목 제외';
+const SOURCE_NOTE = '119 출동자료 (AURI 제공, 2026-08-26 최종본 · 강원대 분류 A_type 2026-09-09) · 2023~2025년 · 개인정보 항목 제외';
 
 const gridIndex = [];
 const statsIndex = [];
@@ -570,6 +580,10 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
     const inside = exportAcc(pair.inside);
     catOut[cat] = {
       label: CATEGORY_LABEL[cat],
+      /* A_type 이 무엇을 나눈 것인가 (place 장소 · type 사고유형 · vehicle 교통수단).
+         atypeOk 가 false 면 이 분야는 분류 없이 기존 방식입니다 */
+      atypeAxis: ATYPE_AXIS[cat],
+      atypeOk: !!atypeOk[cat],
       count: {
         inside: pair.inside.n,
         region: pair.region.n,
@@ -608,6 +622,7 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
         sex: { male: reg.sex.male, n: reg.sex.n },
         place: reg.placeGrouped.top.slice(0, 3),
         type: reg.type.top.slice(0, 3),
+        atype: reg.atype.top.slice(0, 3),
         insideAge: ins ? { a2049: ins.age.a2049, a65: ins.age.a65, n: ins.age.n } : null,
       };
     }
@@ -635,6 +650,7 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
     } : null,
 
     totals: { inside: s.insideTotal, region: s.regionTotal, share: pct(s.insideTotal, s.regionTotal) },
+    atypeNotes: Object.keys(atypeNotes).length ? atypeNotes : null,
     categories: catOut,
     byDong: dongOut,
   }));
@@ -663,7 +679,7 @@ function mergeAcc(target, src) {
   target.age.u20 += src.age.u20; target.age.a2049 += src.age.a2049; target.age.a65 += src.age.a65;
   for (const k in src.age.buckets) bump2(target.age.buckets, k, src.age.buckets[k]);
   target.sex.n += src.sex.n; target.sex.male += src.sex.male; target.sex.female += src.sex.female;
-  for (const f of ['place', 'type', 'symptom', 'cause']) {
+  for (const f of ['place', 'type', 'symptom', 'cause', 'atype']) {
     target[f].n += src[f].n;
     for (const k in src[f].counts) bump2(target[f].counts, k, src[f].counts[k]);
   }

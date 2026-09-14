@@ -188,6 +188,40 @@ const AuriStats = (function () {
     };
   }
 
+  /* ── 장소·유형 분포를 어디서 읽는가 (2026-09-15 강원대 A_type 반영) ──
+     강원대 분류(A_type)는 분야마다 나눈 기준이 다릅니다 (build-stats ATYPE_AXIS).
+
+       atypeAxis = 'place'    화재·범죄·자살      → **장소**를 A_type 에서
+       atypeAxis = 'type'     생활안전·산재·감염병 → **사고유형**을 A_type 에서
+       atypeAxis = 'vehicle'  교통사고            → **사고유형(교통수단)**을 A_type 에서
+
+     A_type 이 장소가 아닌 분야(교통·생활안전·산재·감염병)의 장소는 **기존대로
+     119 원자료 발생장**을 씁니다. 그 분야의 A_type 에는 장소 정보가 없어서,
+     A_type 으로 바꾸면 장소 문장과 현장 확인사항이 조용히 사라지기 때문입니다.
+
+     atypeOk 가 false 이거나(화재 결합 실패 등) 예전 통계 파일이면 기존 칸을 씁니다.
+     ★ 처방 규칙(rules.js)도 이 두 함수를 씁니다 — 문장·확인사항·처방이 같은
+       분포를 보게 하려는 것입니다. */
+  function useAtype(cat, A, axes) {
+    return !!(cat && cat.atypeOk && axes.indexOf(cat.atypeAxis) >= 0 && A && A.atype && A.atype.n);
+  }
+  /** 장소 분포 [이름, 비율, 건수] 목록 */
+  function placeTop(cat, A) {
+    if (!A) return [];
+    if (useAtype(cat, A, ['place'])) return A.atype.top;
+    return A.placeGrouped ? A.placeGrouped.top : [];
+  }
+  /** 사고유형 분포 [이름, 비율, 건수] 목록 */
+  function typeTop(cat, A) {
+    if (!A) return [];
+    if (useAtype(cat, A, ['type', 'vehicle'])) return A.atype.top;
+    return A.type ? A.type.top : [];
+  }
+  /** 장소 분포가 강원대 분류에서 왔는가 — 문서 각주에 출처를 적을 때 씁니다 */
+  function placeFromAtype(cat) {
+    return !!(cat && cat.atypeOk && cat.atypeAxis === 'place');
+  }
+
   /* ── ② 사고유형 ─────────────────────────────────────────────────
      "어디서 · 어떤 유형으로 · 몇 시에" 를 한 문장으로 묶습니다. */
   function narrateType(cat, opts) {
@@ -197,7 +231,7 @@ const AuriStats = (function () {
     const B = cat.region;
     const where = useInside ? '조사지 내' : '지자체 전체';
 
-    const places = A.placeGrouped ? A.placeGrouped.top : [];
+    const places = placeTop(cat, A);
     const parts = [];
 
     if (places.length) {
@@ -208,10 +242,11 @@ const AuriStats = (function () {
 
     /* 사고유형(type)은 분야마다 성격이 다릅니다.
        교통사고=자동차/오토바이, 감염병=전신증상/호흡기 … 그대로 씁니다. */
-    if (A.type && A.type.top.length) {
-      const t = A.type.top[0];
+    const types = typeTop(cat, A);
+    if (types.length) {
+      const t = types[0];
       const ga = josa(t[0], '이', '가');
-      const baseT = (B.type.top.find((x) => x[0] === t[0]) || [])[1];
+      const baseT = (typeTop(cat, B).find((x) => x[0] === t[0]) || [])[1];
       parts.push(useInside && baseT !== undefined && baseT !== null
         ? `사고 유형은 ${t[0]}${ga} <b>${pctText(t[1])}</b>로 가장 많으며 지역 전체 ${pctText(baseT)}와 비교됨`
         : `사고 유형은 ${t[0]}${ga} <b>${pctText(t[1])}</b>로 가장 많음`);
@@ -237,20 +272,42 @@ const AuriStats = (function () {
     { from: 16, to: 22, text: '퇴근·저녁 이용 많음 — 상가 주변 적치물, 주정차, 조도 확인' },
   ];
 
-  /* ⚠️ 열쇠는 **119 원자료의 `발생장` 값 그대로**입니다.
-     전에는 `도로`·`도로외교통지역` 을 "교통지역" 으로 묶어 한 줄로 두었는데,
-     AURI 확인 결과 "교통지역"은 용도지역에 없는 **틀린 명칭**이라 각각으로
-     되돌렸습니다 (2026-09-07). 묶음 규칙은 build-stats.mjs 의 PLACE_GROUPS 참고. */
+  /* ⚠️ 열쇠는 **장소 분포에 실제로 나오는 값 그대로**입니다. 두 벌이 함께 있습니다.
+
+     ① 강원대 A_type 장소값 (화재·범죄·자살 — 2026-09-15 부터)
+        공동주택 · 단독주택 · 교통지역 · 숙박시설 · 의료기관 · 산업시설 · 공공기관 …
+     ② 119 원자료 발생장 (교통·생활안전·산재·감염병은 계속 이것 — placeTop 참고)
+        도로 · 도로외교통지역 · 집 · 의료관련시설 · 공장/산업/건설시설 …
+
+     **②를 지우면 안 됩니다.** 장소가 A_type 에 없는 분야의 확인사항이 사라집니다.
+     ①의 문장은 ②에서 같은 장소를 가리키던 문장을 옮기거나 나눠 만들었습니다.
+
+     "교통지역"은 AURI 가 한때 틀린 명칭이라 했으나, 강원대 분류 기준이 이 이름을
+     쓰므로 **분류 기준을 따라** 그대로 씁니다 (담당자 결정 2026-09-15). */
   const PLACE_CHECKS = {
+    /* ① 강원대 A_type 장소 */
+    '교통지역': '도로·정류장·주차장 주변 — 보도 폭, 횡단 지점 시야, 불법 주정차, 대기 공간 조도 확인',
+    '공동주택': '공동주택 — 공용 계단·복도·옥상 출입문 관리 상태, 공동현관·지하주차장 조도 확인',
+    '단독주택': '단독주택 일대 — 계단·문턱 단차, 손잡이 유무, 골목 조도 확인',
+    '숙박시설': '숙박시설 — 공용부 피난 동선, 소화설비 접근성, 복도 조도 확인',
+    '의료기관': '의료·돌봄시설 주변 — 출입 동선, 환기 상태, 대기 공간 밀집도 확인',
+    '산업시설': '작업장 주변 — 추락·끼임 위험 지점, 안전난간·개구부 덮개 확인',
+    '공공기관': '공공기관·학교 주변 — 출입 동선, 어린이보호구역 표시, 통학로 분리 확인',
+    '공원': '공원 — 야간 조도, 수목에 가린 사각지대, 비상벨·CCTV 위치 확인',
+    '산림/농경지': '산지·경작지 — 접근로, 추락 위험 경사지, 구조 접근로 확인',
+    '산림': '산지 — 추락 위험 경사지, 접근 통제, 구조 접근로 확인',
+    '수역': '수변 — 추락방지 난간, 접근 통제, 구명장비 비치 확인',
+    /* ①② 공통 이름 */
+    '상업시설': '상가 일대 — 간판·적치물로 인한 보행 방해, 상가 후면부 관리 상태 확인',
+    '오락/문화시설': '유흥·문화시설 일대 — 야간 조도, 자연감시, CCTV 사각지대 확인',
+    /* ② 119 원자료 발생장 — 장소가 A_type 에 없는 분야용. 지우지 마세요 */
     '도로': '차도·보도 — 보도 폭, 횡단 지점 시야, 불법 주정차 상태 확인',
     '도로외교통지역': '정류장·역 주변 — 대기 공간 폭, 차량 상충 지점, 야간 조도 확인',
-    '상업시설': '상가 일대 — 간판·적치물로 인한 보행 방해, 상가 후면부 관리 상태 확인',
     '집': '주거지 내부 — 계단·문턱 단차, 손잡이 유무, 공동현관 조도 확인',
     '집단거주시설': '집단거주시설 — 공용부 피난 동선, 소화설비 접근성 확인',
     '의료관련시설': '의료·돌봄시설 주변 — 출입 동선, 환기 상태, 대기 공간 밀집도 확인',
     '공장/산업/건설시설': '작업장 주변 — 추락·끼임 위험 지점, 안전난간·개구부 덮개 확인',
     '학교/교육시설': '학교 주변 — 어린이보호구역 표시, 통학로 분리, 과속 저감시설 확인',
-    '오락/문화시설': '유흥·문화시설 일대 — 야간 조도, 자연감시, CCTV 사각지대 확인',
     '바다/강/산/논밭': '수변·산지·경작지 — 추락방지 난간, 접근 통제, 구조 접근로 확인',
   };
 
@@ -281,8 +338,17 @@ const AuriStats = (function () {
     const human = narrateHuman(cat, opts);
     if (human && AGE_CHECKS[human.lead.key]) add(AGE_CHECKS[human.lead.key], 'people');
 
-    for (const p of (A.placeGrouped ? A.placeGrouped.top : []).slice(0, 2)) {
-      add(PLACE_CHECKS[p[0]], 'space');
+    /* 상위 장소 두 곳의 확인 문장을 붙입니다. 2026-09-15 부터 "기타"처럼 확인 문장이
+       없는 장소는 **건너뛰고 다음 장소로** 채웁니다 (상위 3위까지만).
+       강원대 분류로 바뀐 뒤 "기타"가 상위에 올라 한 자리를 비워 버리는 경우가
+       26건 있었습니다 — 확인사항이 조용히 줄어드는 것을 막기 위한 것입니다. */
+    let placed = 0;
+    for (const p of placeTop(cat, A).slice(0, 3)) {
+      if (placed >= 2) break;
+      const text = PLACE_CHECKS[p[0]];
+      if (!text || seen[text]) continue;
+      add(text, 'space');
+      placed++;
     }
 
     if (A.hour && A.hour.peak) {
@@ -363,7 +429,8 @@ const AuriStats = (function () {
 
   return {
     load, loadNational, replacedNote,
-    narrateHuman, narrateType, fieldChecks,
+    narrateHuman, narrateType, fieldChecks, placeTop, typeTop, placeFromAtype,
+    get placeChecks() { return PLACE_CHECKS; },
     regionSummary, focusCategories, dongSummary,
     pointInGeometry, ratioText, topText, sampleNote, josa, pctText,
     get minSample() { return MIN_SAMPLE; },

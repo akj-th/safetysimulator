@@ -187,6 +187,31 @@ const RX_WEAK = {
 /** 조사지 안 값을 쓰되, 조사지 밖 지점이면 지자체 전체 값을 봅니다 */
 function rxStatSide(cat, inside) { return (inside === false ? cat.region : cat.inside) || cat.region; }
 
+/* ── 장소 분포 (2026-09-15 강원대 A_type 반영) ─────────────────────────
+   화재·범죄·자살은 강원대 분류(A_type)의 장소, 나머지 분야는 119 발생장을 씁니다.
+   문장·현장 확인사항과 **같은 분포**를 보도록 stats.js 의 placeTop 을 씁니다.
+   stats.js 없이 이 파일만 불러오는 화면(시각화·규칙 점검 도구)을 위해 같은
+   규칙의 대체 함수를 둡니다 — 규칙을 바꾸면 **두 곳을 함께** 고치세요. */
+function rxPlaceTop(cat, inside) {
+  const a = rxStatSide(cat, inside);
+  if (!a) return [];
+  if (typeof AuriStats !== 'undefined' && AuriStats.placeTop) return AuriStats.placeTop(cat, a);
+  if (cat.atypeOk && cat.atypeAxis === 'place' && a.atype && a.atype.n) return a.atype.top;
+  return a.placeGrouped ? a.placeGrouped.top : [];
+}
+
+/* 주거공간 = 강원대 분류의 공동주택 + 단독주택, 또는 발생장의 "집".
+   한 분포에는 둘 중 한쪽 이름만 나오므로 합쳐도 두 번 세지 않습니다. */
+const RX_HOME_PLACES = ['공동주택', '단독주택', '집'];
+function rxPlaceShare(cat, inside, names) {
+  const hits = rxPlaceTop(cat, inside).filter(function (x) { return names.indexOf(x[0]) >= 0 && x[1] !== null; });
+  if (!hits.length) return null;
+  return {
+    share: Number(hits.reduce(function (s, x) { return s + x[1]; }, 0).toFixed(1)),
+    parts: hits.map(function (x) { return x[0] + ' ' + x[1] + '%'; }),
+  };
+}
+
 const RX_BY_STAT = [
   {
     id: 'ST-AGE-65',
@@ -258,14 +283,11 @@ const RX_BY_STAT = [
     id: 'ST-PLACE-BIZ',
     label: '상업시설에서 많이 발생',
     test: function (cat, inside) {
-      const a = rxStatSide(cat, inside);
-      const top = a && a.placeGrouped ? a.placeGrouped.top : [];
-      const hit = top.find(function (x) { return x[0] === '상업시설'; });
-      return !!(hit && hit[1] >= 25);
+      const hit = rxPlaceShare(cat, inside, ['상업시설']);
+      return !!(hit && hit.share >= 25);
     },
     say: function (cat, inside) {
-      const hit = rxStatSide(cat, inside).placeGrouped.top.find(function (x) { return x[0] === '상업시설'; });
-      return `발생 장소 상업시설 ${hit[1]}%`;
+      return `발생 장소 상업시설 ${rxPlaceShare(cat, inside, ['상업시설']).share}%`;
     },
     programs: {
       crime: ['고위험시설 안전비상벨 설치 지원', '공중화장실 안심환경 개선사업 실시'],
@@ -278,15 +300,15 @@ const RX_BY_STAT = [
   {
     id: 'ST-PLACE-HOME',
     label: '주거공간에서 많이 발생',
+    /* 2026-09-15 — 강원대 분류는 "집"을 공동주택·단독주택으로 나눠서, "집"만 찾으면
+       화재·범죄·자살에서 이 규칙이 **조용히 꺼집니다**. 둘을 합산해 같은 50% 기준으로 봅니다. */
     test: function (cat, inside) {
-      const a = rxStatSide(cat, inside);
-      const top = a && a.placeGrouped ? a.placeGrouped.top : [];
-      const hit = top.find(function (x) { return x[0] === '집'; });
-      return !!(hit && hit[1] >= 50);
+      const hit = rxPlaceShare(cat, inside, RX_HOME_PLACES);
+      return !!(hit && hit.share >= 50);
     },
     say: function (cat, inside) {
-      const hit = rxStatSide(cat, inside).placeGrouped.top.find(function (x) { return x[0] === '집'; });
-      return `발생 장소 주거공간 ${hit[1]}%`;
+      const hit = rxPlaceShare(cat, inside, RX_HOME_PLACES);
+      return `발생 장소 주거공간 ${hit.share}%` + (hit.parts.length > 1 ? ` (${hit.parts.join(' + ')})` : '');
     },
     programs: {
       suicide: ['고위험군 조기발굴·상담관리', 'AI 기반 고독사 예방·대응 서비스'],

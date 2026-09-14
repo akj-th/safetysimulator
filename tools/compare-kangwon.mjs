@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readXlsx } from './lib/xlsx.mjs';
+import { slugForKangwon } from './lib/regions.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -114,11 +115,10 @@ const inside = readKangwon(path.join(KW, '조사지내_연령성별_최종.xlsx'
 const whole = readKangwon(path.join(KW, '지역전체_연령성별_최종.xlsx'));
 
 /* 강원대는 `인천시 미추홀구`, 우리 index 는 `미추홀구` — 이름을 이어 줍니다 */
+/* 끝 단어만 보면 대구·대전·울산 중구가 섞여 lib/regions.mjs 의 함수로 찾습니다 (2026-09-15) */
 function findRegion(kwName) {
-  const tail = kwName.split(/\s+/).pop();
-  return index.regions.find((r) => r.short === kwName)
-      || index.regions.find((r) => r.short === tail)
-      || index.regions.find((r) => r.label.includes(tail));
+  const slug = slugForKangwon(kwName);
+  return slug ? index.regions.find((r) => r.region === slug) : null;
 }
 
 const want = process.argv.slice(2).filter((a) => !a.startsWith('--'));

@@ -118,6 +118,23 @@ export function slugForXlsx(name) {
   return null;
 }
 
+/**
+ * 강원대 0904 결과표의 지자체 이름 → slug
+ * 그 표는 "대구시 중구 · 부산시 동구 · 서울시 관악구 · 인천시 미추홀구"처럼
+ * **시 이름을 앞에 붙여** 적습니다. 끝 단어("중구")만으로 찾으면 대구·대전·울산
+ * 중구가 뒤섞이므로(2026-09-15 발견) 시 이름을 살려 먼저 찾습니다.
+ *   "대구시 중구" → "대구 중구" → gjunggu
+ *   "부산시 동구" → "부산 동구"(없음) → "동구" → donggu
+ */
+export function slugForKangwon(name) {
+  const clean = (name || '').replace(/^[*※\s]+/, '').trim();
+  const direct = slugForXlsx(clean);
+  if (direct) return direct;
+  const m = /^(\S+?)시\s+(\S+)$/.exec(clean);
+  if (m) return slugForXlsx(`${m[1]} ${m[2]}`) || slugForXlsx(m[2]);
+  return null;
+}
+
 /* ── 7대 사회재난 ────────────────────────────────────────────────── */
 
 /** 원본 `분류기`(영문 코드) → 앱 key */
