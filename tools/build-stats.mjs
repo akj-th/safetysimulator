@@ -30,7 +30,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import proj4 from 'proj4';
 
-import { openIncidents, INCIDENT_FILES, ATYPE_AXIS } from './lib/incidents.mjs';
+import { openIncidents, INCIDENT_FILES, ATYPE_AXIS, REPEAT_THRESHOLD } from './lib/incidents.mjs';
 import { readPolygons, readDbf, pointInShape, inBBox } from './lib/shapefile.mjs';
 import { readXlsx } from './lib/xlsx.mjs';
 import {
@@ -103,11 +103,7 @@ const PLACE_GROUPS = {
    ── 개인정보 ────────────────────────────────────────────────────────
    결과물에는 **개소 수와 읍면동 이름만** 남깁니다. 지번주소는 묶는 열쇠로만
    쓰고 파일에 쓰지 않습니다.                                            */
-const REPEAT_THRESHOLD = {
-  crime: 5, infection: 2, suicide: 3,
-  /* 원문에 없는 분야는 자살과 같은 3회로 둡니다 (담당자 조정 대상) */
-  traffic: 3, fire: 3, life: 3, industrial: 3,
-};
+/* 임계값 표는 lib/incidents.mjs 의 REPEAT_THRESHOLD (동별 HEA 와 공용) */
 
 /* ── 통계 누적기 ───────────────────────────────────────────────────── */
 

@@ -926,6 +926,8 @@ const ALLOW_DIRS = [
   { dir: 'assets', ext: ['.css', '.js', '.json', '.svg', '.png', '.jpg'] },
   { dir: 'data/incidents', ext: ['.json'] },
   { dir: 'data/stats', ext: ['.json'] },
+  /* 동별 HEA 취약도 (tools/build-dong-hea.mjs) — 점수·비율·동 경계선뿐, 개별 신고 없음 */
+  { dir: 'data/dong', ext: ['.json'] },
   /* 위험도 히트맵 — 원본 TIF(data/raw/)가 아니라 축소·색칠한 PNG 입니다 */
   { dir: 'data/heatmap', ext: ['.png', '.json'] },
 ];

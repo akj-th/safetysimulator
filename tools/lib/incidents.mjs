@@ -61,6 +61,16 @@ export const ATYPE_AXIS = {
 };
 export const ATYPE_AXIS_LABEL = { place: '발생장소', type: '사고유형', vehicle: '교통수단' };
 
+/* ── 반복 발생 지점 임계값 — 통계(build-stats)와 동별 HEA(build-dong-hea) 공용 ──
+   같은 지번주소에서 이 횟수 이상 되풀이되면 "반복 발생 지점"입니다.
+   사전진단서 부천시 원문: 범죄 5회 · 감염병 2회 · 자살 3회.
+   원문에 없는 분야는 자살과 같은 3회 (담당자 조정 대상).
+   ★ 두 도구가 같은 값을 써야 동별 A(반복발생) 와 리포트 2.2 가 어긋나지 않습니다. */
+export const REPEAT_THRESHOLD = {
+  crime: 5, infection: 2, suicide: 3,
+  traffic: 3, fire: 3, life: 3, industrial: 3,
+};
+
 /**
  * 한 분야의 CSV 를 엽니다.
  * 돌려주는 것: { file, rows, col(name), type(i), atype(i), note, atypeOk }
