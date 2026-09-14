@@ -163,7 +163,7 @@ const AuriDongHea = (function () {
         : `동별 중점 분야 출동이 ${MIN_N(data)}건 미만이라 산출하지 않았습니다`;
     }
     return { scored: 0, total, empty: true,
-      text: `${data.shortLabel || data.label}은(는) ${name} 점수를 낸 읍면동이 없습니다 — ${why}. 기준에 못 미쳐 비워 둔 것이며 오류가 아닙니다.` };
+      text: `${data.shortLabel || data.label}에서는 ${name} 점수를 낸 읍면동이 없습니다 — ${why}. 기준에 못 미쳐 비워 둔 것이며 오류가 아닙니다.` };
   }
 
   /** H 근거 한 줄 — 무엇의 배수인지 반드시 드러나게 씁니다.
@@ -175,7 +175,7 @@ const AuriDongHea = (function () {
       return `H ${g.label} — 거주 인구 대비 출동률이 지역 평균의 ${g.ratio}배 (인구 1천 명당 연 ${g.rate}건, 지역 ${g.regionRate}건)`
         + (comp ? ` · 참고: 출동 환자 중 ${comp.label} ${comp.incShare}%(지역 ${comp.regionIncShare}%)` : '');
     }
-    return `H ${g.label} — 출동 환자 중 비중 ${g.incShare}%가 지역 출동의 ${g.regionIncShare}%보다 ${g.ratio}배 (인구 대비 아님)`;
+    return `H ${g.label} — 출동 환자 중 비중 ${g.incShare}%로 지역 출동 환자 중 비중(${g.regionIncShare}%)의 ${g.ratio}배 (거주 인구 대비 아님)`;
   }
 
   /** 지도 말풍선·표 각주용 근거 몇 줄 */
@@ -219,7 +219,7 @@ const AuriDongHea = (function () {
       out.push(`H 는 주민등록 연령별 인구 대비 출동률(행정동 인구를 법정동 이름에 맞춰 합산 · 인구가 붙은 법정동 ${L.dongsWithPop}/${L.dongsTotal}곳, 인구의 ${L.popShare}%)`
         + (L.unmatched && L.unmatched.length ? ` — 이름으로 못 붙인 행정동: ${L.unmatched.map((u) => u.name).join('·')}` : ''));
     } else {
-      out.push(`H 는 출동 환자 구성비 비교(거주 인구 대비 아님) — ${pop.note || '연령별 인구 없음'}`);
+      out.push(`H 는 출동 환자 구성비 비교(거주 인구 대비 아님) — ${pop.compositionReason || pop.note || '연령별 인구 없음'}`);
     }
     const e = eStatusText(data);
     if (e) out.push(e);

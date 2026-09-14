@@ -91,6 +91,13 @@ const POPULATION_AGE_FILE = /연령별인구현황.*\.csv$/i;
 /** 집단 인구가 이보다 적으면 그 집단은 편중 후보에서 뺍니다. 근거: 인구 수십 명 집단은
  *  출동 3건만으로 배수가 10배를 넘어 순위를 지배함 (임시 기준) */
 const H_MIN_GROUP_POP = 100;
+/** 인구 대비 계산을 **이름 대응이 깨끗한 지자체에만** 씁니다 (행정동 전부 연결 + 법정동 전부 인구 있음).
+ *  근거(2026-09-15 41곳 실측): 도시 지역은 행정동 이름이 법정동과 달라(관악 2/21 · 대구 중구 3/57 법정동)
+ *  대부분 비고, 공주처럼 행정동 16곳이 전부 붙어도 법정동 37곳 중 16곳에만 인구가 몰려
+ *  **붙은 동의 인구가 부풀려집니다**(한 행정동이 여러 법정동에 걸침). 이런 곳에서 섞어 쓰면 조용히 틀립니다.
+ *  → 깨끗하지 않은 지자체는 출동 구성비 기준 + 그 이유를 화면·문서에 적음.
+ *  행안부 행정동·법정동 연계표가 오면 linkPopulation() 을 바꾸고 이 값을 false 로 둘 수 있습니다. */
+const POPULATION_REQUIRE_CLEAN_LINK = true;
 /** 출동자료 기간(2023~2025) — 인구 1천 명당 연간 출동 표기용 */
 const INCIDENT_YEARS = 3;
 /** 행정동 이름 → 법정동 이름 후보. 앞에서부터 시도해 경계 파일에 있는 첫 이름을 씁니다 */
@@ -336,9 +343,11 @@ function linkPopulation(boundary) {
     (links[hit] ||= []).push(row.name);
   }
   if (!adminTotal) return null;
+  const dongsWithPop = Object.keys(byDong).length;
+  const clean = adminMatched === adminTotal && dongsWithPop === names.size;
   return {
     region, byDong, links, unmatched,
-    summary: { adminTotal, adminMatched, dongsWithPop: Object.keys(byDong).length, dongsTotal: names.size, popShare: r1(popMatched / popTotal * 100) },
+    summary: { adminTotal, adminMatched, dongsWithPop, dongsTotal: names.size, popShare: r1(popMatched / popTotal * 100), clean },
   };
 }
 const popOf = (P, keys) => keys.reduce((s, k) => s + (P[k] || 0), 0);
@@ -517,8 +526,15 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
   const dongNames = Object.keys(s.dongs).filter((d) => d !== '(미상)').sort();
   /* 출동자료의 동 이름이 경계에 없는 경우 — 이름 표기가 다르거나 경계 밖 */
   const unmatched = boundary ? dongNames.filter((d) => !boundary.byName[d]) : [];
-  /* 행정동 인구 → 법정동 (이름 대응). null 이면 H 는 출동 구성비 기준 */
-  const link = linkPopulation(boundary);
+  /* 행정동 인구 → 법정동 (이름 대응). 연결이 깨끗하지 않으면 쓰지 않고(null) H 는 출동 구성비 기준 */
+  const popLinkAll = linkPopulation(boundary);
+  const link = popLinkAll && (popLinkAll.summary.clean || !POPULATION_REQUIRE_CLEAN_LINK) ? popLinkAll : null;
+  const popReason = !population.rows ? population.note
+    : !boundary ? '동 경계가 없어 인구를 법정동에 붙일 수 없음'
+    : !popLinkAll ? '이 지자체의 행정동 인구를 찾지 못함'
+    : link ? null
+    : `행정동 인구를 법정동 이름에 다 잇지 못함(인구가 붙은 법정동 ${popLinkAll.summary.dongsWithPop}/${popLinkAll.summary.dongsTotal}곳`
+      + `${popLinkAll.unmatched.length ? ` · 못 붙인 행정동 ${popLinkAll.unmatched.map((u) => u.name).join('·')}` : ''}) — 섞어 쓰면 붙은 동 인구가 부풀려질 수 있어 인구 대비 계산을 쓰지 않음`;
 
   /* ── H · A 분야별 원점수 ──────────────────────────────────────── */
   const raw = {};                     // cat → indicator → {dong: value}
@@ -810,7 +826,8 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
       status: population.status, files: population.files || [], note: population.note,
       /* 이 지자체에서 H 를 무엇으로 쟀는가 — 문장·표가 이 값을 보고 기준을 적습니다 */
       hBasis: link ? 'population' : 'composition',
-      link: link ? { ...link.summary, unmatched: link.unmatched, links: link.links } : null,
+      compositionReason: popReason,
+      link: popLinkAll ? { ...popLinkAll.summary, used: !!link, unmatched: popLinkAll.unmatched, links: popLinkAll.links } : null,
     },
     heaCategories: heaCats.map((k) => ({ key: k, label: CATEGORY_LABEL[k] })),
     eStatus: eStatusOfRegion,
@@ -836,7 +853,7 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
   indexOut.push({ region: slug, label: meta.label, dongs: dongs.length, scored, eStatus: eStatusOfRegion, boundary: json.boundary.status });
   const cov = heaCats.map((c) => `${CATEGORY_LABEL[c]} E ${eCoverage[c] && eCoverage[c].total !== undefined ? `${eCoverage[c].have}/${eCoverage[c].total}` : '—'}`).join(' · ');
   const bnote = (boundary ? `경계 ${Object.keys(boundary.byName).length}동(${boundary.sggCodes.join('+')})${unmatched.length ? ` · 이름 불일치 ${unmatched.length}` : ''}` : '경계 없음')
-    + (link ? ` · 인구 ${link.summary.dongsWithPop}동(행정동 ${link.summary.adminMatched}/${link.summary.adminTotal}, 인구 ${link.summary.popShare}%)` : ' · 인구 없음');
+    + (popLinkAll ? ` · 인구 ${popLinkAll.summary.dongsWithPop}동(행정동 ${popLinkAll.summary.adminMatched}/${popLinkAll.summary.adminTotal}) H ${link ? '인구 기준' : '구성비 기준'}` : ' · 인구 없음');
   console.log(`  ${slug.padEnd(11)} 동 ${String(dongs.length).padStart(3)}개 (점수 ${String(scored).padStart(3)}) · ${bnote} · E ${eStatusOfRegion.padEnd(13)} · ${cov} · ${kb}KB`);
 }
 
