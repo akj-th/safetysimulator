@@ -156,6 +156,28 @@ body{
 .account-bar.is-warn{border-bottom-color:var(--main)}
 .account-bar .acc-warn{color:var(--main); font-weight:700}
 
+/* 계정 줄의 "지금 열린 프로젝트" 이름 */
+.account-inner .acc-proj{color:var(--k); max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.account-inner .acc-proj .ro{color:var(--contrast)}
+
+/* ── 작은 창 (프로젝트 저장 등, assets/projects.js) ────────────────
+   카드 금지 규칙의 예외는 아니고, 화면을 덮는 입력 창이라 얇은 검정 선 하나로만
+   경계를 둡니다. 그림자·둥근 모서리 없음. */
+.modal-wrap{
+  position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.45);
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.modal{background:var(--w); border:1px solid var(--k); width:100%; max-width:520px; padding:26px 28px}
+.modal h2{margin-bottom:16px}
+.modal .fld{margin-bottom:14px}
+.modal .fld > label{display:block; font-size:var(--fs-sm); font-weight:700; color:var(--k); margin-bottom:6px}
+.modal .opt{display:flex; gap:9px; align-items:flex-start; padding:7px 0; font-size:var(--fs-sm); color:var(--g4); cursor:pointer}
+.modal .opt input{margin-top:5px; accent-color:var(--k)}
+.modal .opt small{display:block; font-size:var(--fs-cap); color:var(--g2); line-height:1.6}
+.modal .hint{font-size:var(--fs-cap); color:var(--g2); line-height:1.7; margin-top:8px}
+.modal .hint.warn{color:var(--main)}
+.modal .foot{display:flex; justify-content:flex-end; gap:10px; margin-top:20px}
+
 /* ════ 본문 ═════════════════════════════════════════════════════ */
 
 .wrap{max-width:var(--maxw); margin:0 auto; padding:46px var(--gutter) 96px}

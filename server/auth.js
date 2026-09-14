@@ -140,6 +140,8 @@ export async function initAuth(opts) {
 }
 
 export const authReady = () => _ready;
+/* 같은 DB 연결을 프로젝트 저장(projects.js)도 씁니다. 준비 전이면 null */
+export const db = () => (_ready ? _pool : null);
 export const authError = () => _initError;
 
 /* ── 관리자 계정 (ADMIN_ID / ADMIN_PW) ───────────────────────────────
@@ -345,7 +347,7 @@ export async function logout(req, res) {
    지자체 이름은 화면이 보낸 주소를 41개 지자체 이름표와 맞대어 찾습니다
    (좌표만으로는 경계 판정이 필요해 주소를 씁니다). 못 찾으면 비워 둡니다. */
 let _regionLabels = null;
-function regionOf(addr, siteRoot) {
+export function regionOf(addr, siteRoot) {
   if (!addr) return null;
   if (!_regionLabels) {
     try {

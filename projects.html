@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 프로젝트 — 안전사업지구 진단 시뮬레이터</title>
+
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+/* ════════════════════════════════════════════════════════════════════
+   내 프로젝트 (2026-09-15)
+
+   계정별로 저장한 진단을 모아 보고 다시 엽니다.
+   관리자는 "전체 사용자" 탭에서 모든 사람의 프로젝트를 **열람**할 수 있습니다.
+   남의 프로젝트는 열 수만 있고, 지우거나 덮어쓸 수 없습니다(서버도 막음).
+   ════════════════════════════════════════════════════════════════════ */
+.pj-bar{display:flex; align-items:center; gap:22px; flex-wrap:wrap; border-bottom:1px solid var(--g1); margin-bottom:6px}
+.pj-tab{border:none; background:none; padding:12px 0; cursor:pointer; font-family:inherit;
+  font-size:var(--fs-body); color:var(--g2); border-bottom:2px solid transparent; margin-bottom:-1px}
+.pj-tab.on{color:var(--k); font-weight:700; border-bottom-color:var(--k)}
+.pj-bar .sp{flex:1}
+.pj-bar select{width:auto; padding:8px 10px; font-size:var(--fs-sm)}
+.count{font-size:var(--fs-sm); color:var(--g2); margin:10px 0 0}
+.tbl-wrap{overflow-x:auto}
+.tbl-wrap table{font-size:var(--fs-sm)}
+.tbl-wrap th, .tbl-wrap td{padding:11px 11px; white-space:nowrap; vertical-align:middle}
+.tbl-wrap td.wrap{white-space:normal; min-width:200px}
+.pj-title{font-weight:700; color:var(--k)}
+.pj-sub{font-size:var(--fs-cap); color:var(--g2); margin-top:3px}
+.now{font-size:var(--fs-cap); font-weight:700; color:var(--main); margin-left:6px}
+.acts{display:flex; gap:14px}
+.empty{padding:28px 0; color:var(--g2); font-size:var(--fs-sm); line-height:1.8}
+</style>
+</head>
+<body data-step="0">
+
+<header class="topbar" id="topbar"></header>
+
+<main class="wrap">
+  <div class="page-head">
+    <h1>내 프로젝트</h1>
+    <p class="sub">저장한 진단을 다시 엽니다. 여는 순간 지금 탭의 진단은 그 프로젝트 내용으로 바뀝니다.</p>
+  </div>
+
+  <div class="pj-bar">
+    <button type="button" class="pj-tab on" data-scope="mine">내 프로젝트</button>
+    <button type="button" class="pj-tab" data-scope="all" id="allTab" hidden>전체 사용자</button>
+    <span class="sp"></span>
+    <select id="ownerSel" hidden aria-label="작성자로 거르기"><option value="">작성자 전체</option></select>
+  </div>
+  <p class="count" id="count"></p>
+  <div class="tbl-wrap" id="box"></div>
+</main>
+
+<script src="assets/ui.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/projects.js"></script>
+<script>
+const esc = (s) => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const kst = (v) => v ? new Date(v).toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' }).slice(0, 16) : '—';
+const STEP = { 1: '1 위치 선택', 2: '2 진단', 3: '3 리포트', 4: '4 시각화' };
+
+let _scope = 'mine';
+let _all = [];         // 전체 탭에서 받은 목록 (작성자 거르기용)
+
+function render(list) {
+  const box = document.getElementById('box');
+  const cur = AuriProjects.current();
+  const showOwner = _scope === 'all';
+  document.getElementById('count').textContent = `${list.length}건`;
+  if (!list.length) {
+    box.innerHTML = _scope === 'mine'
+      ? '<div class="empty">저장한 프로젝트가 없습니다.<br>진단 화면 위쪽 계정 줄의 <b>프로젝트 저장</b>을 누르면 여기에 쌓입니다.</div>'
+      : '<div class="empty">저장된 프로젝트가 없습니다.</div>';
+    return;
+  }
+  const me = AuriAuth.user;
+  box.innerHTML = `<table><thead><tr>
+      <th>이름</th>${showOwner ? '<th>작성자</th>' : ''}<th>지자체 · 위치</th><th>진행</th><th>판독 요약</th>
+      <th>저장 시각</th><th>크기</th><th></th>
+    </tr></thead><tbody>
+    ${list.map((p) => {
+      const mine = me && p.user_id === me.id;
+      return `<tr>
+        <td class="wrap"><span class="pj-title">${esc(p.title)}</span>${cur && cur.id === p.id ? '<span class="now">지금 열림</span>' : ''}
+          <div class="pj-sub">처음 저장 ${kst(p.created_at)}</div></td>
+        ${showOwner ? `<td>${esc(p.owner_name)}<div class="pj-sub">${esc(p.owner_username)} · ${esc(p.owner_org)}</div></td>` : ''}
+        <td class="wrap">${esc(p.region || '—')}<div class="pj-sub">${esc(p.addr || '')}</div></td>
+        <td>${STEP[p.step] || '—'}</td>
+        <td>${esc(p.summary || '—')}</td>
+        <td>${kst(p.updated_at)}</td>
+        <td>${AuriProjects.sizeText(p.size_bytes)}</td>
+        <td><div class="acts">
+          <button type="button" class="btn-text" data-open="${p.id}">${mine ? '열기' : '열람'}</button>
+          ${mine ? `<button type="button" class="btn-text danger" data-del="${p.id}" data-title="${esc(p.title)}">삭제</button>` : ''}
+        </div></td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>`;
+}
+
+async function load() {
+  const box = document.getElementById('box');
+  box.innerHTML = '<div class="empty">불러오는 중…</div>';
+  try {
+    const { projects } = await AuriProjects.api('/api/projects?scope=' + _scope);
+    if (_scope === 'all') {
+      _all = projects;
+      /* 작성자 거르기 목록 — 받은 프로젝트에 나오는 사람만 */
+      const sel = document.getElementById('ownerSel');
+      const owners = new Map();
+      projects.forEach((p) => owners.set(p.user_id, `${p.owner_name} (${p.owner_username})`));
+      const keep = sel.value;
+      sel.innerHTML = '<option value="">작성자 전체</option>' +
+        [...owners].map(([id, label]) => `<option value="${id}">${esc(label)}</option>`).join('');
+      sel.value = owners.has(Number(keep)) ? keep : '';
+      applyOwner();
+    } else {
+      render(projects);
+    }
+  } catch (err) {
+    box.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
+  }
+}
+
+function applyOwner() {
+  const v = Number(document.getElementById('ownerSel').value);
+  render(v ? _all.filter((p) => p.user_id === v) : _all);
+}
+
+document.addEventListener('click', async (e) => {
+  const tab = e.target.closest('.pj-tab');
+  if (tab) {
+    _scope = tab.dataset.scope;
+    document.querySelectorAll('.pj-tab').forEach((t) => t.classList.toggle('on', t === tab));
+    document.getElementById('ownerSel').hidden = _scope !== 'all';
+    load();
+    return;
+  }
+  const open = e.target.closest('[data-open]');
+  if (open) {
+    open.disabled = true;
+    try { if (!(await AuriProjects.open(Number(open.dataset.open)))) open.disabled = false; }
+    catch (err) { alert(err.message); open.disabled = false; }
+    return;
+  }
+  const del = e.target.closest('[data-del]');
+  if (del) {
+    if (!confirm(`"${del.dataset.title}" 프로젝트를 삭제할까요?\n삭제하면 되돌릴 수 없습니다.`)) return;
+    del.disabled = true;
+    try { await AuriProjects.remove(Number(del.dataset.del)); load(); }
+    catch (err) { alert(err.message); del.disabled = false; }
+  }
+});
+document.getElementById('ownerSel').addEventListener('change', applyOwner);
+
+/* 계정 정보(관리자인지)는 auth.js 가 받아 온 뒤에 알 수 있어 잠깐 기다립니다 */
+document.addEventListener('DOMContentLoaded', function waitMe(tries) {
+  const n = typeof tries === 'number' ? tries : 0;
+  if (!AuriAuth.user && n < 50) { setTimeout(() => waitMe(n + 1), 100); return; }
+  if (AuriAuth.user && AuriAuth.user.role === 'admin') {
+    document.getElementById('allTab').hidden = false;
+    document.querySelector('h1').textContent = '프로젝트';
+  }
+  load();
+});
+</script>
+</body>
+</html>

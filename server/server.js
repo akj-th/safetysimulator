@@ -21,6 +21,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { CATEGORIES, SCORING_GUIDE } from './checklist.js';
 import { legalBlock, PENDING } from './legal.js';
 import * as auth from './auth.js';
+import * as projects from './projects.js';
 
 const PORT = process.env.PORT || 8787;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -960,6 +961,37 @@ const SETUP_PAGE = `<!doctype html><meta charset="utf-8"><title>설정 필요</t
 DB 가 Available 상태인지 확인해 주세요. 급하면 <b>AUTH_MODE=code</b> 로 바꾸면 예전 접속 암호 방식으로 돌아갑니다.</p>
 </body>`;
 
+/* ── 프로젝트 API (2026-09-15) ──────────────────────────────────────
+     GET    /api/projects?scope=mine|all&user=번호   목록 (all 은 관리자)
+     GET    /api/projects/번호                        한 건 열기
+     POST   /api/projects                             저장 (id 가 있고 내 것이면 덮어쓰기)
+     DELETE /api/projects/번호                        삭제 (내 것만)                    */
+async function handleProjectsApi(req, res, pathname) {
+  if (AUTH_MODE !== 'account') return sendJson(res, 404, { error: '프로젝트 저장은 계정 로그인 방식에서만 쓸 수 있습니다.' });
+  if (!auth.authReady() || !projects.projectsReady()) {
+    return sendJson(res, 503, { error: '저장소가 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.' });
+  }
+  const user = await auth.currentUser(req, { touch: true });
+  if (!user) return sendJson(res, 401, { error: '로그인이 만료되었습니다. 다시 로그인해 주세요.', needLogin: true });
+
+  const url = new URL(req.url, 'http://localhost');
+  const idPart = pathname.startsWith('/api/projects/') ? pathname.slice('/api/projects/'.length) : null;
+  let r;
+  if (pathname === '/api/projects' && req.method === 'GET') {
+    r = await projects.listProjects(user, url.searchParams.get('scope'), url.searchParams.get('user'));
+  } else if (pathname === '/api/projects' && req.method === 'POST') {
+    r = await projects.saveProject(user, await readJsonBody(req), SITE_ROOT);
+  } else if (idPart && req.method === 'GET') {
+    r = await projects.getProject(user, idPart);
+  } else if (idPart && req.method === 'DELETE') {
+    r = await projects.deleteProject(user, idPart);
+  } else {
+    r = { status: 404, error: '없는 주소입니다.' };
+  }
+  const { status, ...body } = r;
+  return sendJson(res, status, body);
+}
+
 /* ── 계정 · 관리자 API ─────────────────────────────────────────────── */
 async function handleAuthApi(req, res, pathname) {
   if (pathname === '/api/auth/me' && req.method === 'GET') {
@@ -1115,6 +1147,8 @@ const server = http.createServer(async function (req, res) {
     const pathname = new URL(req.url, 'http://localhost').pathname;
     if (req.method === 'OPTIONS') {
       res.writeHead(204).end();
+    } else if (pathname === '/api/projects' || pathname.startsWith('/api/projects/')) {
+      await handleProjectsApi(req, res, pathname);  // 프로젝트 저장 · 불러오기
     } else if (pathname.startsWith('/api/auth/') || pathname.startsWith('/api/admin/')) {
       await handleAuthApi(req, res, pathname);    // 로그인 · 가입 · 관리자
     } else if (req.method === 'GET' && req.url === '/api/models' && AUTH_MODE === 'account' &&
@@ -1172,10 +1206,15 @@ const server = http.createServer(async function (req, res) {
    그동안 사이트는 닫혀 있고, 붙는 순간 저절로 열립니다. */
 if (AUTH_MODE === 'account') {
   const first = await auth.initAuth();
-  if (!first.ready) {
+  if (first.ready) await projects.initProjects();   // 프로젝트 표는 계정 표 뒤에 (users 를 가리키므로)
+  else {
     const timer = setInterval(async function () {
       const r = await auth.initAuth();
-      if (r.ready) { clearInterval(timer); console.log('[계정] DB 연결 성공 — 로그인 사용 가능'); }
+      if (r.ready) {
+        clearInterval(timer);
+        await projects.initProjects();
+        console.log('[계정] DB 연결 성공 — 로그인 사용 가능');
+      }
     }, 30000);
   }
 }

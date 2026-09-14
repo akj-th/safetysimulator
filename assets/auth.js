@@ -94,9 +94,14 @@ const AuriAuth = (function () {
     _bar.innerHTML =
       '<div class="account-inner">' +
         `<span class="acc-who"><b>${esc(me.user.name)}</b> (${esc(me.user.username)}) · ${esc(me.user.org)}</span>` +
+        /* 지금 이 탭이 어느 프로젝트에서 왔는지 (assets/projects.js 가 채움) */
+        '<span class="acc-proj" hidden></span>' +
         '<span class="acc-warn" hidden>잠시 후 자동으로 로그아웃됩니다 — 계속 쓰려면 로그인 유지를 누르세요</span>' +
         '<span>남은 시간 <span class="acc-timer">--:--</span></span>' +
         '<button type="button" class="btn-text" data-act="extend">로그인 유지</button>' +
+        /* 프로젝트 저장 · 내 프로젝트 (2026-09-15) — 진단을 계정별로 서버에 보관 */
+        '<button type="button" class="btn-text" data-act="save">프로젝트 저장</button>' +
+        '<a class="btn-text" href="projects.html">내 프로젝트</a>' +
         (me.user.role === 'admin' ? '<a class="btn-text" href="admin.html">계정 관리</a>' : '') +
         '<button type="button" class="btn-text" data-act="logout">로그아웃</button>' +
       '</div>';
@@ -105,10 +110,15 @@ const AuriAuth = (function () {
       if (!act) return;
       if (act.dataset.act === 'extend') extend();
       if (act.dataset.act === 'logout') logout();
+      if (act.dataset.act === 'save') {
+        if (window.AuriProjects) window.AuriProjects.openSaveDialog();
+        else alert('이 화면에서는 프로젝트를 저장할 수 없습니다.');
+      }
     });
     /* 상단 바가 있는 화면은 그 위에, 없는 화면은 맨 위에 붙입니다 */
     if (host && host.parentNode) host.parentNode.insertBefore(_bar, host);
     else document.body.prepend(_bar);
+    if (window.AuriProjects) window.AuriProjects.refreshLabel();
 
     render();
     _tick = setInterval(render, 1000);
