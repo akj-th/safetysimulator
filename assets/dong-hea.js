@@ -284,7 +284,7 @@ const AuriDongHea = (function () {
     const tables = chunks.map((cols) => {
       const rows = ['H', 'E', 'A'].map((axis) => {
         const inds = INDICATORS.filter((x) => x.axis === axis);
-        return inds.map((ind, k) => `<tr class="${opts.mode === axis ? 'on' : ''}">
+        return inds.map((ind, k) => `<tr class="ax-${axis}${k === 0 ? ' grp' : ''}${opts.mode === axis ? ' on' : ''}">
             ${k === 0 ? `<th rowspan="${inds.length}" class="hea-axis">${AXIS_LABEL[axis]}</th>` : ''}
             <th class="hea-ind">${ind.label}</th>
             ${cols.map((d) => cell(d.indicators[ind.key])).join('')}
@@ -294,7 +294,7 @@ const AuriDongHea = (function () {
           ${cols.map((d) => cell(d.scores.total)).join('')}</tr>`;
       return `<div class="hea-table-wrap"><table class="hea-table">
         <thead><tr><th colspan="2" class="hea-corner">지표</th>
-          ${cols.map((d) => `<th class="num">${esc(d.name)}${d.inside > 0 ? '' : '<br><span class="hea-out">조사지 밖</span>'}</th>`).join('')}</tr></thead>
+          ${cols.map((d) => `<th class="num">${esc(d.name)}${d.inside > 0 ? '' : '<span class="hea-out">조사지 밖</span>'}</th>`).join('')}</tr></thead>
         <tbody>${rows}${total}</tbody>
       </table></div>`;
     }).join('');
