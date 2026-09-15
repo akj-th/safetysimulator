@@ -170,6 +170,12 @@ const AuriDongHea = (function () {
    *  인구 기준: "거주 인구 대비 출동률이 지역의 N배" / 구성비 기준: "출동 환자 중 비중이 지역 출동의 N배(인구 대비 아님)" */
   function hText(g, comp) {
     if (!g || g.status) return null;              // 산출 못 한 경우는 웹에 적지 않음 (2026-09-15 보고용)
+    /* 2026-09-15 초과 건수 방식 — "나머지 지역 기준 기대 N건보다 M건 많은 K건" */
+    if (g.excess !== undefined && g.expected !== undefined) {
+      return g.basis === 'population'
+        ? `H ${g.label} ${g.n}건 — 거주 인구·나머지 지역 발생률 기준 기대 ${g.expected}건보다 ${g.excess}건 많음 (인구 1천 명당 연 ${g.rate}건)`
+        : `H ${g.label} ${g.n}건 — 나머지 지역 구성 기준 기대 ${g.expected}건보다 ${g.excess}건 많음 (출동 환자 중 ${g.incShare}%)`;
+    }
     if (g.basis === 'population') {
       return `H ${g.label} — 거주 인구 대비 출동률이 지역 평균의 ${g.ratio}배 (인구 1천 명당 연 ${g.rate}건, 지역 ${g.regionRate}건)`
         + (comp ? ` · 참고: 출동 환자 중 ${comp.label} ${comp.incShare}%(지역 ${comp.regionIncShare}%)` : '');
@@ -216,8 +222,8 @@ const AuriDongHea = (function () {
       `출동자료: 119 구급출동 2023~2025 · 중점 분야 ${cats.map((c) => c.label).join('·')} ${n.toLocaleString()}건 · 강원대 사고유형 분류`,
       `공간 단위: 법정 읍면동 (국토교통부 행정구역 경계)`,
       hBasis(data) === 'population'
-        ? 'H(피해대상): 주민등록 연령별 인구 대비 연령×성별 출동률을 지자체 평균과 비교'
-        : 'H(피해대상): 연령×성별 출동 환자 구성비를 지자체 전체와 비교',
+        ? 'H(피해대상): 연령×성별 집단별 초과 발생 건수(주민등록 인구 × 나머지 지역 발생률 기준)'
+        : 'H(피해대상): 연령×성별 집단별 초과 발생 건수(나머지 지역 출동 구성 기준)',
     ];
     if (data.eStatus === 'ok') {
       const vars = new Set();
@@ -294,12 +300,14 @@ const AuriDongHea = (function () {
     }).join('');
 
     const label = data.shortLabel || data.label;
-    const hNote = hBasis(data) === 'population' ? '연령×성별 거주 인구 대비 출동률을' : '연령×성별 출동 환자 구성비를';
+    const hNote = hBasis(data) === 'population'
+      ? '연령×성별 집단 중 거주 인구 대비 기대 건수보다 가장 많이 발생한 초과 건수를'
+      : '연령×성별 집단 중 나머지 지역 구성 대비 기대 건수보다 가장 많이 발생한 초과 건수를';
     return `
       <p class="hea-lead">조사지와 겹치는 읍면동${insideCount ? ` ${insideCount}곳` : ''}을 중심으로 H(피해대상)·E(환경)·A(행위·관리) 지표를 산출함</p>
       ${tables}
       <p class="hea-foot">* 119 구급출동자료(2023~2025)·강원대 물적환경 분석 결과를 바탕으로 읍면동별 지표를 산출하고, ${esc(label)} 안의 순위(0~100)로 환산함 — 67 이상 상위 · 34~66 중위 · 33 이하 하위<br>
-        * H: ${hNote} 지자체 평균과 비교 · E: 회귀분석 계수 × 시설 밀도·거리 · A: 반복 발생 지점 · 야간(22~06시) 비중 · 발생 장소 편중 · 종합: H·E·A 평균<br>
+        * H: ${hNote} 동끼리 비교 · E: 회귀분석 계수 × 시설 밀도·거리 · A: 반복 발생 지점 · 야간(22~06시) 비중 · 발생 장소 편중 · 종합: H·E·A 평균<br>
         * HEA 취약도 지표는 현재 개발 중인 모델로 산출한 참고값으로, 정확하지 않을 수 있음</p>`;
   }
 

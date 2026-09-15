@@ -114,6 +114,16 @@ const POPULATION_LINK_RULES = [
 const H_MIN_DONG_N = 10;
 /** 편중 집단으로 인정할 최소 건수. 근거: 1~2건짜리 집단은 "5배" 같은 우연한 배수가 쉽게 나옴 */
 const H_MIN_GROUP_N = 3;
+/** H 점수로 쓸 값 (2026-09-15 담당자 지적으로 변경)
+ *  'excess' — 편중 집단의 **초과 발생 건수** = 실제 건수 − (나머지 지역 구성·발생률로 본 기대 건수)
+ *  'ratio'  — 실제 ÷ 기대 배수 (옛 방식)
+ *  근거(부천 실측): 배수 방식은 출동이 가장 많은 중동(중점 508건)이 H 0점·심곡동(498건) 10점,
+ *  범죄 25건 중 3건이 몰린 범박동이 15.1배로 100점 — 표본이 작을수록 극단 배수가 나와 **작은 동이 이기는** 구조.
+ *  초과 건수는 몇 건만으로 커지지 않고, 출동이 많은 곳에서 실제로 쏠린 만큼 커집니다. */
+const H_METHOD = 'excess';
+/** 기대 건수를 **그 동을 뺀 나머지 지역**으로 계산 — 큰 동(부천 중동·심곡동 = 중점 출동의 32%)이
+ *  지역 평균을 스스로 만들어 편중이 안 보이는 것을 막음 */
+const H_COMPARE_REST = true;
 /** 연령 구간 — 리포트와 같은 10년 단위 */
 const H_AGE_BANDS = ['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80+'];
 const bandOf = (age) => (age >= 80 ? '80+' : `${Math.floor(age / 10) * 10}-${Math.floor(age / 10) * 10 + 9}`);
@@ -559,31 +569,49 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
       const PT = P ? sumPop(P) : 0;
       const sexLabel = (x) => (x === '남' ? '남성' : '여성');
       /* k 집단 하나의 배수와 근거. popKeys(k) = 그 집단에 해당하는 인구 칸들 */
+      /* 기대 건수는 **그 동을 뺀 나머지 지역** 기준입니다(H_COMPARE_REST) — 큰 동이 지역 평균을 스스로 만들어
+         배수가 1 근처로 눌리는 것을 막음. 점수는 H_METHOD 로 고릅니다(초과 건수 / 배수). */
       const measure = (cnt, dN, rCnt, rN, popKeys) => {
         if (basis === 'population') {
           const pd = popOf(P, popKeys), pr = popOf(link.region, popKeys);
           if (pd < H_MIN_GROUP_POP || !pr) return null;
+          const baseCnt = H_COMPARE_REST ? rCnt - cnt : rCnt, basePop = H_COMPARE_REST ? pr - pd : pr;
+          if (basePop <= 0) return null;
+          const expected = pd * baseCnt / basePop;
           return {
-            ratio: (cnt / pd) / (rCnt / pr),
+            ratio: expected > 0 ? cnt / expected : null,
+            excess: cnt - expected, expected,
             pop: pd,
             rate: r2(cnt / pd * 1000 / INCIDENT_YEARS),          // 인구 1천 명당 연간 출동
-            regionRate: r2(rCnt / pr * 1000 / INCIDENT_YEARS),
+            regionRate: r2(baseCnt / basePop * 1000 / INCIDENT_YEARS),
             popShare: r1(pd / PT * 100),                          // 그 동 거주 인구 중 비중
             incShare: r1(cnt / dN * 100),                         // 그 동 출동 중 비중
           };
         }
-        return { ratio: (cnt / dN) / (rCnt / rN), incShare: r1(cnt / dN * 100), regionIncShare: r1(rCnt / rN * 100) };
+        const baseCnt = H_COMPARE_REST ? rCnt - cnt : rCnt, baseN = H_COMPARE_REST ? rN - dN : rN;
+        if (baseN <= 0) return null;
+        const expected = dN * baseCnt / baseN;
+        return {
+          ratio: expected > 0 ? cnt / expected : null,
+          excess: cnt - expected, expected,
+          incShare: r1(cnt / dN * 100), regionIncShare: r1(baseCnt / baseN * 100),
+        };
       };
+      const scoreOf = (m) => (H_METHOD === 'excess' ? m.excess : (m.ratio === null ? Infinity : m.ratio));
       const bestOf = (dMap, dN, rMap, rN, popKeysOf) => {
         let best = null;
         for (const [k, cnt] of Object.entries(dMap)) {
           if (cnt < H_MIN_GROUP_N || !rMap[k]) continue;
           const m = measure(cnt, dN, rMap[k], rN, popKeysOf(k));
-          if (m && (!best || m.ratio > best.ratio)) best = { k, cnt, ...m };
+          if (m && (!best || scoreOf(m) > scoreOf(best))) best = { k, cnt, ...m };
         }
+        if (best) best.score = scoreOf(best);
         return best;
       };
-      const out = (b, label) => { const { k, cnt, ratio, ...rest } = b; return { label, ratio: r2(ratio), n: cnt, basis, ...rest }; };
+      const out = (b, label) => {
+        const { k, cnt, ratio, excess, expected, score, ...rest } = b;
+        return { label, ratio: ratio === null ? null : r2(ratio), excess: r1(excess), expected: r1(expected), n: cnt, basis, method: H_METHOD, ...rest };
+      };
       const BANDS_OF_SEX = (x) => H_AGE_BANDS.map((b) => `${b}|${x}`);
 
       if (D.ageSexN < H_MIN_DONG_N || !R.ageSexN) det.hGroup = { status: '표본 부족' };
@@ -592,7 +620,7 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
         const best = bestOf(D.ageSex, D.ageSexN, R.ageSex, R.ageSexN, (g) => [g]);
         if (best) {
           const [band, sex] = best.k.split('|');
-          ind.hGroup[dong] = best.ratio;
+          ind.hGroup[dong] = best.score;
           det.hGroup = out(best, `${bandLabel(band)} ${sexLabel(sex)}`);
         } else det.hGroup = { status: basis === 'population' ? `편중 집단 없음 (집단별 ${H_MIN_GROUP_N}건·인구 ${H_MIN_GROUP_POP}명 미만)` : `편중 집단 없음 (집단별 ${H_MIN_GROUP_N}건 미만)` };
       }
@@ -614,14 +642,14 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
       if (D.ageN >= H_MIN_DONG_N && R.ageN) {
         if (basis !== 'no-match') {
           const best = bestOf(D.age, D.ageN, R.age, R.ageN, (b) => [`${b}|남`, `${b}|여`]);
-          if (best) { ind.hAge[dong] = best.ratio; det.hAge = out(best, bandLabel(best.k)); }
+          if (best) { ind.hAge[dong] = best.score; det.hAge = out(best, bandLabel(best.k)); }
         }
         det.share65 = r1(D.a65 / D.ageN * 100); det.region65 = r1(R.a65 / R.ageN * 100);
         det.share19 = r1(D.u19 / D.ageN * 100); det.region19 = r1(R.u19 / R.ageN * 100);
       }
       if (D.sexN >= H_MIN_DONG_N && R.sexN && basis !== 'no-match') {
         const best = bestOf(D.sex, D.sexN, R.sex, R.sexN, (x) => BANDS_OF_SEX(x));
-        if (best) { ind.hSex[dong] = best.ratio; det.hSex = out(best, sexLabel(best.k)); }
+        if (best) { ind.hSex[dong] = best.score; det.hSex = out(best, sexLabel(best.k)); }
       }
 
       /* A — 반복 발생 지점 수 (그 동 안에서 같은 지번주소가 임계값 이상).
@@ -833,14 +861,16 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
     eStatus: eStatusOfRegion,
     eCoverage,
     thresholds: {
-      H_MIN_DONG_N, H_MIN_GROUP_N, H_MIN_GROUP_POP, INCIDENT_YEARS, A_MIN_DONG_N, NIGHT, A_PLACE_EXCLUDE, CENTER_MIN_N, REPEAT_THRESHOLD, TOTAL_MIN_AXES, PERCENTILE_MIN_DONGS,
+      H_MIN_DONG_N, H_MIN_GROUP_N, H_MIN_GROUP_POP, H_METHOD, H_COMPARE_REST, INCIDENT_YEARS, A_MIN_DONG_N, NIGHT, A_PLACE_EXCLUDE, CENTER_MIN_N, REPEAT_THRESHOLD, TOTAL_MIN_AXES, PERCENTILE_MIN_DONGS,
       temporary: ['H', 'A'],
     },
     comparison,
     method: {
-      H: link
-        ? '분야별로 연령(10년 단위)×성별 집단 중 [동 출동 ÷ 동 거주 인구] ÷ [지역 출동 ÷ 지역 거주 인구] 가 가장 큰 집단의 배수(인구 대비 출동률 배수) → 지자체 안 백분위. 인구는 주민등록 행정동을 법정동 이름에 맞춰 합산. 출동 구성비 배수는 근거로만 표기 (임시 기준)'
-        : '분야별로 연령(10년 단위)×성별 집단 중 동 출동 구성비 ÷ 지역 전체 출동 구성비가 가장 큰 집단의 배수(출동 중 비중 비교, 인구 대비 아님) → 지자체 안 백분위 (임시 기준)',
+      H: (link
+        ? '분야별로 연령(10년 단위)×성별 집단마다 기대 건수 = 동 거주 인구 × 나머지 지역 발생률. 인구는 주민등록 행정동을 법정동 이름에 맞춰 합산. '
+        : '분야별로 연령(10년 단위)×성별 집단마다 기대 건수 = 동 출동 수 × 나머지 지역 출동 중 그 집단 비중. ')
+        + (H_METHOD === 'excess' ? '실제 − 기대(초과 건수)가 가장 큰 집단의 초과 건수' : '실제 ÷ 기대 배수가 가장 큰 집단의 배수')
+        + ' → 지자체 안 백분위 (임시 기준)',
       E: 'Σ(회귀계수 β × 동 평균값의 표준점수 z). 강원대 지역 전체 회귀분석의 유의 변수 중 TIF 가 있는 것만 → 백분위',
       A: '반복 발생 지점 수 · 야간(22~06시) 비중 · 1위 장소 비중(기타 제외)을 각각 백분위로 바꿔 평균 (임시 기준)',
       total: '중점 3분야의 H·E·A 를 각각 평균해 지자체 안 백분위로 맞춘 뒤, 있는 축끼리 평균',
