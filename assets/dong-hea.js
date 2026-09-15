@@ -243,6 +243,66 @@ const AuriDongHea = (function () {
     return !!(data && data.dongs && data.dongs.some((d) => (axis ? [axis] : ['H', 'E', 'A', 'total']).some((k) => d.scores[k] !== null && d.scores[k] !== undefined)));
   }
 
+  /* ── 읍면동별 HEA 취약도 지표 표 (2026-09-15) ─────────────────────────────
+     처음엔 사전진단서 3.3 절이었으나 담당자 지시로 **위치 선택 화면(index.html)** 으로 옮겼습니다
+     (H·E·A·종합 중 하나를 켜면 지도·스트리트뷰 아래에 표시). 사전진단서에서는 뺐습니다.
+     행 = HEA 지표 8개(값 없는 칸은 "-"), 열 = 종합 점수가 있는 읍면동(조사지와 겹치는 동 먼저, 점수 높은 순).
+     각주는 산출 방법 두 줄 + 개발 중 문구 한 줄 — 비어 있는 이유·한계 문구는 적지 않습니다(담당자 지시). */
+  const TABLE_MAX_DONGS = 12;        // 한 번에 싣는 동 수 — 나머지는 지도에서
+  const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  /** 표 + 각주 HTML. 실을 동이 없으면 ''. opts.mode = 지금 켠 축(해당 행을 강조), opts.perTable = 표 하나의 열 수 */
+  function renderTable(data, opts) {
+    opts = opts || {};
+    if (!data) return '';
+    const perTable = opts.perTable || TABLE_MAX_DONGS;
+    const byScore = (a, b) => b.scores.total - a.scores.total || b.n - a.n;
+    const scored = data.dongs.filter((d) => d.scores.total !== null && d.scores.total !== undefined);
+    let dongs = scored.filter((d) => d.inside > 0).sort(byScore);
+    const insideCount = dongs.length;
+    dongs = dongs.concat(scored.filter((d) => !(d.inside > 0)).sort(byScore)).slice(0, TABLE_MAX_DONGS);
+    if (!dongs.length) return '';
+
+    const cell = (score) => {
+      if (score === null || score === undefined) return '<td class="num hea-na">-</td>';
+      const b = band(score);
+      return `<td class="num" style="color:${b.color};${b.key === 'high' ? 'font-weight:700' : ''}">${score}</td>`;
+    };
+    const AXIS_LABEL = { H: 'H<br><span>피해대상</span>', E: 'E<br><span>환경</span>', A: 'A<br><span>행위·관리</span>' };
+    /* 표를 나눌 때는 고르게 — 8곳이면 7+1 이 아니라 4+4 */
+    const tableCount = Math.ceil(dongs.length / perTable);
+    const per = Math.ceil(dongs.length / tableCount);
+    const chunks = [];
+    for (let i = 0; i < dongs.length; i += per) chunks.push(dongs.slice(i, i + per));
+
+    const tables = chunks.map((cols) => {
+      const rows = ['H', 'E', 'A'].map((axis) => {
+        const inds = INDICATORS.filter((x) => x.axis === axis);
+        return inds.map((ind, k) => `<tr class="${opts.mode === axis ? 'on' : ''}">
+            ${k === 0 ? `<th rowspan="${inds.length}" class="hea-axis">${AXIS_LABEL[axis]}</th>` : ''}
+            <th class="hea-ind">${ind.label}</th>
+            ${cols.map((d) => cell(d.indicators[ind.key])).join('')}
+          </tr>`).join('');
+      }).join('');
+      const total = `<tr class="hea-total${opts.mode === 'total' ? ' on' : ''}"><th colspan="2">종합</th>
+          ${cols.map((d) => cell(d.scores.total)).join('')}</tr>`;
+      return `<div class="hea-table-wrap"><table class="hea-table">
+        <thead><tr><th colspan="2" class="hea-corner">지표</th>
+          ${cols.map((d) => `<th class="num">${esc(d.name)}${d.inside > 0 ? '' : '<br><span class="hea-out">조사지 밖</span>'}</th>`).join('')}</tr></thead>
+        <tbody>${rows}${total}</tbody>
+      </table></div>`;
+    }).join('');
+
+    const label = data.shortLabel || data.label;
+    const hNote = hBasis(data) === 'population' ? '연령×성별 거주 인구 대비 출동률을' : '연령×성별 출동 환자 구성비를';
+    return `
+      <p class="hea-lead">조사지와 겹치는 읍면동${insideCount ? ` ${insideCount}곳` : ''}을 중심으로 H(피해대상)·E(환경)·A(행위·관리) 지표를 산출함</p>
+      ${tables}
+      <p class="hea-foot">* 119 구급출동자료(2023~2025)·강원대 물적환경 분석 결과를 바탕으로 읍면동별 지표를 산출하고, ${esc(label)} 안의 순위(0~100)로 환산함 — 67 이상 상위 · 34~66 중위 · 33 이하 하위<br>
+        * H: ${hNote} 지자체 평균과 비교 · E: 회귀분석 계수 × 시설 밀도·거리 · A: 반복 발생 지점 · 야간(22~06시) 비중 · 발생 장소 편중 · 종합: H·E·A 평균<br>
+        * HEA 취약도 지표는 현재 개발 중인 모델로 산출한 참고값으로, 정확하지 않을 수 있음</p>`;
+  }
+
   /** 화면·문서 공통 머리말 — 기준이 임시라는 사실과 자료 상태 (지금은 웹에 쓰지 않음) */
   function caveats(data) {
     if (!data) return [];
@@ -271,7 +331,7 @@ const AuriDongHea = (function () {
   }
 
   return { load, AXES, INDICATORS, band, eStatusText, eCoverageText, emptyReason, axisReason, scoreSummary, hBasis, hText, evidence, caveats,
-    basisNotes, fillOf, FILL_COLOR, hasAnyScore, DISCLAIMER };
+    basisNotes, fillOf, FILL_COLOR, hasAnyScore, DISCLAIMER, renderTable };
 })();
 
 if (typeof window !== 'undefined') window.AuriDongHea = AuriDongHea;
