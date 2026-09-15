@@ -105,39 +105,7 @@
      디자인 규칙대로 세로선 없이 가로선만 · 머리행만 검정 반전 · 점수 색은 글자에만 · 켠 축의 행만 아주 옅게. */
   .hea-panel{margin-top:22px}
   .hea-panel[hidden]{display:none}
-  .hea-lead{margin:0 0 12px; font-size:var(--fs-sm); color:var(--g3)}
-  .hea-table-wrap{overflow-x:auto; margin-bottom:14px}
-  .hea-table{width:100%; border-collapse:collapse; margin:0; font-size:var(--fs-sm)}
-  .hea-table th, .hea-table td{
-    border:none; border-bottom:1px solid var(--g1); padding:10px 12px;
-    text-align:center; vertical-align:middle; white-space:nowrap; letter-spacing:0;
-    background:var(--w); color:var(--k);
-  }
-  /* 머리행 — 검정 반전 (동 이름) */
-  .hea-table thead th{background:var(--k); color:var(--w); font-weight:700; border-bottom:none}
-  .hea-table thead th.hea-corner{text-align:left; width:170px}
-  .hea-table thead .hea-out{display:block; margin-top:2px; font-size:var(--fs-cap); font-weight:400; color:var(--g1)}
-  /* 왼쪽 두 열 — 축(H/E/A)과 지표 이름 */
-  .hea-table th.hea-axis{text-align:left; width:92px; font-size:var(--fs-body); font-weight:700; line-height:1.25}
-  .hea-table th.hea-axis span{display:block; font-size:var(--fs-cap); font-weight:400; color:var(--g3)}
-  .hea-table tr.ax-H th.hea-axis{color:var(--main)}
-  .hea-table tr.ax-E th.hea-axis{color:var(--g3)}
-  .hea-table tr.ax-A th.hea-axis{color:var(--contrast)}
-  .hea-table th.hea-ind{text-align:left; font-weight:400; color:var(--g3)}
-  /* 점수 칸 — 숫자 폭 맞춤, 빈 칸은 옅게 */
-  .hea-table td.num{font-family:inherit; font-variant-numeric:tabular-nums; font-size:var(--fs-body); text-align:center}
-  .hea-table td.hea-na{color:var(--g1)}
-  /* 축 묶음 사이 구분선 */
-  .hea-table tr.grp th, .hea-table tr.grp td{border-top:1px solid var(--g3)}
-  /* 지금 켠 축 — 행을 아주 옅게 (HEA 색 구분과 같은 계열) */
-  .hea-table tr.on.ax-H td, .hea-table tr.on.ax-H th.hea-ind{background:rgba(216,61,100,.06)}
-  .hea-table tr.on.ax-E td, .hea-table tr.on.ax-E th.hea-ind{background:rgba(102,102,102,.07)}
-  .hea-table tr.on.ax-A td, .hea-table tr.on.ax-A th.hea-ind{background:rgba(39,147,201,.07)}
-  /* 종합 — 굵게, 위 검정선 */
-  .hea-table tr.hea-total th, .hea-table tr.hea-total td{border-top:1px solid var(--k); border-bottom:1px solid var(--k); font-weight:700}
-  .hea-table tr.hea-total th{text-align:left; color:var(--k)}
-  .hea-table tr.hea-total.on td, .hea-table tr.hea-total.on th{background:rgba(0,0,0,.05)}
-  .hea-foot{margin:4px 0 0; font-size:var(--fs-cap); color:var(--g2); line-height:1.8}
+  /* 표 본체 스타일은 assets/theme.css "읍면동별 HEA 지표 표" (사전진단서 3.3 과 공용) */
 
   .picked .risk{font-size:var(--fs-sm); color:var(--g3); margin-top:6px}
   .picked .risk:empty{display:none}

@@ -277,6 +277,7 @@ img[hidden]{display:none !important}
 <script src="assets/site-photo.js"></script>
 <script src="assets/doc-map.js"></script>
 <script src="assets/physical.js"></script>
+<script src="assets/dong-hea.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════════
    문서 만들기
@@ -294,6 +295,7 @@ const esc = (s) => String(s == null ? '' : s)
 const nf = (n) => (n == null ? '—' : Number(n).toLocaleString());
 
 let _data = null, _national = null, _focus = [], _stats = null;
+let _dongHea = null;              // 3.3 읍면동별 HEA 지표 (data/dong/<지역>.json)
 let _results = [], _items = [], _picked = null;
 
 /* ── 2.1 서술 문장 (규칙 기반) ────────────────────────────────────
@@ -574,7 +576,19 @@ function chapter3() {
       '동별 상권 성격과 주요 시설을 적습니다. 예) (○○동) 숙박·상업 및 다세대 주거지 중심 총 ○○건 발생, 10~30대 청년층 집중',
       ctxDong)}
 
+    ${heaSection()}
   </section>`;
+}
+
+/* ── 3.3 읍면동별 HEA 취약도 지표 (2026-09-15 담당자 요청으로 다시 넣음) ─────────
+   ⚠️ AURI 사전진단서 원문에 없는 절입니다 — 담당자 요청에 따른 예외.
+   위치 선택 화면(지도 아래)의 표와 **같은 함수**(AuriDongHea.renderTable)로 만듭니다. A4 에 맞춰 표 하나 7열.
+   점수가 하나도 없는 지자체는 절 자체를 싣지 않습니다. */
+function heaSection() {
+  const html = _dongHea ? AuriDongHea.renderTable(_dongHea, {
+    perTable: 7, fillTo: 7, caption: `[표 2-1] ${_data.shortLabel} 읍면동별 HEA 취약도 지표`,
+  }) : '';
+  return html ? `<h3 class="h-section">3.3 읍면동별 HEA 취약도 지표</h3>${html}` : '';
 }
 
 /* 4장 — 원문처럼 분야마다 [좌: 지도 / 우: 현장 사진] + 3행 표 */
@@ -1105,6 +1119,7 @@ window.addEventListener('load', async function () {
   _data = _stats.data;
   _focus = AuriStats.focusCategories(_data);
   _incidents = await loadIncidents(_data.region);   // 지도에 찍을 119 출동 지점
+  _dongHea = await AuriDongHea.load(_data.region);  // 3.3 읍면동별 HEA 지표
   document.title = `지자체 사전진단서 — ${_data.shortLabel}`;
 
   renderAll();

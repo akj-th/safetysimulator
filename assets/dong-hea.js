@@ -257,7 +257,8 @@ const AuriDongHea = (function () {
   const TABLE_MAX_DONGS = 12;        // 한 번에 싣는 동 수 — 나머지는 지도에서
   const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-  /** 표 + 각주 HTML. 실을 동이 없으면 ''. opts.mode = 지금 켠 축(해당 행을 강조), opts.perTable = 표 하나의 열 수 */
+  /** 표 + 각주 HTML. 실을 동이 없으면 ''.
+   *  opts.mode = 지금 켠 축(해당 행을 강조) · opts.perTable = 표 하나의 열 수(사전진단서 A4 는 7) · opts.caption = 표 제목 */
   function renderTable(data, opts) {
     opts = opts || {};
     if (!data) return '';
@@ -266,7 +267,10 @@ const AuriDongHea = (function () {
     const scored = data.dongs.filter((d) => d.scores.total !== null && d.scores.total !== undefined);
     let dongs = scored.filter((d) => d.inside > 0).sort(byScore);
     const insideCount = dongs.length;
-    dongs = dongs.concat(scored.filter((d) => !(d.inside > 0)).sort(byScore)).slice(0, TABLE_MAX_DONGS);
+    /* 조사지 밖 동은 fillTo 곳까지만 채움 (사전진단서 7 · 화면 12). 조사지와 겹치는 동은 최대 12곳까지 모두 */
+    const fillTo = opts.fillTo || TABLE_MAX_DONGS;
+    if (dongs.length < fillTo) dongs = dongs.concat(scored.filter((d) => !(d.inside > 0)).sort(byScore)).slice(0, fillTo);
+    dongs = dongs.slice(0, TABLE_MAX_DONGS);
     if (!dongs.length) return '';
 
     const cell = (score) => {
@@ -281,7 +285,7 @@ const AuriDongHea = (function () {
     const chunks = [];
     for (let i = 0; i < dongs.length; i += per) chunks.push(dongs.slice(i, i + per));
 
-    const tables = chunks.map((cols) => {
+    const tables = chunks.map((cols, ci) => {
       const rows = ['H', 'E', 'A'].map((axis) => {
         const inds = INDICATORS.filter((x) => x.axis === axis);
         return inds.map((ind, k) => `<tr class="ax-${axis}${k === 0 ? ' grp' : ''}${opts.mode === axis ? ' on' : ''}">
@@ -292,7 +296,8 @@ const AuriDongHea = (function () {
       }).join('');
       const total = `<tr class="hea-total${opts.mode === 'total' ? ' on' : ''}"><th colspan="2">종합</th>
           ${cols.map((d) => cell(d.scores.total)).join('')}</tr>`;
-      return `<div class="hea-table-wrap"><table class="hea-table">
+      const caption = opts.caption ? `<caption>${esc(opts.caption)}${chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : ''}</caption>` : '';
+      return `<div class="hea-table-wrap"><table class="hea-table">${caption}
         <thead><tr><th colspan="2" class="hea-corner">지표</th>
           ${cols.map((d) => `<th class="num">${esc(d.name)}${d.inside > 0 ? '' : '<span class="hea-out">조사지 밖</span>'}</th>`).join('')}</tr></thead>
         <tbody>${rows}${total}</tbody>
