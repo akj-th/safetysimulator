@@ -334,6 +334,11 @@ input[type=range]{flex:1; min-width:90px; height:4px; margin:0; accent-color:var
   font-size:var(--fs-cap); font-weight:700; letter-spacing:.12em;
   color:var(--main); background:none; padding:0; margin-left:10px;
 }
+/* 지자체 중점 3분야 표시 (2026-09-16) — 분야 이름 옆 작은 글자, 색은 대조색 */
+.mark-focus{
+  font-size:var(--fs-cap); font-weight:700; letter-spacing:.1em;
+  color:var(--contrast); margin-left:6px; vertical-align:1px;
+}
 
 /* HEA 3분류 (AURI 사업 팔레트 · 2026-08-25 행안부 협의의 3분류가 이것입니다)
      H 피해대상 보호·지원 / E 환경적 개입 / A 행위 개입

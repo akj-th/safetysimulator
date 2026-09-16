@@ -748,7 +748,7 @@ function fieldReport() {
       </div>
       <div class="cell">
         <div class="k">주의 이상 분야</div>
-        <div class="v">${risky.length ? risky.map((r) => r.name).join(', ') : '없음'}</div>
+        <div class="v">${risky.length ? risky.map((r) => r.name + (focusKeys.has(r.key) ? '(중점)' : '')).join(', ') : '없음'}</div>
         <div class="s">${risky.length ? risky.map((r) => `${r.name} ${r.score}점`).join(' · ') : '전 분야 안전 판정'}</div>
       </div>
       <div class="cell">

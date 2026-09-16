@@ -285,7 +285,7 @@ function renderResults(results) {
     return `
       <div class="result-item ${r.level.key}">
         <div class="result-row">
-          <span class="name">${r.name}</span>
+          <span class="name">${r.name}${r.focus ? ' <span class="mark-focus">중점</span>' : ''}</span>
           ${auriScaleHTML(r.level.step)}
           <span class="step-num">${r.level.step}/9</span>
           <span class="badge">${r.level.label}</span>
@@ -324,7 +324,7 @@ function startEdit() {
     return `
       <div class="result-item ${r.level.key}" id="row-${r.key}">
         <div class="edit-row">
-          <span class="name">${r.name}</span>
+          <span class="name">${r.name}${r.focus ? ' <span class="mark-focus">중점</span>' : ''}</span>
           <input type="range" min="1" max="9" step="1" value="${r.level.step}"
                  oninput="onSlide('${r.key}', this.value)">
           <span class="step-num" id="num-${r.key}">${r.level.step}/9</span>
@@ -404,7 +404,10 @@ function hashSeed(str) {
 let _busy = false;
 /* 서버가 준 점수표를 화면이 쓰는 모양으로 바꿉니다 */
 function toResults(data) {
-  return CATEGORIES.map(function (cat) {
+  /* 지자체 중점 3분야(서버가 주소·좌표로 찾아 돌려줌) — 앞에 세우고 "중점" 표시.
+     나머지 4개 분야도 그대로 남습니다 (2026-09-16, 9/15 행안부 보고 요청) */
+  const focusKeys = (data.focus && data.focus.keys) || [];
+  const results = CATEGORIES.map(function (cat) {
     const c = data.categories[cat.key];
     return {
       key: cat.key,
@@ -415,8 +418,10 @@ function toResults(data) {
       observed: c.observed,
       notVisible: c.notVisible,
       confidence: c.confidence,
+      focus: focusKeys.indexOf(cat.key) !== -1,
     };
   });
+  return results.sort(function (a, b) { return (b.focus ? 1 : 0) - (a.focus ? 1 : 0); });
 }
 
 function showServerError(err) {

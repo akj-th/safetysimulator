@@ -346,7 +346,7 @@ function renderResults() {
     return `
       <div class="result-item ${r.level.key}">
         <div class="result-row">
-          <span class="name">${r.name}</span>
+          <span class="name">${r.name}${r.focus ? ' <span class="mark-focus">중점</span>' : ''}</span>
           ${auriScaleHTML(r.level.step)}
           <span class="step-num">${r.level.step}/9</span>
           <span class="badge">${r.level.label}</span>
@@ -373,7 +373,7 @@ function startScoreEdit() {
     return `
       <div class="result-item ${r.level.key}" id="row-${r.key}">
         <div class="edit-row">
-          <span class="name">${r.name}</span>
+          <span class="name">${r.name}${r.focus ? ' <span class="mark-focus">중점</span>' : ''}</span>
           <input type="range" min="1" max="9" step="1" value="${r.level.step}"
                  oninput="onSlide('${r.key}', this.value)">
           <span class="step-num" id="num-${r.key}">${r.level.step}/9</span>
@@ -797,6 +797,15 @@ window.addEventListener('load', async function () {
   _stats = await AuriStats.load(picked.lat, picked.lng);
   _national = await AuriStats.loadNational();
   if (_stats) {
+    /* 중점 3분야 표시·순서 — 판독 결과에 focus 가 없으면(옛 저장분·더미 점수) 통계의 중점 분야로 채웁니다.
+       서버가 정한 값이 있으면 그대로 둡니다 (2026-09-16) */
+    if (!_results.some(function (r) { return r.focus !== undefined; })) {
+      const fk = (_stats.data.focusTypes || []).map(function (t) { return t.key; });
+      _results.forEach(function (r) { r.focus = fk.indexOf(r.key) !== -1; });
+      _results.sort(function (a, b) { return (b.focus ? 1 : 0) - (a.focus ? 1 : 0); });
+      sessionStorage.setItem('auri_diagnosis_results', JSON.stringify(_results));
+      renderResults();
+    }
     renderDong(picked.dong);          // 읍면동 종합 → 그다음이 지점 상세
     renderDiagnosisTables();          // 사전진단서 2.1 · [표 2] 형식
     renderStats();

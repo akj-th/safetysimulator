@@ -14,6 +14,7 @@
 
 import http from 'node:http';
 import fs from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
@@ -155,16 +156,87 @@ function friendlyError(err) {
 /* ── AI에게 시킬 일을 글로 적는 부분 ───────────────────────────────────
    checklist.js의 내용을 그대로 문장으로 풀어 넣습니다.
    체크리스트를 고치면 이 지시문도 자동으로 바뀝니다. */
-function checklistText() {
-  return CATEGORIES.map(function (cat) {
+function checklistText(focus) {
+  const keys = focus ? focus.keys : [];
+  /* 중점 분야를 앞에 — 지시문 순서도 "먼저 보라"는 신호입니다 */
+  const ordered = CATEGORIES.slice().sort(function (a, b) {
+    return (keys.includes(b.key) ? 1 : 0) - (keys.includes(a.key) ? 1 : 0);
+  });
+  return ordered.map(function (cat) {
     const lines = cat.items.map(function (item) {
       return `   ${item.id}  ${item.ask}`;
     }).join('\n');
-    return `[${cat.label}] (key: ${cat.key})\n${lines}`;
+    const mark = keys.includes(cat.key) ? ' ★중점 분야 — 우선·상세 판독' : '';
+    return `[${cat.label}] (key: ${cat.key})${mark}\n${lines}`;
   }).join('\n\n');
 }
 
-function buildPrompt() {
+/* ── 지자체 중점 3분야 (2026-09-16, 9/15 행안부 국장 보고 요청) ────────────
+   강원대가 확정한 지자체별 중점 분야(data/stats/index.json 의 focusTypes —
+   「대표_위험_선정_기준_표본수추가.xlsx」 신규 대표위험 + 자살)를 판독 지시문에 넣어
+   그 분야 항목을 우선·상세히 보게 합니다.
+   ★ 나머지 4개 분야는 없애지 않습니다 — 9/7 회의: "사진에서 문제가 확인된 분야는
+     중점 분야가 아니어도 개선사업이 나와야 한다". 판독 항목·점수·처방 모두 그대로입니다.
+   지자체는 **주소의 지자체 이름**으로 찾습니다. 주소가 아예 없을 때만 좌표에서 가장 가까운
+   지자체 중심(FOCUS_MAX_KM 안)으로 찾습니다 — 주소가 있는데 41곳에 없으면(예: 서울 중구) 대상
+   지자체가 아닌 것이므로 이웃 지자체의 중점 분야를 빌려 오지 않습니다.
+   못 찾으면 중점 분야 없이 7개 분야를 같은 깊이로 봅니다(지금까지와 같은 판독). */
+const FOCUS_MAX_KM = 10;     // 좌표로 찾을 때 지자체 중심에서 이보다 멀면 "그 지자체"로 보지 않음
+let _regionIndex = null;
+function regionIndex() {
+  if (_regionIndex) return _regionIndex;
+  try {
+    const idx = JSON.parse(readFileSync(path.join(SITE_ROOT, 'data/stats/index.json'), 'utf8'));
+    const keyOf = {};
+    for (const k in idx.categories) keyOf[idx.categories[k]] = k;      // 한글 이름 → 분야 열쇠
+    _regionIndex = idx.regions.map(function (r) {
+      return { region: r.region, label: r.label, short: r.short, lat: r.lat, lng: r.lng,
+               keys: (r.focusTypes || []).map(function (t) { return keyOf[t]; }).filter(Boolean),
+               labels: r.focusTypes || [] };
+    });
+  } catch (e) {
+    console.warn('[중점 분야] data/stats/index.json 을 읽지 못했습니다 —', e.message);
+    _regionIndex = [];
+  }
+  return _regionIndex;
+}
+function focusFor(location) {
+  const loc = location || {};
+  const list = regionIndex();
+  if (!list.length) return null;
+  const addr = String(loc.addr || '').replace(/\s+/g, ' ');
+  /* 긴 이름부터 — "중구"가 엉뚱한 곳에 먼저 붙지 않게 (auth.js regionOf 와 같은 방식) */
+  const byAddr = addr && list.slice().sort(function (a, b) { return b.label.length - a.label.length; })
+    .find(function (r) { return addr.includes(r.label); });
+  if (byAddr) return byAddr;
+  if (addr) return null;                     // 주소는 있는데 41곳 어디도 아님 → 대상 지자체 밖
+  const lat = Number(loc.lat), lng = Number(loc.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  let best = null, bestKm = Infinity;
+  for (const r of list) {
+    const dy = (r.lat - lat) * 111.32, dx = (r.lng - lng) * 111.32 * Math.cos(lat * Math.PI / 180);
+    const km = Math.sqrt(dx * dx + dy * dy);
+    if (km < bestKm) { best = r; bestKm = km; }
+  }
+  return bestKm <= FOCUS_MAX_KM ? best : null;
+}
+function focusBlock(focus) {
+  if (!focus || !focus.keys.length) return '';
+  return `
+## 이 지자체의 중점 분야 — 우선·상세 판독
+이 지점은 **${focus.label}** 에 있고, 지역안전진단에서 확정된 중점 분야는
+**${focus.labels.join(' · ')}** 입니다.
+- 이 ${focus.labels.length}개 분야의 항목은 사진을 **더 꼼꼼히** 살펴 답하세요. 작은 단서(간판의
+  업종, 출입구의 개방 상태, 조명 기구의 유무, 쓰레기·적치물, 난간 높이 등)도 note 에 구체적으로 적으세요.
+- 다만 이 분야에도 **없는 것을 있다고 하지 마세요.** 상세히 본다는 것은 근거를 더 자세히 적는다는
+  뜻이지, 점수를 올리라는 뜻이 아닙니다.
+- 나머지 분야도 **모든 항목에 반드시 답하고 같은 기준으로 점수를 매기세요.** 사진에 문제가
+  보이면 중점 분야가 아니어도 그대로 반영합니다. 중점 분야가 아니라는 이유로 점수를 낮추거나
+  "unknown" 으로 넘기지 마세요.
+`;
+}
+
+function buildPrompt(focus) {
   return `당신은 도시 공간의 안전 취약성을 진단하는 전문가입니다.
 제시된 거리 이미지 한 장을 보고, 아래 7대 사회재난 분야별 체크리스트의
 **모든 항목에 하나씩 답한 뒤**, 그 답을 근거로 분야별 취약성 점수를 매겨 주세요.
@@ -173,7 +245,7 @@ function buildPrompt() {
 - **사진에 실제로 보이는 것만으로 판단하세요.** 이 진단 결과는 국비 신청의 근거
   문서가 되므로, 추측이 섞이면 안 됩니다.
 - 지역 통계, 일반적인 경향, 사진 밖의 정보로 판단하지 마세요.
-
+${focusBlock(focus)}
 ## 항목별로 답하는 방법
 각 분야의 findings 에 **그 분야의 모든 항목 번호를 하나도 빠짐없이** 넣으세요.
 항목마다 이렇게 답합니다.
@@ -195,7 +267,7 @@ function buildPrompt() {
 ${SCORING_GUIDE}
 
 ## 분야별 체크리스트
-${checklistText()}
+${checklistText(focus)}
 
 ## 판단이 어려울 때
 - 사진이 흐리거나, 실내이거나, 거리 풍경이 아니면 image_quality 를 "unusable" 로
@@ -211,7 +283,7 @@ ${checklistText()}
    핵심: 지적한 사람은 현장과 이미지를 직접 확인한 전문가이므로,
    AI의 이전 판독보다 그 지적을 우선합니다. AI가 자기 판단을 고집하면
    이 기능 자체가 무의미해집니다. */
-function buildRevisePrompt(previous, note) {
+function buildRevisePrompt(previous, note, focus) {
   const prevText = CATEGORIES.map(function (cat) {
     const p = previous[cat.key] || {};
     const lines = (p.findings || []).map(function (f) {
@@ -245,7 +317,7 @@ ${note}
 ${SCORING_GUIDE}
 
 ## 분야별 체크리스트
-${checklistText()}`;
+${checklistText(focus)}`;
 }
 
 /* ── AI가 반드시 이 모양으로 답하도록 강제하는 틀 ─────────────────────
@@ -805,16 +877,18 @@ async function handleDiagnose(req, res, isRevise) {
   }
   const [, mediaType, base64Data] = match;
 
+  /* 지자체 중점 3분야 — 지시문에 넣고, 화면이 순서·표기를 맞추도록 응답에도 돌려줍니다 */
+  const focus = focusFor(body.location);
   let promptText;
   if (isRevise) {
     if (!body.note || !body.previous) {
       return sendJson(res, 400, { error: '어디가 잘못되었는지 알려 주셔야 다시 판독할 수 있습니다.' });
     }
     console.log(`[재판독 요청] 지적: ${String(body.note).slice(0, 80)}`);
-    promptText = buildRevisePrompt(body.previous, body.note);
+    promptText = buildRevisePrompt(body.previous, body.note, focus);
   } else {
-    console.log(`[진단 요청] ${mediaType}, ${Math.round(base64Data.length / 1024)}KB`);
-    promptText = buildPrompt();
+    console.log(`[진단 요청] ${mediaType}, ${Math.round(base64Data.length / 1024)}KB · 중점 분야 ${focus ? focus.label + ' ' + focus.labels.join('·') : '없음(지자체 미확인)'}`);
+    promptText = buildPrompt(focus);
   }
 
   /* 진단 실행 기록 — 누가 · 언제 · 어느 지점 (8/25 협의 "접근통제").
@@ -865,7 +939,10 @@ async function handleDiagnose(req, res, isRevise) {
     })
     .filter(Boolean);
   if (skipped.length) console.log(`  · 답하지 않은 항목(확인 불가로 처리): ${skipped.join(', ')}`);
-  sendJson(res, 200, { imageQuality: raw.image_quality, categories: categories });
+  sendJson(res, 200, {
+    imageQuality: raw.image_quality, categories: categories,
+    focus: focus ? { region: focus.region, label: focus.label, keys: focus.keys, labels: focus.labels } : null,
+  });
 }
 
 /* ── 아래는 웹서버 기본 동작 (건드릴 일 거의 없습니다) ─────────────── */
