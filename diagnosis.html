@@ -41,6 +41,19 @@
   @media(max-width:640px){ .result-why{padding-left:0} }
 
   .loading{padding:44px 0; text-align:center; font-size:var(--fs-body); color:var(--g3)}
+
+  /* 중점 3분야 — 진단 위치 아래, 스트리트뷰 위. 박스 없이 선과 여백으로만 */
+  .focus-box{margin:-16px 0 34px; padding:0 0 4px}   /* 아래 선은 다음 패널의 윗선이 대신합니다 */
+  .focus-box[hidden]{display:none}
+  .focus-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px}
+  .focus-head .lab{font-size:var(--fs-cap); font-weight:700; letter-spacing:.15em; color:var(--contrast)}
+  .focus-head .d{font-size:var(--fs-sm); color:var(--g3)}
+  .focus-list{display:grid; grid-template-columns:repeat(3,1fr); gap:0 26px}
+  @media(max-width:720px){.focus-list{grid-template-columns:1fr}}
+  .focus-item{padding:10px 0; border-top:1px solid var(--g1)}
+  .focus-item .n{font-size:var(--fs-body); font-weight:700; color:var(--k)}
+  .focus-item .n .no{color:var(--contrast); margin-right:8px}
+  .focus-item .s{font-size:var(--fs-sm); color:var(--g3); margin-top:4px; line-height:var(--lh-tight)}
   /* .revise-box 스타일은 assets/theme.css 로 옮겼습니다 (시각화 화면과 공용) */
 </style>
 </head>
@@ -61,6 +74,16 @@
       <div class="addr" id="pickedAddr">—</div>
       <div class="coord" id="pickedCoord"></div>
     </div>
+  </div>
+
+  <!-- 이 지점이 속한 지자체의 중점 3분야 — 판독이 이 분야를 우선·상세히 본다는 것을 미리 알려 줍니다 (2026-09-16).
+       자세한 통계는 리포트에 있으므로 여기서는 분야 이름과 "사진에서 무엇을 보는가" 한 줄만. -->
+  <div class="focus-box" id="focusBox" hidden>
+    <div class="focus-head">
+      <span class="lab" id="focusTitle">중점 안전분야</span>
+      <span class="d">지역안전진단에서 확정된 이 지자체의 중점 분야 — 이미지 판독에서 우선·상세히 봅니다. 나머지 4개 분야도 함께 판독합니다.</span>
+    </div>
+    <div class="focus-list" id="focusList"></div>
   </div>
 
   <!-- ① 스트리트뷰 (전체 폭) -->
@@ -534,6 +557,51 @@ async function sendRevise() {
     document.getElementById('reviseSend').disabled = false;
   }
 }
+/* ── 중점 3분야 안내 (2026-09-16) ─────────────────────────────────
+   서버의 focusFor() 와 같은 규칙으로 지자체를 찾습니다 — 주소에 41곳 이름이 있으면 그것,
+   주소가 없을 때만 좌표에서 FOCUS_MAX_KM 안 가장 가까운 지자체. 규칙을 바꾸면 server.js 도 함께.
+   분야별 한 줄은 server/checklist.js 의 항목을 요약한 것입니다 — 체크리스트를 크게 고치면 여기도 맞추세요. */
+const FOCUS_MAX_KM = 10;
+const FOCUS_HINT = {
+  suicide:    '옥상·교량 접근 경로, 낮은 난간, 고립된 공간, 상담 안내 표지',
+  traffic:    '보도·차도 분리, 횡단 지점, 불법 주정차, 교차로 시야, 야간 조명',
+  fire:       '소화전 접근, 소방차 진입 폭, 건물 밀착·노후, 옥외 적재물',
+  crime:      '가로등·CCTV·비상벨, 시야를 막는 담장·수목, 은폐 공간, 관리 흔적',
+  life:       '보도 파손·단차, 핸드레일, 미끄럼 구간, 보행 동선 장애물, 맨홀·배수구',
+  industrial: '공사·옥외 작업 구간, 방호 펜스·표지, 작업·차량 동선 분리, 노상 자재',
+  infection:  '밀폐형 대기 공간, 밀집 구간, 손 위생 시설, 폐기물·공용 시설 위생',
+};
+async function showFocus(picked) {
+  const box = document.getElementById('focusBox');
+  try {
+    const res = await fetch('data/stats/index.json', { cache: 'no-store' });
+    if (!res.ok) return;
+    const idx = await res.json();
+    const keyOf = {};
+    for (const k in idx.categories) keyOf[idx.categories[k]] = k;
+    const addr = String(picked.addr || '').replace(/\s+/g, ' ');
+    let region = addr ? idx.regions.slice().sort(function (a, b) { return b.label.length - a.label.length; })
+      .find(function (r) { return addr.includes(r.label); }) : null;
+    if (!region && !addr) {
+      let bestKm = Infinity;
+      idx.regions.forEach(function (r) {
+        const dy = (r.lat - picked.lat) * 111.32, dx = (r.lng - picked.lng) * 111.32 * Math.cos(picked.lat * Math.PI / 180);
+        const km = Math.sqrt(dx * dx + dy * dy);
+        if (km < bestKm) { bestKm = km; region = r; }
+      });
+      if (bestKm > FOCUS_MAX_KM) region = null;
+    }
+    if (!region || !region.focusTypes || !region.focusTypes.length) return;   // 41곳 밖이면 안내 없음
+    document.getElementById('focusTitle').textContent = `${region.short || region.label} 중점 안전분야`;
+    document.getElementById('focusList').innerHTML = region.focusTypes.map(function (label, i) {
+      const key = keyOf[label];
+      return `<div class="focus-item"><div class="n"><span class="no">${i + 1}</span>${label}</div>` +
+             `<div class="s">${FOCUS_HINT[key] || ''}</div></div>`;
+    }).join('');
+    box.hidden = false;
+  } catch (e) { /* 통계 파일이 없으면 안내만 빠집니다 — 판독은 그대로 */ }
+}
+
 /* ── 페이지 시작 ───────────────────────────────────────────────── */
 
 window.addEventListener('load', function () {
@@ -545,6 +613,7 @@ window.addEventListener('load', function () {
   const picked = JSON.parse(raw);
   document.getElementById('pickedAddr').textContent = picked.addr || '주소 미상';
   document.getElementById('pickedCoord').textContent = `위도 ${picked.lat}, 경도 ${picked.lng}`;
+  showFocus(picked);
 
   /* 이전에 골라 둔 이미지가 있으면 되살립니다 */
   const savedImage = sessionStorage.getItem('auri_input_image');
