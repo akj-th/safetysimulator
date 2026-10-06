@@ -35,6 +35,7 @@ import { fileURLToPath } from 'node:url';
 import proj4 from '../node_modules/proj4/dist/proj4-src.js';
 import { readDbf, readPolygons } from '../lib/shapefile.mjs';
 import { iconDefs } from './icons.mjs';
+import { loadRaster, heatPng, extractZone, DEFAULTS as RISK_DEFAULTS, AURI_COLORS } from './risk.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
@@ -93,6 +94,14 @@ const toPx = (ll) => { const [x, y] = toWorld(ll); return [(x - originX) * scale
 const mPerPx = mPerWorldPx / scale;
 const from5179 = (p) => toPx(proj4(P5179, WGS, p));
 const anchorPx = (a) => a.lnglat ? toPx(a.lnglat) : from5179(a.epsg5179);
+const pxToLL = (px, py) => {
+  const wx = px / scale + originX, wy = py / scale + originY;
+  const lng = wx / WORLD * 360 - 180;
+  const lat = Math.atan(Math.sinh(Math.PI * (1 - 2 * wy / WORLD))) * 180 / Math.PI;
+  return [lng, lat];
+};
+const pxTo5186 = (px, py) => proj4(WGS, P5186, pxToLL(px, py));
+const from5186 = (p) => toPx(proj4(P5186, WGS, p));
 
 const MARGIN = 40;
 const inFrame = (bboxPx) => bboxPx[2] >= -MARGIN && bboxPx[0] <= W + MARGIN && bboxPx[3] >= -MARGIN && bboxPx[1] <= H + MARGIN;
@@ -143,7 +152,7 @@ function layerPaths(code, opts = {}) {
   if (!shp) { console.warn(`  ⚠ ${code} 레이어 없음 — 건너뜀`); return { paths: [], rows: [], n: 0 }; }
   const shapes = readPolygons(shp);
   const rows = opts.attrs ? readDbf(shp.replace(/\.shp$/i, '.dbf'), { encoding: 'auto' }) : null;
-  const paths = [], keptRows = [];
+  const paths = [], keptRows = [], rings5179 = [];
   for (let i = 0; i < shapes.length; i++) {
     const s = shapes[i];
     const b1 = from5179([s.bbox[0], s.bbox[1]]), b2 = from5179([s.bbox[2], s.bbox[3]]);
@@ -153,10 +162,10 @@ function layerPaths(code, opts = {}) {
     if (opts.filter && rows && !opts.filter(rows[i])) continue;
     const d = s.rings.map(r => ringPath(r.map(from5179), opts.tol)).join('');
     if (!d) continue;
-    paths.push(d); if (rows) keptRows.push(rows[i]);
+    paths.push(d); if (rows) keptRows.push(rows[i]); rings5179.push(...s.rings);
   }
   console.log(`  ${code}: ${shapes.length}개 중 창 안 ${paths.length}개`);
-  return { paths, rows: keptRows, n: shapes.length };
+  return { paths, rows: keptRows, n: shapes.length, rings5179 };
 }
 
 console.log(`[${cfg.region}] 지도 창 중심 ${cLng.toFixed(5)}, ${cLat.toFixed(5)} · 폭 ${F.widthMeters}m · ${mPerPx.toFixed(2)} m/px · 타일 z${Z}`);
@@ -203,6 +212,35 @@ const surveyPaths = surveyLL.map(rings => rings.map(r => ringPath(r.map(toPx), 0
 const surveyPathAll = surveyPaths.join('');
 const surveyPts = surveyLL.flat(1).flat(1).map(toPx);
 const sBox = [Math.min(...surveyPts.map(p => p[0])), Math.min(...surveyPts.map(p => p[1])), Math.max(...surveyPts.map(p => p[0])), Math.max(...surveyPts.map(p => p[1]))];
+
+/* ── 위험도: 중점 3분야 TIF 히트맵 + 현실적 대상지 (risk.mjs) ─────────── */
+const RISK = { ...RISK_DEFAULTS, ...(cfg.risk || {}) };
+for (const k of Object.keys(RISK)) if (ARGS[k] !== undefined && ARGS[k] !== true) RISK[k] = Number(ARGS[k]);   // --overlapT=0.2 처럼 명령줄에서 바꿔 볼 수 있음
+const LABEL2KEY = { 교통사고: 'traffic', 화재: 'fire', 범죄: 'crime', 생활안전: 'life', 산업재해: 'industrial', 자살: 'suicide', 감염병: 'infection' };
+let riskLayers = [], heat = null, zone = null;
+if (RISK.enabled !== false) {
+  const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/stats/index.json'), 'utf8'));
+  const me = (Array.isArray(idx) ? idx : idx.regions || Object.values(idx)).find(r => r.region === cfg.region);
+  const focus = (cfg.risk && cfg.risk.focus) || (me ? me.focusTypes.map(l => LABEL2KEY[l] || l) : []);
+  for (const key of focus) {
+    const L = loadRaster(ROOT, key, cfg.region, RISK);
+    if (L) { riskLayers.push(L); console.log(`  위험도 ${L.label}: 만점(p${RISK.topQuantile * 100}) ${L.top.toFixed(3)} · 유효 칸 ${L.n}`); }
+    else console.warn(`  ⚠ ${key} TIF 없음 (data/raw/gis_0901/density)`);
+  }
+  if (riskLayers.length) {
+    heat = heatPng(riskLayers, W, H, RISK.heatStepPx || 2, pxTo5186, RISK);
+    /* 대상지: 조사지 둘레 + 여유 안에서 판정 */
+    const s86 = survey[0].bbox, pad = RISK.searchPadM ?? 300;
+    const bbox = [s86[0] - pad, s86[1] - pad, s86[2] + pad, s86[3] + pad];
+    const to5186ring = (r) => r.map(p => proj4(P5179, P5186, p));
+    const built = [...bldg.rings5179, ...roads.rings5179].map(to5186ring);
+    zone = extractZone(riskLayers, built, bbox, RISK);
+    console.log(`  대상지 추출: 중첩 칸 ${zone.stats.nOverlap} → 시가지 교집합 ${zone.stats.nBoth} → 조각 ${zone.stats.pieces} · ${zone.areaHa.toFixed(1)}ha (조사지 ${(me ? me.areaHa : '?')}ha)`);
+  }
+}
+/* 화면에서 "대상지" 로 쓰는 경계: 추출 결과가 있으면 그것, 없으면 공식 조사지 */
+const zonePaths = zone && zone.rings.length ? zone.rings.map(r => ringPath(r.map(from5186), 0.2)) : null;
+const zonePathAll = zonePaths ? zonePaths.join('') : surveyPathAll;
 
 /* ── 위성 타일 (브이월드) ───────────────────────────────────────────── */
 const TILE_DIR = path.join(ROOT, 'data/raw/tiles/vworld-satellite', String(Z));
@@ -345,6 +383,8 @@ function legendSvg(x, y) {
       case 'road': sw = `<rect x="${lx}" y="${cy - 4}" width="34" height="8" fill="${C.road}" stroke="${C.roadLine}"/>`; break;
       case 'water': sw = `<rect x="${lx}" y="${cy - 6}" width="34" height="12" fill="${C.water}"/>`; break;
       case 'farm': sw = `<rect x="${lx}" y="${cy - 6}" width="34" height="12" fill="${C.farm}"/>`; break;
+      case 'survey-ref': sw = `<line x1="${lx}" y1="${cy}" x2="${lx + 34}" y2="${cy}" stroke="${C.ink}" stroke-width="1.4" stroke-dasharray="5 4"/>`; break;
+      case 'heat': { const c = AURI_COLORS[r.key] ? AURI_COLORS[r.key].rgb : [128, 128, 128]; const col = `rgb(${c.join(',')})`; sw = `<defs><linearGradient id="lg-${r.key}"><stop offset="0" stop-color="#fff" stop-opacity=".15"/><stop offset="1" stop-color="${col}" stop-opacity=".85"/></linearGradient></defs><rect x="${lx}" y="${cy - 6}" width="34" height="12" fill="url(#lg-${r.key})"/>`; break; }
     }
     out.push(sw, `<text x="${lx + 46}" y="${cy + 5}" font-family="${FONT}" font-size="14" fill="${C.text}">${esc(r.label)}</text>`);
   });
@@ -404,7 +444,7 @@ const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <title>${esc(cfg.title)}</title>
 <defs>
   <clipPath id="frame"><rect width="${W}" height="${H}"/></clipPath>
-  <clipPath id="survey-clip"><path d="${surveyPathAll}"/></clipPath>
+  <clipPath id="survey-clip"><path d="${zonePathAll}"/></clipPath>
   <filter id="sat" color-interpolation-filters="sRGB">
     <feColorMatrix type="saturate" values="${SAT.saturate}"/>
     <feComponentTransfer><feFuncR type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncG type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncB type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/></feComponentTransfer>
@@ -430,15 +470,19 @@ ${tiles}
 <g id="buildings" fill="${C.building}" fill-opacity="0.78" stroke="none">${P(bldg.paths)}</g>
 <g id="buildings-in" clip-path="url(#survey-clip)" fill="${C.buildingIn}" fill-opacity="0.9">${P(bldg.paths)}</g>
 
+<!-- ②-1 위험도 히트맵 (중점 3분야 · AURI 7색) -->
+${heat ? `<image id="heat" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" href="${heat.dataUrl}"/>` : ''}
+
 <!-- ③ 경계 -->
 <path id="coast" d="${umdEdges.coast.join('')}" fill="none" stroke="${C.umd}" stroke-width="0.9" stroke-opacity="0.7"/>
 <path id="umd" d="${umdEdges.shared.join('')}" fill="none" stroke="${C.umd}" stroke-width="2.2" stroke-dasharray="9 5" stroke-opacity="0.95"/>
 <g id="sgg" fill="none" stroke="${C.sgg}" stroke-width="2.6">${P(sgg.paths)}</g>
 
 <!-- ④ 사업지 안 밝게 · 밖 어둡게 -->
-<path id="dim" d="${frameRect}${surveyPathAll}" fill-rule="evenodd" fill="${C.dim}" fill-opacity="0.24"/>
-<path id="survey-glow" d="${surveyPathAll}" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-opacity="0.55" filter="url(#soft)"/>
-<path id="survey" d="${surveyPathAll}" fill="#FFFFFF" fill-opacity="0.16" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>
+<path id="dim" d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" fill-opacity="0.24"/>
+${zonePaths ? `<path id="survey-ref" d="${surveyPathAll}" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-dasharray="5 4" stroke-opacity="0.85"/>` : ''}
+<path id="zone-glow" d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-opacity="0.55" filter="url(#soft)"/>
+<path id="zone" d="${zonePathAll}" fill="#FFFFFF" fill-opacity="0.14" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>
 
 <!-- ⑤ 동선 -->
 <g id="routes">${(cfg.routes || []).map(routeSvg).join('\n')}</g>
@@ -467,4 +511,9 @@ fs.mkdirSync(outDir, { recursive: true });
 const outFile = path.join(outDir, `${cfg.region}_종합도${DEBUG_GRID ? '_debug' : ''}.svg`);
 fs.writeFileSync(outFile, svg);
 console.log(`→ ${path.relative(ROOT, outFile)}  (${(svg.length / 1e6).toFixed(2)} MB)`);
+if (zone && zone.rings.length && !DEBUG_GRID) {
+  const gj = { type: 'FeatureCollection', features: zone.rings.map((r, i) => ({ type: 'Feature', properties: { region: cfg.region, part: i + 1, areaHa: +zone.areaHa.toFixed(2), rule: RISK }, geometry: { type: 'Polygon', coordinates: [[...r, r[0]].map(p => proj4(P5186, WGS, p).map(v => +v.toFixed(6)))] } })) };
+  fs.writeFileSync(path.join(outDir, `${cfg.region}_대상지.geojson`), JSON.stringify(gj));
+  console.log(`  대상지 경계 → output/overview-map/${cfg.region}/${cfg.region}_대상지.geojson`);
+}
 console.log(`  조사지 화면 범위 x ${sBox[0].toFixed(0)}–${sBox[2].toFixed(0)} · y ${sBox[1].toFixed(0)}–${sBox[3].toFixed(0)}`);

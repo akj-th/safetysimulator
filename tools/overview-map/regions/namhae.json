@@ -266,11 +266,26 @@
   "legend": [
     {
       "kind": "survey",
-      "label": "조사지(사업지) 경계"
+      "label": "대상지 경계 (3분야 중첩 · 시가지)"
     },
     {
-      "kind": "umd",
-      "label": "읍·면 경계"
+      "kind": "survey-ref",
+      "label": "조사지 경계 (AURI)"
+    },
+    {
+      "kind": "heat",
+      "key": "crime",
+      "label": "범죄 밀도"
+    },
+    {
+      "kind": "heat",
+      "key": "life",
+      "label": "생활안전 밀도"
+    },
+    {
+      "kind": "heat",
+      "key": "suicide",
+      "label": "자살 밀도"
     },
     {
       "kind": "patrol",
@@ -289,10 +304,6 @@
       "label": "도로"
     },
     {
-      "kind": "water",
-      "label": "하천·저수지"
-    },
-    {
       "kind": "farm",
       "label": "전·답"
     }
@@ -300,6 +311,14 @@
   "source": "바탕: 브이월드 위성영상(국토교통부) · 연속수치지형도 1:5,000(국토지리정보원) · 조사지: AURI/강원대 · 사업내용: 중점관리분야 맞춤형 사업(안)",
   "legendPos": {
     "x": 1180,
-    "y": 836
+    "y": 790
+  },
+  "risk": {
+    "enabled": true,
+    "overlapT": 0.2,
+    "builtBufferM": 40,
+    "closeM": 30,
+    "minAreaHa": 1,
+    "simplifyM": 12
   }
 }
