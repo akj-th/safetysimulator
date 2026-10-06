@@ -375,7 +375,7 @@ const FONT = "Pretendard, 'Malgun Gothic', sans-serif";
 function zoneBox(z, i) {
   const { x, y, w } = z.box;
   const pad = 18, fsT = 21, fsP = 14, fsI = 15, lh = 22, gap = 8;
-  const items = z.items.map(t => wrap(t, fsI, w - pad * 2 - 20));
+  const items = z.items.map(t => wrap(typeof t === 'string' ? t : t.text, fsI, w - pad * 2 - 20));
   const bodyH = items.reduce((a, l) => a + l.length * lh + gap, 0) - gap;
   const headH = pad + fsT + 6 + fsP + 12;                  // 제목 + 장소 + 구분선까지
   const h = headH + 12 + bodyH + pad;
