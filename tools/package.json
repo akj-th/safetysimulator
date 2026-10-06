@@ -13,7 +13,8 @@
     "heatmap": "node --max-old-space-size=4096 build-heatmap.mjs",
     "verify": "node verify-stats.mjs",
     "verify-rules": "node verify-rules.mjs",
-    "convert-legacy": "node convert-gis.js"
+    "convert-legacy": "node convert-gis.js",
+    "overview": "node overview-map/build-overview-map.mjs"
   },
   "dependencies": {
     "proj4": "^2.21.0"

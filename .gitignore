@@ -36,3 +36,6 @@ node_modules/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# 종합도 SVG 결과물 — 위성영상이 통째로 들어 있어(4MB+) 커밋하지 않습니다. tools/overview-map 으로 다시 만듭니다.
+output/
