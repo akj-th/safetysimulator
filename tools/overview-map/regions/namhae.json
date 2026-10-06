@@ -7,11 +7,11 @@
   "frame": {
     "width": 1920,
     "height": 1080,
-    "widthMeters": 4300,
+    "widthMeters": 3000,
     "center": null,
     "offset": [
       0,
-      60
+      30
     ],
     "zoom": 17
   },
@@ -27,8 +27,8 @@
     {
       "text": "미조항",
       "epsg5179": [
-        1050000,
-        1635720
+        1049900,
+        1635740
       ],
       "size": 15
     },
@@ -54,15 +54,9 @@
       "id": "Z1",
       "type": "상업·유흥 밀집형",
       "place": "미조로 236 인근",
-      "icons": [
-        "cctv",
-        "lamp",
-        "walk",
-        "car"
-      ],
       "box": {
         "x": 60,
-        "y": 215,
+        "top": 170,
         "w": 400
       },
       "items": [
@@ -116,14 +110,9 @@
       "id": "Z2",
       "type": "생활 거점형",
       "place": "남해군 미조면보건지소 일대",
-      "icons": [
-        "heart",
-        "people",
-        "ambulance"
-      ],
       "box": {
         "x": 1460,
-        "y": 150,
+        "top": 170,
         "w": 400
       },
       "items": [
@@ -165,14 +154,9 @@
       "id": "Z3",
       "type": "산지·해안·항만형",
       "place": "망산 및 미송로2번길, 미조남항 일대",
-      "icons": [
-        "lamp",
-        "bell",
-        "cctv"
-      ],
       "box": {
         "x": 60,
-        "y": 760,
+        "bottom": 1020,
         "w": 400
       },
       "items": [
@@ -208,15 +192,9 @@
       "id": "Z4",
       "type": "관광·상업 밀집형",
       "place": "미조로 168 일대",
-      "icons": [
-        "cctv",
-        "bell",
-        "walk",
-        "car"
-      ],
       "box": {
         "x": 1460,
-        "y": 700,
+        "bottom": 1020,
         "w": 400
       },
       "items": [
@@ -257,7 +235,7 @@
   ],
   "routes": [
     {
-      "name": "연계 동선(안) — 서측 해안 (초안)",
+      "name": "해안·항만형 도로 구간 — 서측 해안 (초안)",
       "style": "link",
       "draftPx": true,
       "heads": [
@@ -316,7 +294,7 @@
       ]
     },
     {
-      "name": "연계 동선(안) — 남항 서측·북측·동측 (초안)",
+      "name": "해안·항만형 도로 구간 — 남항 서측·북측·동측 (초안)",
       "style": "link",
       "draftPx": true,
       "heads": [
@@ -411,7 +389,7 @@
       ]
     },
     {
-      "name": "연계 동선(안) — 남항 동측 → 동측 해안 (초안)",
+      "name": "해안·항만형 도로 구간 — 남항 동측 → 동측 해안 (초안)",
       "style": "link",
       "draftPx": true,
       "heads": [
@@ -522,7 +500,7 @@
       ]
     },
     {
-      "name": "순찰 동선(안) — 초안 노란 화살표 1",
+      "name": "상업·생활권 도로 구간 — 초안 노란 화살표 1",
       "style": "patrol",
       "draftPx": true,
       "heads": [
@@ -565,7 +543,7 @@
       ]
     },
     {
-      "name": "순찰 동선(안) — 초안 노란 화살표 2",
+      "name": "상업·생활권 도로 구간 — 초안 노란 화살표 2",
       "style": "patrol",
       "draftPx": true,
       "heads": [
@@ -636,7 +614,7 @@
       ]
     },
     {
-      "name": "순찰 동선(안) — 초안 노란 화살표 3",
+      "name": "상업·생활권 도로 구간 — 초안 노란 화살표 3",
       "style": "patrol",
       "draftPx": true,
       "heads": [
@@ -687,7 +665,7 @@
       ]
     },
     {
-      "name": "순찰 동선(안) — 초안 노란 화살표 4",
+      "name": "상업·생활권 도로 구간 — 초안 노란 화살표 4",
       "style": "patrol",
       "draftPx": true,
       "heads": [
@@ -722,7 +700,7 @@
       ]
     },
     {
-      "name": "순찰 동선(안) — 초안 노란 화살표 5",
+      "name": "상업·생활권 도로 구간 — 초안 노란 화살표 5",
       "style": "patrol",
       "draftPx": true,
       "heads": [
@@ -757,7 +735,7 @@
       ]
     },
     {
-      "name": "순찰 동선(안) — 초안 노란 화살표 6",
+      "name": "상업·생활권 도로 구간 — 초안 노란 화살표 6",
       "style": "patrol",
       "draftPx": true,
       "heads": [
@@ -780,44 +758,6 @@
       ]
     }
   ],
-  "legend": [
-    {
-      "kind": "survey",
-      "label": "대상지 경계 (3분야 중첩 · 시가지)"
-    },
-    {
-      "kind": "survey-ref",
-      "label": "조사지 경계 (AURI)"
-    },
-    {
-      "kind": "heat",
-      "key": "crime",
-      "label": "범죄 밀도"
-    },
-    {
-      "kind": "heat",
-      "key": "life",
-      "label": "생활안전 밀도"
-    },
-    {
-      "kind": "heat",
-      "key": "suicide",
-      "label": "자살 밀도"
-    },
-    {
-      "kind": "patrol",
-      "label": "야간 순찰 동선(안)"
-    },
-    {
-      "kind": "link",
-      "label": "연계 동선(안)"
-    }
-  ],
-  "source": "바탕: 브이월드 위성영상(국토교통부) · 연속수치지형도 1:5,000(국토지리정보원) · 조사지: AURI/강원대 · 사업내용: 중점관리분야 맞춤형 사업(안)",
-  "legendPos": {
-    "x": 1180,
-    "y": 870
-  },
   "risk": {
     "enabled": true,
     "overlapT": 0.2,

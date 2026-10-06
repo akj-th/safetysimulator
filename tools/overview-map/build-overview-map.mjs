@@ -36,6 +36,7 @@ import { execFileSync } from 'node:child_process';
 import proj4 from '../node_modules/proj4/dist/proj4-src.js';
 import { readDbf, readPolygons } from '../lib/shapefile.mjs';
 import { ICONS } from './icons.mjs';
+import { ITEM_ICONS } from './item-icons.mjs';
 import { loadRaster, heatPng, extractZone, DEFAULTS as RISK_DEFAULTS, AURI_COLORS } from './risk.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -53,7 +54,7 @@ const C = {
   water: '#8FBFDD', farm: '#D9E4C2', umd: '#2B3A48', sgg: '#101820',
   dim: '#0B1622', box: '#FFFFFF', text: '#1F2A33', sub: '#5A6670', line: '#333333',
 };
-const SAT = { saturate: 0.28, slope: 0.68, intercept: 0.40 };   // 위성영상 채도 낮추고 밝게
+const SAT = { saturate: 0.12, slope: 0.68, intercept: 0.40 };   // 채도 아주 낮게 (담당자 2026-10-06)   // 위성영상 채도 낮추고 밝게
 
 /* ════════════════════════════════════════════════════════════════════ */
 const regionId = process.argv[2];
@@ -373,18 +374,18 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 /* ── 사업지 설명 상자 ─────────────────────────────────────────────── */
 const FONT = "Pretendard, 'Malgun Gothic', sans-serif";
 function zoneBox(z, i) {
-  const { x, y, w } = z.box;
-  const pad = 18, fsT = 21, fsP = 14, fsI = 15, lh = 22, gap = 8;
-  const items = z.items.map(t => wrap(typeof t === 'string' ? t : t.text, fsI, w - pad * 2 - 20));
-  const bodyH = items.reduce((a, l) => a + l.length * lh + gap, 0) - gap;
+  const { x, w } = z.box;
+  const pad = 18, fsT = 21, fsP = 14, fsI = 15, lh = 21, rowGap = 9, ic = 24;   // ic = 항목 아이콘 크기
+  const textX = x + pad + ic + 10;
+  const items = z.items.map(t => ({ icon: typeof t === 'string' ? null : t.icon, lines: wrap(typeof t === 'string' ? t : t.text, fsI, x + w - pad - textX) }));
+  const rowH = (it) => Math.max(ic, it.lines.length * lh);
+  const bodyH = items.reduce((a, it) => a + rowH(it) + rowGap, 0) - rowGap;
   const headH = pad + fsT + 6 + fsP + 12;                  // 제목 + 장소 + 구분선까지
-  const h = headH + 12 + bodyH + pad;
+  const h = Math.round(headH + 14 + bodyH + pad);
+  const y = z.box.y ?? z.box.top ?? (z.box.bottom - h);    // top 또는 bottom 으로 맞춤
   const num = String(i + 1).padStart(2, '0');
   const out = [];
-  /* 아이콘 줄 — 상자 위에 띄움 (회사 예시 방식) */
-  out.push(`<g class="zone" id="${z.id}">`);
-  out.push((z.icons || []).map((k, j) => `<g transform="translate(${x + j * 42} ${y - 46}) scale(0.9)"><rect width="40" height="40" rx="8" fill="${C.ink}"/>${ICONS[k] || ''}</g>`).join(''));
-  out.push(`<rect x="${x}" y="${y}" width="${w}" height="${h.toFixed(0)}" rx="6" fill="${C.box}" fill-opacity="0.96" stroke="${C.line}" stroke-width="1"/>`);
+  out.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${C.box}" fill-opacity="0.96" stroke="${C.line}" stroke-width="1"/>`);
   out.push(`<path d="M${x + 6} ${y}H${x}V${y + h}H${x + 6}Z" fill="${C.main}"/>`);
   let cy = y + pad + fsT - 5;
   out.push(`<text x="${x + pad}" y="${cy}" font-family="${FONT}" font-size="${fsT}" font-weight="700" fill="${C.text}"><tspan fill="${C.main}" font-size="${fsT - 3}">${num}</tspan><tspan dx="8">${esc(z.type)}</tspan></text>`);
@@ -392,27 +393,38 @@ function zoneBox(z, i) {
   out.push(`<text x="${x + pad}" y="${cy}" font-family="${FONT}" font-size="${fsP}" fill="${C.sub}">${esc(z.place)}</text>`);
   cy += 12;
   out.push(`<line x1="${x + pad}" y1="${cy}" x2="${x + w - pad}" y2="${cy}" stroke="#CCCCCC" stroke-width="1"/>`);
-  cy += 12;
-  for (const ls of items) {
-    ls.forEach((l, k) => {
-      const ty = cy + fsI - 2 + k * lh;
-      if (k === 0) out.push(`<text x="${x + pad}" y="${ty}" font-family="${FONT}" font-size="${fsI}" fill="${C.text}"><tspan fill="${C.main}" font-size="9">■</tspan><tspan dx="8">${esc(l)}</tspan></text>`);
-      else out.push(`<text x="${x + pad + 20}" y="${ty}" font-family="${FONT}" font-size="${fsI}" fill="${C.text}">${esc(l)}</text>`);
-    });
-    cy += ls.length * lh + gap;
+  cy += 14;
+  for (const it of items) {
+    const rh = rowH(it);
+    const g = it.icon && ITEM_ICONS[it.icon];
+    out.push(`<g transform="translate(${x + pad} ${cy + (rh - ic) / 2}) scale(${ic / 40})"><rect width="40" height="40" rx="8" fill="${C.ink}"/>${g || ''}</g>`);
+    const firstY = cy + (rh - it.lines.length * lh) / 2 + fsI - 1;   // 아이콘 세로 중앙에 글 묶음 맞춤
+    it.lines.forEach((l, k) => out.push(`<text x="${textX}" y="${(firstY + k * lh).toFixed(1)}" font-family="${FONT}" font-size="${fsI}" fill="${C.text}">${esc(l)}</text>`));
+    cy += rh + rowGap;
   }
-  out.push('</g>');
   return { svg: out.join('\n'), h, rect: { x, y, w, h } };
 }
 
-/* 지시선: 상자 가까운 변 가운데 → 꺾임 → 지점 */
+/* 지시선 — 꺾임 최대 1번, 모두 수직·수평.
+   · 지점이 상자 세로 범위 안이면: 옆 변에서 수평 직선 (꺾임 0)
+   · 지점이 상자 가로 범위 안이면: 위/아래 변에서 수직 직선 (꺾임 0)
+   · 그 밖: 옆 변의 제목 줄 높이(sy)에서 수평으로 나가 지점 x 에서 한 번 꺾어 수직  */
 function leader(rect, anchor) {
   const [ax, ay] = anchor;
-  const right = ax > rect.x + rect.w;        // 지점이 상자 오른쪽에 있으면 오른쪽 변에서 출발
-  const sx = right ? rect.x + rect.w : rect.x;
-  const sy = Math.max(rect.y + 20, Math.min(rect.y + rect.h - 20, ay));
-  const midX = right ? sx + (ax - sx) * 0.45 : sx - (sx - ax) * 0.45;
-  const d = `M${sx} ${sy}H${midX.toFixed(1)}V${ay.toFixed(1)}H${ax.toFixed(1)}`;
+  const right = ax > rect.x + rect.w;
+  let d;
+  if (ay >= rect.y + 14 && ay <= rect.y + rect.h - 14) {
+    const sx = right ? rect.x + rect.w : rect.x;
+    d = `M${sx} ${ay.toFixed(1)}H${ax.toFixed(1)}`;
+  } else if (ax >= rect.x + 14 && ax <= rect.x + rect.w - 14) {
+    const sy = ay > rect.y ? rect.y + rect.h : rect.y;
+    d = `M${ax.toFixed(1)} ${sy}V${ay.toFixed(1)}`;
+  } else {
+    const sx = right ? rect.x + rect.w : rect.x;
+    const top = rect.y + 34, bot = rect.y + rect.h - 34;      // 제목 줄 또는 마지막 줄 높이 중 지점에 가까운 쪽에서 나감
+    const sy = Math.abs(ay - top) <= Math.abs(ay - bot) ? top : bot;
+    d = `M${sx} ${sy}H${ax.toFixed(1)}V${ay.toFixed(1)}`;
+  }
   return `<path d="${d}" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-opacity="0.75" stroke-linejoin="round"/>
 <path d="${d}" fill="none" stroke="${C.ink}" stroke-width="1.4" stroke-linejoin="round"/>
 <circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="7" fill="#FFFFFF" stroke="${C.ink}" stroke-width="1.4"/>
@@ -504,9 +516,7 @@ const landAll = umd.paths.join('') || sgg.paths.join('');
 const P = (arr) => arr.length ? `<path d="${arr.join('')}"/>` : '';
 
 const zoneBoxes = cfg.zones.map((z, i) => ({ z, ...zoneBox(z, i) }));
-const legendH = (cfg.legend || []).length * 24 + 22;
-const LP = cfg.legendPos || { x: W - 290, y: H - 60 - legendH };
-const legend = legendSvg(LP.x, LP.y);
+
 
 /* 디버그 격자 — 100m 마다 EPSG:5179 좌표를 적어 사업지 좌표를 고를 때 씁니다 */
 let gridSvg = '';
@@ -535,67 +545,39 @@ const labelsSvg = (cfg.labels || []).map(l => {
 
 const titleW = Math.max(560, textW(cfg.title, 30) + 60).toFixed(0);
 
+const L = (id, inner, attrs = '') => inner && inner.trim() ? `<g id="${id}"${attrs ? ' ' + attrs : ''}>\n${inner}\n</g>` : '';
 const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 <title>${esc(cfg.title)}</title>
 <defs>
-  ${(cfg.legend || []).filter(r => r.kind === 'heat').map(r => { const c = AURI_COLORS[r.key] ? AURI_COLORS[r.key].rgb : [128, 128, 128]; return `<linearGradient id="lg-${r.key}"><stop offset="0" stop-color="#fff" stop-opacity=".15"/><stop offset="1" stop-color="rgb(${c.join(',')})" stop-opacity=".85"/></linearGradient>`; }).join('')}
   <filter id="sat" color-interpolation-filters="sRGB">
     <feColorMatrix type="saturate" values="${SAT.saturate}"/>
     <feComponentTransfer><feFuncR type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncG type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncB type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/></feComponentTransfer>
   </filter>
 </defs>
-
-<!-- ① 바탕: 바다색 → 위성영상(채도↓ 밝기↑) → 육지 밖(바다) 덮기 -->
-<rect width="${W}" height="${H}" fill="${C.sea}"/>
-<g id="satellite"${bg64 ? '' : ' filter="url(#sat)"'}>
-${tiles}
-</g>
-<path id="sea" d="${frameRect}${landAll}" fill-rule="evenodd" fill="${C.sea}" fill-opacity="0.9"/>
-<path id="land-tint" d="${landAll}" fill="#FFFFFF" fill-opacity="0.18"/>
-
-<!-- ② 지형 레이어 -->
-<g id="farm" fill="${C.farm}" fill-opacity="0.55" stroke="none">${P(farm.paths)}</g>
-<g id="water" fill="${C.water}" fill-opacity="0.85" stroke="${C.contrast}" stroke-width="0.6" stroke-opacity="0.5">${P([...river.paths, ...stream.paths, ...lake.paths])}</g>
-<g id="roads" fill="${C.road}" fill-opacity="0.82" stroke="${C.roadLine}" stroke-width="0.5">${P(roads.paths)}</g>
-<g id="buildings" fill="${C.building}" fill-opacity="0.78" stroke="none">${P(bldg.paths)}</g>
-<path id="buildings-in" fill="${C.buildingIn}" fill-opacity="0.9" d="${bldgIn.join('')}"/>
-
-<!-- ②-1 위험도 히트맵 (중점 3분야 · AURI 7색) -->
-${heat ? `<image id="heat" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="${heat.dataUrl}"/>` : ''}
-
-<!-- ③ 경계 -->
-<path id="coast" d="${umdEdges.coast.join('')}" fill="none" stroke="${C.umd}" stroke-width="0.9" stroke-opacity="0.7"/>
-<path id="umd" d="${umdEdges.shared.join('')}" fill="none" stroke="${C.umd}" stroke-width="2.2" stroke-dasharray="9 5" stroke-opacity="0.95"/>
-<g id="sgg" fill="none" stroke="${C.sgg}" stroke-width="2.6">${P(sgg.paths)}</g>
-
-<!-- ④ 사업지 안 밝게 · 밖 어둡게 -->
-<path id="dim" d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" fill-opacity="0.24"/>
-${zonePaths ? `<path id="survey-ref" d="${surveyPathAll}" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-dasharray="5 4" stroke-opacity="0.85"/>` : ''}
-<path id="zone-glow" d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-opacity="0.5" stroke-linejoin="round"/>
-<path id="zone" d="${zonePathAll}" fill="#FFFFFF" fill-opacity="0.14" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>
-
-<!-- ⑤ 동선 -->
-<g id="routes">${(cfg.routes || []).map(routeSvg).join('\n')}</g>
-${ARGS.draft && DRAFT && DRAFT.file ? (() => { const p = path.join(ROOT, DRAFT.file); if (!fs.existsSync(p)) return ''; const t = DRAFT.transform; const b = fs.readFileSync(p); const ext = p.toLowerCase().endsWith('.jpg') || p.toLowerCase().endsWith('.jpeg') ? 'jpeg' : 'png'; return `<image id="draft-overlay" x="${t.x0}" y="${t.y0}" width="${(DRAFT.width || 1280) * t.scale}" height="${(DRAFT.height || 720) * t.scale}" opacity="0.55" href="data:image/${ext};base64,${b.toString('base64')}"/>`; })() : ''}
-
-<!-- ⑥ 지명 -->
-<g id="labels">${labelsSvg}</g>
-
-<!-- ⑦ 지시선 · 사업지 상자 -->
-<g id="leaders">${zoneBoxes.flatMap(b => (b.z.anchors || [b.z.anchor]).map(a => DEBUG_GRID ? anchorDot(anchorPx(a), b.z.id) : leader(b.rect, anchorPx(a)))).join('\n')}</g>
-<g id="zones">${DEBUG_GRID ? '' : zoneBoxes.map(b => b.svg).join('\n')}</g>
-
+${L('01_위성영상', `<rect width="${W}" height="${H}" fill="${C.sea}"/>\n${tiles}`, bg64 ? '' : 'filter="url(#sat)"')}
+${L('02_바다_육지', `<path d="${frameRect}${landAll}" fill-rule="evenodd" fill="${C.sea}" fill-opacity="0.9"/>\n<path d="${landAll}" fill="#FFFFFF" fill-opacity="0.18"/>`)}
+${L('03_전답', P(farm.paths), `fill="${C.farm}" fill-opacity="0.55" stroke="none"`)}
+${L('04_수계', P([...river.paths, ...stream.paths, ...lake.paths]), `fill="${C.water}" fill-opacity="0.85" stroke="${C.contrast}" stroke-width="0.6" stroke-opacity="0.5"`)}
+${L('05_도로', P(roads.paths), `fill="${C.road}" fill-opacity="0.82" stroke="${C.roadLine}" stroke-width="0.5"`)}
+${L('06_건물', P(bldg.paths), `fill="${C.building}" fill-opacity="0.78" stroke="none"`)}
+${L('07_건물_대상지안', P(bldgIn), `fill="${C.buildingIn}" fill-opacity="0.9"`)}
+${heat ? L('08_위험도_히트맵', `<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="${heat.dataUrl}"/>`) : ''}
+${L('09_해안선', `<path d="${umdEdges.coast.join('')}"/>`, `fill="none" stroke="${C.umd}" stroke-width="0.9" stroke-opacity="0.7"`)}
+${L('10_행정경계', `${umdEdges.shared.length ? `<path d="${umdEdges.shared.join('')}" stroke-width="2.2" stroke-dasharray="9 5"/>` : ''}${sgg.paths.length ? `<path d="${sgg.paths.join('')}" stroke-width="2.6"/>` : ''}`, `fill="none" stroke="${C.sgg}" stroke-opacity="0.95"`)}
+${L('11_대상지밖_어둡게', `<path d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" fill-opacity="0.24"/>`)}
+${zonePaths ? L('12_조사지_AURI', `<path d="${surveyPathAll}" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-dasharray="5 4" stroke-opacity="0.85"/>`) : ''}
+${L('13_대상지_경계', `<path d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-opacity="0.5" stroke-linejoin="round"/>\n<path d="${zonePathAll}" fill="#FFFFFF" fill-opacity="0.14" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>`)}
+${L('14_구간표시', (cfg.routes || []).map(routeSvg).join('\n'))}
+${L('15_지명', labelsSvg)}
 ${gridSvg}
-<!-- ⑧ 제목 · 범례 · 축척 -->
-<g id="title" display="${DEBUG_GRID ? 'none' : 'inline'}"><rect x="40" y="36" width="${titleW}" height="92" rx="6" fill="#fff" fill-opacity="0.94" stroke="${C.line}" stroke-width="1"/>
+${L('16_지시선', zoneBoxes.flatMap(b => (b.z.anchors || [b.z.anchor]).map(a => DEBUG_GRID ? anchorDot(anchorPx(a), b.z.id) : leader(b.rect, anchorPx(a)))).join('\n'))}
+${DEBUG_GRID ? '' : zoneBoxes.map((b, i) => L(`${String(17 + i).padStart(2, '0')}_사업지_${String(i + 1).padStart(2, '0')}`, b.svg)).join('\n')}
+${DEBUG_GRID ? '' : L('21_제목', `<rect x="40" y="36" width="${titleW}" height="92" rx="6" fill="#fff" fill-opacity="0.94" stroke="${C.line}" stroke-width="1"/>
 <path d="M48 36H40V128H48Z" fill="${C.ink}"/>
 <text x="66" y="76" font-family="${FONT}" font-size="30" font-weight="700" fill="${C.text}">${esc(cfg.title)}</text>
-<text x="66" y="106" font-family="${FONT}" font-size="15" fill="${C.sub}">${esc(cfg.subtitle)}</text></g>
-${DEBUG_GRID ? '' : legend.svg}
-${scaleBar(W - 290, H - 32)}
-${northArrow(W - 50, 62)}
-<text x="40" y="${H - 18}" font-family="${FONT}" font-size="11.5" fill="#fff" fill-opacity="0.9">${esc(cfg.source)}</text>
+<text x="66" y="106" font-family="${FONT}" font-size="15" fill="${C.sub}">${esc(cfg.subtitle)}</text>`)}
+${L('22_축척_방위', `${scaleBar(W - 60 - 500 / mPerPx, H - 40)}\n${northArrow(W - 60 - 500 / mPerPx - 36, H - 28)}`)}
 </svg>`;
 
 /* 초안 맞추기(fit-draft.mjs)가 쓰는 화면 정보: 육지 폴리곤(px) + 투영값 */
