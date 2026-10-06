@@ -50,8 +50,8 @@ const WGS = 'EPSG:4326';
 const C = {
   main: '#D83D64', contrast: '#2793C9', navy: '#1E2A44', ink: '#1F2A33',
   sea: '#DCE8F0', land: '#E9ECEE',
-  road: '#FFFFFF', roadLine: '#C9CED3', building: '#7E8790', buildingIn: '#55606A',
-  water: '#8FBFDD', farm: '#D9E4C2', umd: '#2B3A48', sgg: '#101820',
+  road: '#666666', roadLine: '#666666', building: '#999999', buildingIn: '#666666', buildingLine: '#666666', buildingInLine: '#333333',
+  water: '#8FBFDD', farm: '#BFC9BC', umd: '#2B3A48', sgg: '#101820',
   dim: '#13233A', box: '#FFFFFF', text: '#1F2A33', sub: '#5A6670', line: '#333333',
 };
 const SAT = { saturate: 0.14, slope: 0.60, intercept: 0.47 };   // 채도 아주 낮게 (담당자 2026-10-06)   // 위성영상 채도 낮추고 밝게
@@ -62,6 +62,7 @@ if (!regionId) { console.error('사용법: node build-overview-map.mjs <지역�
 const cfgPath = path.join(HERE, 'regions', regionId + '.json');
 const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
 const F = { ...cfg.frame };
+const SURVEY_COLOR = (cfg.style && cfg.style.surveyColor) || '#2793C9';   // 기존 조사지 선 색 (담당자: 흰색 대신 다른 색)
 const ARGS = Object.fromEntries(process.argv.slice(3).map(a => { const m = a.match(/^--([^=]+)(?:=(.*))?$/); return m ? [m[1], m[2] ?? true] : [a, true]; }));
 if (ARGS.width) F.widthMeters = +ARGS.width;
 if (ARGS.center) { const [x, y] = ARGS.center.split(',').map(Number); F.center = proj4(P5179, WGS, [x, y]); }   // --center=5179x,5179y
@@ -391,7 +392,7 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 const FONT = "Pretendard, 'Malgun Gothic', sans-serif";
 function zoneBox(z, i) {
   const { x, w } = z.box;
-  const pad = 20, fsT = 24, fsP = 16, fsI = 17, lh = 24, rowGap = 6, ic = 36;   // ic = 항목 아이콘 크기 (담당자: 36~40px)
+  const pad = 20, fsT = 24, fsP = 16, fsI = 17, lh = 24, rowGap = 5, ic = 36;   // ic = 항목 아이콘 크기 (담당자: 36~40px)
   const textX = x + pad + ic + 10;
   const items = z.items.map(t => ({ icon: typeof t === 'string' ? null : t.icon, lines: wrap(typeof t === 'string' ? t : t.text, fsI, x + w - pad - textX) }));
   const rowH = (it) => Math.max(ic, it.lines.length * lh);
@@ -401,7 +402,7 @@ function zoneBox(z, i) {
   const y = z.box.y ?? z.box.top ?? (z.box.bottom - h);    // top 또는 bottom 으로 맞춤
   const num = String(i + 1).padStart(2, '0');
   const out = [];
-  out.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${C.box}" fill-opacity="0.96" stroke="${C.line}" stroke-width="1"/>`);
+  out.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${C.box}" opacity="0.96" stroke="${C.line}" stroke-width="1"/>`);
   out.push(`<path d="M${x + 6} ${y}H${x}V${y + h}H${x + 6}Z" fill="${C.main}"/>`);
   let cy = y + pad + fsT - 5;
   out.push(`<text x="${x + pad}" y="${cy}" font-family="${FONT}" font-size="${fsT}" font-weight="700" fill="${C.text}"><tspan fill="${C.main}" font-size="${fsT - 3}">${num}</tspan><tspan dx="8">${esc(z.type)}</tspan></text>`);
@@ -441,7 +442,7 @@ function leader(rect, anchor) {
     const sy = Math.abs(ay - top) <= Math.abs(ay - bot) ? top : bot;
     d = `M${sx} ${sy}H${ax.toFixed(1)}V${ay.toFixed(1)}`;
   }
-  return `<path d="${d}" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-opacity="0.75" stroke-linejoin="round"/>
+  return `<path d="${d}" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.75" stroke-linejoin="round"/>
 <path d="${d}" fill="none" stroke="${C.ink}" stroke-width="1.4" stroke-linejoin="round"/>
 <circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="7" fill="#FFFFFF" stroke="${C.ink}" stroke-width="1.4"/>
 <circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="3.2" fill="${C.main}"/>`;
@@ -494,7 +495,7 @@ function routeSvg(r) {
     return `<path d="M${tip[0].toFixed(1)} ${tip[1].toFixed(1)}L${(bx + nx).toFixed(1)} ${(by + ny).toFixed(1)}L${(bx - nx).toFixed(1)} ${(by - ny).toFixed(1)}Z" fill="${st.color}" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/>`;
   };
   const n = pts.length;
-  return `<path d="${d}" fill="none" stroke="#FFFFFF" stroke-opacity="0.8" stroke-width="${st.w + 4}" stroke-linecap="round"/>
+  return `<path d="${d}" fill="none" stroke="#FFFFFF" opacity="0.8" stroke-width="${st.w + 4}" stroke-linecap="round"/>
 <path d="${d}" fill="none" stroke="${st.color}" stroke-width="${st.w}" stroke-dasharray="${st.dash}" stroke-linecap="round"/>
 ${heads[0] ? head(pts[0], pts[1]) : ''}${heads[1] ? head(pts[n - 1], pts[n - 2]) : ''}`;
 }
@@ -502,7 +503,7 @@ ${heads[0] ? head(pts[0], pts[1]) : ''}${heads[1] ? head(pts[n - 1], pts[n - 2])
 /* ── 범례·축척·제목 ──────────────────────────────────────────────── */
 function legendSvg2() {
   const LP = cfg.legendPos; if (!LP || !(cfg.legend || []).length) return { svg: '', rect: null };
-  const w = LP.w || 440, fs = 14, rowH = 26, pad = 14;
+  const w = LP.w || 440, fs = 14, rowH = 24, pad = 12;
   const rows = cfg.legend;
   const h = rows.length * rowH + pad * 2 - 4;
   const x = LP.x ?? (W - 60 - w), y = LP.y ?? (LP.bottom - h);
@@ -513,9 +514,9 @@ function legendSvg2() {
     switch (r.kind) {
       case 'link': g = `<line x1="${lx}" y1="${cy}" x2="${lx + sw}" y2="${cy}" stroke="${C.navy}" stroke-width="4" stroke-dasharray="7 5" stroke-linecap="round"/><path d="M${lx + sw + 2} ${cy}l-8 -4.5v9z" fill="${C.navy}"/><path d="M${lx - 2} ${cy}l8 -4.5v9z" fill="${C.navy}"/>`; break;
       case 'patrol': g = `<line x1="${lx}" y1="${cy}" x2="${lx + sw}" y2="${cy}" stroke="${C.main}" stroke-width="3.5" stroke-dasharray="2 6" stroke-linecap="round"/><path d="M${lx + sw + 2} ${cy}l-8 -4.5v9z" fill="${C.main}"/><path d="M${lx - 2} ${cy}l8 -4.5v9z" fill="${C.main}"/>`; break;
-      case 'survey': g = `<rect x="${lx}" y="${cy - 8}" width="${sw}" height="16" fill="#6B7784"/><path d="M${lx + 4} ${cy + 5}V${cy - 3}H${lx + 14}V${cy - 6}H${lx + 26}V${cy - 1}H${lx + 36}V${cy + 5}Z" fill="none" stroke="#fff" stroke-width="1.2"/>`; break;
+      case 'survey': g = `<line x1="${lx}" y1="${cy}" x2="${lx + sw}" y2="${cy}" stroke="${SURVEY_COLOR}" stroke-width="1.6"/>`; break;
       case 'zone': g = `<rect x="${lx}" y="${cy - 8}" width="${sw}" height="16" fill="#fff" fill-opacity=".3" stroke="${C.main}" stroke-width="2.6"/>`; break;
-      case 'heat': { const keys = r.keys || []; const each = Math.floor((sw - (keys.length - 1) * 3) / keys.length); g = keys.map((k, j) => `<rect x="${lx + j * (each + 3)}" y="${cy - 8}" width="${each}" height="16" fill="url(#lg-${k})"/>`).join(''); break; }
+      case 'heat': { const keys = r.keys || [r.key]; const each = Math.floor((sw - (keys.length - 1) * 3) / keys.length); g = keys.map((k, j) => `<rect x="${lx + j * (each + 3)}" y="${cy - 8}" width="${each}" height="16" fill="url(#lg-${k})"/>`).join(''); break; }
     }
     out.push(g, `<text x="${lx + sw + 12}" y="${cy + 5}" font-family="${FONT}" font-size="${fs}" fill="${C.text}">${esc(r.label)}</text>`);
   });
@@ -606,25 +607,25 @@ const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 <title>${esc(cfg.title)}</title>
 <defs>
-  ${(cfg.legend || []).filter(r => r.kind === 'heat').flatMap(r => r.keys || []).map(k => { const c = AURI_COLORS[k] ? AURI_COLORS[k].rgb : [128, 128, 128]; return `<linearGradient id="lg-${k}"><stop offset="0" stop-color="#fff" stop-opacity=".1"/><stop offset="1" stop-color="rgb(${c.join(',')})" stop-opacity=".9"/></linearGradient>`; }).join('')}
+  ${(cfg.legend || []).filter(r => r.kind === 'heat').flatMap(r => r.keys || [r.key]).map(k => { const c = AURI_COLORS[k] ? AURI_COLORS[k].rgb : [128, 128, 128]; return `<linearGradient id="lg-${k}"><stop offset="0" stop-color="#fff" stop-opacity=".1"/><stop offset="1" stop-color="rgb(${c.join(',')})" stop-opacity=".9"/></linearGradient>`; }).join('')}
   <filter id="sat" color-interpolation-filters="sRGB">
     <feColorMatrix type="saturate" values="${SAT.saturate}"/>
     <feComponentTransfer><feFuncR type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncG type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncB type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/></feComponentTransfer>
   </filter>
 </defs>
 ${L('01_위성영상', `<rect width="${W}" height="${H}" fill="${C.sea}"/>\n${tiles}`, bg64 ? '' : 'filter="url(#sat)"')}
-${L('02_바다_육지', `<path d="${frameRect}${landAll}" fill-rule="evenodd" fill="${C.sea}" fill-opacity="0.9"/>\n<path d="${landAll}" fill="#FFFFFF" fill-opacity="0.30"/>`)}
-${L('03_전답', P(farm.paths), `fill="${C.farm}" fill-opacity="0.55" stroke="none"`)}
-${L('04_수계', P([...river.paths, ...stream.paths, ...lake.paths]), `fill="${C.water}" fill-opacity="0.85" stroke="${C.contrast}" stroke-width="0.6" stroke-opacity="0.5"`)}
-${L('05_도로', P(roads.paths), `fill="${C.road}" fill-opacity="0.82" stroke="${C.roadLine}" stroke-width="0.5"`)}
-${L('06_건물', P(bldg.paths), `fill="${C.building}" fill-opacity="0.78" stroke="none"`)}
-${L('07_건물_대상지안', P(bldgIn), `fill="${C.buildingIn}" fill-opacity="0.9"`)}
+${L('02_바다_육지', `<path d="${frameRect}${landAll}" fill-rule="evenodd" fill="${C.sea}" opacity="0.9"/>\n<path d="${landAll}" fill="#FFFFFF" opacity="0.30"/>`)}
+${L('03_전답', P(farm.paths), `fill="${C.farm}" stroke="#FFFFFF" stroke-width="0.2" opacity="0.55"`)}
+${L('04_수계', P([...river.paths, ...stream.paths, ...lake.paths]), `fill="${C.water}" stroke="${C.contrast}" stroke-width="0.6" opacity="0.85"`)}
+${L('05_도로', P(roads.paths), `fill="${C.road}" opacity="0.82"`)}
+${L('06_건물', P(bldg.paths), `fill="${C.building}" stroke="${C.buildingLine}" stroke-width="0.5" opacity="0.78"`)}
+${L('07_건물_대상지안', P(bldgIn), `fill="${C.buildingIn}" stroke="${C.buildingInLine}" stroke-width="0.5" opacity="0.9"`)}
 ${heat ? L('08_위험도_히트맵', `<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="${heat.dataUrl}"/>`) : ''}
-${L('09_해안선', `<path d="${umdEdges.coast.join('')}"/>`, `fill="none" stroke="${C.umd}" stroke-width="0.9" stroke-opacity="0.7"`)}
-${L('10_행정경계', `${umdEdges.shared.length ? `<path d="${umdEdges.shared.join('')}" stroke-width="2.2" stroke-dasharray="9 5"/>` : ''}${sgg.paths.length ? `<path d="${sgg.paths.join('')}" stroke-width="2.6"/>` : ''}`, `fill="none" stroke="${C.sgg}" stroke-opacity="0.95"`)}
-${L('11_대상지밖_어둡게', `<path d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" fill-opacity="0.15"/>`)}
-${zonePaths ? L('12_조사지_AURI', `<path d="${surveyPathAll}" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-opacity="0.95"/>`) : ''}
-${L('13_대상지_경계', `<path d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-opacity="0.5" stroke-linejoin="round"/>\n<path d="${zonePathAll}" fill="#FFFFFF" fill-opacity="0.14" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>`)}
+${L('09_해안선', `<path d="${umdEdges.coast.join('')}"/>`, `fill="none" stroke="${C.umd}" stroke-width="0.5" opacity="0.7"`)}
+${L('10_행정경계', `${umdEdges.shared.length ? `<path d="${umdEdges.shared.join('')}" stroke-width="2.2" stroke-dasharray="9 5"/>` : ''}${sgg.paths.length ? `<path d="${sgg.paths.join('')}" stroke-width="2.6"/>` : ''}`, `fill="none" stroke="${C.sgg}" opacity="0.95"`)}
+${(cfg.style && cfg.style.dimOpacity === 0) ? '' : L('11_대상지밖_어둡게', `<path d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" opacity="${(cfg.style && cfg.style.dimOpacity) ?? 0.15}"/>`)}
+${zonePaths ? L('12_조사지_AURI', `<path d="${surveyPathAll}" fill="none" stroke="${SURVEY_COLOR}" stroke-width="1.4" opacity="0.95"/>`) : ''}
+${L('13_대상지_경계', `<path d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="8" opacity="0.5" stroke-linejoin="round"/>\n<path d="${zonePathAll}" fill="#FFFFFF" opacity="0.14" stroke="none"/>\n<path d="${zonePathAll}" fill="none" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>`)}
 ${L('14_구간표시', (cfg.routes || []).map(routeSvg).join('\n'))}
 ${L('15_지명', labelsSvg)}
 ${gridSvg}
