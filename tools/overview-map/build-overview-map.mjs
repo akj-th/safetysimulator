@@ -49,12 +49,12 @@ const WGS = 'EPSG:4326';
 /* ── 색·선 (회사 예시 톤 + 앱 테마 색) ─────────────────────────────── */
 const C = {
   main: '#D83D64', contrast: '#2793C9', navy: '#1E2A44', ink: '#1F2A33',
-  sea: '#CFDCE6', land: '#E9ECEE',
+  sea: '#DCE8F0', land: '#E9ECEE',
   road: '#FFFFFF', roadLine: '#C9CED3', building: '#7E8790', buildingIn: '#55606A',
   water: '#8FBFDD', farm: '#D9E4C2', umd: '#2B3A48', sgg: '#101820',
-  dim: '#0B1622', box: '#FFFFFF', text: '#1F2A33', sub: '#5A6670', line: '#333333',
+  dim: '#13233A', box: '#FFFFFF', text: '#1F2A33', sub: '#5A6670', line: '#333333',
 };
-const SAT = { saturate: 0.12, slope: 0.68, intercept: 0.40 };   // 채도 아주 낮게 (담당자 2026-10-06)   // 위성영상 채도 낮추고 밝게
+const SAT = { saturate: 0.14, slope: 0.60, intercept: 0.47 };   // 채도 아주 낮게 (담당자 2026-10-06)   // 위성영상 채도 낮추고 밝게
 
 /* ════════════════════════════════════════════════════════════════════ */
 const regionId = process.argv[2];
@@ -280,7 +280,7 @@ function chaikin(pts, iters) {
   return out;
 }
 /* 100m 격자 계단을 지우고(허용 55m) 모서리를 둥글립니다 — AURI 조사지 참고선이 계단형이라 어색하다는 지적(2026-10-06) */
-const smoothRing = (pxRing) => chaikin(simplify(pxRing, (cfg.surveySmoothM ?? 55) / mPerPx), 3);
+const smoothRing = (pxRing) => (cfg.surveySmoothM ?? 55) > 0 ? chaikin(simplify(pxRing, cfg.surveySmoothM / mPerPx), 3) : pxRing;
 const surveyPaths = surveyLL.map(rings => rings.map(r => ringPath(smoothRing(r.map(toPx)), 0.2)).join(''));
 const surveyPathAll = surveyPaths.join('');
 const surveyPts = surveyLL.flat(1).flat(1).map(toPx);
@@ -391,7 +391,7 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 const FONT = "Pretendard, 'Malgun Gothic', sans-serif";
 function zoneBox(z, i) {
   const { x, w } = z.box;
-  const pad = 20, fsT = 24, fsP = 16, fsI = 17, lh = 24, rowGap = 8, ic = 36;   // ic = 항목 아이콘 크기 (담당자: 36~40px)
+  const pad = 20, fsT = 24, fsP = 16, fsI = 17, lh = 24, rowGap = 6, ic = 36;   // ic = 항목 아이콘 크기 (담당자: 36~40px)
   const textX = x + pad + ic + 10;
   const items = z.items.map(t => ({ icon: typeof t === 'string' ? null : t.icon, lines: wrap(typeof t === 'string' ? t : t.text, fsI, x + w - pad - textX) }));
   const rowH = (it) => Math.max(ic, it.lines.length * lh);
@@ -500,6 +500,27 @@ ${heads[0] ? head(pts[0], pts[1]) : ''}${heads[1] ? head(pts[n - 1], pts[n - 2])
 }
 
 /* ── 범례·축척·제목 ──────────────────────────────────────────────── */
+function legendSvg2() {
+  const LP = cfg.legendPos; if (!LP || !(cfg.legend || []).length) return { svg: '', rect: null };
+  const w = LP.w || 440, fs = 14, rowH = 26, pad = 14;
+  const rows = cfg.legend;
+  const h = rows.length * rowH + pad * 2 - 4;
+  const x = LP.x ?? (W - 60 - w), y = LP.y ?? (LP.bottom - h);
+  const out = [`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="#fff" fill-opacity="0.96" stroke="${C.line}" stroke-width="1"/>`];
+  rows.forEach((r, i) => {
+    const cy = y + pad + 10 + i * rowH, lx = x + pad, sw = 44;
+    let g = '';
+    switch (r.kind) {
+      case 'link': g = `<line x1="${lx}" y1="${cy}" x2="${lx + sw}" y2="${cy}" stroke="${C.navy}" stroke-width="4" stroke-dasharray="7 5" stroke-linecap="round"/><path d="M${lx + sw + 2} ${cy}l-8 -4.5v9z" fill="${C.navy}"/><path d="M${lx - 2} ${cy}l8 -4.5v9z" fill="${C.navy}"/>`; break;
+      case 'patrol': g = `<line x1="${lx}" y1="${cy}" x2="${lx + sw}" y2="${cy}" stroke="${C.main}" stroke-width="3.5" stroke-dasharray="2 6" stroke-linecap="round"/><path d="M${lx + sw + 2} ${cy}l-8 -4.5v9z" fill="${C.main}"/><path d="M${lx - 2} ${cy}l8 -4.5v9z" fill="${C.main}"/>`; break;
+      case 'survey': g = `<rect x="${lx}" y="${cy - 8}" width="${sw}" height="16" fill="#6B7784"/><path d="M${lx + 4} ${cy + 5}V${cy - 3}H${lx + 14}V${cy - 6}H${lx + 26}V${cy - 1}H${lx + 36}V${cy + 5}Z" fill="none" stroke="#fff" stroke-width="1.2"/>`; break;
+      case 'zone': g = `<rect x="${lx}" y="${cy - 8}" width="${sw}" height="16" fill="#fff" fill-opacity=".3" stroke="${C.main}" stroke-width="2.6"/>`; break;
+      case 'heat': { const keys = r.keys || []; const each = Math.floor((sw - (keys.length - 1) * 3) / keys.length); g = keys.map((k, j) => `<rect x="${lx + j * (each + 3)}" y="${cy - 8}" width="${each}" height="16" fill="url(#lg-${k})"/>`).join(''); break; }
+    }
+    out.push(g, `<text x="${lx + sw + 12}" y="${cy + 5}" font-family="${FONT}" font-size="${fs}" fill="${C.text}">${esc(r.label)}</text>`);
+  });
+  return { svg: out.join('\n'), rect: { x, y, w, h } };
+}
 function legendSvg(x, y) {
   const rows = cfg.legend || [];
   const w = 250, rowH = 24, h = rows.length * rowH + 22;
@@ -546,7 +567,11 @@ const frameRect = `M0 0H${W}V${H}H0Z`;
 const landAll = umd.paths.join('') || sgg.paths.join('');
 const P = (arr) => arr.length ? `<path d="${arr.join('')}"/>` : '';
 
-const zoneBoxes = cfg.zones.map((z, i) => ({ z, ...zoneBox(z, i) }));
+const zoneBoxes = []; const rectOf = {};
+cfg.zones.forEach((z, i) => {
+  if (z.box.below) { const r = rectOf[z.box.below]; if (!r) throw new Error(z.id + ': below 대상 ' + z.box.below + ' 이 먼저 와야 합니다'); z.box.top = r.y + r.h + (z.box.gap ?? 12); }
+  const b = zoneBox(z, i); rectOf[z.id] = b.rect; zoneBoxes.push({ z, ...b });
+});
 
 
 /* 디버그 격자 — 100m 마다 EPSG:5179 좌표를 적어 사업지 좌표를 고를 때 씁니다 */
@@ -581,13 +606,14 @@ const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 <title>${esc(cfg.title)}</title>
 <defs>
+  ${(cfg.legend || []).filter(r => r.kind === 'heat').flatMap(r => r.keys || []).map(k => { const c = AURI_COLORS[k] ? AURI_COLORS[k].rgb : [128, 128, 128]; return `<linearGradient id="lg-${k}"><stop offset="0" stop-color="#fff" stop-opacity=".1"/><stop offset="1" stop-color="rgb(${c.join(',')})" stop-opacity=".9"/></linearGradient>`; }).join('')}
   <filter id="sat" color-interpolation-filters="sRGB">
     <feColorMatrix type="saturate" values="${SAT.saturate}"/>
     <feComponentTransfer><feFuncR type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncG type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncB type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/></feComponentTransfer>
   </filter>
 </defs>
 ${L('01_위성영상', `<rect width="${W}" height="${H}" fill="${C.sea}"/>\n${tiles}`, bg64 ? '' : 'filter="url(#sat)"')}
-${L('02_바다_육지', `<path d="${frameRect}${landAll}" fill-rule="evenodd" fill="${C.sea}" fill-opacity="0.9"/>\n<path d="${landAll}" fill="#FFFFFF" fill-opacity="0.18"/>`)}
+${L('02_바다_육지', `<path d="${frameRect}${landAll}" fill-rule="evenodd" fill="${C.sea}" fill-opacity="0.9"/>\n<path d="${landAll}" fill="#FFFFFF" fill-opacity="0.30"/>`)}
 ${L('03_전답', P(farm.paths), `fill="${C.farm}" fill-opacity="0.55" stroke="none"`)}
 ${L('04_수계', P([...river.paths, ...stream.paths, ...lake.paths]), `fill="${C.water}" fill-opacity="0.85" stroke="${C.contrast}" stroke-width="0.6" stroke-opacity="0.5"`)}
 ${L('05_도로', P(roads.paths), `fill="${C.road}" fill-opacity="0.82" stroke="${C.roadLine}" stroke-width="0.5"`)}
@@ -596,8 +622,8 @@ ${L('07_건물_대상지안', P(bldgIn), `fill="${C.buildingIn}" fill-opacity="0
 ${heat ? L('08_위험도_히트맵', `<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="${heat.dataUrl}"/>`) : ''}
 ${L('09_해안선', `<path d="${umdEdges.coast.join('')}"/>`, `fill="none" stroke="${C.umd}" stroke-width="0.9" stroke-opacity="0.7"`)}
 ${L('10_행정경계', `${umdEdges.shared.length ? `<path d="${umdEdges.shared.join('')}" stroke-width="2.2" stroke-dasharray="9 5"/>` : ''}${sgg.paths.length ? `<path d="${sgg.paths.join('')}" stroke-width="2.6"/>` : ''}`, `fill="none" stroke="${C.sgg}" stroke-opacity="0.95"`)}
-${L('11_대상지밖_어둡게', `<path d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" fill-opacity="0.24"/>`)}
-${zonePaths ? L('12_조사지_AURI', `<path d="${surveyPathAll}" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-dasharray="5 4" stroke-opacity="0.85"/>`) : ''}
+${L('11_대상지밖_어둡게', `<path d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" fill-opacity="0.15"/>`)}
+${zonePaths ? L('12_조사지_AURI', `<path d="${surveyPathAll}" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-opacity="0.95"/>`) : ''}
 ${L('13_대상지_경계', `<path d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-opacity="0.5" stroke-linejoin="round"/>\n<path d="${zonePathAll}" fill="#FFFFFF" fill-opacity="0.14" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>`)}
 ${L('14_구간표시', (cfg.routes || []).map(routeSvg).join('\n'))}
 ${L('15_지명', labelsSvg)}
@@ -608,7 +634,8 @@ ${DEBUG_GRID ? '' : L('21_제목', `<rect x="40" y="36" width="${titleW}" height
 <path d="M48 36H40V128H48Z" fill="${C.ink}"/>
 <text x="66" y="76" font-family="${FONT}" font-size="30" font-weight="700" fill="${C.text}">${esc(cfg.title)}</text>
 <text x="66" y="106" font-family="${FONT}" font-size="15" fill="${C.sub}">${esc(cfg.subtitle)}</text>`)}
-${L('22_축척_방위', `${scaleBar(W - 60 - 500 / mPerPx, H - 40)}\n${northArrow(W - 60, 72)}`)}
+${L('22_방위', northArrow(W - 60, 72))}
+${DEBUG_GRID ? '' : L('23_범례', legendSvg2().svg)}
 </svg>`;
 
 /* 초안 맞추기(fit-draft.mjs)가 쓰는 화면 정보: 육지 폴리곤(px) + 투영값 */
