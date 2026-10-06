@@ -270,7 +270,18 @@ const umdEdges = splitSharedEdges('G0110000');
 console.log(`  읍면 경계: 행정경계 변 ${umdEdges.shared.length} · 해안선 변 ${umdEdges.coast.length}`);
 
 /* 조사지 (px) */
-const surveyPaths = surveyLL.map(rings => rings.map(r => ringPath(r.map(toPx), 0.2)).join(''));
+function chaikin(pts, iters) {
+  let out = pts;
+  for (let k = 0; k < iters; k++) {
+    const next = [];
+    for (let i = 0; i < out.length; i++) { const p = out[i], q = out[(i + 1) % out.length]; next.push([p[0] * 0.75 + q[0] * 0.25, p[1] * 0.75 + q[1] * 0.25], [p[0] * 0.25 + q[0] * 0.75, p[1] * 0.25 + q[1] * 0.75]); }
+    out = next;
+  }
+  return out;
+}
+/* 100m 격자 계단을 지우고(허용 55m) 모서리를 둥글립니다 — AURI 조사지 참고선이 계단형이라 어색하다는 지적(2026-10-06) */
+const smoothRing = (pxRing) => chaikin(simplify(pxRing, (cfg.surveySmoothM ?? 55) / mPerPx), 3);
+const surveyPaths = surveyLL.map(rings => rings.map(r => ringPath(smoothRing(r.map(toPx)), 0.2)).join(''));
 const surveyPathAll = surveyPaths.join('');
 const surveyPts = surveyLL.flat(1).flat(1).map(toPx);
 const sBox = [Math.min(...surveyPts.map(p => p[0])), Math.min(...surveyPts.map(p => p[1])), Math.max(...surveyPts.map(p => p[0])), Math.max(...surveyPts.map(p => p[1]))];
@@ -455,9 +466,24 @@ const ROUTE_STYLE = {
   patrol: { color: C.main, w: 4, dash: '2 9' },
   link: { color: C.navy, w: 5, dash: '12 8' },
 };
+/* 도로 꼭짓점(px) 목록 — 검정 화살표를 초안 자리가 아니라 우리 지도의 도로 위로 옮길 때 씁니다 */
+let roadVertsPx = null;
+function snapToRoad([x, y], maxPx) {
+  if (!roadVertsPx) roadVertsPx = roads.rings5179.flatMap(r => r.map(from5179));
+  let best = null, bd = maxPx * maxPx;
+  for (const v of roadVertsPx) { const dx = v[0] - x, dy = v[1] - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = v; } }
+  return best || [x, y];
+}
 function routeSvg(r) {
   const st = ROUTE_STYLE[r.style] || ROUTE_STYLE.link;
-  const pts = r.points.map(p => r.draftPx ? draftToPx(p) : r.lnglat ? toPx(p) : from5179(p));
+  let pts = r.points.map(p => r.draftPx ? draftToPx(p) : r.lnglat ? toPx(p) : from5179(p));
+  if (r.snapM) {                                   // 초안과 우리 지도의 바탕이 달라, 도로에 붙입니다
+    const snapped = pts.map(p => snapToRoad(p, r.snapM / mPerPx));
+    pts = snapped.filter((p, i) => i === 0 || Math.hypot(p[0] - snapped[i - 1][0], p[1] - snapped[i - 1][1]) > 2);
+    if (pts.length < 2) pts = snapped.slice(0, 2);
+    /* 도로 가장자리 꼭짓점을 번갈아 잡아 잘게 흔들리므로 양끝은 두고 두 번 둥글립니다 */
+    for (let k = 0; k < 2 && pts.length > 2; k++) { const o = [pts[0]]; for (let i = 0; i < pts.length - 1; i++) { const p = pts[i], q = pts[i + 1]; if (i > 0) o.push([p[0] * 0.75 + q[0] * 0.25, p[1] * 0.75 + q[1] * 0.25]); if (i < pts.length - 2) o.push([p[0] * 0.25 + q[0] * 0.75, p[1] * 0.25 + q[1] * 0.75]); } o.push(pts[pts.length - 1]); pts = o; }
+  }
   const d = smoothPath(pts);
   const heads = r.heads || [false, true];
   const head = (tip, from) => {        // tip 을 꼭짓점으로, from→tip 방향의 삼각형
@@ -582,7 +608,7 @@ ${DEBUG_GRID ? '' : L('21_제목', `<rect x="40" y="36" width="${titleW}" height
 <path d="M48 36H40V128H48Z" fill="${C.ink}"/>
 <text x="66" y="76" font-family="${FONT}" font-size="30" font-weight="700" fill="${C.text}">${esc(cfg.title)}</text>
 <text x="66" y="106" font-family="${FONT}" font-size="15" fill="${C.sub}">${esc(cfg.subtitle)}</text>`)}
-${L('22_축척_방위', `${scaleBar(W - 60 - 500 / mPerPx, H - 40)}\n${northArrow(W - 60 - 500 / mPerPx - 36, H - 28)}`)}
+${L('22_축척_방위', `${scaleBar(W - 60 - 500 / mPerPx, H - 40)}\n${northArrow(W - 60, 72)}`)}
 </svg>`;
 
 /* 초안 맞추기(fit-draft.mjs)가 쓰는 화면 정보: 육지 폴리곤(px) + 투영값 */
