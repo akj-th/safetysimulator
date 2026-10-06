@@ -99,7 +99,12 @@ const from5179 = (p) => toPx(proj4(P5179, WGS, p));
    cfg.draft.transform = { x0, y0, scale }  :  mapX = x0 + draftX*scale , mapY = y0 + draftY*scale
    (초안을 지도 위에 반투명으로 겹쳐 놓고 해안선이 맞을 때까지 숫자를 맞춘 값. --draft 로 확인) */
 const DRAFT = cfg.draft || null;
-const draftToPx = ([dx, dy]) => { const t = DRAFT && DRAFT.transform; if (!t) throw new Error('cfg.draft.transform 이 없습니다'); return [t.x0 + dx * t.scale, t.y0 + dy * t.scale]; };
+const draftToPx = ([dx, dy]) => {
+  const wt = DRAFT && DRAFT.world;                 // fit-draft 가 적는 값: 초안 px → 월드 px (zoom 기준)
+  if (wt) { const k = 2 ** (Z - wt.zoom); const wx = (wt.x0 + dx * wt.scale) * k, wy = (wt.y0 + dy * wt.scale) * k; return [(wx - originX) * scale, (wy - originY) * scale]; }
+  const t = DRAFT && DRAFT.transform; if (!t) throw new Error('cfg.draft.world 가 없습니다 — fit-draft.mjs 를 먼저 돌리세요');
+  return [t.x0 + dx * t.scale, t.y0 + dy * t.scale];   // 옛 방식(화면 px) — 지도 폭이 바뀌면 틀어집니다
+};
 const anchorPx = (a) => a.draftPx ? draftToPx(a.draftPx) : a.lnglat ? toPx(a.lnglat) : from5179(a.epsg5179);
 const pxToLL = (px, py) => {
   const wx = px / scale + originX, wy = py / scale + originY;
@@ -375,7 +380,7 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 const FONT = "Pretendard, 'Malgun Gothic', sans-serif";
 function zoneBox(z, i) {
   const { x, w } = z.box;
-  const pad = 18, fsT = 21, fsP = 14, fsI = 15, lh = 21, rowGap = 9, ic = 24;   // ic = 항목 아이콘 크기
+  const pad = 20, fsT = 24, fsP = 16, fsI = 17, lh = 24, rowGap = 8, ic = 36;   // ic = 항목 아이콘 크기 (담당자: 36~40px)
   const textX = x + pad + ic + 10;
   const items = z.items.map(t => ({ icon: typeof t === 'string' ? null : t.icon, lines: wrap(typeof t === 'string' ? t : t.text, fsI, x + w - pad - textX) }));
   const rowH = (it) => Math.max(ic, it.lines.length * lh);
@@ -421,7 +426,7 @@ function leader(rect, anchor) {
     d = `M${ax.toFixed(1)} ${sy}V${ay.toFixed(1)}`;
   } else {
     const sx = right ? rect.x + rect.w : rect.x;
-    const top = rect.y + 34, bot = rect.y + rect.h - 34;      // 제목 줄 또는 마지막 줄 높이 중 지점에 가까운 쪽에서 나감
+    const top = rect.y + 38, bot = rect.y + rect.h - 38;      // 제목 줄 또는 마지막 줄 높이 중 지점에 가까운 쪽에서 나감
     const sy = Math.abs(ay - top) <= Math.abs(ay - bot) ? top : bot;
     d = `M${sx} ${sy}H${ax.toFixed(1)}V${ay.toFixed(1)}`;
   }
@@ -581,7 +586,7 @@ ${L('22_축척_방위', `${scaleBar(W - 60 - 500 / mPerPx, H - 40)}\n${northArro
 </svg>`;
 
 /* 초안 맞추기(fit-draft.mjs)가 쓰는 화면 정보: 육지 폴리곤(px) + 투영값 */
-fs.writeFileSync(path.join(outDir, '_frame.json'), JSON.stringify({ W, H, land: umd.paths.length ? umd.paths : sgg.paths }));
+fs.writeFileSync(path.join(outDir, '_frame.json'), JSON.stringify({ W, H, originX, originY, scale, zoom: Z, land: umd.paths.length ? umd.paths : sgg.paths }));
 const outFile = path.join(outDir, `${cfg.region}_종합도${DEBUG_GRID ? '_debug' : ''}.svg`);
 fs.writeFileSync(outFile, svg);
 console.log(`→ ${path.relative(ROOT, outFile)}  (${(svg.length / 1e6).toFixed(2)} MB)`);

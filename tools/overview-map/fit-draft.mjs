@@ -49,7 +49,11 @@ function readPng(file) {
 /* ── 초안의 바다 마스크 ───────────────────────────────────────────────
    네이버 지도 바다색: 연한 청색. 초안 위에 얹힌 보라색 히트맵·흰 상자는 제외됩니다. */
 const png = readPng(path.join(ROOT, cfg.draft.file));
-const D = cfg.draft.transform || { x0: 0, y0: 0, scale: 1 };
+let D = cfg.draft.transform || { x0: 0, y0: 0, scale: 1 };
+if (cfg.draft.world) {               // 지난 정합 결과(월드 좌표)를 지금 화면 px 로 환산해 시작값으로
+  const w = cfg.draft.world, k = 2 ** (frame.zoom - w.zoom);
+  D = { x0: (w.x0 * k - frame.originX) * frame.scale, y0: (w.y0 * k - frame.originY) * frame.scale, scale: w.scale * k * frame.scale };
+}
 const isSea = (r, g, b) => b > 200 && g > 190 && r < 215 && (b - r) > 20 && (g - r) > 8;
 const seaD = new Uint8Array(png.w * png.h);
 let nSea = 0;
@@ -108,6 +112,7 @@ for (const [rx, ry, rs, st, ss] of [[120, 120, 0.25, 6, 0.02], [24, 24, 0.06, 2,
       }
   console.log(`  탐색 ±${rx}px / 배율 ±${rs} → x0 ${best.x0} y0 ${best.y0} scale ${best.scale} · 일치 ${(best.sc * 100).toFixed(2)}%`);
 }
-cfg.draft.transform = { x0: best.x0, y0: best.y0, scale: best.scale, fit: +(best.sc * 100).toFixed(2) };
+cfg.draft.transform = { x0: best.x0, y0: best.y0, scale: best.scale, fit: +(best.sc * 100).toFixed(2), note: '이 화면(폭 ' + (cfg.frame.widthMeters) + 'm) 기준 px — 참고용. 실제로는 world 를 씁니다' };
+cfg.draft.world = { x0: frame.originX + best.x0 / frame.scale, y0: frame.originY + best.y0 / frame.scale, scale: best.scale / frame.scale, zoom: frame.zoom };
 fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
 console.log(`→ ${path.relative(ROOT, cfgPath)} 의 draft.transform 갱신`);
