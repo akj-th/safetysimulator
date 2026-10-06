@@ -32,6 +32,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import proj4 from '../node_modules/proj4/dist/proj4-src.js';
 import { readDbf, readPolygons } from '../lib/shapefile.mjs';
 import { iconDefs } from './icons.mjs';
@@ -93,7 +94,12 @@ const originX = cwx - (W / 2 + off[0]) / scale, originY = cwy - (H / 2 + off[1])
 const toPx = (ll) => { const [x, y] = toWorld(ll); return [(x - originX) * scale, (y - originY) * scale]; };
 const mPerPx = mPerWorldPx / scale;
 const from5179 = (p) => toPx(proj4(P5179, WGS, p));
-const anchorPx = (a) => a.lnglat ? toPx(a.lnglat) : from5179(a.epsg5179);
+/* AURI 초안 이미지(1280×720 등)의 픽셀 좌표 → 지도 px.
+   cfg.draft.transform = { x0, y0, scale }  :  mapX = x0 + draftX*scale , mapY = y0 + draftY*scale
+   (초안을 지도 위에 반투명으로 겹쳐 놓고 해안선이 맞을 때까지 숫자를 맞춘 값. --draft 로 확인) */
+const DRAFT = cfg.draft || null;
+const draftToPx = ([dx, dy]) => { const t = DRAFT && DRAFT.transform; if (!t) throw new Error('cfg.draft.transform 이 없습니다'); return [t.x0 + dx * t.scale, t.y0 + dy * t.scale]; };
+const anchorPx = (a) => a.draftPx ? draftToPx(a.draftPx) : a.lnglat ? toPx(a.lnglat) : from5179(a.epsg5179);
 const pxToLL = (px, py) => {
   const wx = px / scale + originX, wy = py / scale + originY;
   const lng = wx / WORLD * 360 - 180;
@@ -171,7 +177,7 @@ function layerPaths(code, opts = {}) {
 console.log(`[${cfg.region}] 지도 창 중심 ${cLng.toFixed(5)}, ${cLat.toFixed(5)} · 폭 ${F.widthMeters}m · ${mPerPx.toFixed(2)} m/px · 타일 z${Z}`);
 
 const roads = layerPaths('A0010000', { tol: 0.3 });
-const bldg = layerPaths('B0010000', { tol: 0.25, minPx: 0.8 });
+const bldg = layerPaths('B0010000', { tol: 0.3, minPx: 1.2 });
 const river = layerPaths('E0010001', { tol: 0.3 });
 const stream = layerPaths('E0032111', { tol: 0.3 });
 const lake = layerPaths('E0052114', { tol: 0.3 });
@@ -196,12 +202,24 @@ function splitSharedEdges(code) {
       owner.get(k).add(si);
     }
   });
+  /* 링을 따라가며 같은 종류(공유/해안)가 이어지는 구간을 한 폴리라인으로 묶고 단순화합니다.
+     변마다 M…L… 을 쓰면 남해 한 장에 4만 개가 넘어 그림판이 버벅입니다. */
   const shared = [], coast = [];
-  for (const [k, a, b] of segs) {
-    const pa = from5179(a), pb = from5179(b);
-    const d = `M${pa[0].toFixed(1)} ${pa[1].toFixed(1)}L${pb[0].toFixed(1)} ${pb[1].toFixed(1)}`;
-    (owner.get(k).size >= 2 ? shared : coast).push(d);
-  }
+  const kind = (p, q) => { const a = key(p), b = key(q); const k = a < b ? a + '|' + b : b + '|' + a; return (owner.get(k) || new Set()).size >= 2 ? 'shared' : 'coast'; };
+  const flush = (run, k) => { if (run.length < 2) return; const pts = simplify(run.map(from5179), 0.35); (k === 'shared' ? shared : coast).push('M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L')); };
+  shapes.forEach((s, si) => {
+    const b1 = from5179([s.bbox[0], s.bbox[1]]), b2 = from5179([s.bbox[2], s.bbox[3]]);
+    if (!inFrame([Math.min(b1[0], b2[0]), Math.min(b1[1], b2[1]), Math.max(b1[0], b2[0]), Math.max(b1[1], b2[1])])) return;
+    for (const ring of s.rings) {
+      let run = [ring[0]], cur = null;
+      for (let i = 0; i < ring.length - 1; i++) {
+        const k = kind(ring[i], ring[i + 1]);
+        if (cur && k !== cur) { flush(run, cur); run = [ring[i]]; }
+        run.push(ring[i + 1]); cur = k;
+      }
+      flush(run, cur);
+    }
+  });
   return { shared, coast };
 }
 const umdEdges = splitSharedEdges('G0110000');
@@ -255,6 +273,26 @@ async function fetchTile(x, y) {
   fs.writeFileSync(f, buf);
   return buf;
 }
+function findChrome() {
+  const cands = [process.env.CHROME_PATH, 'C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+    'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium'];
+  return cands.find(p => p && fs.existsSync(p)) || null;
+}
+/** 타일 SVG 를 크롬 헤드리스로 찍어 PNG 한 장으로. 실패하면 null (타일을 그대로 씀) */
+function rasterizeBackground(tilesInner, outDir) {
+  const chrome = findChrome();
+  if (!chrome || ARGS.tiles) return null;
+  const bgSvg = path.join(outDir, '_bg.svg'), bgPng = path.join(outDir, '_bg.png');
+  fs.writeFileSync(bgSvg, `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs><filter id="sat" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="${SAT.saturate}"/><feComponentTransfer><feFuncR type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncG type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncB type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/></feComponentTransfer></filter></defs><rect width="${W}" height="${H}" fill="${C.sea}"/><g filter="url(#sat)">${tilesInner}</g></svg>`);
+  const dsf = F.bgScale || 1.5;                      // 1.5배(2880×1620). 2 로 올리면 PNG 가 7MB 를 넘습니다
+  try {
+    execFileSync(chrome, ['--headless=new', '--disable-gpu', '--hide-scrollbars', `--force-device-scale-factor=${dsf}`, `--window-size=${W},${H}`, `--screenshot=${bgPng}`, 'file:///' + bgSvg.replace(/\\/g, '/')], { stdio: 'ignore', timeout: 120000 });
+    const png = fs.readFileSync(bgPng);
+    fs.unlinkSync(bgSvg);
+    console.log(`  바탕 PNG ${(png.length / 1e6).toFixed(2)} MB (크롬, ${dsf}배)`);
+    return png.toString('base64');
+  } catch (e) { console.warn('  ⚠ 바탕 PNG 실패 — 타일을 그대로 씁니다:', e.message); return null; }
+}
 async function tilesSvg() {
   const x0 = Math.floor(originX / 256), y0 = Math.floor(originY / 256);
   const x1 = Math.floor((originX + W / scale) / 256), y1 = Math.floor((originY + H / scale) / 256);
@@ -263,7 +301,8 @@ async function tilesSvg() {
   for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
     const buf = await fetchTile(tx, ty); if (!buf) continue; n++;
     const px = (tx * 256 - originX) * scale, py = (ty * 256 - originY) * scale, sz = 256 * scale;
-    out.push(`<image x="${px.toFixed(2)}" y="${py.toFixed(2)}" width="${(sz + 0.5).toFixed(2)}" height="${(sz + 0.5).toFixed(2)}" preserveAspectRatio="none" href="data:image/jpeg;base64,${buf.toString('base64')}"/>`);
+    const uri = 'data:image/jpeg;base64,' + buf.toString('base64');
+    out.push(`<image x="${px.toFixed(2)}" y="${py.toFixed(2)}" width="${(sz + 0.5).toFixed(2)}" height="${(sz + 0.5).toFixed(2)}" preserveAspectRatio="none" xlink:href="${uri}"/>`);
   }
   console.log(`  위성 타일 ${n}장 (z${Z})`);
   return out.join('\n');
@@ -302,7 +341,7 @@ function zoneBox(z, i) {
   const out = [];
   /* 아이콘 줄 — 상자 위에 띄움 (회사 예시 방식) */
   out.push(`<g class="zone" id="${z.id}">`);
-  out.push((z.icons || []).map((k, j) => `<use href="#ic-${k}" x="${x + j * 42}" y="${y - 46}" width="36" height="36"/>`).join(''));
+  out.push((z.icons || []).map((k, j) => `<use href="#ic-${k}" xlink:href="#ic-${k}" x="${x + j * 42}" y="${y - 46}" width="36" height="36"/>`).join(''));
   out.push(`<rect x="${x}" y="${y}" width="${w}" height="${h.toFixed(0)}" rx="6" fill="${C.box}" fill-opacity="0.96" stroke="${C.line}" stroke-width="1"/>`);
   out.push(`<path d="M${x + 6} ${y}H${x}V${y + h}H${x + 6}Z" fill="${C.main}"/>`);
   let cy = y + pad + fsT - 5;
@@ -359,10 +398,10 @@ const ROUTE_STYLE = {
 };
 function routeSvg(r) {
   const st = ROUTE_STYLE[r.style] || ROUTE_STYLE.link;
-  const pts = r.points.map(p => r.lnglat ? toPx(p) : from5179(p));
+  const pts = r.points.map(p => r.draftPx ? draftToPx(p) : r.lnglat ? toPx(p) : from5179(p));
   const d = smoothPath(pts);
   return `<path d="${d}" fill="none" stroke="#FFFFFF" stroke-opacity="0.8" stroke-width="${st.w + 4}" stroke-linecap="round"/>
-<path d="${d}" fill="none" stroke="${st.color}" stroke-width="${st.w}" stroke-dasharray="${st.dash}" stroke-linecap="round" marker-end="url(#arrow-${r.style})"/>`;
+<path d="${d}" fill="none" stroke="${st.color}" stroke-width="${st.w}" stroke-dasharray="${st.dash}" stroke-linecap="round"${(r.heads ? r.heads[0] : false) ? ` marker-start="url(#arrow-${r.style})"` : ''}${(r.heads ? r.heads[1] : true) ? ` marker-end="url(#arrow-${r.style})"` : ''}/>`;
 }
 
 /* ── 범례·축척·제목 ──────────────────────────────────────────────── */
@@ -403,7 +442,11 @@ function northArrow(x, y) {
 /* ════════════════════════════════════════════════════════════════════
    조립
    ════════════════════════════════════════════════════════════════════ */
-const tiles = await tilesSvg();
+const outDir = path.join(ROOT, 'output/overview-map', cfg.region);
+fs.mkdirSync(outDir, { recursive: true });
+const tilesRaw = await tilesSvg();
+const bg64 = rasterizeBackground(tilesRaw, outDir);
+const tiles = bg64 ? `<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="data:image/png;base64,${bg64}"/>` : tilesRaw;
 const frameRect = `M0 0H${W}V${H}H0Z`;
 const landAll = umd.paths.join('') || sgg.paths.join('');
 const P = (arr) => arr.map(d => `<path d="${d}"/>`).join('');
@@ -449,7 +492,6 @@ const svg = `<?xml version="1.0" encoding="UTF-8"?>
     <feColorMatrix type="saturate" values="${SAT.saturate}"/>
     <feComponentTransfer><feFuncR type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncG type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncB type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/></feComponentTransfer>
   </filter>
-  <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.5"/></filter>
   <marker id="arrow-patrol" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="${C.main}"/></marker>
   <marker id="arrow-link" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="${C.navy}"/></marker>
   ${iconDefs(C.ink)}
@@ -457,7 +499,7 @@ const svg = `<?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ① 바탕: 바다색 → 위성영상(채도↓ 밝기↑) → 육지 밖(바다) 덮기 -->
 <rect width="${W}" height="${H}" fill="${C.sea}"/>
-<g id="satellite" clip-path="url(#frame)" filter="url(#sat)">
+<g id="satellite" clip-path="url(#frame)"${bg64 ? '' : ' filter="url(#sat)"'}>
 ${tiles}
 </g>
 <path id="sea" d="${frameRect}${landAll}" fill-rule="evenodd" fill="${C.sea}" fill-opacity="0.9"/>
@@ -471,7 +513,7 @@ ${tiles}
 <g id="buildings-in" clip-path="url(#survey-clip)" fill="${C.buildingIn}" fill-opacity="0.9">${P(bldg.paths)}</g>
 
 <!-- ②-1 위험도 히트맵 (중점 3분야 · AURI 7색) -->
-${heat ? `<image id="heat" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" href="${heat.dataUrl}"/>` : ''}
+${heat ? `<image id="heat" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="${heat.dataUrl}"/>` : ''}
 
 <!-- ③ 경계 -->
 <path id="coast" d="${umdEdges.coast.join('')}" fill="none" stroke="${C.umd}" stroke-width="0.9" stroke-opacity="0.7"/>
@@ -481,17 +523,18 @@ ${heat ? `<image id="heat" x="0" y="0" width="${W}" height="${H}" preserveAspect
 <!-- ④ 사업지 안 밝게 · 밖 어둡게 -->
 <path id="dim" d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" fill-opacity="0.24"/>
 ${zonePaths ? `<path id="survey-ref" d="${surveyPathAll}" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-dasharray="5 4" stroke-opacity="0.85"/>` : ''}
-<path id="zone-glow" d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-opacity="0.55" filter="url(#soft)"/>
+<path id="zone-glow" d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-opacity="0.5" stroke-linejoin="round"/>
 <path id="zone" d="${zonePathAll}" fill="#FFFFFF" fill-opacity="0.14" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>
 
 <!-- ⑤ 동선 -->
 <g id="routes">${(cfg.routes || []).map(routeSvg).join('\n')}</g>
+${ARGS.draft && DRAFT && DRAFT.file ? (() => { const p = path.join(ROOT, DRAFT.file); if (!fs.existsSync(p)) return ''; const t = DRAFT.transform; const b = fs.readFileSync(p); const ext = p.toLowerCase().endsWith('.jpg') || p.toLowerCase().endsWith('.jpeg') ? 'jpeg' : 'png'; return `<image id="draft-overlay" x="${t.x0}" y="${t.y0}" width="${(DRAFT.width || 1280) * t.scale}" height="${(DRAFT.height || 720) * t.scale}" opacity="0.55" href="data:image/${ext};base64,${b.toString('base64')}"/>`; })() : ''}
 
 <!-- ⑥ 지명 -->
 <g id="labels">${labelsSvg}</g>
 
 <!-- ⑦ 지시선 · 사업지 상자 -->
-<g id="leaders">${zoneBoxes.map(b => DEBUG_GRID ? anchorDot(anchorPx(b.z.anchor), b.z.id) : leader(b.rect, anchorPx(b.z.anchor))).join('\n')}</g>
+<g id="leaders">${zoneBoxes.flatMap(b => (b.z.anchors || [b.z.anchor]).map(a => DEBUG_GRID ? anchorDot(anchorPx(a), b.z.id) : leader(b.rect, anchorPx(a)))).join('\n')}</g>
 <g id="zones">${DEBUG_GRID ? '' : zoneBoxes.map(b => b.svg).join('\n')}</g>
 
 ${gridSvg}
@@ -506,8 +549,8 @@ ${northArrow(W - 50, 62)}
 <text x="40" y="${H - 18}" font-family="${FONT}" font-size="11.5" fill="#fff" fill-opacity="0.9">${esc(cfg.source)}</text>
 </svg>`;
 
-const outDir = path.join(ROOT, 'output/overview-map', cfg.region);
-fs.mkdirSync(outDir, { recursive: true });
+/* 초안 맞추기(fit-draft.mjs)가 쓰는 화면 정보: 육지 폴리곤(px) + 투영값 */
+fs.writeFileSync(path.join(outDir, '_frame.json'), JSON.stringify({ W, H, land: umd.paths.length ? umd.paths : sgg.paths }));
 const outFile = path.join(outDir, `${cfg.region}_종합도${DEBUG_GRID ? '_debug' : ''}.svg`);
 fs.writeFileSync(outFile, svg);
 console.log(`→ ${path.relative(ROOT, outFile)}  (${(svg.length / 1e6).toFixed(2)} MB)`);
