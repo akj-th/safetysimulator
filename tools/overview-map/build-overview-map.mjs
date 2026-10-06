@@ -35,7 +35,7 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import proj4 from '../node_modules/proj4/dist/proj4-src.js';
 import { readDbf, readPolygons } from '../lib/shapefile.mjs';
-import { iconDefs } from './icons.mjs';
+import { ICONS } from './icons.mjs';
 import { loadRaster, heatPng, extractZone, DEFAULTS as RISK_DEFAULTS, AURI_COLORS } from './risk.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -146,8 +146,46 @@ function simplify(pts, tol) {
   return pts.filter((_, i) => keep[i]);
 }
 
+/* 아트보드(0,0)-(W,H) 밖은 잘라냅니다. 일러스트레이터가 화면 밖 오브젝트까지 들고 있으면 버벅입니다. */
+function clipRing(ring) {
+  const edges = [[0, 0, 1], [1, 0, 1], [2, W, -1], [3, H, -1]];     // [축, 경계값, 방향]
+  let out = ring;
+  for (const [e, v, dir] of edges) {
+    const ax = e === 0 || e === 2 ? 0 : 1;
+    const inside = (p) => dir > 0 ? p[ax] >= v : p[ax] <= v;
+    const inter = (p, q) => { const t = (v - p[ax]) / (q[ax] - p[ax]); return [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t]; };
+    const res = [];
+    for (let i = 0; i < out.length; i++) {
+      const p = out[i], q = out[(i + 1) % out.length];
+      if (inside(p)) { res.push(p); if (!inside(q)) res.push(inter(p, q)); }
+      else if (inside(q)) res.push(inter(p, q));
+    }
+    out = res; if (!out.length) break;
+  }
+  return out;
+}
+function clipPolyline(pts) {
+  const inF = (p) => p[0] >= 0 && p[0] <= W && p[1] >= 0 && p[1] <= H;
+  const runs = []; let cur = [];
+  const clipSeg = (p, q) => {   // 리앙-바스키
+    let t0 = 0, t1 = 1; const dx = q[0] - p[0], dy = q[1] - p[1];
+    for (const [pk, qk] of [[-dx, p[0]], [dx, W - p[0]], [-dy, p[1]], [dy, H - p[1]]]) {
+      if (pk === 0) { if (qk < 0) return null; continue; }
+      const r = qk / pk; if (pk < 0) { if (r > t1) return null; if (r > t0) t0 = r; } else { if (r < t0) return null; if (r < t1) t1 = r; }
+    }
+    return [[p[0] + dx * t0, p[1] + dy * t0], [p[0] + dx * t1, p[1] + dy * t1]];
+  };
+  for (let i = 0; i < pts.length - 1; i++) {
+    const seg = clipSeg(pts[i], pts[i + 1]);
+    if (!seg) { if (cur.length > 1) runs.push(cur); cur = []; continue; }
+    if (!cur.length || !inF(pts[i])) { if (cur.length > 1) runs.push(cur); cur = [seg[0]]; }
+    cur.push(seg[1]);
+  }
+  if (cur.length > 1) runs.push(cur);
+  return runs;
+}
 function ringPath(ring, tol = 0.35) {
-  const pts = simplify(ring, tol);
+  const pts = clipRing(simplify(ring, tol));
   if (pts.length < 3) return '';
   return 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z';
 }
@@ -206,7 +244,7 @@ function splitSharedEdges(code) {
      변마다 M…L… 을 쓰면 남해 한 장에 4만 개가 넘어 그림판이 버벅입니다. */
   const shared = [], coast = [];
   const kind = (p, q) => { const a = key(p), b = key(q); const k = a < b ? a + '|' + b : b + '|' + a; return (owner.get(k) || new Set()).size >= 2 ? 'shared' : 'coast'; };
-  const flush = (run, k) => { if (run.length < 2) return; const pts = simplify(run.map(from5179), 0.35); (k === 'shared' ? shared : coast).push('M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L')); };
+  const flush = (run, k) => { if (run.length < 2) return; for (const pts of clipPolyline(simplify(run.map(from5179), 0.35))) (k === 'shared' ? shared : coast).push('M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L')); };
   shapes.forEach((s, si) => {
     const b1 = from5179([s.bbox[0], s.bbox[1]]), b2 = from5179([s.bbox[2], s.bbox[3]]);
     if (!inFrame([Math.min(b1[0], b2[0]), Math.min(b1[1], b2[1]), Math.max(b1[0], b2[0]), Math.max(b1[1], b2[1])])) return;
@@ -259,6 +297,10 @@ if (RISK.enabled !== false) {
 /* 화면에서 "대상지" 로 쓰는 경계: 추출 결과가 있으면 그것, 없으면 공식 조사지 */
 const zonePaths = zone && zone.rings.length ? zone.rings.map(r => ringPath(r.map(from5186), 0.2)) : null;
 const zonePathAll = zonePaths ? zonePaths.join('') : surveyPathAll;
+/* 대상지 안 건물: 경로의 첫 점이 대상지 링 안에 있는 것 (클리핑 없이 그리기 위해) */
+const zoneRingsPx = zone && zone.rings.length ? zone.rings.map(r => r.map(from5186)) : surveyLL.flat(1).map(r => r.map(toPx));
+const inZone = (x, y) => { let c = 0; for (const ring of zoneRingsPx) for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) c++; } return c % 2 === 1; };
+const bldgIn = bldg.paths.filter(d => { const m = d.match(/^M([\d.-]+) ([\d.-]+)/); return m && inZone(+m[1], +m[2]); });
 
 /* ── 위성 타일 (브이월드) ───────────────────────────────────────────── */
 const TILE_DIR = path.join(ROOT, 'data/raw/tiles/vworld-satellite', String(Z));
@@ -329,7 +371,7 @@ function wrap(s, fs, maxW) {
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /* ── 사업지 설명 상자 ─────────────────────────────────────────────── */
-const FONT = "Pretendard, 'Noto Sans KR', 'Malgun Gothic', sans-serif";
+const FONT = "Pretendard, 'Malgun Gothic', sans-serif";
 function zoneBox(z, i) {
   const { x, y, w } = z.box;
   const pad = 18, fsT = 21, fsP = 14, fsI = 15, lh = 22, gap = 8;
@@ -341,7 +383,7 @@ function zoneBox(z, i) {
   const out = [];
   /* 아이콘 줄 — 상자 위에 띄움 (회사 예시 방식) */
   out.push(`<g class="zone" id="${z.id}">`);
-  out.push((z.icons || []).map((k, j) => `<use href="#ic-${k}" xlink:href="#ic-${k}" x="${x + j * 42}" y="${y - 46}" width="36" height="36"/>`).join(''));
+  out.push((z.icons || []).map((k, j) => `<g transform="translate(${x + j * 42} ${y - 46}) scale(0.9)"><rect width="40" height="40" rx="8" fill="${C.ink}"/>${ICONS[k] || ''}</g>`).join(''));
   out.push(`<rect x="${x}" y="${y}" width="${w}" height="${h.toFixed(0)}" rx="6" fill="${C.box}" fill-opacity="0.96" stroke="${C.line}" stroke-width="1"/>`);
   out.push(`<path d="M${x + 6} ${y}H${x}V${y + h}H${x + 6}Z" fill="${C.main}"/>`);
   let cy = y + pad + fsT - 5;
@@ -378,7 +420,7 @@ function leader(rect, anchor) {
 }
 
 function anchorDot([ax, ay], id) {
-  return `<circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="7" fill="#FFFFFF" stroke="${C.ink}" stroke-width="1.4"/><circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="3.2" fill="${C.main}"/><text x="${(ax + 10).toFixed(1)}" y="${(ay - 8).toFixed(1)}" font-size="13" font-weight="700" fill="${C.main}" stroke="#fff" stroke-width="3" paint-order="stroke">${id}</text>`;
+  return `<circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="7" fill="#FFFFFF" stroke="${C.ink}" stroke-width="1.4"/><circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="3.2" fill="${C.main}"/><text x="${(ax + 10).toFixed(1)}" y="${(ay - 8).toFixed(1)}" font-size="13" font-weight="700" fill="${C.main}">${id}</text>`;
 }
 /* 동선 화살표 — 부드러운 곡선(카드멀-롬) */
 function smoothPath(pts) {
@@ -400,8 +442,18 @@ function routeSvg(r) {
   const st = ROUTE_STYLE[r.style] || ROUTE_STYLE.link;
   const pts = r.points.map(p => r.draftPx ? draftToPx(p) : r.lnglat ? toPx(p) : from5179(p));
   const d = smoothPath(pts);
+  const heads = r.heads || [false, true];
+  const head = (tip, from) => {        // tip 을 꼭짓점으로, from→tip 방향의 삼각형
+    const L = st.w * 3.2, Wd = st.w * 1.9;
+    const ang = Math.atan2(tip[1] - from[1], tip[0] - from[0]);
+    const bx = tip[0] - Math.cos(ang) * L, by = tip[1] - Math.sin(ang) * L;
+    const nx = -Math.sin(ang) * Wd, ny = Math.cos(ang) * Wd;
+    return `<path d="M${tip[0].toFixed(1)} ${tip[1].toFixed(1)}L${(bx + nx).toFixed(1)} ${(by + ny).toFixed(1)}L${(bx - nx).toFixed(1)} ${(by - ny).toFixed(1)}Z" fill="${st.color}" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/>`;
+  };
+  const n = pts.length;
   return `<path d="${d}" fill="none" stroke="#FFFFFF" stroke-opacity="0.8" stroke-width="${st.w + 4}" stroke-linecap="round"/>
-<path d="${d}" fill="none" stroke="${st.color}" stroke-width="${st.w}" stroke-dasharray="${st.dash}" stroke-linecap="round"${(r.heads ? r.heads[0] : false) ? ` marker-start="url(#arrow-${r.style})"` : ''}${(r.heads ? r.heads[1] : true) ? ` marker-end="url(#arrow-${r.style})"` : ''}/>`;
+<path d="${d}" fill="none" stroke="${st.color}" stroke-width="${st.w}" stroke-dasharray="${st.dash}" stroke-linecap="round"/>
+${heads[0] ? head(pts[0], pts[1]) : ''}${heads[1] ? head(pts[n - 1], pts[n - 2]) : ''}`;
 }
 
 /* ── 범례·축척·제목 ──────────────────────────────────────────────── */
@@ -423,7 +475,7 @@ function legendSvg(x, y) {
       case 'water': sw = `<rect x="${lx}" y="${cy - 6}" width="34" height="12" fill="${C.water}"/>`; break;
       case 'farm': sw = `<rect x="${lx}" y="${cy - 6}" width="34" height="12" fill="${C.farm}"/>`; break;
       case 'survey-ref': sw = `<line x1="${lx}" y1="${cy}" x2="${lx + 34}" y2="${cy}" stroke="${C.ink}" stroke-width="1.4" stroke-dasharray="5 4"/>`; break;
-      case 'heat': { const c = AURI_COLORS[r.key] ? AURI_COLORS[r.key].rgb : [128, 128, 128]; const col = `rgb(${c.join(',')})`; sw = `<defs><linearGradient id="lg-${r.key}"><stop offset="0" stop-color="#fff" stop-opacity=".15"/><stop offset="1" stop-color="${col}" stop-opacity=".85"/></linearGradient></defs><rect x="${lx}" y="${cy - 6}" width="34" height="12" fill="url(#lg-${r.key})"/>`; break; }
+      case 'heat': { sw = `<rect x="${lx}" y="${cy - 6}" width="34" height="12" fill="url(#lg-${r.key})"/>`; break; }
     }
     out.push(sw, `<text x="${lx + 46}" y="${cy + 5}" font-family="${FONT}" font-size="14" fill="${C.text}">${esc(r.label)}</text>`);
   });
@@ -449,7 +501,7 @@ const bg64 = rasterizeBackground(tilesRaw, outDir);
 const tiles = bg64 ? `<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="data:image/png;base64,${bg64}"/>` : tilesRaw;
 const frameRect = `M0 0H${W}V${H}H0Z`;
 const landAll = umd.paths.join('') || sgg.paths.join('');
-const P = (arr) => arr.map(d => `<path d="${d}"/>`).join('');
+const P = (arr) => arr.length ? `<path d="${arr.join('')}"/>` : '';
 
 const zoneBoxes = cfg.zones.map((z, i) => ({ z, ...zoneBox(z, i) }));
 const legendH = (cfg.legend || []).length * 24 + 22;
@@ -477,7 +529,8 @@ if (DEBUG_GRID) {
 const labelsSvg = (cfg.labels || []).map(l => {
   const [x, y] = anchorPx(l);
   const big = (l.size || 16) >= 20;
-  return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="${l.size || 16}" font-weight="${big ? 700 : 500}" fill="${C.ink}" stroke="#fff" stroke-width="4" paint-order="stroke" stroke-linejoin="round" letter-spacing="${big ? 6 : 1}">${esc(l.text)}</text>`;
+  const attrs = `x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="${l.size || 16}" font-weight="${big ? 700 : 500}" letter-spacing="${big ? 6 : 1}"`;
+  return `<text ${attrs} fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round">${esc(l.text)}</text><text ${attrs} fill="${C.ink}">${esc(l.text)}</text>`;
 }).join('\n');
 
 const titleW = Math.max(560, textW(cfg.title, 30) + 60).toFixed(0);
@@ -486,20 +539,16 @@ const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 <title>${esc(cfg.title)}</title>
 <defs>
-  <clipPath id="frame"><rect width="${W}" height="${H}"/></clipPath>
-  <clipPath id="survey-clip"><path d="${zonePathAll}"/></clipPath>
+  ${(cfg.legend || []).filter(r => r.kind === 'heat').map(r => { const c = AURI_COLORS[r.key] ? AURI_COLORS[r.key].rgb : [128, 128, 128]; return `<linearGradient id="lg-${r.key}"><stop offset="0" stop-color="#fff" stop-opacity=".15"/><stop offset="1" stop-color="rgb(${c.join(',')})" stop-opacity=".85"/></linearGradient>`; }).join('')}
   <filter id="sat" color-interpolation-filters="sRGB">
     <feColorMatrix type="saturate" values="${SAT.saturate}"/>
     <feComponentTransfer><feFuncR type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncG type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/><feFuncB type="linear" slope="${SAT.slope}" intercept="${SAT.intercept}"/></feComponentTransfer>
   </filter>
-  <marker id="arrow-patrol" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="${C.main}"/></marker>
-  <marker id="arrow-link" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="${C.navy}"/></marker>
-  ${iconDefs(C.ink)}
 </defs>
 
 <!-- ① 바탕: 바다색 → 위성영상(채도↓ 밝기↑) → 육지 밖(바다) 덮기 -->
 <rect width="${W}" height="${H}" fill="${C.sea}"/>
-<g id="satellite" clip-path="url(#frame)"${bg64 ? '' : ' filter="url(#sat)"'}>
+<g id="satellite"${bg64 ? '' : ' filter="url(#sat)"'}>
 ${tiles}
 </g>
 <path id="sea" d="${frameRect}${landAll}" fill-rule="evenodd" fill="${C.sea}" fill-opacity="0.9"/>
@@ -510,7 +559,7 @@ ${tiles}
 <g id="water" fill="${C.water}" fill-opacity="0.85" stroke="${C.contrast}" stroke-width="0.6" stroke-opacity="0.5">${P([...river.paths, ...stream.paths, ...lake.paths])}</g>
 <g id="roads" fill="${C.road}" fill-opacity="0.82" stroke="${C.roadLine}" stroke-width="0.5">${P(roads.paths)}</g>
 <g id="buildings" fill="${C.building}" fill-opacity="0.78" stroke="none">${P(bldg.paths)}</g>
-<g id="buildings-in" clip-path="url(#survey-clip)" fill="${C.buildingIn}" fill-opacity="0.9">${P(bldg.paths)}</g>
+<path id="buildings-in" fill="${C.buildingIn}" fill-opacity="0.9" d="${bldgIn.join('')}"/>
 
 <!-- ②-1 위험도 히트맵 (중점 3분야 · AURI 7색) -->
 ${heat ? `<image id="heat" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="${heat.dataUrl}"/>` : ''}
