@@ -228,6 +228,32 @@ const stream = layerPaths('E0032111', { tol: 0.3 });
 const lake = layerPaths('E0052114', { tol: 0.3 });
 const farm = layerPaths('D0010000', { tol: 0.4 });          // 없으면 비어 있음
 const sgg = layerPaths('G0100000', { tol: 0.3 });
+
+/* 키맵: 시군구 폴리곤 전체(창 밖 포함)를 작은 패널에 그립니다 */
+function keymapSvg() {
+  const K = cfg.keymap; if (!K) return '';
+  const shp = findLayer('G0100000'); if (!shp) return '';
+  const shapes = readPolygons(shp), rows = readDbf(shp.replace(/\.shp$/i, '.dbf'), { encoding: 'auto' });
+  const want = K.name || (cfg.title || '').slice(0, 3);
+  let idx = rows.findIndex(r => (r.NAME || '').includes(want));
+  if (idx < 0) idx = shapes.map((sh, i) => [i, (sh.bbox[2] - sh.bbox[0]) * (sh.bbox[3] - sh.bbox[1])]).sort((a, b) => b[1] - a[1])[0][0];
+  const sh = shapes[idx];
+  const pad = 10, labelH = 24;
+  const bw = K.w - pad * 2, bh = K.h - pad * 2 - labelH;
+  const sx = bw / (sh.bbox[2] - sh.bbox[0]), sy = bh / (sh.bbox[3] - sh.bbox[1]), k = Math.min(sx, sy);
+  const ox = K.x + pad + (bw - (sh.bbox[2] - sh.bbox[0]) * k) / 2, oy = K.y + pad + labelH + (bh - (sh.bbox[3] - sh.bbox[1]) * k) / 2;
+  const T = ([x, y]) => [ox + (x - sh.bbox[0]) * k, oy + (sh.bbox[3] - y) * k];
+  const d = sh.rings.map(r => { const pts = simplify(r.map(T), 0.4); return pts.length > 2 ? 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z' : ''; }).join('');
+  /* 지금 지도 창(화면 네 모서리)을 5179 로 되돌려 사각형으로 */
+  const corner = (px, py) => T(proj4(WGS, P5179, pxToLL(px, py)));
+  const c = [corner(0, 0), corner(W, 0), corner(W, H), corner(0, H)];
+  const rect = 'M' + c.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z';
+  return `<rect x="${K.x}" y="${K.y}" width="${K.w}" height="${K.h}" rx="6" fill="#fff" opacity="0.96" stroke="${C.line}" stroke-width="1"/>
+<text x="${K.x + pad + 4}" y="${K.y + pad + 14}" font-family="${FONT}" font-size="14" font-weight="700" fill="${C.text}">${esc(K.label || (rows[idx].NAME + ' 전체 · 대상지 위치'))}</text>
+<path d="${d}" fill="#DCE3E8" stroke="${C.ink}" stroke-width="0.8"/>
+<path d="${rect}" fill="${C.main}" opacity="0.18"/>
+<path d="${rect}" fill="none" stroke="${C.main}" stroke-width="2"/>`;
+}
 const umd = layerPaths('G0110000', { tol: 0.3 });
 
 /* 읍면 폴리곤에서 "두 읍면이 함께 쓰는 변"만 행정경계로, 나머지(바다와 닿는 변)는 해안선으로 나눕니다.
@@ -401,11 +427,12 @@ function zoneBox(z, i) {
   const h = Math.round(headH + 14 + bodyH + pad);
   const y = z.box.y ?? z.box.top ?? (z.box.bottom - h);    // top 또는 bottom 으로 맞춤
   const num = String(i + 1).padStart(2, '0');
+  const sc = z.safety && AURI_COLORS[z.safety] ? `rgb(${AURI_COLORS[z.safety].rgb.join(',')})` : C.main;   // 안전사고 유형 색 (자살 청·범죄 녹·생활안전 보라)
   const out = [];
   out.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${C.box}" opacity="0.96" stroke="${C.line}" stroke-width="1"/>`);
-  out.push(`<path d="M${x + 6} ${y}H${x}V${y + h}H${x + 6}Z" fill="${C.main}"/>`);
+  out.push(`<path d="M${x + 6} ${y}H${x}V${y + h}H${x + 6}Z" fill="${sc}"/>`);
   let cy = y + pad + fsT - 5;
-  out.push(`<text x="${x + pad}" y="${cy}" font-family="${FONT}" font-size="${fsT}" font-weight="700" fill="${C.text}"><tspan fill="${C.main}" font-size="${fsT - 3}">${num}</tspan><tspan dx="8">${esc(z.type)}</tspan></text>`);
+  out.push(`<text x="${x + pad}" y="${cy}" font-family="${FONT}" font-size="${fsT}" font-weight="700" fill="${C.text}"><tspan fill="${sc}" font-size="${fsT - 3}">${num}</tspan><tspan dx="8">${esc(z.type)}</tspan></text>`);
   cy += fsP + 6;
   out.push(`<text x="${x + pad}" y="${cy}" font-family="${FONT}" font-size="${fsP}" fill="${C.sub}">${esc(z.place)}</text>`);
   cy += 12;
@@ -617,10 +644,10 @@ ${L('01_위성영상', `<rect width="${W}" height="${H}" fill="${C.sea}"/>\n${ti
 ${L('02_바다_육지', `<path d="${frameRect}${landAll}" fill-rule="evenodd" fill="${C.sea}" opacity="0.9"/>\n<path d="${landAll}" fill="#FFFFFF" opacity="0.30"/>`)}
 ${L('03_전답', P(farm.paths), `fill="${C.farm}" stroke="#FFFFFF" stroke-width="0.2" opacity="0.55"`)}
 ${L('04_수계', P([...river.paths, ...stream.paths, ...lake.paths]), `fill="${C.water}" stroke="${C.contrast}" stroke-width="0.6" opacity="0.85"`)}
+${heat ? L('04-1_위험도_히트맵', `<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="${heat.dataUrl}"/>`) : ''}
 ${L('05_도로', P(roads.paths), `fill="${C.road}" opacity="0.82"`)}
 ${L('06_건물', P(bldg.paths), `fill="${C.building}" stroke="${C.buildingLine}" stroke-width="0.5" opacity="0.78"`)}
 ${L('07_건물_대상지안', P(bldgIn), `fill="${C.buildingIn}" stroke="${C.buildingInLine}" stroke-width="0.5" opacity="0.9"`)}
-${heat ? L('08_위험도_히트맵', `<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="${heat.dataUrl}"/>`) : ''}
 ${L('09_해안선', `<path d="${umdEdges.coast.join('')}"/>`, `fill="none" stroke="${C.umd}" stroke-width="0.5" opacity="0.7"`)}
 ${L('10_행정경계', `${umdEdges.shared.length ? `<path d="${umdEdges.shared.join('')}" stroke-width="2.2" stroke-dasharray="9 5"/>` : ''}${sgg.paths.length ? `<path d="${sgg.paths.join('')}" stroke-width="2.6"/>` : ''}`, `fill="none" stroke="${C.sgg}" opacity="0.95"`)}
 ${(cfg.style && cfg.style.dimOpacity === 0) ? '' : L('11_대상지밖_어둡게', `<path d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" opacity="${(cfg.style && cfg.style.dimOpacity) ?? 0.15}"/>`)}
@@ -636,6 +663,7 @@ ${DEBUG_GRID ? '' : L('21_제목', `<rect x="40" y="36" width="${titleW}" height
 <text x="66" y="76" font-family="${FONT}" font-size="30" font-weight="700" fill="${C.text}">${esc(cfg.title)}</text>
 <text x="66" y="106" font-family="${FONT}" font-size="15" fill="${C.sub}">${esc(cfg.subtitle)}</text>`)}
 ${L('22_방위', northArrow(W - 60, 72))}
+${DEBUG_GRID ? '' : L('24_키맵', keymapSvg())}
 ${DEBUG_GRID ? '' : L('23_범례', legendSvg2().svg)}
 </svg>`;
 

@@ -104,7 +104,8 @@
             267.4
           ]
         }
-      ]
+      ],
+      "safety": "crime"
     },
     {
       "id": "Z2",
@@ -148,7 +149,8 @@
             290.2
           ]
         }
-      ]
+      ],
+      "safety": "suicide"
     },
     {
       "id": "Z3",
@@ -186,7 +188,8 @@
             514.5
           ]
         }
-      ]
+      ],
+      "safety": "life"
     },
     {
       "id": "Z4",
@@ -231,7 +234,8 @@
             598
           ]
         }
-      ]
+      ],
+      "safety": "crime"
     }
   ],
   "routes": [
@@ -1990,7 +1994,10 @@
     "builtBufferM": 40,
     "closeM": 30,
     "minAreaHa": 1,
-    "simplifyM": 12
+    "simplifyM": 12,
+    "maxAlpha": 0.62,
+    "alphaFullAt": 0.5,
+    "colorGamma": 0.55
   },
   "draft": {
     "file": "tools/overview-map/regions/namhae_draft.png",
@@ -2052,5 +2059,13 @@
   "style": {
     "dimOpacity": 0,
     "surveyColor": "#2793C9"
+  },
+  "keymap": {
+    "x": 60,
+    "y": 652,
+    "w": 440,
+    "h": 136,
+    "name": "남해군",
+    "label": "남해군 전체 · 지도 범위"
   }
 }
