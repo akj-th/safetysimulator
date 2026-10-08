@@ -65,4 +65,17 @@ export const ITEM_ICONS = {
   counseling: `<g ${S}><path d="M6 9h16v10H12l-4 4v-4H6z"/><path d="M22 17h12v9h-3v4l-4-4h-5z"/><path d="M14 16s-3-2-3-3.8a1.6 1.6 0 0 1 3-.7 1.6 1.6 0 0 1 3 .7c0 1.8-3 3.8-3 3.8z" fill="#fff" stroke="none"/></g>`,
   /* 주민 참여 자살위험 조기 발견·신고: 사람들 + 경고 */
   'community-watch': `<g ${S}><circle cx="13" cy="12" r="3.5"/><circle cx="23" cy="12" r="3.5"/><path d="M5 29c0-6 3-9 8-9s8 3 8 9"/><path d="M17 29c0-6 3-9 8-9 2 0 3.5.5 5 1.5"/><path d="M32 21v6"/>${dot(32, 30.5, 1.2)}</g>`,
+  /* ── 2026-10-08 남해 최종본에서 새로 필요한 것 ─────────────────────── */
+  /* 수변 인명구조함·구명환 */
+  lifebuoy: `<g ${S}><circle cx="20" cy="20" r="11"/><circle cx="20" cy="20" r="5"/><path d="M20 9v6M20 25v6M9 20h6M25 20h6"/></g>`,
+  /* 안전난간 */
+  railing: `<g ${S}><path d="M6 15h28"/><path d="M6 22h28"/><path d="M10 15v18M20 15v18M30 15v18"/><path d="M4 33h32"/></g>`,
+  /* 교육·생명지킴이 */
+  education: `<g ${S}><path d="M6 15l14-6 14 6-14 6z"/><path d="M12 18v7c0 2 4 4 8 4s8-2 8-4v-7"/><path d="M34 15v8"/></g>`,
+  /* AED·구급 */
+  aed: `<g ${S}><path d="M20 32s-11-7-11-15a6 6 0 0 1 11-3 6 6 0 0 1 11 3c0 8-11 15-11 15z"/><path d="M22 11l-4 8h5l-4 8" stroke-width="2"/></g>`,
+  /* CO 경보기·안전키트 */
+  'co-alarm': `<g ${S}><circle cx="20" cy="18" r="10"/><circle cx="20" cy="18" r="4"/><path d="M20 4v3M31 7l-2 2M9 7l2 2" stroke-width="1.6"/><path d="M14 31h12M16 34h8" stroke-width="1.6"/></g>`,
+  /* 센서형 음성안내기·스피커 */
+  speaker: `<g ${S}><path d="M8 16h6l8-6v20l-8-6H8z"/><path d="M26 15a6 6 0 0 1 0 10"/><path d="M29 11a11 11 0 0 1 0 18"/></g>`,
 };

@@ -1725,3 +1725,11 @@ AURI 답변: 사전진단서의 좁은 경계는 **산식 없이** 중점 3분�
 - **7차 (2026-10-06 저녁)**: 담당자 1차 조정본(17:03 저장)의 화살표를 **q(2차 곡선) 포함** 파서로 다시 추출(전 회차는 q 를 못 읽어 해안 화살표가 잘렸음). 담당자 v02 톤 반영 — 도로·건물 짙은 회색(`#666`/`#999`), 전답 `#BFC9BC`, 해안선 0.5px, **어둡게 덮기 없음**(`style.dimOpacity: 0`). 기존 조사지 선은 `style.surveyColor`(기본 `#2793C9`) 1.4px 실선. 범례 7줄(히트맵 3분야 각각). 항목 아이콘: 담당자가 고친 3종(mirror·reflector·emergency-bell)을 시트에서 역추출해 넣고 가로등류·동선·건강음료 아이콘을 대칭으로 정리.
 - **투명도 속성**: 전에는 `fill-opacity`/`stroke-opacity` 라 일러스트레이터 투명도 패널에 100%로 보였음(모양 패널의 칠·선 안쪽 불투명도에 들어감). 이제 칠만 있거나 선만 있는 오브젝트는 **`opacity`**(오브젝트 투명도)로 씁니다. 예외: 대상지 경계(칠 14% + 선 100%)는 칠과 선을 두 오브젝트로 나눠 둘 다 `opacity` 로.
 - **8차 (2026-10-07, AURI 이은석 박사 1차 피드백)**: ① 히트맵을 **도로·건물 아래**(`04-1` 레이어)로 내리고 진하게(maxAlpha .62 · alphaFullAt .5 · gamma .55) — 바탕이 가려지지 않으면서 색은 뚜렷하게. ② 사업지 상자 왼쪽 색띠·번호 = 그 사업지에 적용되는 안전사고 유형 색(`zone.safety`: crime 녹 · suicide 청 · life 보라, AURI 7색). 남해 배정은 내용으로 추정 — 01 범죄 · 02 자살 · 03 생활안전 · 04 범죄 (**AURI 확인 필요**). ③ 키맵(`cfg.keymap`, 시군구 폴리곤 + 현재 지도 범위 사각형)을 왼쪽 열 01·03 사이에 추가. 레이아웃은 키맵·범례 자리를 고려해 더 바뀔 수 있음(AURI 예고).
+
+**★ 최종본 형식 (2026-10-08, AURI 남해·사천 최종 이미지)** — `tools/overview-map/extract-final.mjs` · 설정 v2
+- 최종본은 초안과 형식이 다릅니다: 존이 **색 윤곽 다각형**(유형 색: 녹=범죄·청=자살·보라=생활안전·주황=감염병) + 번호 원 마커, 시설은 빨간 점 + 라벨, 도로 구간은 노란 실선·빨간 점선, 존 5~7개. 원본 자료는 `docs/261008_남해_사천/`(pptx 글·PDF 보고서·PNG 3141×2222 / 3517×2487).
+- `extract-final.mjs <png> [out.json] ['{"crime":[r,g,b,tol],…}']` 가 색으로 **점·마커·존 윤곽·선**을 뽑습니다. 윤곽이 라벨에 가려 끊기면 격자 닫기로 복원(`closedByCells`), 점선 윤곽은 `DIL=24` 로 한 번 더. 이미지마다 색이 달라 사천은 색을 인자로 넘겼습니다.
+- 정합은 바다색 맞춤이 아니라 **시설 점 ↔ 건물 레이어 ANNO 좌표**로: 축척은 축척 막대(남해 200m=542px), 오프셋은 시설 평균 → `draft.affine5179 {s,c,d}` (X=c+x·s, Y=d−y·s). 잔차 6~49m(점이 손으로 찍힌 것).
+- 설정 v2: `zones[].polygons[{draftPx|epsg5179, dashed}]`, `zones[].markers[{label, at}]`(지시선 원점), `zones[].num`('⑤⑥'), `pois[{name, draftPx, side}]`, 구간선 style `yellow`·`reddash`(머리 없음), `style.hideZoneLines`(우리 대상지·조사지 선 감춤), `style.box`(상자 글자·아이콘 크기), `frame.center5179`, `keymap.below`. 범례 kind `zonepoly`·`poi`·`yellow`·`reddash`, `heat.keys[]`(한 줄에 3색).
+- 남해 1차 초안 설정은 `regions/namhae_v1_draft.json` 에 보관. 설정 조립 스크립트는 세션 스크래치(make-namhae-v2)였고 결과 JSON 이 정본입니다.
+- ⚠ 사천: SHP 폴더(`data/raw/SDM_5K/48240_sacheon/`)가 비어 있어 아직 못 만듭니다. 특징 추출(`sacheon_final_features*.json`)은 해 두었습니다. 노란 실선·빨간 점선의 뜻은 pptx 에 범례가 없어 **AURI 확인 필요**.

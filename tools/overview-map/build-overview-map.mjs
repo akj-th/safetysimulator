@@ -66,6 +66,7 @@ const SURVEY_COLOR = (cfg.style && cfg.style.surveyColor) || '#2793C9';   // 기
 const ARGS = Object.fromEntries(process.argv.slice(3).map(a => { const m = a.match(/^--([^=]+)(?:=(.*))?$/); return m ? [m[1], m[2] ?? true] : [a, true]; }));
 if (ARGS.width) F.widthMeters = +ARGS.width;
 if (ARGS.center) { const [x, y] = ARGS.center.split(',').map(Number); F.center = proj4(P5179, WGS, [x, y]); }   // --center=5179x,5179y
+if (!ARGS.center && F.center5179) F.center = proj4(P5179, WGS, F.center5179);
 if (ARGS.width && !ARGS.keepOffset) F.offset = [0, 0];
 const DEBUG_GRID = !!ARGS.grid;
 const W = F.width, H = F.height, Z = F.zoom || 17;
@@ -101,6 +102,8 @@ const from5179 = (p) => toPx(proj4(P5179, WGS, p));
    (초안을 지도 위에 반투명으로 겹쳐 놓고 해안선이 맞을 때까지 숫자를 맞춘 값. --draft 로 확인) */
 const DRAFT = cfg.draft || null;
 const draftToPx = ([dx, dy]) => {
+  const af = DRAFT && DRAFT.affine5179;              // X = c + x*s · Y = d - y*s  (최종본: 시설 위치로 맞춤)
+  if (af) return from5179([af.c + dx * af.s, af.d - dy * af.s]);
   const wt = DRAFT && DRAFT.world;                 // fit-draft 가 적는 값: 초안 px → 월드 px (zoom 기준)
   if (wt) { const k = 2 ** (Z - wt.zoom); const wx = (wt.x0 + dx * wt.scale) * k, wy = (wt.y0 + dy * wt.scale) * k; return [(wx - originX) * scale, (wy - originY) * scale]; }
   const t = DRAFT && DRAFT.transform; if (!t) throw new Error('cfg.draft.world 가 없습니다 — fit-draft.mjs 를 먼저 돌리세요');
@@ -232,6 +235,7 @@ const sgg = layerPaths('G0100000', { tol: 0.3 });
 /* 키맵: 시군구 폴리곤 전체(창 밖 포함)를 작은 패널에 그립니다 */
 function keymapSvg() {
   const K = cfg.keymap; if (!K) return '';
+  if (K.below && rectOf[K.below]) K.y = rectOf[K.below].y + rectOf[K.below].h + (K.gap ?? 12);
   const shp = findLayer('G0100000'); if (!shp) return '';
   const shapes = readPolygons(shp), rows = readDbf(shp.replace(/\.shp$/i, '.dbf'), { encoding: 'auto' });
   const want = K.name || (cfg.title || '').slice(0, 3);
@@ -418,7 +422,8 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 const FONT = "Pretendard, 'Malgun Gothic', sans-serif";
 function zoneBox(z, i) {
   const { x, w } = z.box;
-  const pad = 20, fsT = 24, fsP = 16, fsI = 17, lh = 24, rowGap = 5, ic = 36;   // ic = 항목 아이콘 크기 (담당자: 36~40px)
+  const BX = Object.assign({ pad: 20, fsT: 24, fsP: 16, fsI: 17, lh: 24, rowGap: 5, ic: 36 }, (cfg.style && cfg.style.box) || {});
+  const { pad, fsT, fsP, fsI, lh, rowGap, ic } = BX;   // ic = 항목 아이콘 크기 (담당자: 36~40px)
   const textX = x + pad + ic + 10;
   const items = z.items.map(t => ({ icon: typeof t === 'string' ? null : t.icon, lines: wrap(typeof t === 'string' ? t : t.text, fsI, x + w - pad - textX) }));
   const rowH = (it) => Math.max(ic, it.lines.length * lh);
@@ -426,7 +431,7 @@ function zoneBox(z, i) {
   const headH = pad + fsT + 6 + fsP + 12;                  // 제목 + 장소 + 구분선까지
   const h = Math.round(headH + 14 + bodyH + pad);
   const y = z.box.y ?? z.box.top ?? (z.box.bottom - h);    // top 또는 bottom 으로 맞춤
-  const num = String(i + 1).padStart(2, '0');
+  const num = z.num || String(i + 1).padStart(2, '0');
   const sc = z.safety && AURI_COLORS[z.safety] ? `rgb(${AURI_COLORS[z.safety].rgb.join(',')})` : C.main;   // 안전사고 유형 색 (자살 청·범죄 녹·생활안전 보라)
   const out = [];
   out.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${C.box}" opacity="0.96" stroke="${C.line}" stroke-width="1"/>`);
@@ -493,6 +498,8 @@ function smoothPath(pts) {
 const ROUTE_STYLE = {
   patrol: { color: C.main, w: 4, dash: '2 9' },
   link: { color: C.navy, w: 5, dash: '12 8' },
+  yellow: { color: '#F2C400', w: 5, dash: null, noHead: true },
+  reddash: { color: '#E03C3C', w: 4, dash: '3 8', noHead: true },
 };
 /* 도로 꼭짓점(px) 목록 — 검정 화살표를 초안 자리가 아니라 우리 지도의 도로 위로 옮길 때 씁니다 */
 let roadVertsPx = null;
@@ -513,7 +520,7 @@ function routeSvg(r) {
     for (let k = 0; k < 2 && pts.length > 2; k++) { const o = [pts[0]]; for (let i = 0; i < pts.length - 1; i++) { const p = pts[i], q = pts[i + 1]; if (i > 0) o.push([p[0] * 0.75 + q[0] * 0.25, p[1] * 0.75 + q[1] * 0.25]); if (i < pts.length - 2) o.push([p[0] * 0.25 + q[0] * 0.75, p[1] * 0.25 + q[1] * 0.75]); } o.push(pts[pts.length - 1]); pts = o; }
   }
   const d = smoothPath(pts);
-  const heads = r.heads || [false, true];
+  const heads = r.heads || (st.noHead ? [false, false] : [false, true]);
   const head = (tip, from) => {        // tip 을 꼭짓점으로, from→tip 방향의 삼각형
     const L = st.w * 3.2, Wd = st.w * 1.9;
     const ang = Math.atan2(tip[1] - from[1], tip[0] - from[0]);
@@ -523,14 +530,14 @@ function routeSvg(r) {
   };
   const n = pts.length;
   return `<path d="${d}" fill="none" stroke="#FFFFFF" opacity="0.8" stroke-width="${st.w + 4}" stroke-linecap="round"/>
-<path d="${d}" fill="none" stroke="${st.color}" stroke-width="${st.w}" stroke-dasharray="${st.dash}" stroke-linecap="round"/>
+<path d="${d}" fill="none" stroke="${st.color}" stroke-width="${st.w}"${st.dash ? ` stroke-dasharray="${st.dash}"` : ''} stroke-linecap="round"/>
 ${heads[0] ? head(pts[0], pts[1]) : ''}${heads[1] ? head(pts[n - 1], pts[n - 2]) : ''}`;
 }
 
 /* ── 범례·축척·제목 ──────────────────────────────────────────────── */
 function legendSvg2() {
   const LP = cfg.legendPos; if (!LP || !(cfg.legend || []).length) return { svg: '', rect: null };
-  const w = LP.w || 440, fs = 14, rowH = 24, pad = 12;
+  const w = LP.w || 440, fs = LP.fs || 14, rowH = LP.rowH || 24, pad = 12;
   const rows = cfg.legend;
   const h = rows.length * rowH + pad * 2 - 4;
   const x = LP.x ?? (W - 60 - w), y = LP.y ?? (LP.bottom - h);
@@ -543,6 +550,10 @@ function legendSvg2() {
       case 'patrol': g = `<line x1="${lx}" y1="${cy}" x2="${lx + sw}" y2="${cy}" stroke="${C.main}" stroke-width="3.5" stroke-dasharray="2 6" stroke-linecap="round"/><path d="M${lx + sw + 2} ${cy}l-8 -4.5v9z" fill="${C.main}"/><path d="M${lx - 2} ${cy}l8 -4.5v9z" fill="${C.main}"/>`; break;
       case 'survey': g = `<line x1="${lx}" y1="${cy}" x2="${lx + sw}" y2="${cy}" stroke="${SURVEY_COLOR}" stroke-width="1.6"/>`; break;
       case 'zone': g = `<rect x="${lx}" y="${cy - 8}" width="${sw}" height="16" fill="#fff" fill-opacity=".3" stroke="${C.main}" stroke-width="2.6"/>`; break;
+      case 'yellow': g = `<line x1="${lx}" y1="${cy}" x2="${lx + sw}" y2="${cy}" stroke="#F2C400" stroke-width="5" stroke-linecap="round"/>`; break;
+      case 'reddash': g = `<line x1="${lx}" y1="${cy}" x2="${lx + sw}" y2="${cy}" stroke="#E03C3C" stroke-width="4" stroke-dasharray="3 8" stroke-linecap="round"/>`; break;
+      case 'zonepoly': { const c = AURI_COLORS[r.key] ? AURI_COLORS[r.key].rgb : [128, 128, 128]; const col = `rgb(${c.join(',')})`; g = `<rect x="${lx}" y="${cy - 8}" width="${sw}" height="16" fill="${col}" opacity=".13"/><rect x="${lx}" y="${cy - 8}" width="${sw}" height="16" fill="none" stroke="${col}" stroke-width="2.4"/>`; break; }
+      case 'poi': g = `<circle cx="${lx + sw / 2}" cy="${cy}" r="6" fill="#E03C3C" stroke="#fff" stroke-width="2"/>`; break;
       case 'heat': { const keys = r.keys || [r.key]; const each = Math.floor((sw - (keys.length - 1) * 3) / keys.length); g = keys.map((k, j) => `<rect x="${lx + j * (each + 3)}" y="${cy - 8}" width="${each}" height="16" fill="url(#lg-${k})"/>`).join(''); break; }
     }
     out.push(g, `<text x="${lx + sw + 12}" y="${cy + 5}" font-family="${FONT}" font-size="${fs}" fill="${C.text}">${esc(r.label)}</text>`);
@@ -651,12 +662,15 @@ ${L('07_건물_대상지안', P(bldgIn), `fill="${C.buildingIn}" stroke="${C.bui
 ${L('09_해안선', `<path d="${umdEdges.coast.join('')}"/>`, `fill="none" stroke="${C.umd}" stroke-width="0.5" opacity="0.7"`)}
 ${L('10_행정경계', `${umdEdges.shared.length ? `<path d="${umdEdges.shared.join('')}" stroke-width="2.2" stroke-dasharray="9 5"/>` : ''}${sgg.paths.length ? `<path d="${sgg.paths.join('')}" stroke-width="2.6"/>` : ''}`, `fill="none" stroke="${C.sgg}" opacity="0.95"`)}
 ${(cfg.style && cfg.style.dimOpacity === 0) ? '' : L('11_대상지밖_어둡게', `<path d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" opacity="${(cfg.style && cfg.style.dimOpacity) ?? 0.15}"/>`)}
-${zonePaths ? L('12_조사지_AURI', `<path d="${surveyPathAll}" fill="none" stroke="${SURVEY_COLOR}" stroke-width="1.4" opacity="0.95"/>`) : ''}
-${L('13_대상지_경계', `<path d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="8" opacity="0.5" stroke-linejoin="round"/>\n<path d="${zonePathAll}" fill="#FFFFFF" opacity="0.14" stroke="none"/>\n<path d="${zonePathAll}" fill="none" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>`)}
+${(cfg.style && cfg.style.hideZoneLines) ? '' : zonePaths ? L('12_조사지_AURI', `<path d="${surveyPathAll}" fill="none" stroke="${SURVEY_COLOR}" stroke-width="1.4" opacity="0.95"/>`) : ''}
+${(cfg.style && cfg.style.hideZoneLines) ? '' : L('13_대상지_경계', `<path d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="8" opacity="0.5" stroke-linejoin="round"/>\n<path d="${zonePathAll}" fill="#FFFFFF" opacity="0.14" stroke="none"/>\n<path d="${zonePathAll}" fill="none" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>`)}
+${L('13-1_사업지_구역', cfg.zones.flatMap(z => (z.polygons || []).map(pg => { const col = z.safety && AURI_COLORS[z.safety] ? `rgb(${AURI_COLORS[z.safety].rgb.join(',')})` : C.main; const d = ringPath(pg.draftPx ? pg.draftPx.map(draftToPx) : pg.epsg5179.map(from5179), 0.3); return d ? `<path d="${d}" fill="${col}" opacity="0.13"/><path d="${d}" fill="none" stroke="${col}" stroke-width="${pg.dashed ? 2.2 : 2.8}"${pg.dashed ? ' stroke-dasharray="9 6"' : ''} stroke-linejoin="round"/>` : ''; })).join('\n'))}
 ${L('14_구간표시', (cfg.routes || []).map(routeSvg).join('\n'))}
+${L('14-1_사업지_번호', cfg.zones.flatMap(z => (z.markers || []).map(m => { const [x, y] = anchorPx(m.at); const col = z.safety && AURI_COLORS[z.safety] ? `rgb(${AURI_COLORS[z.safety].rgb.join(',')})` : C.main; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="19" fill="${col}" stroke="#fff" stroke-width="2.5"/><text x="${x.toFixed(1)}" y="${(y + 7).toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="20" font-weight="700" fill="#fff">${esc(String(m.label))}</text>`; })).join('\n'))}
+${L('15-1_시설', (cfg.pois || []).map(p => { const [x, y] = anchorPx(p); const tw = textW(p.name, 13) + 14; const lx = p.side === 'left' ? x - 12 - tw : x + 12; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="#E03C3C" stroke="#fff" stroke-width="2"/><rect x="${lx.toFixed(1)}" y="${(y - 10).toFixed(1)}" width="${tw.toFixed(1)}" height="20" rx="3" fill="#fff" opacity="0.92"/><text x="${(lx + 7).toFixed(1)}" y="${(y + 4.5).toFixed(1)}" font-family="${FONT}" font-size="13" font-weight="700" fill="${C.text}">${esc(p.name)}</text>`; }).join('\n'))}
 ${L('15_지명', labelsSvg)}
 ${gridSvg}
-${L('16_지시선', zoneBoxes.flatMap(b => (b.z.anchors || [b.z.anchor]).map(a => DEBUG_GRID ? anchorDot(anchorPx(a), b.z.id) : leader(b.rect, anchorPx(a)))).join('\n'))}
+${L('16_지시선', zoneBoxes.flatMap(b => (b.z.anchors || (b.z.markers ? b.z.markers.map(m => m.at) : null) || [b.z.anchor]).map(a => DEBUG_GRID ? anchorDot(anchorPx(a), b.z.id) : leader(b.rect, anchorPx(a)))).join('\n'))}
 ${DEBUG_GRID ? '' : zoneBoxes.map((b, i) => L(`${String(17 + i).padStart(2, '0')}_사업지_${String(i + 1).padStart(2, '0')}`, b.svg)).join('\n')}
 ${DEBUG_GRID ? '' : L('21_제목', `<rect x="40" y="36" width="${titleW}" height="92" rx="6" fill="#fff" fill-opacity="0.94" stroke="${C.line}" stroke-width="1"/>
 <path d="M48 36H40V128H48Z" fill="${C.ink}"/>
