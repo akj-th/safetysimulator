@@ -1733,3 +1733,5 @@ AURI 답변: 사전진단서의 좁은 경계는 **산식 없이** 중점 3분�
 - 설정 v2: `zones[].polygons[{draftPx|epsg5179, dashed}]`, `zones[].markers[{label, at}]`(지시선 원점), `zones[].num`('⑤⑥'), `pois[{name, draftPx, side}]`, 구간선 style `yellow`·`reddash`(머리 없음), `style.hideZoneLines`(우리 대상지·조사지 선 감춤), `style.box`(상자 글자·아이콘 크기), `frame.center5179`, `keymap.below`. 범례 kind `zonepoly`·`poi`·`yellow`·`reddash`, `heat.keys[]`(한 줄에 3색).
 - 남해 1차 초안 설정은 `regions/namhae_v1_draft.json` 에 보관. 설정 조립 스크립트는 세션 스크래치(make-namhae-v2)였고 결과 JSON 이 정본입니다.
 - ⚠ 사천: SHP 폴더(`data/raw/SDM_5K/48240_sacheon/`)가 비어 있어 아직 못 만듭니다. 특징 추출(`sacheon_final_features*.json`)은 해 두었습니다. 노란 실선·빨간 점선의 뜻은 pptx 에 범례가 없어 **AURI 확인 필요**.
+- **사천 (2026-10-08)**: SHP 는 zip 으로 와서 폴더로 풀어 둠. 정합은 종합운동장·중앙시장·삼천포초 3점 **회전 포함 유사변환**(`affine5179 {a,b,c,d}`: X=a·x+b·y+c, Y=b·x−a·y+d, 축척 1.122 m/px · 회전 5.3°, 잔차 9·64·60m — 남해는 −5.7° 회전이 더 잘 맞았음. AURI 지도 캔버스가 조금 돌아가 있는 듯). 존 7개 → 상자 7개: 왼쪽 ①⑥④ + 키맵, 오른쪽 ⑦③⑤ + 범례, ② 는 바닥 가운데(바다 위). 지도 폭 5200m · offset [0,−150]. 편의점 3곳은 건물 레이어에 이름이 없어 초안 점 위치 그대로.
+- 같은 식으로 돌리는 순서: ① `extract-final.mjs` (필요하면 색 인자·`DIL=24`) → ② 시설 점 ↔ 건물 ANNO 로 affine 계산 → ③ `regions/<지역>.json` (존·시설·글) → ④ `npm run overview -- <지역>`.

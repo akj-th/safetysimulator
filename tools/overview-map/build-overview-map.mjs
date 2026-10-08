@@ -103,7 +103,7 @@ const from5179 = (p) => toPx(proj4(P5179, WGS, p));
 const DRAFT = cfg.draft || null;
 const draftToPx = ([dx, dy]) => {
   const af = DRAFT && DRAFT.affine5179;              // X = c + x*s · Y = d - y*s  (최종본: 시설 위치로 맞춤)
-  if (af) return from5179([af.c + dx * af.s, af.d - dy * af.s]);
+  if (af) { const A = af.a ?? af.s, B = af.b ?? 0; return from5179([A * dx + B * dy + af.c, B * dx - A * dy + af.d]); }   // 회전 있으면 a·b, 없으면 s
   const wt = DRAFT && DRAFT.world;                 // fit-draft 가 적는 값: 초안 px → 월드 px (zoom 기준)
   if (wt) { const k = 2 ** (Z - wt.zoom); const wx = (wt.x0 + dx * wt.scale) * k, wy = (wt.y0 + dy * wt.scale) * k; return [(wx - originX) * scale, (wy - originY) * scale]; }
   const t = DRAFT && DRAFT.transform; if (!t) throw new Error('cfg.draft.world 가 없습니다 — fit-draft.mjs 를 먼저 돌리세요');
