@@ -1,0 +1,36 @@
+import { feat, fit, ringOf, hullOf, circle, prev, M, items, frameFor, STYLE, RISKCFG, LEGEND, write, DOCS } from './compose-lib.mjs';
+const F = feat('yeongcheon'), af = fit('yeongcheon2');
+const cfg = {
+  region: 'yeongcheon', title: '영천시 중점관리분야 맞춤형 사업 종합도',
+  subtitle: '완산동·중앙동 일원 (영천공설시장 및 영천시청 일대)  |  중점 3분야 · 범죄 · 자살 · 교통사고',
+  sdm: 'data/raw/SDM_5K/47230_yeongcheon', survey: 'data/raw/gis_0901/최종 조사지/yeongcheon_OverlapUnion_1.shp',
+  frame: frameFor(F, af), draft: { file: `${DOCS}/3. 영천시/영천시 최종.png`, width: F.width, height: F.height, affine5179: af, note: '최종본 정합 2026-10-12 — 건물 윤곽 겹침 20% (축척 막대 1.055 m/px × 0.94, 회전 6.8°) · 시설 2점(시청·축협) 정합은 회전 4.4° — 확인 필요' },
+  style: { ...STYLE, box: { pad: 12, fsT: 17, fsP: 12, fsI: 12.5, lh: 16.5, rowGap: 3, ic: 21 } }, risk: RISKCFG,
+  labels: [{ text: '동부동', draftPx: [2700, 100], size: 20 }, { text: '중앙동', draftPx: [1225, 620], size: 20 }, { text: '서부동', draftPx: [420, 1140], size: 20 }, { text: '완산동', draftPx: [2190, 1670], size: 20 },
+    { text: '중앙사거리', draftPx: [905, 1350], size: 13 }, { text: '완산오거리', draftPx: [1385, 1625], size: 13 }, { text: '시장사거리', draftPx: [2085, 1725], size: 13 }, { text: '영천공설시장', draftPx: [1620, 1530], size: 13 }],
+  zones: [
+    { id: 'Z2C', num: '②', type: '주거생활형 [범죄]', place: '영천시청 인근 공동주택 단지', safety: 'crime', markers: [{ label: '2', at: M(1945, 378) }], polygons: [{ draftPx: hullOf(F, [5]), color: 'crime', dashed: true }],
+      box: { x: 60, top: 150, w: 440 }, items: items(['태양광 도로표지병·LED 보안등 추가 설치', '안심귀갓길 노면 표시 및 로고젝터 설치', '교차부·조도 취약구간 비상벨, 안내표지·노면 유도표시', '비상벨 경찰 연계 및 출동체계 구축', '경찰·자율방범대 야간 순찰동선, 반려견 산책 연계 순찰', '주거침입 예방용품(창문잠금장치·초인종·홈카메라 등) 지원', '피해자 긴급보호시설 운영, 범죄피해자 치료비 지원']) },
+    { id: 'Z5', num: '⑤', type: '주요 교차로형', place: '중앙사거리', safety: 'traffic', markers: [{ label: '5', at: M(1225, 1351) }], polygons: [{ draftPx: circle(1124, 1347, 62) }],
+      box: { x: 60, below: 'Z2C', gap: 8, w: 440 }, items: items(['보행 잔여시간 음향신호기·바닥형 보행 신호등 설치', '노인·어린이 보호 노면표시 설치', '보행 신호 시간 연장, 보행자 우선 출발 신호 운영', '어린이 체육시설·노인복지센터 이용자 교통안전 교육']) },
+    { id: 'Z4', num: '④', type: '주요 교차로형', place: '완산오거리', safety: 'traffic', markers: [{ label: '4', at: M(1480, 1724) }], polygons: [{ draftPx: circle(1384, 1717, 64) }],
+      box: { x: 60, below: 'Z5', gap: 8, w: 440 }, items: items(['회전교차로 도입 검토 및 설치', '교차로 진입부 감속 유도시설 설치', '교차로 진입부 노면 유도선 설치']) },
+    { id: 'Z2S', num: '②', type: '주거생활형 [자살]', place: '영천시청 일대 공동주택', safety: 'suicide', markers: [{ label: '2', at: M(2063, 709) }], polygons: [{ draftPx: hullOf(F, [5]) }],
+      box: { x: 1420, top: 150, w: 440 }, items: items(['고립위험가구 스마트플러그 보급(위기 감지)', '찾아가는 도시락 배달 연계 정기 안부 확인', '마트 연계 자살위험 조기발견·상담 안내 (나들가게 흠할인마트 / 릴레이할인유통 / 새로운슈퍼 / 하나로마트 영천축협본점)', '번개탄 판매형태 개선', '농약 안전보관함 설치']) },
+    { id: 'Z3', num: '③', type: '자연환경형', place: '영천강변공원·생태지구공원·영동교 인근', safety: 'suicide', markers: [{ label: '3', at: M(1436, 1381) }], polygons: [{ draftPx: ringOf(F, 7, 16) }, { draftPx: ringOf(F, 8, 16) }],
+      box: { x: 1420, below: 'Z2S', gap: 8, w: 440 }, items: items(['영동교 하부·산책로 LED 보안등·경관조명 확충', '교량 하부 로고젝터로 상담·신고 연락처 표출', '기존 CCTV 사각지대 점검·관제센터 연계', '영동교·영천교 난간 상향·추락 방지시설 보강', '교량 긴급신고·상담전화·이상행동 감지 CCTV', '통합관제센터 연계 경찰·소방 출동체계 구축']) },
+    { id: 'Z6', num: '⑥', type: '주거생활형', place: '완산3통경로당 인근 완산2길 일대', safety: 'traffic', markers: [{ label: '6', at: M(1942, 1549) }], polygons: [{ draftPx: prev(F, [[722, 612], [845, 602], [850, 638], [735, 648]]) }],
+      box: { x: 1420, below: 'Z3', gap: 8, w: 440 }, items: items(['완산2길 과속방지턱 추가 설치', '제한속도 표지 및 노면 속도 표시 설치', '주차장 출입구 반사경 설치', '노인보호구역 지정, 30km/h 이하 하향 검토', '경로당 이용자 대상 교통안전 교육', '어르신 반사용품 등 야간 보행 안전용품 지원']) },
+    { id: 'Z1', num: '①', type: '상업·유흥 밀집형', place: '영천공설시장 먹거리장터 일대', safety: 'crime', markers: [{ label: '1', at: M(1658, 1628) }], polygons: [{ draftPx: prev(F, [[598, 640], [775, 632], [775, 738], [600, 745]]) }],
+      box: { x: 520, bottom: 1050, w: 420 }, items: items(['시장 입구·주차장 입구 방범용 CCTV 설치, 촬영 안내표지판 부착', '시장 외곽 가로(시장2길·시장4길·시장로·완산로) 비상벨 설치', '비상벨 위치 안내표지·노면 유도표시, 경찰 연계 출동체계 구축', '도로표지병·바닥조명·라인조명·로고젝터·안심반사경 설치', '시장·주차장 입구 거점 경찰·자율방범대 순찰동선 지정']) },
+    { id: 'Z7', num: '⑦', type: '주거생활형', place: '완산로 시장사거리 일대', safety: 'traffic', markers: [{ label: '7', at: M(1874, 1700) }], polygons: [{ draftPx: circle(1757, 1691, 61) }],
+      box: { x: 960, bottom: 1050, w: 420 }, items: items(['음향신호기·바닥형 보행신호등', '노인 보호 노면표시 설치', '보행 신호 연장·보행자 우선 출발', '노인복지센터 어르신 교통안전 교육']) },
+  ],
+  pois: [{ name: '릴레이할인유통', draftPx: [1997, 492] }, { name: '영천시청', draftPx: [1749, 682], side: 'left' }, { name: '하나로마트 영천축협본점', draftPx: [1887, 823], side: 'left' }, { name: '새로운슈퍼', draftPx: [1977, 810] },
+    { name: '영천강변공원', draftPx: [2087, 1137] }, { name: '영동교', draftPx: [1749, 1159], side: 'left' }, { name: '영천생태지구공원', draftPx: [1693, 1268], side: 'left' }, { name: '영천교', draftPx: [1201, 1547], side: 'left' }],
+  routes: [],
+  keymap: { x: 60, y: 0, below: 'Z4', gap: 8, w: 440, h: 110, name: '영천시', label: '영천시 전체 · 지도 범위' },
+  legend: LEGEND(['crime', 'suicide', 'traffic'], ['범죄', '자살', '교통사고']),
+  legendPos: { x: 1420, below: 'Z6', gap: 8, w: 440, rowH: 21, fs: 12.5 },
+};
+write('yeongcheon', cfg);

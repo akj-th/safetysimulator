@@ -32,13 +32,24 @@ const { w, h, ch, data } = img;
 const px = (x, y) => { const o = (y * w + x) * ch; return [data[o], data[o + 1], data[o + 2]]; };
 const near = (c, ref, tol) => Math.abs(c[0] - ref[0]) <= tol && Math.abs(c[1] - ref[1]) <= tol && Math.abs(c[2] - ref[2]) <= tol;
 
-/* 색 (R,G,B) — 안전 유형 색은 마커·윤곽 공용 */
+/* 색 (R,G,B) — 안전 유형마다 여러 색을 둡니다. 판마다 윤곽선 색과 번호 원 색이 다르기 때문입니다
+   (남해·사천 1판: 녹 30,142,62 / 9개 지자체 판: 윤곽 0,255,0 · 번호 원 0,176,80 또는 112,173,71 …).
+   2026-10-12 9개 지자체 최종본의 색 히스토그램에서 찍은 값. 다른 판이 오면 여기 또는 넷째 인자(JSON)로 더합니다. */
 const COLORS = {
-  crime: [30, 142, 62], suicide: [31, 95, 168], life: [123, 63, 160], infection: [222, 120, 40],
-  dot: [209, 61, 65], yellow: [247, 200, 40], redline: [230, 40, 40],
+  crime: [[30, 142, 62], [0, 255, 0], [0, 176, 80], [112, 173, 71], [0, 195, 0], [0, 137, 0]],
+  suicide: [[31, 95, 168], [0, 0, 255], [0, 112, 192], [68, 114, 196], [21, 101, 192]],
+  life: [[123, 63, 160], [128, 0, 128], [88, 57, 148]],
+  infection: [[222, 120, 40], [230, 81, 0], [255, 140, 0], [237, 125, 49]],
+  fire: [[35, 35, 145]],
+  traffic: [[255, 255, 0], [255, 192, 0]],
+  industrial: [[255, 0, 0], [229, 57, 53]],
+  dot: [[209, 61, 65], [255, 0, 0], [229, 57, 53]],
+  yellow: [[247, 200, 40]], redline: [[230, 40, 40]],
 };
-const TOL = { crime: 34, suicide: 34, life: 34, infection: 34, dot: 28, yellow: 45, redline: 40 };
-if (process.argv[4]) { const o = JSON.parse(process.argv[4]); for (const k in o) { if (Array.isArray(o[k])) COLORS[k] = o[k].slice(0, 3); if (o[k].length === 4) TOL[k] = o[k][3]; } }
+const TOL = { crime: 30, suicide: 30, life: 30, infection: 30, fire: 26, traffic: 30, industrial: 26, dot: 28, yellow: 45, redline: 40 };
+if (process.argv[4]) { const o = JSON.parse(process.argv[4]); for (const k in o) { const v = o[k]; const list = Array.isArray(v[0]) ? v : [v]; COLORS[k] = list.map(c => c.slice(0, 3)); const t = list.find(c => c.length === 4); if (t) TOL[k] = t[3]; } }
+const ZONE_KINDS = (process.env.KINDS || 'crime,suicide,life,infection,fire,traffic,industrial').split(',');   // 이 판에서 찾을 유형만 (KINDS=crime,suicide,traffic)
+const nearAny = (c, kind) => COLORS[kind].some(ref => near(c, ref, TOL[kind]));
 
 /* 색 마스크 → 연결 요소 (4방향) */
 function mask(test) { const m = new Uint8Array(w * h); for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (test(px(x, y))) m[y * w + x] = 1; return m; }
@@ -120,7 +131,7 @@ const result = { file, width: w, height: h, dots: [], markers: [], zones: [], li
 const S = w / 3141;                                   // 남해 최종본 기준 크기 비율
 
 /* 빨간 점 */
-{ const m = mask(c => near(c, COLORS.dot, TOL.dot)); const { list } = comps(m, 60 * S * S);
+{ const m = mask(c => nearAny(c, 'dot')); const { list } = comps(m, 60 * S * S);
   const cand = list.filter(c => c.bw <= 60 * S && c.bh <= 60 * S && c.n > 0.5 * c.bw * c.bh).map(c => ({ x: c.x, y: c.y, r: +((c.bw + c.bh) / 4).toFixed(1) }));
   const nearest = (a) => Math.min(...cand.filter(b => b !== a).map(b => Math.hypot(a.x - b.x, a.y - b.y)), Infinity);
   const dash = cand.filter(a => nearest(a) <= 90 * S);           // 이웃이 가까우면 점선의 한 토막
@@ -128,12 +139,14 @@ const S = w / 3141;                                   // 남해 최종본 기준
   for (const ch of chains(dash, 95 * S)) if (ch.length >= 3) result.lines.push({ kind: 'reddash', points: ch.map(p => [+p[0].toFixed(1), +p[1].toFixed(1)]) }); }
 
 /* 유형 색 — 마커(꽉 찬 원) · 윤곽(길고 성긴 요소) */
-for (const [kind, ref] of Object.entries({ crime: COLORS.crime, suicide: COLORS.suicide, life: COLORS.life, infection: COLORS.infection })) {
-  const m = mask(c => near(c, ref, TOL[kind]));
+for (const kind of ZONE_KINDS) {
+  const m = mask(c => nearAny(c, kind));
   const { lab, list } = comps(m, 40);
   for (const c of list) {
     const fill = c.n / (c.bw * c.bh), size = Math.max(c.bw, c.bh);
     if (size >= 50 * S && size <= 140 * S && fill > 0.45 && Math.abs(c.bw - c.bh) < 0.3 * size) { result.markers.push({ kind, x: c.x, y: c.y, r: +(size / 2).toFixed(1) }); continue; }
+    /* 속이 빈 원(테두리만 색): 홍천·영천의 교차로 원 표시, 포천 ③ 처럼 번호 원이 겹친 자리 */
+    if (size >= 50 * S && size <= 200 * S && fill > 0.08 && fill <= 0.45 && Math.abs(c.bw - c.bh) < 0.2 * size) { result.markers.push({ kind, x: c.x, y: c.y, r: +(size / 2).toFixed(1), ring: true }); }
   }
   /* 윤곽: 점선을 잇기 위해 팽창한 뒤 다시 요소를 잡음 */
   const dm = dilate(m, Math.round((+process.env.DIL || 9) * S));   // 점선 윤곽은 DIL=24 처럼 키워서 한 번 더
@@ -142,7 +155,8 @@ for (const [kind, ref] of Object.entries({ crime: COLORS.crime, suicide: COLORS.
     const size = Math.max(c.bw, c.bh); if (size < 150 * S) continue;
     const fill = c.n / (c.bw * c.bh); if (fill > 0.6) continue;           // 꽉 찬 것은 마커·글상자
     let poly = insidePolygon(dm, dl, c);
-    if (!poly) poly = insideByCells(dm, dl, c, Math.round(22 * S), 2);   // 틈이 있으면 격자로 닫아서
+    /* 윤곽이 라벨·번호 원에 끊기면 안쪽이 작은 조각만 잡힙니다 → 경계 상자의 12% 미만이면 격자로 닫아 다시 */
+    if (!poly || poly.area < 0.12 * c.bw * c.bh) { const q = insideByCells(dm, dl, c, Math.round(22 * S), 2); if (q && (!poly || q.area > poly.area)) poly = q; }
     if (process.env.DEBUG) console.log('   [윤곽 후보]', kind, 'size', size, 'fill', fill.toFixed(2), 'bbox', c.minx, c.miny, c.maxx, c.maxy, poly ? 'area ' + poly.area : '안쪽 없음');
     if (!poly) continue;
     result.zones.push({ kind, x: c.x, y: c.y, bbox: [c.minx, c.miny, c.maxx, c.maxy], area: poly.area, ring: poly.ring, closedByCells: !!poly.closedByCells });
@@ -150,8 +164,8 @@ for (const [kind, ref] of Object.entries({ crime: COLORS.crime, suicide: COLORS.
 }
 
 /* 구간선: 노랑 · 빨강(점·굵은선) */
-for (const [kind, ref, tol] of [['yellow', COLORS.yellow, 45], ['redline', COLORS.redline, 40]]) {
-  const m = mask(c => near(c, ref, tol) && !(kind === 'redline' && near(c, COLORS.dot, 10)));
+for (const kind of (process.env.LINES || 'yellow,redline').split(',').filter(Boolean)) {
+  const m = mask(c => nearAny(c, kind) && !(kind === 'redline' && nearAny(c, 'dot')));
   const { lab, list } = comps(m, 30 * S * S);
   const cell = Math.round(14 * S);
   for (const c of list) {

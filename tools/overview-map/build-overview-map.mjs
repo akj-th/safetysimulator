@@ -123,15 +123,26 @@ const MARGIN = 40;
 const inFrame = (bboxPx) => bboxPx[2] >= -MARGIN && bboxPx[0] <= W + MARGIN && bboxPx[3] >= -MARGIN && bboxPx[1] <= H + MARGIN;
 
 /* ── SHP 레이어 읽기 → 화면 px 경로 ────────────────────────────────── */
-function findLayer(code) {
-  const dir = path.join(ROOT, cfg.sdm);
-  for (const d of fs.readdirSync(dir)) {
-    const sub = path.join(dir, d);
-    if (!fs.statSync(sub).isDirectory()) continue;
-    const shp = fs.readdirSync(sub).find(f => /\.shp$/i.test(f) && f.includes(code));
-    if (shp) return path.join(sub, shp);
+/* cfg.sdm 은 폴더 하나(문자열) 또는 여러 개(배열). 부천처럼 구 단위로 나뉘어 온 지자체는
+   폴더를 배열로 적으면 같은 코드의 SHP 를 전부 읽어 하나로 합칩니다. */
+function findLayers(code) {
+  const out = [];
+  for (const sd of (Array.isArray(cfg.sdm) ? cfg.sdm : [cfg.sdm])) {
+    const dir = path.join(ROOT, sd);
+    for (const d of fs.readdirSync(dir)) {
+      const sub = path.join(dir, d);
+      if (!fs.statSync(sub).isDirectory()) continue;
+      const shp = fs.readdirSync(sub).find(f => /\.shp$/i.test(f) && f.includes(code));
+      if (shp) out.push(path.join(sub, shp));
+    }
   }
-  return null;
+  return out;
+}
+function findLayer(code) { return findLayers(code)[0] || null; }
+function readLayer(code, withRows) {
+  const files = findLayers(code), shapes = [], rows = [];
+  for (const f of files) { for (const sh of readPolygons(f)) shapes.push(sh); if (withRows) for (const r of readDbf(f.replace(/\.shp$/i, '.dbf'), { encoding: 'auto' })) rows.push(r); }   // spread(...) 는 24만 동(포천)에서 스택 초과
+  return { files, shapes, rows: withRows ? rows : null };
 }
 
 /* 더글러스-포이커 단순화 (px 단위) */
@@ -202,10 +213,9 @@ function ringPath(ring, tol = 0.35) {
 
 /** 레이어를 읽어 창 안의 도형만 px 경로 문자열 배열로 */
 function layerPaths(code, opts = {}) {
-  const shp = findLayer(code);
-  if (!shp) { console.warn(`  ⚠ ${code} 레이어 없음 — 건너뜀`); return { paths: [], rows: [], n: 0 }; }
-  const shapes = readPolygons(shp);
-  const rows = opts.attrs ? readDbf(shp.replace(/\.shp$/i, '.dbf'), { encoding: 'auto' }) : null;
+  const Lr = readLayer(code, !!opts.attrs);
+  if (!Lr.files.length) { console.warn(`  ⚠ ${code} 레이어 없음 — 건너뜀`); return { paths: [], rows: [], n: 0, rings5179: [] }; }
+  const shapes = Lr.shapes, rows = Lr.rows;
   const paths = [], keptRows = [], rings5179 = [];
   for (let i = 0; i < shapes.length; i++) {
     const s = shapes[i];
@@ -236,12 +246,14 @@ const sgg = layerPaths('G0100000', { tol: 0.3 });
 function keymapSvg() {
   const K = cfg.keymap; if (!K) return '';
   if (K.below && rectOf[K.below]) K.y = rectOf[K.below].y + rectOf[K.below].h + (K.gap ?? 12);
-  const shp = findLayer('G0100000'); if (!shp) return '';
-  const shapes = readPolygons(shp), rows = readDbf(shp.replace(/\.shp$/i, '.dbf'), { encoding: 'auto' });
+  const Lr = readLayer('G0100000', true); if (!Lr.files.length) return '';
+  const shapes = Lr.shapes, rows = Lr.rows;
   const want = K.name || (cfg.title || '').slice(0, 3);
-  let idx = rows.findIndex(r => (r.NAME || '').includes(want));
-  if (idx < 0) idx = shapes.map((sh, i) => [i, (sh.bbox[2] - sh.bbox[0]) * (sh.bbox[3] - sh.bbox[1])]).sort((a, b) => b[1] - a[1])[0][0];
-  const sh = shapes[idx];
+  let idxs = rows.map((r, i) => (r.NAME || '').includes(want) ? i : -1).filter(i => i >= 0);
+  if (K.all) idxs = shapes.map((_, i) => i);                                   // 폴더가 여러 개(부천 원미·소사구)면 전부 합쳐 그림
+  if (!idxs.length) idxs = [shapes.map((sh, i) => [i, (sh.bbox[2] - sh.bbox[0]) * (sh.bbox[3] - sh.bbox[1])]).sort((a, b) => b[1] - a[1])[0][0]];
+  const idx = idxs[0];
+  const sh = { rings: idxs.flatMap(i => shapes[i].rings), bbox: idxs.reduce((b, i) => { const q = shapes[i].bbox; return [Math.min(b[0], q[0]), Math.min(b[1], q[1]), Math.max(b[2], q[2]), Math.max(b[3], q[3])]; }, [Infinity, Infinity, -Infinity, -Infinity]) };
   const pad = 10, labelH = 24;
   const bw = K.w - pad * 2, bh = K.h - pad * 2 - labelH;
   const sx = bw / (sh.bbox[2] - sh.bbox[0]), sy = bh / (sh.bbox[3] - sh.bbox[1]), k = Math.min(sx, sy);
@@ -263,8 +275,8 @@ const umd = layerPaths('G0110000', { tol: 0.3 });
 /* 읍면 폴리곤에서 "두 읍면이 함께 쓰는 변"만 행정경계로, 나머지(바다와 닿는 변)는 해안선으로 나눕니다.
    폴리곤 경계선을 통째로 점선으로 그리면 해안선까지 행정경계처럼 보이기 때문입니다. */
 function splitSharedEdges(code) {
-  const shp = findLayer(code); if (!shp) return { shared: [], coast: [] };
-  const shapes = readPolygons(shp);
+  const Lr = readLayer(code); if (!Lr.files.length) return { shared: [], coast: [] };
+  const shapes = Lr.shapes;
   const key = (p) => p[0].toFixed(1) + ',' + p[1].toFixed(1);
   const owner = new Map();                       // 변 → 그 변을 쓰는 폴리곤 번호들
   const segs = [];
@@ -540,6 +552,7 @@ function legendSvg2() {
   const w = LP.w || 440, fs = LP.fs || 14, rowH = LP.rowH || 24, pad = 12;
   const rows = cfg.legend;
   const h = rows.length * rowH + pad * 2 - 4;
+  if (LP.below && rectOf[LP.below]) LP.y = rectOf[LP.below].y + rectOf[LP.below].h + (LP.gap ?? 12);   // 상자 아래에 붙이기 (키맵과 같은 방식)
   const x = LP.x ?? (W - 60 - w), y = LP.y ?? (LP.bottom - h);
   const out = [`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="#fff" fill-opacity="0.96" stroke="${C.line}" stroke-width="1"/>`];
   rows.forEach((r, i) => {
@@ -641,6 +654,16 @@ const labelsSvg = (cfg.labels || []).map(l => {
 const titleW = Math.max(560, textW(cfg.title, 30) + 60).toFixed(0);
 
 const L = (id, inner, attrs = '') => inner && inner.trim() ? `<g id="${id}"${attrs ? ' ' + attrs : ''}>\n${inner}\n</g>` : '';
+/* --draft : AURI 초안·최종 이미지를 정합값(affine5179 등)대로 반투명하게 얹어 확인 (제출본에는 넣지 않음) */
+function draftOverlay() {
+  if (!ARGS.draft || !DRAFT || !DRAFT.file) return '';
+  const file = path.join(ROOT, DRAFT.file); if (!fs.existsSync(file)) { console.warn('  ⚠ --draft: 이미지 없음 ' + file); return ''; }
+  const dw = DRAFT.width, dh = DRAFT.height;
+  const [x0, y0] = draftToPx([0, 0]), [x1, y1] = draftToPx([dw, 0]), [x2, y2] = draftToPx([0, dh]);
+  const a = (x1 - x0) / dw, b = (y1 - y0) / dw, c = (x2 - x0) / dh, d = (y2 - y0) / dh;
+  const mime = /.jpe?g$/i.test(file) ? 'image/jpeg' : 'image/png';
+  return `<g id="99_초안겹침" opacity="${+ARGS.draftOpacity || 0.5}"><image xlink:href="data:${mime};base64,${fs.readFileSync(file).toString('base64')}" x="0" y="0" width="${dw}" height="${dh}" transform="matrix(${a} ${b} ${c} ${d} ${x0} ${y0})"/></g>`;
+}
 const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 <title>${esc(cfg.title)}</title>
@@ -664,7 +687,7 @@ ${L('10_행정경계', `${umdEdges.shared.length ? `<path d="${umdEdges.shared.j
 ${(cfg.style && cfg.style.dimOpacity === 0) ? '' : L('11_대상지밖_어둡게', `<path d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" opacity="${(cfg.style && cfg.style.dimOpacity) ?? 0.15}"/>`)}
 ${(cfg.style && cfg.style.hideZoneLines) ? '' : zonePaths ? L('12_조사지_AURI', `<path d="${surveyPathAll}" fill="none" stroke="${SURVEY_COLOR}" stroke-width="1.4" opacity="0.95"/>`) : ''}
 ${(cfg.style && cfg.style.hideZoneLines) ? '' : L('13_대상지_경계', `<path d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="8" opacity="0.5" stroke-linejoin="round"/>\n<path d="${zonePathAll}" fill="#FFFFFF" opacity="0.14" stroke="none"/>\n<path d="${zonePathAll}" fill="none" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>`)}
-${L('13-1_사업지_구역', cfg.zones.flatMap(z => (z.polygons || []).map(pg => { const col = z.safety && AURI_COLORS[z.safety] ? `rgb(${AURI_COLORS[z.safety].rgb.join(',')})` : C.main; const d = ringPath(pg.draftPx ? pg.draftPx.map(draftToPx) : pg.epsg5179.map(from5179), 0.3); return d ? `<path d="${d}" fill="${col}" opacity="0.13"/><path d="${d}" fill="none" stroke="${col}" stroke-width="${pg.dashed ? 2.2 : 2.8}"${pg.dashed ? ' stroke-dasharray="9 6"' : ''} stroke-linejoin="round"/>` : ''; })).join('\n'))}
+${L('13-1_사업지_구역', cfg.zones.flatMap(z => (z.polygons || []).map(pg => { const sk = pg.color || z.safety; const col = sk && AURI_COLORS[sk] ? `rgb(${AURI_COLORS[sk].rgb.join(',')})` : C.main; const d = ringPath(pg.draftPx ? pg.draftPx.map(draftToPx) : pg.epsg5179.map(from5179), 0.3); return d ? `<path d="${d}" fill="${col}" opacity="0.13"/><path d="${d}" fill="none" stroke="${col}" stroke-width="${pg.dashed ? 2.2 : 2.8}"${pg.dashed ? ' stroke-dasharray="9 6"' : ''} stroke-linejoin="round"/>` : ''; })).join('\n'))}
 ${L('14_구간표시', (cfg.routes || []).map(routeSvg).join('\n'))}
 ${L('14-1_사업지_번호', cfg.zones.flatMap(z => (z.markers || []).map(m => { const [x, y] = anchorPx(m.at); const col = z.safety && AURI_COLORS[z.safety] ? `rgb(${AURI_COLORS[z.safety].rgb.join(',')})` : C.main; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="19" fill="${col}" stroke="#fff" stroke-width="2.5"/><text x="${x.toFixed(1)}" y="${(y + 7).toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="20" font-weight="700" fill="#fff">${esc(String(m.label))}</text>`; })).join('\n'))}
 ${L('15-1_시설', (cfg.pois || []).map(p => { const [x, y] = anchorPx(p); const tw = textW(p.name, 13) + 14; const lx = p.side === 'left' ? x - 12 - tw : x + 12; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="#E03C3C" stroke="#fff" stroke-width="2"/><rect x="${lx.toFixed(1)}" y="${(y - 10).toFixed(1)}" width="${tw.toFixed(1)}" height="20" rx="3" fill="#fff" opacity="0.92"/><text x="${(lx + 7).toFixed(1)}" y="${(y + 4.5).toFixed(1)}" font-family="${FONT}" font-size="13" font-weight="700" fill="${C.text}">${esc(p.name)}</text>`; }).join('\n'))}
@@ -679,6 +702,7 @@ ${DEBUG_GRID ? '' : L('21_제목', `<rect x="40" y="36" width="${titleW}" height
 ${L('22_방위', northArrow(W - 60, 72))}
 ${DEBUG_GRID ? '' : L('24_키맵', keymapSvg())}
 ${DEBUG_GRID ? '' : L('23_범례', legendSvg2().svg)}
+${draftOverlay()}
 </svg>`;
 
 /* 초안 맞추기(fit-draft.mjs)가 쓰는 화면 정보: 육지 폴리곤(px) + 투영값 */
