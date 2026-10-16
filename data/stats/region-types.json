@@ -1,0 +1,1140 @@
+{
+  "generatedAt": "2026-10-16",
+  "rule": "구→도심형 · 시: 밀도≥1500 도심형 / 300~1500 도농복합형 / <300 농촌형 · 군: 밀도≥150 도농복합형 / <150 농촌형 · 보조표기 고령(65+≥25%) · 조사지 고밀(조사지 1ha당 3개년 출동 ≥15건)",
+  "sources": [
+    "data/raw/population/202608 주민등록(시군구 합계)",
+    "data/dong/<지역>.json 법정동 경계 합산 면적",
+    "data/stats/index.json"
+  ],
+  "regions": [
+    {
+      "region": "geumcheon",
+      "label": "서울특별시 금천구",
+      "short": "금천구",
+      "suffix": "구",
+      "type": "도심형",
+      "why": "특별·광역시 자치구",
+      "tags": [],
+      "population": 222368,
+      "households": 122242,
+      "areaKm2": 13,
+      "densityPerKm2": 17167,
+      "elderlyShare": 23.2,
+      "surveyAreaHa": 90.58,
+      "incidents3y": 2873,
+      "insidePerHa": 4.3,
+      "dongCount": 3,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "sggCodes": [
+        "11545"
+      ]
+    },
+    {
+      "region": "michuhol",
+      "label": "인천광역시 미추홀구",
+      "short": "미추홀구",
+      "suffix": "구",
+      "type": "도심형",
+      "why": "특별·광역시 자치구",
+      "tags": [],
+      "population": 419123,
+      "households": 207969,
+      "areaKm2": 24.8,
+      "densityPerKm2": 16925,
+      "elderlyShare": 22.2,
+      "surveyAreaHa": 188.07,
+      "incidents3y": 4455,
+      "insidePerHa": 4.9,
+      "dongCount": 7,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "sggCodes": [
+        "28177"
+      ]
+    },
+    {
+      "region": "gwanak",
+      "label": "서울특별시 관악구",
+      "short": "관악구",
+      "suffix": "구",
+      "type": "도심형",
+      "why": "특별·광역시 자치구",
+      "tags": [],
+      "population": 477297,
+      "households": 291443,
+      "areaKm2": 29.4,
+      "densityPerKm2": 16228,
+      "elderlyShare": 19.7,
+      "surveyAreaHa": 110.01,
+      "incidents3y": 4279,
+      "insidePerHa": 7.4,
+      "dongCount": 3,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "sggCodes": [
+        "11620"
+      ]
+    },
+    {
+      "region": "gjunggu",
+      "label": "대구광역시 중구",
+      "short": "대구 중구",
+      "suffix": "구",
+      "type": "도심형",
+      "why": "특별·광역시 자치구",
+      "tags": [],
+      "population": 101894,
+      "households": 51245,
+      "areaKm2": 7,
+      "densityPerKm2": 14515,
+      "elderlyShare": 18.5,
+      "surveyAreaHa": 75.39,
+      "incidents3y": 2015,
+      "insidePerHa": 9.6,
+      "dongCount": 54,
+      "focusTypes": [
+        "범죄",
+        "산업재해",
+        "자살"
+      ],
+      "sggCodes": [
+        "27110"
+      ]
+    },
+    {
+      "region": "bucheon",
+      "label": "경기도 부천시",
+      "short": "부천시",
+      "suffix": "시",
+      "type": "도심형",
+      "why": "시 · 인구밀도 14153명/km²",
+      "tags": [
+        "조사지 고밀"
+      ],
+      "population": 754159,
+      "households": 344209,
+      "areaKm2": 53.3,
+      "densityPerKm2": 14153,
+      "elderlyShare": 21.6,
+      "surveyAreaHa": 254.37,
+      "incidents3y": 27365,
+      "insidePerHa": 17.6,
+      "dongCount": 25,
+      "focusTypes": [
+        "범죄",
+        "감염병",
+        "자살"
+      ],
+      "sggCodes": [
+        "41190"
+      ]
+    },
+    {
+      "region": "donggu",
+      "label": "부산광역시 동구",
+      "short": "부산 동구",
+      "suffix": "구",
+      "type": "도심형",
+      "why": "특별·광역시 자치구",
+      "tags": [
+        "고령"
+      ],
+      "population": 83115,
+      "households": 46290,
+      "areaKm2": 9.9,
+      "densityPerKm2": 8419,
+      "elderlyShare": 31.2,
+      "surveyAreaHa": 50.66,
+      "incidents3y": 1330,
+      "insidePerHa": 5.4,
+      "dongCount": 4,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "sggCodes": [
+        "26170"
+      ]
+    },
+    {
+      "region": "yeongdogu",
+      "label": "부산광역시 영도구",
+      "short": "영도구",
+      "suffix": "구",
+      "type": "도심형",
+      "why": "특별·광역시 자치구",
+      "tags": [
+        "고령"
+      ],
+      "population": 100170,
+      "households": 53125,
+      "areaKm2": 14.2,
+      "densityPerKm2": 7072,
+      "elderlyShare": 35.3,
+      "surveyAreaHa": 77.12,
+      "incidents3y": 979,
+      "insidePerHa": 5,
+      "dongCount": 21,
+      "focusTypes": [
+        "범죄",
+        "산업재해",
+        "자살"
+      ],
+      "sggCodes": [
+        "26200"
+      ]
+    },
+    {
+      "region": "ujunggu",
+      "label": "울산광역시 중구",
+      "short": "울산 중구",
+      "suffix": "구",
+      "type": "도심형",
+      "why": "특별·광역시 자치구",
+      "tags": [],
+      "population": 202545,
+      "households": 95164,
+      "areaKm2": 36.8,
+      "densityPerKm2": 5504,
+      "elderlyShare": 23.1,
+      "surveyAreaHa": 185.19,
+      "incidents3y": 2462,
+      "insidePerHa": 2.5,
+      "dongCount": 18,
+      "focusTypes": [
+        "화재",
+        "범죄",
+        "자살"
+      ],
+      "sggCodes": [
+        "31110"
+      ]
+    },
+    {
+      "region": "sasanggu",
+      "label": "부산광역시 사상구",
+      "short": "사상구",
+      "suffix": "구",
+      "type": "도심형",
+      "why": "특별·광역시 자치구",
+      "tags": [
+        "고령"
+      ],
+      "population": 191912,
+      "households": 98617,
+      "areaKm2": 36,
+      "densityPerKm2": 5324,
+      "elderlyShare": 27.7,
+      "surveyAreaHa": 66.4,
+      "incidents3y": 2600,
+      "insidePerHa": 3.9,
+      "dongCount": 8,
+      "focusTypes": [
+        "범죄",
+        "생활안전",
+        "자살"
+      ],
+      "sggCodes": [
+        "26530"
+      ]
+    },
+    {
+      "region": "mokpo",
+      "label": "전라남도 목포시",
+      "short": "목포시",
+      "suffix": "시",
+      "type": "도심형",
+      "why": "시 · 인구밀도 3767명/km²",
+      "tags": [],
+      "population": 198981,
+      "households": 102492,
+      "areaKm2": 52.8,
+      "densityPerKm2": 3767,
+      "elderlyShare": 23.9,
+      "surveyAreaHa": 236.22,
+      "incidents3y": 3623,
+      "insidePerHa": 3,
+      "dongCount": 50,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "sggCodes": [
+        "12110"
+      ]
+    },
+    {
+      "region": "jjunggu",
+      "label": "대전광역시 중구",
+      "short": "대전 중구",
+      "suffix": "구",
+      "type": "도심형",
+      "why": "특별·광역시 자치구",
+      "tags": [
+        "고령"
+      ],
+      "population": 223664,
+      "households": 109931,
+      "areaKm2": 61.9,
+      "densityPerKm2": 3615,
+      "elderlyShare": 25.2,
+      "surveyAreaHa": 207.58,
+      "incidents3y": 2432,
+      "insidePerHa": 2.3,
+      "dongCount": 25,
+      "focusTypes": [
+        "화재",
+        "산업재해",
+        "자살"
+      ],
+      "sggCodes": [
+        "30140"
+      ]
+    },
+    {
+      "region": "bukgu",
+      "label": "광주광역시 북구",
+      "short": "광주 북구",
+      "suffix": "구",
+      "type": "도심형",
+      "why": "특별·광역시 자치구",
+      "tags": [],
+      "population": 416582,
+      "households": 203809,
+      "areaKm2": 118.9,
+      "densityPerKm2": 3503,
+      "elderlyShare": 21.1,
+      "surveyAreaHa": 492.62,
+      "incidents3y": 8079,
+      "insidePerHa": 3.6,
+      "dongCount": 40,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "sggCodes": [
+        "12300"
+      ]
+    },
+    {
+      "region": "sejong",
+      "label": "세종특별자치시",
+      "short": "세종시",
+      "suffix": "시",
+      "type": "도농복합형",
+      "why": "시 · 인구밀도 844명/km²",
+      "tags": [],
+      "population": 390738,
+      "households": 165930,
+      "areaKm2": 462.9,
+      "densityPerKm2": 844,
+      "elderlyShare": 13,
+      "surveyAreaHa": 485.56,
+      "incidents3y": 5061,
+      "insidePerHa": 1.3,
+      "dongCount": 34,
+      "focusTypes": [
+        "감염병",
+        "범죄",
+        "자살"
+      ],
+      "sggCodes": [
+        "36110"
+      ]
+    },
+    {
+      "region": "jeju",
+      "label": "제주특별자치도",
+      "short": "제주도",
+      "suffix": "도",
+      "type": "도농복합형",
+      "why": "군 · 인구밀도 360명/km²",
+      "tags": [],
+      "population": 662681,
+      "households": 317767,
+      "areaKm2": 1840.5,
+      "densityPerKm2": 360,
+      "elderlyShare": 21.2,
+      "surveyAreaHa": 1464.73,
+      "incidents3y": 16579,
+      "insidePerHa": 2.1,
+      "dongCount": 73,
+      "focusTypes": [
+        "범죄",
+        "감염병",
+        "자살"
+      ],
+      "sggCodes": [
+        "50110",
+        "50130"
+      ]
+    },
+    {
+      "region": "sacheon",
+      "label": "경상남도 사천시",
+      "short": "사천시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 271명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 107796,
+      "households": 56706,
+      "areaKm2": 397.2,
+      "densityPerKm2": 271,
+      "elderlyShare": 27.7,
+      "surveyAreaHa": 209.63,
+      "incidents3y": 2551,
+      "insidePerHa": 1.7,
+      "dongCount": 32,
+      "focusTypes": [
+        "범죄",
+        "감염병",
+        "자살"
+      ],
+      "sggCodes": [
+        "48240"
+      ]
+    },
+    {
+      "region": "dangjin",
+      "label": "충청남도 당진시",
+      "short": "당진시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 246명/km²",
+      "tags": [],
+      "population": 172423,
+      "households": 86885,
+      "areaKm2": 702.1,
+      "densityPerKm2": 246,
+      "elderlyShare": 23.5,
+      "surveyAreaHa": 233.18,
+      "incidents3y": 4237,
+      "insidePerHa": 2.1,
+      "dongCount": 23,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "44270"
+      ]
+    },
+    {
+      "region": "naju",
+      "label": "전라남도 나주시",
+      "short": "나주시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 193명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 116667,
+      "households": 60226,
+      "areaKm2": 604.1,
+      "densityPerKm2": 193,
+      "elderlyShare": 26.2,
+      "surveyAreaHa": 235.21,
+      "incidents3y": 2801,
+      "insidePerHa": 0.8,
+      "dongCount": 47,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "sggCodes": [
+        "12170"
+      ]
+    },
+    {
+      "region": "pocheon",
+      "label": "경기도 포천시",
+      "short": "포천시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 171명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 140397,
+      "households": 74510,
+      "areaKm2": 821.7,
+      "densityPerKm2": 171,
+      "elderlyShare": 29.5,
+      "surveyAreaHa": 97.86,
+      "incidents3y": 3919,
+      "insidePerHa": 1.9,
+      "dongCount": 18,
+      "focusTypes": [
+        "범죄",
+        "생활안전",
+        "자살"
+      ],
+      "sggCodes": [
+        "41650"
+      ]
+    },
+    {
+      "region": "jecheon",
+      "label": "충청북도 제천시",
+      "short": "제천시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 146명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 127898,
+      "households": 67127,
+      "areaKm2": 878.5,
+      "densityPerKm2": 146,
+      "elderlyShare": 29.5,
+      "surveyAreaHa": 128.39,
+      "incidents3y": 1980,
+      "insidePerHa": 1,
+      "dongCount": 34,
+      "focusTypes": [
+        "범죄",
+        "생활안전",
+        "자살"
+      ],
+      "sggCodes": [
+        "43150"
+      ]
+    },
+    {
+      "region": "jeongeup",
+      "label": "전북특별자치도 정읍시",
+      "short": "정읍시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 145명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 100580,
+      "households": 54656,
+      "areaKm2": 694.6,
+      "densityPerKm2": 145,
+      "elderlyShare": 33.8,
+      "surveyAreaHa": 224.93,
+      "incidents3y": 2692,
+      "insidePerHa": 1.3,
+      "dongCount": 41,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "sggCodes": [
+        "52180"
+      ]
+    },
+    {
+      "region": "yeongju",
+      "label": "경상북도 영주시",
+      "short": "영주시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 144명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 96237,
+      "households": 51335,
+      "areaKm2": 669.3,
+      "densityPerKm2": 144,
+      "elderlyShare": 33.9,
+      "surveyAreaHa": 230.88,
+      "incidents3y": 2173,
+      "insidePerHa": 1.6,
+      "dongCount": 23,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "47210"
+      ]
+    },
+    {
+      "region": "seocheon",
+      "label": "충청남도 서천군",
+      "short": "서천군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 128명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 46589,
+      "households": 26045,
+      "areaKm2": 364.4,
+      "densityPerKm2": 128,
+      "elderlyShare": 43.9,
+      "surveyAreaHa": 73.98,
+      "incidents3y": 1396,
+      "insidePerHa": 0.3,
+      "dongCount": 13,
+      "focusTypes": [
+        "범죄",
+        "산업재해",
+        "자살"
+      ],
+      "sggCodes": [
+        "44770"
+      ]
+    },
+    {
+      "region": "miryang",
+      "label": "경상남도 밀양시",
+      "short": "밀양시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 123명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 98305,
+      "households": 54336,
+      "areaKm2": 797.9,
+      "densityPerKm2": 123,
+      "elderlyShare": 37,
+      "surveyAreaHa": 302.49,
+      "incidents3y": 2574,
+      "insidePerHa": 1.4,
+      "dongCount": 20,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "48270"
+      ]
+    },
+    {
+      "region": "taebaek",
+      "label": "강원특별자치도 태백시",
+      "short": "태백시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 121명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 36680,
+      "households": 20115,
+      "areaKm2": 301.9,
+      "densityPerKm2": 121,
+      "elderlyShare": 32.9,
+      "surveyAreaHa": 79.86,
+      "incidents3y": 742,
+      "insidePerHa": 0.4,
+      "dongCount": 16,
+      "focusTypes": [
+        "화재",
+        "산업재해",
+        "자살"
+      ],
+      "sggCodes": [
+        "51190"
+      ]
+    },
+    {
+      "region": "gongju",
+      "label": "충청남도 공주시",
+      "short": "공주시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 116명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 99481,
+      "households": 53970,
+      "areaKm2": 859.3,
+      "densityPerKm2": 116,
+      "elderlyShare": 33.5,
+      "surveyAreaHa": 253.48,
+      "incidents3y": 3227,
+      "insidePerHa": 1.6,
+      "dongCount": 38,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "sggCodes": [
+        "44150"
+      ]
+    },
+    {
+      "region": "namhae",
+      "label": "경상남도 남해군",
+      "short": "남해군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 115명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 41073,
+      "households": 23181,
+      "areaKm2": 355.8,
+      "densityPerKm2": 115,
+      "elderlyShare": 43.5,
+      "surveyAreaHa": 61.31,
+      "incidents3y": 1050,
+      "insidePerHa": 0.4,
+      "dongCount": 10,
+      "focusTypes": [
+        "범죄",
+        "생활안전",
+        "자살"
+      ],
+      "sggCodes": [
+        "48840"
+      ]
+    },
+    {
+      "region": "ongjin",
+      "label": "인천광역시 옹진군",
+      "short": "옹진군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 111명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 19275,
+      "households": 12190,
+      "areaKm2": 172.9,
+      "densityPerKm2": 111,
+      "elderlyShare": 37.1,
+      "surveyAreaHa": 33.22,
+      "incidents3y": 323,
+      "insidePerHa": 0.9,
+      "dongCount": 7,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "28720"
+      ]
+    },
+    {
+      "region": "yeongcheon",
+      "label": "경상북도 영천시",
+      "short": "영천시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 103명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 93605,
+      "households": 53492,
+      "areaKm2": 912.6,
+      "densityPerKm2": 103,
+      "elderlyShare": 36.7,
+      "surveyAreaHa": 265.63,
+      "incidents3y": 2613,
+      "insidePerHa": 1.3,
+      "dongCount": 39,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "47230"
+      ]
+    },
+    {
+      "region": "andong",
+      "label": "경상북도 안동시",
+      "short": "안동시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 100명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 151343,
+      "households": 81332,
+      "areaKm2": 1520.1,
+      "densityPerKm2": 100,
+      "elderlyShare": 30.3,
+      "surveyAreaHa": 849.76,
+      "incidents3y": 8251,
+      "insidePerHa": 2.6,
+      "dongCount": 56,
+      "focusTypes": [
+        "범죄",
+        "감염병",
+        "자살"
+      ],
+      "sggCodes": [
+        "47170"
+      ]
+    },
+    {
+      "region": "namwon",
+      "label": "전북특별자치도 남원시",
+      "short": "남원시",
+      "suffix": "시",
+      "type": "농촌형",
+      "why": "시 · 인구밀도 99명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 73604,
+      "households": 39851,
+      "areaKm2": 747,
+      "densityPerKm2": 99,
+      "elderlyShare": 35.1,
+      "surveyAreaHa": 444.27,
+      "incidents3y": 2125,
+      "insidePerHa": 1.1,
+      "dongCount": 39,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "52190"
+      ]
+    },
+    {
+      "region": "goheung",
+      "label": "전라남도 고흥군",
+      "short": "고흥군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 73명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 59011,
+      "households": 35123,
+      "areaKm2": 803.6,
+      "densityPerKm2": 73,
+      "elderlyShare": 47.1,
+      "surveyAreaHa": 12.46,
+      "incidents3y": 1636,
+      "insidePerHa": 1,
+      "dongCount": 16,
+      "focusTypes": [
+        "산업재해",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "12740"
+      ]
+    },
+    {
+      "region": "gangjin",
+      "label": "전라남도 강진군",
+      "short": "강진군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 64명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 31603,
+      "households": 18119,
+      "areaKm2": 496.6,
+      "densityPerKm2": 64,
+      "elderlyShare": 40.5,
+      "surveyAreaHa": 25.08,
+      "incidents3y": 1058,
+      "insidePerHa": 0.2,
+      "dongCount": 11,
+      "focusTypes": [
+        "생활안전",
+        "산업재해",
+        "자살"
+      ],
+      "sggCodes": [
+        "12780"
+      ]
+    },
+    {
+      "region": "jindo",
+      "label": "전라남도 진도군",
+      "short": "진도군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 64명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 27773,
+      "households": 16335,
+      "areaKm2": 436.9,
+      "densityPerKm2": 64,
+      "elderlyShare": 39.9,
+      "surveyAreaHa": 52.43,
+      "incidents3y": 737,
+      "insidePerHa": 1,
+      "dongCount": 7,
+      "focusTypes": [
+        "산업재해",
+        "범죄",
+        "자살"
+      ],
+      "sggCodes": [
+        "12860"
+      ]
+    },
+    {
+      "region": "jangheung",
+      "label": "전라남도 장흥군",
+      "short": "장흥군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 55명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 33877,
+      "households": 19649,
+      "areaKm2": 617.9,
+      "densityPerKm2": 55,
+      "elderlyShare": 40.7,
+      "surveyAreaHa": 60.05,
+      "incidents3y": 1002,
+      "insidePerHa": 1.3,
+      "dongCount": 10,
+      "focusTypes": [
+        "범죄",
+        "화재",
+        "자살"
+      ],
+      "sggCodes": [
+        "12770"
+      ]
+    },
+    {
+      "region": "hamyang",
+      "label": "경상남도 함양군",
+      "short": "함양군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 49명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 35074,
+      "households": 20193,
+      "areaKm2": 717.7,
+      "densityPerKm2": 49,
+      "elderlyShare": 41.7,
+      "surveyAreaHa": 60.91,
+      "incidents3y": 1217,
+      "insidePerHa": 0.2,
+      "dongCount": 11,
+      "focusTypes": [
+        "산업재해",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "48870"
+      ]
+    },
+    {
+      "region": "jangsu",
+      "label": "전북특별자치도 장수군",
+      "short": "장수군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 40명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 21184,
+      "households": 11959,
+      "areaKm2": 529.5,
+      "densityPerKm2": 40,
+      "elderlyShare": 40.8,
+      "surveyAreaHa": 56.82,
+      "incidents3y": 700,
+      "insidePerHa": 0.3,
+      "dongCount": 7,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "52740"
+      ]
+    },
+    {
+      "region": "hongcheon",
+      "label": "강원특별자치도 홍천군",
+      "short": "홍천군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 36명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 65817,
+      "households": 35109,
+      "areaKm2": 1806.9,
+      "densityPerKm2": 36,
+      "elderlyShare": 36,
+      "surveyAreaHa": 162.06,
+      "incidents3y": 1855,
+      "insidePerHa": 1.2,
+      "dongCount": 10,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "51720"
+      ]
+    },
+    {
+      "region": "danyang",
+      "label": "충청북도 단양군",
+      "short": "단양군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 34명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 26481,
+      "households": 15169,
+      "areaKm2": 777.4,
+      "densityPerKm2": 34,
+      "elderlyShare": 41.2,
+      "surveyAreaHa": 140.88,
+      "incidents3y": 801,
+      "insidePerHa": 0.3,
+      "dongCount": 10,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "43800"
+      ]
+    },
+    {
+      "region": "jinan",
+      "label": "전북특별자치도 진안군",
+      "short": "진안군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 32명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 24930,
+      "households": 14179,
+      "areaKm2": 785.5,
+      "densityPerKm2": 32,
+      "elderlyShare": 41.8,
+      "surveyAreaHa": 84.68,
+      "incidents3y": 736,
+      "insidePerHa": 0.8,
+      "dongCount": 11,
+      "focusTypes": [
+        "범죄",
+        "산업재해",
+        "자살"
+      ],
+      "sggCodes": [
+        "52720"
+      ]
+    },
+    {
+      "region": "jeongseon",
+      "label": "강원특별자치도 정선군",
+      "short": "정선군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 29명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 35137,
+      "households": 20489,
+      "areaKm2": 1212,
+      "densityPerKm2": 29,
+      "elderlyShare": 36,
+      "surveyAreaHa": 99.55,
+      "incidents3y": 930,
+      "insidePerHa": 0.6,
+      "dongCount": 9,
+      "focusTypes": [
+        "범죄",
+        "교통사고",
+        "자살"
+      ],
+      "sggCodes": [
+        "51770"
+      ]
+    },
+    {
+      "region": "cheongsong",
+      "label": "경상북도 청송군",
+      "short": "청송군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 인구밀도 29명/km²",
+      "tags": [
+        "고령"
+      ],
+      "population": 24560,
+      "households": 14563,
+      "areaKm2": 842.8,
+      "densityPerKm2": 29,
+      "elderlyShare": 44.1,
+      "surveyAreaHa": 91.65,
+      "incidents3y": 804,
+      "insidePerHa": 0.3,
+      "dongCount": 8,
+      "focusTypes": [
+        "화재",
+        "산업재해",
+        "자살"
+      ],
+      "sggCodes": [
+        "47750"
+      ]
+    }
+  ]
+}

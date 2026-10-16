@@ -249,9 +249,13 @@ img[hidden]{display:none !important}
   <!-- ★ 순서: 현장용 리포트 → 사전진단서 (2026-09-14 AURI 회의)
        "현장에 나가기 전 예비 확인을 먼저 하고, 사전진단서가 그다음 결과로 나오는 순서가 맞다"
        안쪽 이름(A=사전진단서, B=현장용)은 그대로 두고 보이는 순서와 첫 선택만 바꿨습니다. -->
+  <!-- 세 번째 탭 "행안부 리포트(초안)" (2026-10-16, 10/14 AURI 회의 ②): 행안부가 지정한 양식으로 "누른 것이 그대로 보고서로"
+       나가야 합니다. 양식 원본(한글 2건)은 아직 받지 못해 회의에서 말한 네 요소(개선 전/후 · 위험요인 분석 문장 · 맞춤형 사업
+       리스트 · 요인별 점수)만 모은 뼈대입니다. 현장 확인사항은 현장 배포용이라 넣지 않습니다(회의 결정). -->
   <div class="doc-tabs screen-only">
     <button type="button" class="doc-tab on" id="tabB" onclick="showDoc('b')">현장용 리포트</button>
     <button type="button" class="doc-tab" id="tabA" onclick="showDoc('a')">사전진단서</button>
+    <button type="button" class="doc-tab" id="tabC" onclick="showDoc('c')">행안부 리포트(초안)</button>
   </div>
 
   <p class="note screen-only" id="docNote">
@@ -261,6 +265,7 @@ img[hidden]{display:none !important}
 
   <div class="doc" id="docB"></div>
   <div class="doc" id="docA" hidden></div>
+  <div class="doc" id="docC" hidden></div>
 
   <div class="print-foot" id="printFoot">현장 확인 리포트</div>
 </main>
@@ -1065,17 +1070,128 @@ function closeMapPick() {
 
 /* ── 탭 ──────────────────────────────────────────────────────────── */
 function showDoc(which) {
-  const a = which === 'a';
+  const a = which === 'a', c = which === 'c';
   document.getElementById('docA').hidden = !a;
-  document.getElementById('docB').hidden = a;
+  document.getElementById('docB').hidden = a || c;
+  document.getElementById('docC').hidden = !c;
   document.getElementById('tabA').classList.toggle('on', a);
-  document.getElementById('tabB').classList.toggle('on', !a);
+  document.getElementById('tabB').classList.toggle('on', !a && !c);
+  document.getElementById('tabC').classList.toggle('on', c);
   document.getElementById('printFoot').textContent =
-    (a ? '지자체 사전진단서' : '현장 확인 리포트') + (_data ? ' — ' + _data.label : '');
+    (a ? '지자체 사전진단서' : c ? '안전사업지구 사전진단 결과 리포트(초안)' : '현장 확인 리포트') + (_data ? ' — ' + _data.label : '');
   document.getElementById('docNoteText').innerHTML = a
     ? 'AURI 사전진단서 양식 그대로입니다. 점선 없는 <b>입력칸</b>은 직접 쓰거나 <b>AI 의견 생성</b>으로 초안을 받을 수 있습니다. AI 초안 표시와 판단 근거는 화면에만 보이고 인쇄물에는 나오지 않습니다.'
+    : c
+    ? '행안부가 지정한 양식에 맞출 <b>초안 뼈대</b>입니다(10/14 회의). 양식 원본을 받으면 항목 순서·제목을 그 양식대로 바꿉니다. 현장 확인사항은 현장 배포용이라 여기에는 넣지 않습니다.'
     : '현장에서 볼 것만 담았습니다. 확인사항은 <b>네모 칸에 체크</b>하며 쓰도록 만들었습니다.';
   AuriDocEdit.refresh();
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   행안부 리포트(초안) — 2026-10-16, 10/14 AURI 화상회의 ②
+
+   "우리가 누른 게 보고서로 익스포트가 되면 돼요." (이은석 박사)
+   행안부가 직접 적어 보낸 양식(한글 2건)은 아직 저장소에 없습니다. 회의에서 말한 요소만 모았습니다.
+     ① 현장 사진(개선 전) + 개선 이미지(개선 후)   ← auri_input_image · auri_after_image
+     ② 위험 요인 분석 문장                       ← 4장과 같은 재료 (인적요인·사고유형·물적환경·관련요인)
+     ③ 맞춤형 사업 리스트                        ← auri_prescriptions
+     ④ 요인별 점수                              ← auri_diagnosis_results (분야 7개)
+   현장 확인사항·사전 체크는 넣지 않습니다(회의 결정: 현장 배포용). 잠재 취약성 분석 워딩은 AURI 가 주면 빈칸에 붙입니다.
+   ════════════════════════════════════════════════════════════════════ */
+function moisReport() {
+  const beforeImg = sessionStorage.getItem('auri_input_image');
+  const beforeUrl = beforeImg ? (JSON.parse(beforeImg).dataUrl || null) : null;
+  const after = sessionStorage.getItem('auri_after_image');
+  const focusKeys = new Set(_focus.map((f) => f.key));
+  const ordered = _results.slice().sort((a, b) => (focusKeys.has(b.key) - focusKeys.has(a.key)) || b.score - a.score);
+
+  const factor = _focus.map(function (f) {
+    const opts = { inside: _stats.inside };
+    const human = AuriStats.narrateHuman(f.cat, opts);
+    const type = AuriStats.narrateType(f.cat, opts);
+    const r = _results.find((x) => x.key === f.key);
+    const observed = r && r.observed && r.observed.length ? r.observed.join(' · ') : null;
+    const phys = AuriPhysical.narrate(_data.region, f.key, { catLabel: f.label, fallback: true, limit: 4 });
+    return `
+      <tr>
+        <th style="width:16%; vertical-align:top">${f.label}${r ? `<br><span style="font-weight:400;font-size:var(--fs-cap)">${r.level.label} · ${r.score}점</span>` : ''}</th>
+        <td>
+          ${human ? `<p class="bullet" style="margin-top:0"><span class="tag">(인적요인)</span> ${human.text}</p>` : ''}
+          ${type ? `<p class="bullet"><span class="tag">(사고유형)</span> ${type.text}</p>` : ''}
+          <p class="bullet"><span class="tag">(물적환경)</span> ${observed ? esc(observed) : (r ? `사진 판독 ${r.level.label} 판정(${r.score}점)` : '사진 판독 결과 없음')}</p>
+          ${phys ? `<p class="bullet"><span class="tag">(관련요인)</span> ${esc(phys.text)}<br><span style="font-size:var(--fs-cap);color:var(--g2)">${esc(phys.basis)} · 출처: ${esc(AuriPhysical.source())}</span></p>` : ''}
+        </td>
+      </tr>`;
+  }).join('');
+
+  return `
+  <section class="chapter">
+    <h2 class="h-chapter">안전사업지구 사전진단 결과 리포트 <span style="font-size:var(--fs-sm);font-weight:400;color:var(--g2)">(행안부 양식 적용 전 초안)</span></h2>
+
+    <div class="field-head">
+      <div class="cell">
+        <div class="k">지자체 · 진단 지점</div>
+        <div class="v">${esc(_data.label)}</div>
+        <div class="s">${esc(_picked.addr || '주소 미상')}${_picked.dong ? ' · ' + esc(_picked.dong) : ''} · 위도 ${_picked.lat}, 경도 ${_picked.lng}</div>
+      </div>
+      <div class="cell">
+        <div class="k">중점 3분야</div>
+        <div class="v">${_focus.map((f) => f.label).join(' · ')}</div>
+        <div class="s">강원대 확정 분야 — ${esc(_data.shortLabel)} ${_stats.inside ? '복합위험지구 안' : '복합위험지구 밖'} 지점</div>
+      </div>
+      <div class="cell">
+        <div class="k">종합 판정</div>
+        <div class="v">${ordered.length ? ordered[0].level.label : '—'}</div>
+        <div class="s">${_picked.risk && _picked.risk.score != null ? `주변 이력 지수 ${_picked.risk.score}점 (반경 ${_picked.risk.radius || 188}m · 3개년)` : '주변 이력 없음'}</div>
+      </div>
+    </div>
+
+    <h3 class="h-section">1. 요인별 점수</h3>
+    <table class="tight">
+      <thead><tr><th style="width:22%">분야</th><th style="width:12%">점수</th><th style="width:14%">판정</th><th>판독 근거</th></tr></thead>
+      <tbody>
+        ${ordered.map((r) => `<tr>
+          <td>${esc(r.name)}${focusKeys.has(r.key) ? ' <span class="mark-focus">중점</span>' : ''}${r.edited ? ' <span style="font-size:var(--fs-cap);color:var(--g2)">연구원 보정</span>' : ''}</td>
+          <td>${r.score}</td><td>${r.level.label}</td>
+          <td style="font-size:var(--fs-sm)">${r.observed && r.observed.length ? esc(r.observed.slice(0, 3).join(' · ')) : '—'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <p class="note-under">* 점수는 사진 판독(AI) 결과이며 0~33 안전 · 34~66 주의 · 67~100 위험. 연구원이 보정한 항목은 표시됩니다.</p>
+
+    <h3 class="h-section">2. 위험 요인 분석</h3>
+    <table class="tight"><tbody>${factor}</tbody></table>
+    ${AuriDocEdit.render('mois-latent', '(잠재 취약성 분석)',
+      'AURI 가 정리해 보내는 잠재 취약성 분석 워딩을 여기에 붙입니다 (10/14 회의: 분석은 AURI 담당).', '')}
+
+    <h3 class="h-section">3. 개선 전 · 개선 후</h3>
+    <div class="ba-stack">
+      <figure>
+        ${beforeUrl ? `<img src="${beforeUrl}" alt="개선 전">` : '<div class="slot">개선 전 이미지 없음 — 현장 사진을 2단계에서 업로드하십시오</div>'}
+        <figcaption>개선 전 (현장 사진)</figcaption>
+      </figure>
+      <figure>
+        ${after ? `<img src="${after}" alt="개선 후">` : '<div class="slot">개선 후 이미지 없음 — 4단계에서 생성하십시오</div>'}
+        <figcaption>개선 후 (사업 반영 예시)</figcaption>
+      </figure>
+      <div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>
+    </div>
+
+    <h3 class="h-section">4. 맞춤형 사업 리스트</h3>
+    ${_items.length ? `
+      <table class="tight">
+        <thead><tr><th style="width:40%">사업</th><th style="width:14%">분야</th><th style="width:16%">개입 유형</th><th style="width:12%">우선순위</th><th>근거</th></tr></thead>
+        <tbody>
+          ${_items.map((it) => `<tr class="${it.hea ? 'hea-' + it.hea : ''}">
+            <td>${esc(it.name)}</td><td>${esc(it.category)}</td>
+            <td><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span></td>
+            <td>${it.priority.label}</td>
+            <td style="font-size:var(--fs-cap);color:var(--g2)">${it.trigger ? esc(it.trigger.id + ' ' + (it.trigger.note || '')) : (it.custom ? '연구원 추가' : '통계 처방')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>` : '<p class="bullet">처방된 사업 없음</p>'}
+    ${AuriDocEdit.render('mois-remarks', '(검토 의견)', '연구진 검토 의견 — 지역안전지수 하위 등급과의 정합성 등 (AURI 정리 후 반영).', '')}
+  </section>`;
 }
 
 /* ── 그리기 ──────────────────────────────────────────────────────── */
@@ -1083,6 +1199,7 @@ function renderAll() {
   document.getElementById('docA').innerHTML =
     cover() + chapter1() + chapter2() + chapter3() + chapter4() + chapter5();
   document.getElementById('docB').innerHTML = fieldReport();
+  document.getElementById('docC').innerHTML = moisReport();
   AuriDocEdit.refresh();
   /* 지도는 타일을 받아야 해서 시간이 걸립니다. 문서를 먼저 띄우고 뒤따라 채웁니다.
      한 번 그린 것은 _mapCache 에 남아 다시 그리지 않습니다. */

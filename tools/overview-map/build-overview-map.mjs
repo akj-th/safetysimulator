@@ -37,7 +37,7 @@ import proj4 from '../node_modules/proj4/dist/proj4-src.js';
 import { readDbf, readPolygons } from '../lib/shapefile.mjs';
 import { ICONS } from './icons.mjs';
 import { ITEM_ICONS } from './item-icons.mjs';
-import { loadRaster, heatPng, extractZone, DEFAULTS as RISK_DEFAULTS, AURI_COLORS } from './risk.mjs';
+import { loadRaster, heatPng, extractZone, findHotspots, DEFAULTS as RISK_DEFAULTS, AURI_COLORS } from './risk.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
@@ -354,6 +354,20 @@ if (RISK.enabled !== false) {
     console.log(`  대상지 추출: 중첩 칸 ${zone.stats.nOverlap} → 시가지 교집합 ${zone.stats.nBoth} → 조각 ${zone.stats.pieces} · ${zone.areaHa.toFixed(1)}ha (조사지 ${(me ? me.areaHa : '?')}ha)`);
   }
 }
+/* ── 주요 거점 (2026-10-16, 10/14 회의 ①: 복합위험지구 밖 밀도 높은 거점도 자동 표시) ─────────────
+   화면 안: 중점 분야 밀도가 함께 높은 꼭대기(반경 250m 안 최대)를 최대 hotCount 개. 이미 사업지 번호 원이 150m 안에 있으면 뺌.
+   지자체 전체: TIF 범위 전체에서 50m 격자로 10곳 → <지역>_거점.geojson (현장 사진 촬영 좌표·개선 이미지 대상 고를 때 쓰도록) */
+let hotspots = [], hotspotsAll = [];
+if (riskLayers.length && RISK.hotspots !== false) {
+  const corners = [pxTo5186(0, 0), pxTo5186(W, 0), pxTo5186(W, H), pxTo5186(0, H)];
+  const fb = [Math.min(...corners.map(c => c[0])), Math.min(...corners.map(c => c[1])), Math.max(...corners.map(c => c[0])), Math.max(...corners.map(c => c[1]))];
+  const markerPts = cfg.zones.flatMap(z => (z.markers || []).map(m => { const [x, y] = anchorPx(m.at); return pxTo5186(x, y); }));
+  const cand = findHotspots(riskLayers, fb, { cellM: RISK.hotCellM || 20, radiusM: RISK.hotRadiusM || 250, minT: RISK.hotMinT ?? 0.15, minScore: RISK.hotMinScore ?? 0.22, count: (RISK.hotCount || 6) + 8 });
+  hotspots = cand.filter(h => markerPts.every(p => Math.hypot(p[0] - h.x, p[1] - h.y) > (RISK.hotExcludeM || 120))).slice(0, RISK.hotCount || 6);
+  const ex = riskLayers.map(L => L.extent); const eb = [Math.max(...ex.map(e => e[0])), Math.max(...ex.map(e => e[1])), Math.min(...ex.map(e => e[2])), Math.min(...ex.map(e => e[3]))];
+  hotspotsAll = findHotspots(riskLayers, eb, { cellM: 50, radiusM: 400, minT: RISK.hotMinT ?? 0.15, minScore: RISK.hotMinScore ?? 0.22, count: 10 });
+  console.log(`  주요 거점: 화면 안 ${hotspots.length}곳 (후보 ${cand.length}) · 지자체 전체 ${hotspotsAll.length}곳`);
+}
 /* 화면에서 "대상지" 로 쓰는 경계: 추출 결과가 있으면 그것, 없으면 공식 조사지 */
 const zonePaths = zone && zone.rings.length ? zone.rings.map(r => ringPath(r.map(from5186), 0.2)) : null;
 const zonePathAll = zonePaths ? zonePaths.join('') : surveyPathAll;
@@ -550,7 +564,7 @@ ${heads[0] ? head(pts[0], pts[1]) : ''}${heads[1] ? head(pts[n - 1], pts[n - 2])
 function legendSvg2() {
   const LP = cfg.legendPos; if (!LP || !(cfg.legend || []).length) return { svg: '', rect: null };
   const w = LP.w || 440, fs = LP.fs || 14, rowH = LP.rowH || 24, pad = 12;
-  const rows = cfg.legend;
+  const rows = [...cfg.legend, ...(hotspots.length && !cfg.legend.some(r => r.kind === 'hotspot') ? [{ kind: 'hotspot', label: '주요 거점 — 중점 분야 밀도가 함께 높은 지점 (자동 추출)' }] : [])];
   const h = rows.length * rowH + pad * 2 - 4;
   if (LP.below && rectOf[LP.below]) LP.y = rectOf[LP.below].y + rectOf[LP.below].h + (LP.gap ?? 12);   // 상자 아래에 붙이기 (키맵과 같은 방식)
   const x = LP.x ?? (W - 60 - w), y = LP.y ?? (LP.bottom - h);
@@ -567,6 +581,7 @@ function legendSvg2() {
       case 'reddash': g = `<line x1="${lx}" y1="${cy}" x2="${lx + sw}" y2="${cy}" stroke="#E03C3C" stroke-width="4" stroke-dasharray="3 8" stroke-linecap="round"/>`; break;
       case 'zonepoly': { const c = AURI_COLORS[r.key] ? AURI_COLORS[r.key].rgb : [128, 128, 128]; const col = `rgb(${c.join(',')})`; g = `<rect x="${lx}" y="${cy - 8}" width="${sw}" height="16" fill="${col}" opacity=".13"/><rect x="${lx}" y="${cy - 8}" width="${sw}" height="16" fill="none" stroke="${col}" stroke-width="2.4"/>`; break; }
       case 'poi': g = `<circle cx="${lx + sw / 2}" cy="${cy}" r="6" fill="#E03C3C" stroke="#fff" stroke-width="2"/>`; break;
+      case 'hotspot': { const hx = lx + sw / 2; g = `<path d="M${hx} ${cy - 9}L${hx + 9} ${cy}L${hx} ${cy + 9}L${hx - 9} ${cy}Z" fill="${C.ink}" stroke="#fff" stroke-width="1.5"/>`; break; }
       case 'heat': { const keys = r.keys || [r.key]; const each = Math.floor((sw - (keys.length - 1) * 3) / keys.length); g = keys.map((k, j) => `<rect x="${lx + j * (each + 3)}" y="${cy - 8}" width="${each}" height="16" fill="url(#lg-${k})"/>`).join(''); break; }
     }
     out.push(g, `<text x="${lx + sw + 12}" y="${cy + 5}" font-family="${FONT}" font-size="${fs}" fill="${C.text}">${esc(r.label)}</text>`);
@@ -690,6 +705,7 @@ ${(cfg.style && cfg.style.hideZoneLines) ? '' : L('13_대상지_경계', `<path 
 ${L('13-1_사업지_구역', cfg.zones.flatMap(z => (z.polygons || []).map(pg => { const sk = pg.color || z.safety; const col = sk && AURI_COLORS[sk] ? `rgb(${AURI_COLORS[sk].rgb.join(',')})` : C.main; const d = ringPath(pg.draftPx ? pg.draftPx.map(draftToPx) : pg.epsg5179.map(from5179), 0.3); return d ? `<path d="${d}" fill="${col}" opacity="0.13"/><path d="${d}" fill="none" stroke="${col}" stroke-width="${pg.dashed ? 2.2 : 2.8}"${pg.dashed ? ' stroke-dasharray="9 6"' : ''} stroke-linejoin="round"/>` : ''; })).join('\n'))}
 ${L('14_구간표시', (cfg.routes || []).map(routeSvg).join('\n'))}
 ${L('14-1_사업지_번호', cfg.zones.flatMap(z => (z.markers || []).map(m => { const [x, y] = anchorPx(m.at); const col = z.safety && AURI_COLORS[z.safety] ? `rgb(${AURI_COLORS[z.safety].rgb.join(',')})` : C.main; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="19" fill="${col}" stroke="#fff" stroke-width="2.5"/><text x="${x.toFixed(1)}" y="${(y + 7).toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="20" font-weight="700" fill="#fff">${esc(String(m.label))}</text>`; })).join('\n'))}
+${L('15-2_주요_거점', hotspots.map((h, i) => { const [x, y] = from5186([h.x, h.y]); const tag = String.fromCharCode(65 + i); const top = Object.entries(h.parts).sort((a, b) => b[1] - a[1]).filter(e => e[1] >= 0.15).map(e => AURI_COLORS[e[0]].label).join('·'); const txt = `거점 ${tag} · ${top}`; const tw = textW(txt, 12) + 12; return `<path d="M${x.toFixed(1)} ${(y - 15).toFixed(1)}L${(x + 15).toFixed(1)} ${y.toFixed(1)}L${x.toFixed(1)} ${(y + 15).toFixed(1)}L${(x - 15).toFixed(1)} ${y.toFixed(1)}Z" fill="${C.ink}" stroke="#fff" stroke-width="2.2"/><text x="${x.toFixed(1)}" y="${(y + 4.5).toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="12" font-weight="700" fill="#fff">${tag}</text><rect x="${(x + 19).toFixed(1)}" y="${(y - 9).toFixed(1)}" width="${tw.toFixed(1)}" height="18" rx="3" fill="#fff" opacity="0.9"/><text x="${(x + 25).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-family="${FONT}" font-size="12" font-weight="600" fill="${C.text}">${esc(txt)}</text>`; }).join('\n'))}
 ${L('15-1_시설', (cfg.pois || []).map(p => { const [x, y] = anchorPx(p); const tw = textW(p.name, 13) + 14; const lx = p.side === 'left' ? x - 12 - tw : x + 12; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="#E03C3C" stroke="#fff" stroke-width="2"/><rect x="${lx.toFixed(1)}" y="${(y - 10).toFixed(1)}" width="${tw.toFixed(1)}" height="20" rx="3" fill="#fff" opacity="0.92"/><text x="${(lx + 7).toFixed(1)}" y="${(y + 4.5).toFixed(1)}" font-family="${FONT}" font-size="13" font-weight="700" fill="${C.text}">${esc(p.name)}</text>`; }).join('\n'))}
 ${L('15_지명', labelsSvg)}
 ${gridSvg}
@@ -714,5 +730,11 @@ if (zone && zone.rings.length && !DEBUG_GRID) {
   const gj = { type: 'FeatureCollection', features: zone.rings.map((r, i) => ({ type: 'Feature', properties: { region: cfg.region, part: i + 1, areaHa: +zone.areaHa.toFixed(2), rule: RISK }, geometry: { type: 'Polygon', coordinates: [[...r, r[0]].map(p => proj4(P5186, WGS, p).map(v => +v.toFixed(6)))] } })) };
   fs.writeFileSync(path.join(outDir, `${cfg.region}_대상지.geojson`), JSON.stringify(gj));
   console.log(`  대상지 경계 → output/overview-map/${cfg.region}/${cfg.region}_대상지.geojson`);
+}
+if (hotspotsAll.length || hotspots.length) {
+  const feat = (h, i, scope) => ({ type: 'Feature', properties: { region: cfg.region, scope, rank: i + 1, score: h.score, parts: h.parts, epsg5186: [h.x, h.y] }, geometry: { type: 'Point', coordinates: proj4(P5186, WGS, [h.x, h.y]).map(v => +v.toFixed(6)) } });
+  const gj = { type: 'FeatureCollection', rule: { cellM: RISK.hotCellM || 20, radiusM: RISK.hotRadiusM || 250, minT: RISK.hotMinT ?? 0.15, minScore: RISK.hotMinScore ?? 0.22, note: '중점 분야 밀도(p99 기준 0~1) 합 ÷ 분야 수 — 반경 안 최대값. scope=frame 은 종합도 화면 안(사업지 150m 안 제외), region 은 지자체 전체' }, features: [...hotspots.map((h, i) => feat(h, i, 'frame')), ...hotspotsAll.map((h, i) => feat(h, i, 'region'))] };
+  fs.writeFileSync(path.join(outDir, `${cfg.region}_거점.geojson`), JSON.stringify(gj));
+  console.log(`  주요 거점 → output/overview-map/${cfg.region}/${cfg.region}_거점.geojson (화면 ${hotspots.length} · 전체 ${hotspotsAll.length})`);
 }
 console.log(`  조사지 화면 범위 x ${sBox[0].toFixed(0)}–${sBox[2].toFixed(0)} · y ${sBox[1].toFixed(0)}–${sBox[3].toFixed(0)}`);

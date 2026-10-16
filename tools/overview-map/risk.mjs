@@ -84,7 +84,37 @@ export function loadRaster(root, key, slug, opt) {
     const v = data[r * t.width + c];
     return Number.isFinite(v) ? Math.min(1, v / top) : 0;
   };
-  return { key, label: AURI_COLORS[key].label, rgb: AURI_COLORS[key].rgb, top, n: vals.length, sample, file };
+  const extent = [g.originX, g.originY - t.height * g.scaleY, g.originX + t.width * g.scaleX, g.originY];   // 5186 [minX, minY, maxX, maxY]
+  return { key, label: AURI_COLORS[key].label, rgb: AURI_COLORS[key].rgb, top, n: vals.length, sample, file, extent };
+}
+
+/**
+ * 주요 거점 찾기 (2026-10-16, 10/14 회의 ① "히트맵 보라색 거점도 원인·대안" → AKJ 제안 "일정 수치를 넘으면 자동 표시")
+ *   격자(cellM)마다 중점 분야 t(0~1, p99 기준)를 더해 점수를 만들고, 반지름 radiusM 안에서 가장 큰 칸만 거점으로 남깁니다.
+ *   조건: 분야 2개 이상이 t ≥ minT 이고 점수/분야수 ≥ minScore.  돌려주는 값: [{x, y, score, parts:{key:t}}] 점수 내림차순 count 개
+ */
+export function findHotspots(layers, bbox5186, opt = {}) {
+  const cell = opt.cellM || 20, R = opt.radiusM || 250, minT = opt.minT ?? 0.15, minScore = opt.minScore ?? 0.35, minLayers = opt.minLayers ?? Math.min(2, layers.length), count = opt.count || 6;
+  const gw = Math.ceil((bbox5186[2] - bbox5186[0]) / cell), gh = Math.ceil((bbox5186[3] - bbox5186[1]) / cell);
+  if (gw <= 0 || gh <= 0 || gw * gh > 4e6) return [];
+  const sc = new Float32Array(gw * gh);
+  for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
+    const x = bbox5186[0] + (gx + 0.5) * cell, y = bbox5186[3] - (gy + 0.5) * cell; let s = 0, n = 0;
+    for (const L of layers) { const t = L.sample(x, y); if (t >= minT) { s += t; n++; } }
+    sc[gy * gw + gx] = n >= minLayers ? s / layers.length : 0;
+  }
+  const r = Math.max(1, Math.round(R / cell)); const out = [];
+  for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
+    const v = sc[gy * gw + gx]; if (v < minScore) continue; let isMax = true;
+    for (let dy = -r; dy <= r && isMax; dy++) for (let dx = -r; dx <= r; dx++) { if (dx * dx + dy * dy > r * r) continue; const nx = gx + dx, ny = gy + dy; if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) continue; const u = sc[ny * gw + nx]; if (u > v || (u === v && (dy < 0 || (dy === 0 && dx < 0)))) { isMax = false; break; } }
+    if (!isMax) continue;
+    const x = bbox5186[0] + (gx + 0.5) * cell, y = bbox5186[3] - (gy + 0.5) * cell; const parts = {}; for (const L of layers) parts[L.key] = +L.sample(x, y).toFixed(2);
+    out.push({ x: +x.toFixed(1), y: +y.toFixed(1), score: +v.toFixed(3), parts });
+  }
+  out.sort((a, b) => b.score - a.score);
+  /* 서로 R 안에 있는 것은 높은 쪽만 (격자 경계에서 둘 다 살아남는 것 방지) */
+  const kept = []; for (const h of out) { if (kept.every(k => Math.hypot(k.x - h.x, k.y - h.y) >= R)) kept.push(h); if (kept.length >= count) break; }
+  return kept;
 }
 
 /**

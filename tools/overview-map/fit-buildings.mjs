@@ -80,7 +80,9 @@ const abcd = (theta, dx, dy, k = 1) => { const a = mpp * k * Math.cos(theta), b 
 /* 거친 탐색 → 세밀 탐색 */
 let best = { s: -1 };
 /* 축척 막대를 눈으로 읽은 값은 ±2% 쯤 틀릴 수 있어 축척 배율 k 도 함께 찾습니다 */
-const stages = [{ cell: 12, step: 10, rotStep: 1, range: RANGE, rot: ROT, kr: +(ARGS.kr || 0.05), ks: 0.01 }, { cell: 6, step: 3, rotStep: 0.25, range: 24, rot: 1.5, kr: 0.01, ks: 0.0025 }, { cell: 3, step: 1, rotStep: 0.1, range: 6, rot: 0.4, kr: 0.003, ks: 0.001 }];
+/* 1단계는 탐색 범위에 맞춰 성기게 (범위 500m·축척 ±30% 로 돌릴 때 10m 간격이면 몇 시간 걸림 — 고흥 2026-10-16) */
+const KR = +(ARGS.kr || 0.05);
+const stages = [{ cell: RANGE > 200 ? 16 : 12, step: Math.max(10, Math.round(RANGE / 20)), rotStep: Math.max(1, ROT / 4), range: RANGE, rot: ROT, kr: KR, ks: Math.max(0.01, KR / 4) }, { cell: 6, step: 3, rotStep: 0.25, range: Math.max(24, Math.round(RANGE / 20)), rot: 1.5, kr: Math.max(0.01, KR / 4), ks: 0.0025 }, { cell: 3, step: 1, rotStep: 0.1, range: 6, rot: 0.4, kr: 0.003, ks: 0.001 }];
 let center = { theta: 0, dx: 0, dy: 0, k: 1 };
 for (const st of stages) {
   const M = maskAt(st.cell), B = bldgRaster(st.cell * mpp);
@@ -95,4 +97,5 @@ for (const st of stages) {
 const [a, b, c, d] = abcd(best.theta, best.dx, best.dy, best.k);
 console.log(`\naffine5179  a=${a}  b=${b}  c=${c}  d=${d}`);
 console.log(`축척 ${(mpp * best.k).toFixed(4)} m/px(막대 ${mpp} × ${best.k.toFixed(4)}) · 회전 ${(best.theta * 180 / Math.PI).toFixed(2)}° · 앵커 보정 (${best.dx}, ${best.dy}) m · 겹침 ${(best.s * 100).toFixed(1)}%`);
+if (ARGS.json) fs.writeFileSync(path.resolve(String(ARGS.json)), JSON.stringify({ a, b, c, d, mpp: mpp * best.k, rot: best.theta * 180 / Math.PI, overlap: best.s, dx: best.dx, dy: best.dy }, null, 1));   // 자동 파이프라인용
 if (ARGS.write) { if (!cfg) { console.error('regions/' + slug + '.json 없음'); process.exit(1); } cfg.draft = cfg.draft || {}; cfg.draft.affine5179 = { a, b, c, d }; cfg.draft.note = `최종본 정합 ${new Date().toISOString().slice(0, 10)} — 건물 윤곽 겹침 ${(best.s * 100).toFixed(0)}% (축척 ${(mpp * best.k).toFixed(4)} m/px · 회전 ${(best.theta * 180 / Math.PI).toFixed(1)}°)`; fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2)); console.log('→ draft.affine5179 갱신'); }

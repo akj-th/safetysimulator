@@ -76,6 +76,8 @@ if (P.length < 2) { console.error('짝이 2개 이상 필요합니다 (회전·�
 const N = 4, A = Array.from({ length: N }, () => new Array(N).fill(0)), B = new Array(N).fill(0);
 const addRow = (row, rhs) => { for (let i = 0; i < N; i++) { B[i] += row[i] * rhs; for (let j = 0; j < N; j++) A[i][j] += row[i] * row[j]; } };
 for (const { px: [x, y], at: [X, Y] } of P) { addRow([x, y, 1, 0], X); addRow([-y, x, 0, 1], Y); }
+/* 짝이 2개뿐이면 회전까지 풀면 어떤 오차든 그대로 흡수돼 잔차 0 이 나옵니다(강진 −17°). 그때는 회전 0 으로 고정(b=0) — AURI 지도는 거의 북쪽 위 */
+if (P.length === 2 || ARGS.norot) { addRow([0, 1e6, 0, 0], 0); }
 /* 가우스 소거 */
 for (let i = 0; i < N; i++) { let piv = i; for (let r = i + 1; r < N; r++) if (Math.abs(A[r][i]) > Math.abs(A[piv][i])) piv = r; [A[i], A[piv]] = [A[piv], A[i]]; [B[i], B[piv]] = [B[piv], B[i]];
   for (let r = 0; r < N; r++) { if (r === i) continue; const f = A[r][i] / A[i][i]; for (let c = i; c < N; c++) A[r][c] -= f * A[i][c]; B[r] -= f * B[i]; } }
@@ -86,6 +88,7 @@ console.log(`축척 ${scaleM.toFixed(4)} m/px · 회전 ${rot.toFixed(2)}°`);
 let worst = 0;
 for (const { px: [x, y], at: [X, Y], name, n } of P) { const ex = a * x + b * y + c, ey = b * x - a * y + d; const r = Math.hypot(ex - X, ey - Y); worst = Math.max(worst, r); console.log(`   ${name}${n > 1 ? ' ×' + n : ''}  잔차 ${r.toFixed(1)} m`); }
 console.log(`최대 잔차 ${worst.toFixed(1)} m`);
+if (ARGS.json) fs.writeFileSync(path.resolve(String(ARGS.json)), JSON.stringify({ a, b, c, d, mpp: scaleM, rot, worst, pairs: P.map(p => ({ name: p.name, px: p.px, at: p.at, n: p.n, resid: Math.hypot(a * p.px[0] + b * p.px[1] + c - p.at[0], b * p.px[0] - a * p.px[1] + d - p.at[1]) })) }, null, 1));   // 자동 파이프라인용
 if (ARGS.write) {
   if (!cfg) { console.error('regions/' + slug + '.json 이 없어 못 적습니다'); process.exit(1); }
   cfg.draft = cfg.draft || {}; cfg.draft.affine5179 = { a, b, c, d };
