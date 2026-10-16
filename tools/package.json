@@ -15,7 +15,10 @@
     "verify-rules": "node verify-rules.mjs",
     "convert-legacy": "node convert-gis.js",
     "overview": "node overview-map/build-overview-map.mjs",
-    "icon-sheet": "node overview-map/build-icon-sheet.mjs"
+    "icon-sheet": "node overview-map/build-icon-sheet.mjs",
+    "classify": "node classify-regions.mjs",
+    "pptx-extract": "node overview-map/pptx-extract.mjs",
+    "overview-pptx": "node overview-map/run-pptx-region.mjs"
   },
   "dependencies": {
     "proj4": "^2.21.0"

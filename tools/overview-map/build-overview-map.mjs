@@ -363,7 +363,9 @@ if (riskLayers.length && RISK.hotspots !== false) {
   const fb = [Math.min(...corners.map(c => c[0])), Math.min(...corners.map(c => c[1])), Math.max(...corners.map(c => c[0])), Math.max(...corners.map(c => c[1]))];
   const markerPts = cfg.zones.flatMap(z => (z.markers || []).map(m => { const [x, y] = anchorPx(m.at); return pxTo5186(x, y); }));
   const cand = findHotspots(riskLayers, fb, { cellM: RISK.hotCellM || 20, radiusM: RISK.hotRadiusM || 250, minT: RISK.hotMinT ?? 0.15, minScore: RISK.hotMinScore ?? 0.22, count: (RISK.hotCount || 6) + 8 });
-  hotspots = cand.filter(h => markerPts.every(p => Math.hypot(p[0] - h.x, p[1] - h.y) > (RISK.hotExcludeM || 120))).slice(0, RISK.hotCount || 6);
+  /* 상자 사이 빈 띠(가로 530~1390 · 세로 60~830) 안에 있는 것만 — 가장자리·상자 뒤에 숨는 거점은 geojson 에만 남김 */
+  const inBand = (h) => { const [px, py] = from5186([h.x, h.y]); return px > 530 && px < 1390 && py > 60 && py < 830; };
+  hotspots = cand.filter(h => inBand(h) && markerPts.every(p => Math.hypot(p[0] - h.x, p[1] - h.y) > (RISK.hotExcludeM || 120))).slice(0, RISK.hotCount || 6);
   const ex = riskLayers.map(L => L.extent); const eb = [Math.max(...ex.map(e => e[0])), Math.max(...ex.map(e => e[1])), Math.min(...ex.map(e => e[2])), Math.min(...ex.map(e => e[3]))];
   hotspotsAll = findHotspots(riskLayers, eb, { cellM: 50, radiusM: 400, minT: RISK.hotMinT ?? 0.15, minScore: RISK.hotMinScore ?? 0.22, count: 10 });
   console.log(`  주요 거점: 화면 안 ${hotspots.length}곳 (후보 ${cand.length}) · 지자체 전체 ${hotspotsAll.length}곳`);

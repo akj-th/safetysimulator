@@ -1,0 +1,659 @@
+{
+  "region": "bukgu",
+  "title": "북구 중점관리분야 맞춤형 사업 종합도",
+  "subtitle": "우산동·중흥동·신안동 일원  |  중점 3분야 · 감염병 · 범죄 · 자살",
+  "sdm": "data/raw/SDM_5K/29170_bukgu",
+  "survey": "data/raw/gis_0901/최종 조사지/bukgu_OverlapUnion_1.shp",
+  "frame": {
+    "width": 1920,
+    "height": 1080,
+    "widthMeters": 6600,
+    "center5179": [
+      946984,
+      1686479
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "zoom": 17,
+    "note": "구역 범위 817,567,2604,2000 에 맞춤"
+  },
+  "draft": {
+    "file": "docs/사전진단 보고서 및 지도 작업본(AURI)/261015 미추홀구~공주시/9. 광주 북구/광주 북구 최종.png",
+    "width": 4028,
+    "height": 2266,
+    "affine5179": {
+      "a": 1.6084352310415582,
+      "b": -0.19464204994148598,
+      "c": 944482.9121355495,
+      "d": 1688875.2669051064
+    },
+    "note": "건물 윤곽 정합(겹침 36%) · 시설 5점 정합(최대 잔차 233m)",
+    "pptx": "docs/사전진단 보고서 및 지도 작업본(AURI)/261015 미추홀구~공주시/_pptx/bukgu"
+  },
+  "style": {
+    "dimOpacity": 0,
+    "surveyColor": "#2793C9",
+    "hideZoneLines": true,
+    "box": {
+      "pad": 11,
+      "fsT": 16,
+      "fsP": 11.5,
+      "fsI": 12,
+      "lh": 15.5,
+      "rowGap": 3,
+      "ic": 20
+    }
+  },
+  "risk": {
+    "enabled": true,
+    "overlapT": 0.2,
+    "builtBufferM": 40,
+    "closeM": 30,
+    "minAreaHa": 1,
+    "simplifyM": 12,
+    "maxAlpha": 0.62,
+    "alphaFullAt": 0.5,
+    "colorGamma": 0.55
+  },
+  "labels": [],
+  "zones": [
+    {
+      "id": "Z1",
+      "num": "①",
+      "type": "자연환경형",
+      "place": "우산근린공원",
+      "safety": "crime",
+      "markers": [
+        {
+          "label": "1",
+          "at": {
+            "draftPx": [
+              2188.7,
+              986.4
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              2041.4,
+              980.5
+            ],
+            [
+              2197.2,
+              980.5
+            ],
+            [
+              2197.2,
+              1087.2
+            ],
+            [
+              2041.4,
+              1087.2
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 60,
+        "top": 150,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "산책로 CCTV 증설·보안등 조명개선",
+          "icon": "cctv-multi"
+        },
+        {
+          "text": "공원보안관 배치",
+          "icon": "billboard"
+        }
+      ]
+    },
+    {
+      "id": "Z2",
+      "num": "②",
+      "type": "주거생활형",
+      "place": "연두빌라 일대",
+      "safety": "crime",
+      "markers": [
+        {
+          "label": "2",
+          "at": {
+            "draftPx": [
+              1198.7,
+              1893.5
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              1042.9,
+              1876.7
+            ],
+            [
+              1198.7,
+              1876.7
+            ],
+            [
+              1198.7,
+              1999.8
+            ],
+            [
+              1042.9,
+              1999.8
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 60,
+        "below": "Z1",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "방범 블랙박스·스마트보안등 설치",
+          "icon": "cctv-multi"
+        },
+        {
+          "text": "자율방범대 운영",
+          "icon": "community-watch"
+        }
+      ]
+    },
+    {
+      "id": "Z3",
+      "num": "③",
+      "type": "상업/유흥 밀집형",
+      "place": "득량만횟집",
+      "safety": "crime",
+      "markers": [
+        {
+          "label": "3",
+          "at": {
+            "draftPx": [
+              1865.9,
+              1150.7
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              1710.6,
+              1110.7
+            ],
+            [
+              1874.7,
+              1110.7
+            ],
+            [
+              1874.7,
+              1233.8
+            ],
+            [
+              1710.6,
+              1233.8
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 60,
+        "below": "Z2",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "음식점가 범죄예방 CCTV 증설",
+          "icon": "cctv-multi"
+        },
+        {
+          "text": "경찰·지역 합동순찰",
+          "icon": "community-watch"
+        }
+      ]
+    },
+    {
+      "id": "Z4",
+      "num": "④",
+      "type": "주거생활형",
+      "place": "우산동 633-1 인근",
+      "safety": "suicide",
+      "markers": [
+        {
+          "label": "4",
+          "at": {
+            "draftPx": [
+              1662.2,
+              949.1
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              1593.9,
+              895.8
+            ],
+            [
+              1733.3,
+              895.8
+            ],
+            [
+              1733.3,
+              1002.5
+            ],
+            [
+              1593.9,
+              1002.5
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 1420,
+        "top": 150,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "고위험군 조기발굴·상담관리",
+          "icon": "counseling"
+        },
+        {
+          "text": "고립가구 대면방문·배달 연계 안부확인",
+          "icon": "visit-check"
+        }
+      ]
+    },
+    {
+      "id": "Z5",
+      "num": "⑤",
+      "type": "주거생활형",
+      "place": "각화동 471 인근",
+      "safety": "suicide",
+      "markers": [
+        {
+          "label": "5",
+          "at": {
+            "draftPx": [
+              2424,
+              655.7
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              2287.2,
+              566.5
+            ],
+            [
+              2603.5,
+              566.5
+            ],
+            [
+              2603.5,
+              746
+            ],
+            [
+              2287.2,
+              746
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 1420,
+        "below": "Z4",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "생명존중약국·마음안심버스",
+          "icon": "counseling"
+        },
+        {
+          "text": "관리사무소·경비원 생명지킴이 교육",
+          "icon": "education"
+        }
+      ]
+    },
+    {
+      "id": "Z6",
+      "num": "⑥",
+      "type": "상업/유흥 밀집형",
+      "place": "신안동 136-9",
+      "safety": "suicide",
+      "markers": [
+        {
+          "label": "6",
+          "at": {
+            "draftPx": [
+              965.4,
+              1592.3
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              816.9,
+              1601.4
+            ],
+            [
+              956.4,
+              1601.4
+            ],
+            [
+              956.4,
+              1708
+            ],
+            [
+              816.9,
+              1708
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 1420,
+        "below": "Z5",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "알코올중독 치료 연계·편의점 연계 예방",
+          "icon": "delivery-drink"
+        },
+        {
+          "text": "번개탄 판매형태 개선",
+          "icon": "delivery-drink"
+        }
+      ]
+    },
+    {
+      "id": "Z7",
+      "num": "⑦",
+      "type": "주거생활형",
+      "place": "우산동 현대아파트",
+      "safety": "infection",
+      "markers": [
+        {
+          "label": "7",
+          "at": {
+            "draftPx": [
+              1755.3,
+              793.2
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              1630.9,
+              787.3
+            ],
+            [
+              1770.4,
+              787.3
+            ],
+            [
+              1770.4,
+              885.7
+            ],
+            [
+              1630.9,
+              885.7
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 520,
+        "bottom": 1050,
+        "w": 290
+      },
+      "items": [
+        {
+          "text": "어르신 폐렴구균 예방접종·결핵 이동검진",
+          "icon": "visit-check"
+        },
+        {
+          "text": "찾아가는 감염병 예방교육",
+          "icon": "education"
+        }
+      ]
+    },
+    {
+      "id": "Z8",
+      "num": "⑧",
+      "type": "교육시설형",
+      "place": "무등도서관",
+      "safety": "infection",
+      "markers": [
+        {
+          "label": "8",
+          "at": {
+            "draftPx": [
+              2065.3,
+              875
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              1939.6,
+              878.2
+            ],
+            [
+              2062.6,
+              878.2
+            ],
+            [
+              2062.6,
+              968.4
+            ],
+            [
+              1939.6,
+              968.4
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 820,
+        "bottom": 1050,
+        "w": 290
+      },
+      "items": [
+        {
+          "text": "스마트 손 소독기·질병정보 모니터망",
+          "icon": "co-alarm"
+        },
+        {
+          "text": "어린이 체험형 감염병 예방교육",
+          "icon": "education"
+        }
+      ]
+    },
+    {
+      "id": "Z9",
+      "num": "⑨",
+      "type": "상업/유흥 밀집형",
+      "place": "진식당 일대",
+      "safety": "infection",
+      "markers": [
+        {
+          "label": "9",
+          "at": {
+            "draftPx": [
+              964.2,
+              1726.4
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              874,
+              1644
+            ],
+            [
+              1062.6,
+              1644
+            ],
+            [
+              1062.6,
+              1791.6
+            ],
+            [
+              874,
+              1791.6
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 1120,
+        "bottom": 1050,
+        "w": 290
+      },
+      "items": [
+        {
+          "text": "주민참여 환경정비·해충 방역 소독",
+          "icon": "co-alarm"
+        },
+        {
+          "text": "취약지역 방역소독",
+          "icon": "co-alarm"
+        }
+      ]
+    }
+  ],
+  "pois": [
+    {
+      "name": "무등도서관",
+      "draftPx": [
+        2025.8,
+        943.9
+      ],
+      "side": "left"
+    },
+    {
+      "name": "우산근린공원",
+      "draftPx": [
+        2086.6,
+        1001.1
+      ],
+      "side": "left"
+    },
+    {
+      "name": "말바우시장",
+      "draftPx": [
+        1792.7,
+        1172.3
+      ],
+      "side": "left"
+    },
+    {
+      "name": "광주역",
+      "draftPx": [
+        1247.7,
+        1601.5
+      ]
+    },
+    {
+      "name": "서방시장",
+      "draftPx": [
+        1758.2,
+        1597.8
+      ]
+    },
+    {
+      "name": "연두빌라",
+      "draftPx": [
+        1120.9,
+        1938.3
+      ],
+      "side": "left"
+    }
+  ],
+  "routes": [],
+  "keymap": {
+    "x": 60,
+    "y": 0,
+    "below": "Z3",
+    "gap": 8,
+    "w": 440,
+    "h": 110,
+    "name": "북",
+    "label": "북구 전체 · 지도 범위"
+  },
+  "legend": [
+    {
+      "kind": "zonepoly",
+      "key": "infection",
+      "label": "사업지 구역 — 감염병"
+    },
+    {
+      "kind": "zonepoly",
+      "key": "crime",
+      "label": "사업지 구역 — 범죄"
+    },
+    {
+      "kind": "zonepoly",
+      "key": "suicide",
+      "label": "사업지 구역 — 자살"
+    },
+    {
+      "kind": "poi",
+      "label": "주요 시설"
+    },
+    {
+      "kind": "heat",
+      "keys": [
+        "infection",
+        "crime",
+        "suicide"
+      ],
+      "label": "위험도 밀도 — 감염병 · 범죄 · 자살 (낮음 → 높음)"
+    }
+  ],
+  "legendPos": {
+    "x": 1420,
+    "below": "Z6",
+    "gap": 8,
+    "w": 440,
+    "rowH": 21,
+    "fs": 12.5
+  }
+}
