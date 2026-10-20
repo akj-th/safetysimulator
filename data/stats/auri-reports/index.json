@@ -1,0 +1,269 @@
+{
+ "generatedAt": "2026-10-20",
+ "regions": [
+  {
+   "region": "geumcheon",
+   "full": false,
+   "sourceDate": "2026-10-08",
+   "fields": [
+    "infection",
+    "crime",
+    "suicide"
+   ],
+   "issues": 13,
+   "measures": 18
+  },
+  {
+   "region": "namhae",
+   "full": true,
+   "sourceDate": "2026-10-08",
+   "fields": [
+    "crime",
+    "suicide",
+    "life"
+   ],
+   "issues": 18,
+   "measures": 57
+  },
+  {
+   "region": "mokpo",
+   "full": false,
+   "sourceDate": "2026-10-08",
+   "fields": [
+    "crime",
+    "suicide",
+    "fire"
+   ],
+   "issues": 12,
+   "measures": 34
+  },
+  {
+   "region": "bucheon",
+   "full": true,
+   "sourceDate": "2026-10-08",
+   "fields": [
+    "crime",
+    "suicide",
+    "infection"
+   ],
+   "issues": 12,
+   "measures": 15
+  },
+  {
+   "region": "sacheon",
+   "full": true,
+   "sourceDate": "2026-10-08",
+   "fields": [
+    "crime",
+    "suicide",
+    "infection"
+   ],
+   "issues": 13,
+   "measures": 34
+  },
+  {
+   "region": "yeongcheon",
+   "full": true,
+   "sourceDate": "2026-10-08",
+   "fields": [
+    "crime",
+    "suicide",
+    "traffic"
+   ],
+   "issues": 14,
+   "measures": 52
+  },
+  {
+   "region": "pocheon",
+   "full": false,
+   "sourceDate": "2026-10-08",
+   "fields": [
+    "crime",
+    "suicide",
+    "life"
+   ],
+   "issues": 12,
+   "measures": 36
+  },
+  {
+   "region": "hongcheon",
+   "full": false,
+   "sourceDate": "2026-10-08",
+   "fields": [
+    "crime",
+    "suicide",
+    "traffic"
+   ],
+   "issues": 9,
+   "measures": 27
+  },
+  {
+   "region": "gangjin",
+   "full": false,
+   "sourceDate": "2026-10-12",
+   "fields": [
+    "life",
+    "industrial",
+    "suicide"
+   ],
+   "issues": 9,
+   "measures": 14
+  },
+  {
+   "region": "goheung",
+   "full": false,
+   "sourceDate": "2026-10-12",
+   "fields": [
+    "industrial",
+    "suicide",
+    "traffic"
+   ],
+   "issues": 10,
+   "measures": 30
+  },
+  {
+   "region": "michuhol",
+   "full": false,
+   "sourceDate": "2026-10-12",
+   "fields": [
+    "crime",
+    "suicide",
+    "fire"
+   ],
+   "issues": 10,
+   "measures": 25
+  },
+  {
+   "region": "ongjin",
+   "full": false,
+   "sourceDate": "2026-10-12",
+   "fields": [
+    "crime",
+    "suicide",
+    "traffic"
+   ],
+   "issues": 12,
+   "measures": 33
+  },
+  {
+   "region": "seocheon",
+   "full": false,
+   "sourceDate": "2026-10-13",
+   "fields": [
+    "crime",
+    "suicide",
+    "industrial"
+   ],
+   "issues": 10,
+   "measures": 24
+  },
+  {
+   "region": "andong",
+   "full": false,
+   "sourceDate": "2026-10-14",
+   "fields": [
+    "crime",
+    "suicide",
+    "infection"
+   ],
+   "issues": 10,
+   "measures": 41
+  },
+  {
+   "region": "yeongju",
+   "full": false,
+   "sourceDate": "2026-10-14",
+   "fields": [
+    "crime",
+    "suicide",
+    "traffic"
+   ],
+   "issues": 10,
+   "measures": 24
+  },
+  {
+   "region": "cheongsong",
+   "full": false,
+   "sourceDate": "2026-10-15",
+   "fields": [
+    "fire",
+    "suicide",
+    "industrial"
+   ],
+   "issues": 10,
+   "measures": 41
+  },
+  {
+   "region": "gongju",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "fire"
+   ],
+   "issues": 9,
+   "measures": 31
+  },
+  {
+   "region": "bukgu",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "infection"
+   ],
+   "issues": 9,
+   "measures": 26
+  },
+  {
+   "region": "naju",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "fire"
+   ],
+   "issues": 11,
+   "measures": 47
+  },
+  {
+   "region": "dangjin",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "traffic",
+    "suicide"
+   ],
+   "issues": 10,
+   "measures": 26
+  },
+  {
+   "region": "jangheung",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "fire",
+    "suicide"
+   ],
+   "issues": 9,
+   "measures": 23
+  },
+  {
+   "region": "jindo",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "industrial",
+    "crime",
+    "suicide"
+   ],
+   "issues": 9,
+   "measures": 15
+  }
+ ]
+}

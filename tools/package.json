@@ -20,7 +20,8 @@
     "pptx-extract": "node overview-map/pptx-extract.mjs",
     "overview-pptx": "node overview-map/run-pptx-region.mjs",
     "hotspots": "node build-hotspots.mjs",
-    "batch-generate": "node batch-generate.mjs"
+    "batch-generate": "node batch-generate.mjs",
+    "auri-reports": "node build-auri-reports.mjs"
   },
   "dependencies": {
     "proj4": "^2.21.0"

@@ -31,6 +31,10 @@
   margin:0 0 20px; padding-bottom:11px; border-bottom:2px solid var(--k);
 }
 .h-section{font-size:var(--fs-lead); font-weight:700; color:var(--k); margin:26px 0 12px}
+.h-sub{font-size:var(--fs-cap); font-weight:400; color:var(--g2); margin-left:8px}
+.sim-row td{background:rgba(216,61,100,.04)}
+.auri-plan td{font-size:var(--fs-sm); line-height:1.55}
+.auri-checks{list-style:none; padding-left:6px; margin:4px 0 0; font-size:var(--fs-sm)} .auri-checks li{margin:3px 0}
 
 /* 원문의 "○ (항목) 내용" 형식 */
 .bullet{margin:9px 0 9px 2px; padding-left:19px; position:relative; text-align:justify}
@@ -347,21 +351,150 @@ function cover() {
   return `
   <section class="cover">
     <div class="kicker">안전사업지구 사업모델 개발 연구용역</div>
-    <h1>지자체 사전진단서</h1>
+    <h1>지역 안전진단 사전분석 보고서</h1>
     <div class="rule"></div>
     <p class="region">— ${esc(_data ? _data.label : (_picked.addr || '대상지'))} —</p>
     <div class="meta">
       작성일 ${d}<br>
-      자료원 119 구급출동 데이터 (2023~2025년)<br>
+      자료원 119 구급출동 데이터 (2023~2025년)${_auri && _auri.sourceDate ? ' · AURI 사전분석 보고서 ' + _auri.sourceDate : ''}<br>
       건축공간연구원 · Atelier KJ
     </div>
   </section>`;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   ★ 사전진단서 본문 = AURI 「지역 안전진단 사전분석 보고서」와 같은 구조 (2026-10-20)
+
+   AURI 가 지자체마다 보내는 보고서(hwpx)를 tools/build-auri-reports.mjs 가 구조화해
+   data/stats/auri-reports/<지역>.json 으로 두고, 여기서 그 글을 **그대로** 싣습니다.
+     1. 중점관리분야 및 복합위험지구 선정   ← AURI 글(전체본 4곳) / 없으면 우리 통계로
+     2. 복합위험지구 사고 다발지 및 맞춤형 사업(안)  ← AURI 표(22곳) + 우리 지도·이미지·진단 지점 처방(시뮬레이터 표시)
+     [그림] 종합도                          ← tools/overview-map 산출물 자리
+     붙임 1~4                               ← 예전 1·2·3·5장(우리 통계·처방). AURI 보고서의 붙임과 같은 자리
+   AURI 글과 우리 산출은 섞지 않습니다 — 우리 것에는 "시뮬레이터" 표시가 붙습니다.
+   ════════════════════════════════════════════════════════════════════ */
+const AURI_HEA_LABEL = { E: '[E] 환경', H: '[H] 피해대상', A: '[A] 행위' };
+
+function auriBullet(b) {
+  return `<p class="bullet"><span class="tag">(${esc(b.tag)})</span> ${esc(b.text)}${b.note ? `<br><span class="note-under" style="margin:0">* ${esc(b.note)}</span>` : ''}</p>`;
+}
+
+function auriCh1() {
+  const name = _data.shortLabel;
+  const c = _auri && _auri.ch1;
+  const focusLine = _focus.map((f) => f.label).join('·');
+  let body = '';
+  if (c && c.bullets.length) {
+    const isFocus = (b) => _focus.some((f) => f.label === b.tag);
+    body = `
+    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : 사고 빈도와 정책적 시급성을 종합 분석하여 <b>${esc(focusLine)}</b> 3개 분야 선정</p>
+    ${c.bullets.filter(isFocus).map(auriBullet).join('')}
+    <p class="bullet" style="margin-top:14px"><b>□ 복합위험지구</b></p>
+    ${c.bullets.filter((b) => !isFocus(b)).map(auriBullet).join('')}
+    ${c.hea.length ? `<h3 class="h-section">구조적 잠재 취약성 분석(HEA 분석)</h3>${c.hea.map((t) => `<p class="bullet">${esc(t.replace(/^○\s*/, ''))}</p>`).join('')}` : ''}
+    ${c.combined.length ? `<h3 class="h-section">복합위험지구와 잠재 취약성 결합 분석</h3>
+      <table class="tight"><thead><tr><th style="width:18%">구분</th><th style="width:20%">유형</th><th style="width:28%">행정동</th><th>위험 분야(관리지역 이상)</th></tr></thead>
+      <tbody>${c.combined.map((r) => `<tr><td>${esc(r.group)}</td><td>${esc(r.type)}</td><td>${esc(r.dongs)}</td><td>${esc(r.risk)}</td></tr>`).join('')}</tbody></table>` : ''}
+    <p class="note-under">* 이 장은 AURI 사전분석 보고서(${esc(_auri.sourceDate || '')}) 원문입니다.</p>`;
+  } else {
+    /* AURI 1장이 없는 지자체(약식 보고서 18곳 · 미수령 19곳): 우리 통계로 같은 꼴을 채우고 표시를 남깁니다 */
+    const count = (_national && _national.regionCount) || 41;
+    const rows = _focus.map((f) => {
+      const y = f.cat.region.years || {};
+      const total = YEARS.reduce((s2, k) => s2 + (y[k] || 0), 0);
+      const nat = _national && _national.categories[f.key];
+      const avg = nat ? nat.n / count : null;
+      return { f, total, ratio: avg ? (total / avg).toFixed(2) : null, inside: f.cat.count ? f.cat.count.inside : null };
+    });
+    const areaHa = _data.surveyArea && _data.surveyArea.areaHa;
+    body = `
+    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : 강원대 분석으로 확정된 <b>${esc(focusLine)}</b> 3개 분야</p>
+    ${rows.map((r) => `<p class="bullet"><span class="tag">(${esc(r.f.label)})</span> 3개년 구급출동 ${r.total.toLocaleString()}건${r.ratio ? `, 41개 지자체 평균의 ${r.ratio}배` : ''}${r.inside != null ? `, 복합위험지구 안 ${r.inside.toLocaleString()}건` : ''}</p>`).join('')}
+    <p class="bullet" style="margin-top:14px"><b>□ 복합위험지구</b></p>
+    <p class="bullet"><span class="tag">(대상지)</span> ${esc(_data.label)} 조사지 약 ${areaHa ? (areaHa / 100).toFixed(2) + '㎢' : '-'}${_picked.dong ? ` (진단 지점: ${esc(_picked.dong)})` : ''}</p>
+    <p class="note-under">* AURI 사전분석 보고서 1장(중점관리분야·복합위험지구 선정 사유)을 아직 받지 못해 시뮬레이터 통계로 채운 자리입니다. 보고서가 오면 원문으로 바뀝니다.</p>`;
+  }
+  return `
+  <section class="chapter">
+    <h2 class="h-chapter">1. ${esc(name)} 중점관리분야 및 복합위험지구 선정</h2>
+    ${body}
+    ${_dongHea ? `<h3 class="h-section">[참고] 읍면동별 복합 위험도 및 잠재 취약성(HEA) 분석 <span class="h-sub">시뮬레이터 산출</span></h3>${AuriDongHea.renderTable(_dongHea, { perTable: 7, fillTo: 7, caption: `[표 1-1] ${_data.shortLabel} 읍면동별 HEA 취약도 지표` })}` : ''}
+  </section>`;
+}
+
+/* 대책 칸 — "[인프라 개선]" 묶음 머리 + (E)/(H)/(A) 줄 + → 보충 */
+function auriMeasures(list) {
+  let grp = '';
+  return list.map((m) => {
+    const head = m.group && m.group !== grp ? `<div style="font-weight:700;margin-top:4px">[${esc(m.group)}]</div>` : '';
+    grp = m.group || grp;
+    return head + `<div class="hea-${m.hea}" style="padding:2px 4px"><span class="hea-tag k-${m.hea}">${AURI_HEA_LABEL[m.hea] || esc(m.hea)}</span> ${esc(m.text)}${m.notes.length ? `<br><span style="font-size:var(--fs-cap);color:var(--g2)">${m.notes.map((t) => '→ ' + esc(t)).join('<br>')}</span>` : ''}</div>`;
+  }).join('');
+}
+
+/* 2장 — 분야마다 [위치도(우리 지도)] + AURI 사업(안) 표 + [사업 예시(개선 후 이미지)] + 사전 체크 */
+function auriCh2() {
+  const photos = AuriSitePhoto.all();
+  const after = sessionStorage.getItem('auri_after_image');
+  const beforeImg = sessionStorage.getItem('auri_input_image');
+  const beforeUrl = beforeImg ? (JSON.parse(beforeImg).dataUrl || null) : null;
+  let fig = 2;
+  const blocks = _focus.map(function (f, i) {
+    const af = _auri && _auri.fields.find((x) => x.key === f.key);
+    const mine = _items.filter((it) => it.field === f.key || it.category === f.label);
+    const r = _results.find((x) => x.key === f.key);
+    const mineP = photos.filter((p) => p.field === f.key);
+    const auriRows = af ? af.groups.map((g) => g.issues.map((is, j) => `
+        <tr>
+          ${j === 0 ? `<td rowspan="${g.issues.length}" style="vertical-align:top"><b>${esc(g.spaceType)}</b>${g.place ? `<br><span style="font-size:var(--fs-cap);color:var(--g2)">${esc(g.place)}</span>` : ''}</td>` : ''}
+          <td style="vertical-align:top">${is.title ? `<b>[${esc(is.title)}]</b><br>` : ''}${is.place ? `<span class="tag">(장소)</span> ${esc(is.place)}<br>` : ''}${is.problem ? `<span class="tag">(현황 및 문제점)</span> ${esc(is.problem)}` : ''}${is.extra && is.extra.length ? esc(is.extra.join(' ')) : ''}</td>
+          <td style="vertical-align:top">${auriMeasures(is.measures)}</td>
+        </tr>`).join('')).join('') : '';
+    const simRow = mine.length ? `
+        <tr class="sim-row">
+          <td style="vertical-align:top"><b>시뮬레이터 진단 지점</b><br><span style="font-size:var(--fs-cap);color:var(--g2)">${esc(_picked.addr || '')}</span></td>
+          <td style="vertical-align:top">${r && r.observed && r.observed.length ? `<span class="tag">(사진 판독)</span> ${esc(r.observed.join(' · '))}` : (r ? `사진 판독 ${r.level.label} 판정(${r.score}점)` : '')}</td>
+          <td style="vertical-align:top">${mine.map((it) => `<div class="hea-${it.hea}" style="padding:2px 4px"><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span> ${esc(it.name)}${it.trigger ? `<br><span style="font-size:var(--fs-cap);color:var(--g2)">근거: ${esc(it.trigger.id)} ${esc(it.trigger.note || '')}</span>` : ''}</div>`).join('')}</td>
+        </tr>` : '';
+    const figLoc = fig++, figEx = fig++;
+    return `
+      <h3 class="h-section">□ ${esc(f.label)} 분야</h3>
+      <figure class="doc-map">
+        <img id="map-${f.key}" alt="${esc(f.label)} 발생 위치도" hidden>
+        <div class="slot" id="map-${f.key}-wait">지도를 그리는 중입니다…</div>
+        <figcaption>[그림 ${figLoc}] ${af && af.figures[0] ? esc(af.figures[0]) : `복합위험지구 내 ${esc(f.label)} 발생 위치도`} <span class="h-sub">시뮬레이터 지도 · 진단 지점 반경 ${MAP_RADIUS_M}m</span></figcaption>
+      </figure>
+      <table class="tight auri-plan">
+        <caption>[표 ${1 + i}] (${esc(f.label)}) 공간 유형별 위험 요인 및 맞춤형 사업(안)${af ? '' : ' — AURI 보고서 미수령'}</caption>
+        <thead><tr><th style="width:17%">공간 유형</th><th style="width:40%">위험 요인 · 현황</th><th>맞춤형 사업(안)</th></tr></thead>
+        <tbody>${auriRows}${simRow}${!auriRows && !simRow ? '<tr><td colspan="3">자료 없음</td></tr>' : ''}</tbody>
+      </table>
+      ${af ? '' : '<p class="note-under">* 이 분야의 AURI 사업(안)을 아직 받지 못했습니다. 시뮬레이터 처방만 실려 있습니다.</p>'}
+      ${(beforeUrl || after || mineP.length) ? `
+      <div class="ba-stack">
+        ${mineP[0] ? `<figure><img src="${mineP[0].dataUrl}" alt="현장 사진"><figcaption>현장 사진 — ${esc(AuriSitePhoto.caption(mineP[0]))}</figcaption></figure>` : (beforeUrl ? `<figure><img src="${beforeUrl}" alt="개선 전"><figcaption>개선 전 (진단 지점)</figcaption></figure>` : '')}
+        ${after ? `<figure><img src="${after}" alt="개선 후"><figcaption>[그림 ${figEx}] ${af && af.figures[1] ? esc(af.figures[1]) : '맞춤형 사업 예시'} <span class="h-sub">시뮬레이터 생성</span></figcaption></figure><div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>` : ''}
+      </div>` : ''}
+      ${af && af.checks.length ? `<p class="bullet" style="margin-top:12px"><b>○ 사전 체크 및 현장 확인사항</b></p><ul class="auri-checks">${af.checks.map((t) => `<li>▸ ${esc(t)}</li>`).join('')}</ul>` : ''}`;
+  }).join('');
+  return `
+  <section class="chapter">
+    <h2 class="h-chapter">2. 복합위험지구 사고 다발지 및 맞춤형 사업(안)</h2>
+    ${_auri ? `<p class="note-under" style="margin-bottom:10px">* 표의 공간 유형·위험 요인·사업(안)은 AURI 사전분석 보고서(${esc(_auri.sourceDate || '')}, ${_auri.full ? '전체본' : '약식본'}) 원문입니다. <b>시뮬레이터 진단 지점</b> 행은 이 앱이 사진 판독으로 처방한 것입니다.</p>` : `<p class="note-under" style="margin-bottom:10px">* ${esc(_data.shortLabel)} AURI 사전분석 보고서를 아직 받지 못했습니다. 시뮬레이터 처방만 실려 있습니다.</p>`}
+    ${blocks}
+    ${photoManager()}
+  </section>
+  <section class="chapter">
+    <h2 class="h-chapter">[그림] 복합위험지구 중점관리분야 맞춤형 사업 종합도</h2>
+    <div class="slot" style="min-height:220px">종합도는 별도 산출물입니다 — tools/overview-map 로 만든 <b>${esc(_data.region)}_종합도.svg</b> 를 여기에 끼워 넣습니다.</div>
+  </section>`;
+}
+
+
 function chapter1() {
   return `
   <section class="chapter">
-    <h2 class="h-chapter">1. 개요</h2>
+    <h2 class="h-chapter">붙임 1. 개요 <span class="h-sub">분석 자료원과 복합위험지구 선정 기준</span></h2>
 
     <h3 class="h-section">1.1 자료원 및 분석 지표 구성</h3>
     <p class="bullet"><span class="tag">(대상 안전분야)</span>
@@ -426,7 +559,7 @@ function chapter2() {
 
   return `
   <section class="chapter">
-    <h2 class="h-chapter">2. ${esc(_data.shortLabel)} 중점관리분야 현황</h2>
+    <h2 class="h-chapter">붙임 2. ${esc(_data.shortLabel)} 중점관리분야 현황 <span class="h-sub">119 구급출동 통계 · 시뮬레이터 산출</span></h2>
 
     <h3 class="h-section">2.1 중점관리분야별 사고 발생 일반 현황</h3>
     <p class="bullet"><span class="tag">(중점관리분야)</span>
@@ -514,7 +647,7 @@ function chapter3() {
 
   return `
   <section class="chapter">
-    <h2 class="h-chapter">3. 안전사고 공간분석</h2>
+    <h2 class="h-chapter">붙임 3. 안전사고 공간분석 <span class="h-sub">시뮬레이터 산출</span></h2>
 
     <h3 class="h-section">3.1 GIS 기반 사고 밀집지역 도출</h3>
     <p class="bullet">사고 밀집지역인 ${esc(_data.shortLabel)} 중점대상지는
@@ -698,8 +831,7 @@ function chapter5() {
 
   return `
   <section class="chapter">
-    <h2 class="h-chapter">5. 부록</h2>
-    <h3 class="h-section">5.1 맞춤형 사업 목록</h3>
+    <h2 class="h-chapter">붙임 4. 시뮬레이터 처방 사업 목록 <span class="h-sub">진단 지점 기준</span></h2>
     ${_items.length ? `
       <table class="tight">
         <thead><tr>
@@ -871,6 +1003,11 @@ const MAP_COLORS = {
 const MAP_RADIUS_M = 450;
 
 let _incidents = null;                 // data/incidents/<지역>.json
+let _auri = null;                      // data/stats/auri-reports/<지역>.json — AURI 사전분석 보고서 원문(구조화)
+async function loadAuriReport(region) {
+  try { const res = await fetch('data/stats/auri-reports/' + region + '.json'); return res.ok ? await res.json() : null; }
+  catch (e) { return null; }
+}
 const _mapCache = {};                  // 한 번 그린 지도는 다시 그리지 않습니다
 
 async function loadIncidents(region) {
@@ -1080,7 +1217,7 @@ function showDoc(which) {
   document.getElementById('printFoot').textContent =
     (a ? '지자체 사전진단서' : c ? '안전사업지구 사전진단 결과 리포트(초안)' : '현장 확인 리포트') + (_data ? ' — ' + _data.label : '');
   document.getElementById('docNoteText').innerHTML = a
-    ? 'AURI 사전진단서 양식 그대로입니다. 점선 없는 <b>입력칸</b>은 직접 쓰거나 <b>AI 의견 생성</b>으로 초안을 받을 수 있습니다. AI 초안 표시와 판단 근거는 화면에만 보이고 인쇄물에는 나오지 않습니다.'
+    ? 'AURI 「지역 안전진단 사전분석 보고서」와 같은 구조입니다. 1·2장의 글과 표는 AURI 보고서 원문이고, <b>시뮬레이터</b> 표시가 붙은 것만 이 앱이 계산한 것입니다. 점선 없는 <b>입력칸</b>은 직접 쓰거나 <b>AI 의견 생성</b>으로 초안을 받을 수 있습니다. AI 초안 표시와 판단 근거는 화면에만 보이고 인쇄물에는 나오지 않습니다.'
     : c
     ? '행안부가 지정한 양식에 맞출 <b>초안 뼈대</b>입니다(10/14 회의). 양식 원본을 받으면 항목 순서·제목을 그 양식대로 바꿉니다. 현장 확인사항은 현장 배포용이라 여기에는 넣지 않습니다.'
     : '현장에서 볼 것만 담았습니다. 확인사항은 <b>네모 칸에 체크</b>하며 쓰도록 만들었습니다.';
@@ -1197,7 +1334,7 @@ function moisReport() {
 /* ── 그리기 ──────────────────────────────────────────────────────── */
 function renderAll() {
   document.getElementById('docA').innerHTML =
-    cover() + chapter1() + chapter2() + chapter3() + chapter4() + chapter5();
+    cover() + auriCh1() + auriCh2() + chapter1() + chapter2() + chapter3() + chapter5();   // 옛 4장(밀집구간별)은 2장에 흡수
   document.getElementById('docB').innerHTML = fieldReport();
   document.getElementById('docC').innerHTML = moisReport();
   AuriDocEdit.refresh();
@@ -1237,6 +1374,7 @@ window.addEventListener('load', async function () {
   _focus = AuriStats.focusCategories(_data);
   _incidents = await loadIncidents(_data.region);   // 지도에 찍을 119 출동 지점
   _dongHea = await AuriDongHea.load(_data.region);  // 3.3 읍면동별 HEA 지표
+  _auri = await loadAuriReport(_data.region);       // AURI 사전분석 보고서 (있는 지자체만)
   document.title = `지자체 사전진단서 — ${_data.shortLabel}`;
 
   renderAll();
