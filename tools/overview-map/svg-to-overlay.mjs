@@ -224,6 +224,16 @@ for (const p of polys) {
   }
   if (best && bd < 260) { best.polygons.push(p); used.add(p); }
 }
+/* 2차: 남은 다각형은 같은 색 사업지 중 다각형이 없는 쪽 → 가장 가까운 번호 원으로 (거리 제한 없음) */
+for (const p of polys) {
+  if (used.has(p)) continue;
+  let best = null, bd = 1e9;
+  for (const z of zones) {
+    if (z.safety && p.safety && z.safety !== p.safety) continue;
+    for (const m of z.markers) { const d = (inside(m.px, p.px) ? 0 : distToPoly(m.px, p.px)) - (z.polygons.length ? 0 : 150); if (d < bd) { bd = d; best = z; } }
+  }
+  if (best) { best.polygons.push(p); used.add(p); }
+}
 const orphan = polys.filter(p => !used.has(p));
 
 if (ARGS.debug) {

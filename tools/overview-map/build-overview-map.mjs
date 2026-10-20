@@ -38,6 +38,7 @@ import { readDbf, readPolygons } from '../lib/shapefile.mjs';
 import { ICONS } from './icons.mjs';
 import { ITEM_ICONS } from './item-icons.mjs';
 import { loadRaster, heatPng, extractZone, findHotspots, DEFAULTS as RISK_DEFAULTS, AURI_COLORS } from './risk.mjs';
+import * as V3 from './v3.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
@@ -486,7 +487,7 @@ function zoneBox(z, i) {
    · 지점이 상자 세로 범위 안이면: 옆 변에서 수평 직선 (꺾임 0)
    · 지점이 상자 가로 범위 안이면: 위/아래 변에서 수직 직선 (꺾임 0)
    · 그 밖: 옆 변의 제목 줄 높이(sy)에서 수평으로 나가 지점 x 에서 한 번 꺾어 수직  */
-function leader(rect, anchor) {
+function leader(rect, anchor, noDot) {
   const [ax, ay] = anchor;
   const right = ax > rect.x + rect.w;
   let d;
@@ -503,9 +504,9 @@ function leader(rect, anchor) {
     d = `M${sx} ${sy}H${ax.toFixed(1)}V${ay.toFixed(1)}`;
   }
   return `<path d="${d}" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.75" stroke-linejoin="round"/>
-<path d="${d}" fill="none" stroke="${C.ink}" stroke-width="1.4" stroke-linejoin="round"/>
+<path d="${d}" fill="none" stroke="${C.ink}" stroke-width="1.4" stroke-linejoin="round"/>` + (noDot ? '' : `
 <circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="7" fill="#FFFFFF" stroke="${C.ink}" stroke-width="1.4"/>
-<circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="3.2" fill="${C.main}"/>`;
+<circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="3.2" fill="${C.main}"/>`);
 }
 
 function anchorDot([ax, ay], id) {
@@ -620,6 +621,10 @@ function scaleBar(x, y) {
   return `<g id="scale"><rect x="${x}" y="${y}" width="${px.toFixed(1)}" height="6" fill="${C.ink}"/><rect x="${x}" y="${y}" width="${(px / 2).toFixed(1)}" height="6" fill="#fff" stroke="${C.ink}" stroke-width="1"/>
 <text x="${x}" y="${y - 5}" font-family="${FONT}" font-size="12" fill="${C.ink}">0</text><text x="${(x + px).toFixed(1)}" y="${y - 5}" text-anchor="end" font-family="${FONT}" font-size="12" fill="${C.ink}">${m}m</text></g>`;
 }
+/* v3 방위표 — 원 + 중심에서 위로 선 + N (담당자 수정본) */
+function northCircle(x, y) {
+  return `<g id="north" transform="translate(${x} ${y})"><circle r="27" fill="none" stroke="${C.ink}" stroke-width="1.5"/><line x1="0" y1="0" x2="0" y2="-26.5" stroke="${C.ink}" stroke-width="3" stroke-linecap="round"/><text x="0" y="-33" text-anchor="middle" font-family="${FONT}" font-size="24" font-weight="700" fill="${C.ink}">N</text></g>`;
+}
 function northArrow(x, y) {
   return `<g id="north" transform="translate(${x} ${y})"><path d="M0 -22L9 10 0 4 -9 10Z" fill="${C.ink}"/><path d="M0 -22L-9 10 0 4Z" fill="#fff" stroke="${C.ink}" stroke-width="1"/><text x="0" y="26" text-anchor="middle" font-family="${FONT}" font-size="13" font-weight="700" fill="${C.ink}">N</text></g>`;
 }
@@ -635,6 +640,84 @@ const tiles = bg64 ? `<image x="0" y="0" width="${W}" height="${H}" preserveAspe
 const frameRect = `M0 0H${W}V${H}H0Z`;
 const landAll = umd.paths.join('') || sgg.paths.join('');
 const P = (arr) => arr.length ? `<path d="${arr.join('')}"/>` : '';
+
+const titleW = Math.max(560, textW(cfg.title, 30) + 60).toFixed(0);
+
+/* ════════════════════════════════════════════════════════════════════
+   v3 — 담당자 금천구 수정본 규칙 (v3.mjs 머리 주석 참고). style.v3 또는 --v3 로 켭니다.
+   ① 구역을 도로 블록으로 다시 그림 ② 좌·우 열 배치 + 읽는 순서 번호 + 가장자리 번호 원
+   ③ 키맵·범례 우하단 ⑤ 시설·지명 라벨 겹침 회피. 상자 글(zoneBox)은 그대로.
+   ════════════════════════════════════════════════════════════════════ */
+const IS_V3 = !!((cfg.style && cfg.style.v3) || ARGS.v3);
+let v3 = null;
+if (IS_V3 && !DEBUG_GRID) {
+  const ZO = Object.assign({ g: 2, minRatio: 0.35, maxMul: 3, dilatePx: 7, simplifyPx: 3, closePx: 0, smoothPx: 24, crossR: 60, crossArm: 20, debug: !!ARGS.debug }, (cfg.style && cfg.style.zoneFit) || {});
+  const pgPx = (pg) => pg.draftPx ? pg.draftPx.map(draftToPx) : pg.lnglat ? pg.lnglat.map(toPx) : pg.epsg5179.map(from5179);
+  const poiPx = (cfg.pois || []).map(p => ({ name: p.name, px: anchorPx(p) }));
+  const zin = cfg.zones.map(z => {
+    const rings = (z.polygons || []).map(pgPx).filter(r => r.length >= 3);
+    const markers = (z.markers || []).map(m => anchorPx(m.at));
+    const pois = poiPx.filter(p => rings.some(r => V3.pointIn(p.px, r))).map(p => p.px);
+    const bb = rings.length ? [Math.min(...rings.flat().map(p => p[0])), Math.min(...rings.flat().map(p => p[1])), Math.max(...rings.flat().map(p => p[0])), Math.max(...rings.flat().map(p => p[1]))] : null;
+    const small = bb && Math.max(bb[2] - bb[0], bb[3] - bb[1]) < 50;
+    const kind = z.fitKind || ((/교차로/.test(z.type || '') || small) ? 'intersection' : 'blocks');
+    return { rings, markers, pois, keep: z.fit === false, kind };
+  });
+  const base = {
+    roads: roads.rings5179.map(r => r.map(from5179)),
+    water: [...river.rings5179, ...stream.rings5179, ...lake.rings5179].map(r => r.map(from5179)),
+    land: umd.rings5179.length ? umd.rings5179.map(r => r.map(from5179)) : [],
+  };
+  const fitted = V3.fitZonesToBlocks(W, H, zin, base, ZO, simplify);
+  const zrings = fitted.map((fz, i) => zin[i].keep ? zin[i].rings : fz.rings);
+  fitted.forEach((fz, i) => console.log(`  구역 ${cfg.zones[i].num || i + 1} ${cfg.zones[i].type}: ${zin[i].keep ? '원 다각형 유지(fit:false)' : fz.fitted ? '블록 맞춤 — ' + fz.note : '⚠ ' + fz.note + ' → 원 다각형'}`));
+
+  /* 상자 높이 → 열 배치 */
+  const boxW = (cfg.zones[0] && cfg.zones[0].box && cfg.zones[0].box.w) || 440;
+  const LPx = cfg.legendPos || {}; const lpRowH = LPx.rowH || 24;
+  const legendRows = (cfg.legend || []).length + (hotspots.length && !(cfg.legend || []).some(r => r.kind === 'hotspot') ? 1 : 0);
+  const legendH = legendRows ? legendRows * lpRowH + 24 - 4 : 0;
+  const keymapH = (cfg.keymap && cfg.keymap.h) || 110;
+  const heights = () => cfg.zones.map((z, i) => zoneBox({ ...z, box: { x: 60, top: 0, w: boxW } }, i).h);
+  let lay = V3.layoutColumns(zrings.map((r, i) => ({ rings: r, h: heights()[i] })), { W, H, boxW, margin: 60, top: 150, gap: 11, bottom: 30, keymapH, legendH: cfg.keymap ? legendH : legendH });
+  if (lay.overflow) {   // 넘치면 상자 글을 8% 줄여 한 번 더
+    const B0 = Object.assign({ pad: 20, fsT: 24, fsP: 16, fsI: 17, lh: 24, rowGap: 5, ic: 36 }, (cfg.style && cfg.style.box) || {});
+    cfg.style = cfg.style || {}; cfg.style.box = Object.fromEntries(Object.entries(B0).map(([k, v]) => [k, +(v * 0.92).toFixed(1)]));
+    lay = V3.layoutColumns(zrings.map((r, i) => ({ rings: r, h: heights()[i] })), { W, H, boxW, margin: 60, top: 150, gap: 11, bottom: 30, keymapH, legendH });
+    if (lay.overflow) {   // 그래도 넘치면 넘친 열의 마지막 상자를 바닥 가운데로
+      const colOf = lay.overflow.right > 0 ? 'R' : 'L';
+      const last = lay.boxes.map((b, i) => ({ b, i })).filter(o => o.b.col === colOf).sort((a, b) => b.b.y - a.b.y)[0];
+      if (last) { last.b.x = (W - boxW) / 2; last.b.y = H - 30 - last.b.h; last.b.col = 'B'; }
+      console.warn('  ⚠ 상자가 열에 다 안 들어가 하나를 바닥 가운데로 옮김');
+    }
+  }
+  const CIRC = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';
+  cfg.zones.forEach((z, i) => {
+    const b = lay.boxes[i];
+    z.box = { x: b.x, top: b.y, w: boxW }; z.num = CIRC[b.num - 1] || String(b.num);
+    const marker = V3.placeMarker(zrings[i], { ...b, col: b.col === 'B' ? (lay.cents[i][0] < W / 2 ? 'L' : 'R') : b.col }, 20);
+    z._v3 = { rings: zrings[i], marker, label: String(b.num), box: b };
+  });
+  if (cfg.keymap) Object.assign(cfg.keymap, { x: lay.keymap.x, y: lay.keymap.y, w: boxW, h: keymapH, below: undefined });
+  if (legendRows) cfg.legendPos = Object.assign({}, LPx, { x: lay.legend.x, y: lay.legend.y, w: boxW, bottom: undefined, below: undefined });
+
+  /* 라벨 자리 — 상자·제목·키맵·범례는 단단한 장애물, 번호 원·시설 점은 무른 장애물 */
+  const hard = [...lay.boxes.map(b => ({ x: b.x, y: b.y, w: b.w, h: b.h })), { x: 40, y: 36, w: +titleW, h: 92 }];
+  if (cfg.keymap) hard.push({ x: lay.keymap.x, y: lay.keymap.y, w: boxW, h: keymapH });
+  if (legendRows) hard.push({ x: lay.legend.x, y: lay.legend.y, w: boxW, h: legendH });
+  const markerRects = cfg.zones.map(z => ({ x: z._v3.marker[0] - 20, y: z._v3.marker[1] - 20, w: 40, h: 40 }));
+  const dotRects = poiPx.map(p => ({ x: p.px[0] - 8, y: p.px[1] - 8, w: 16, h: 16 }));
+  const leaderRects = cfg.zones.flatMap(z => { const b = z._v3.box, [mx, my] = z._v3.marker; const right = mx > b.x + b.w; const sx = right ? b.x + b.w : b.x;
+    if (my >= b.y + 14 && my <= b.y + b.h - 14) return [{ x: Math.min(sx, mx), y: my - 4, w: Math.abs(sx - mx), h: 8 }];
+    if (mx >= b.x + 14 && mx <= b.x + b.w - 14) { const sy = my > b.y ? b.y + b.h : b.y; return [{ x: mx - 4, y: Math.min(sy, my), w: 8, h: Math.abs(sy - my) }]; }
+    const top = b.y + 38, bot = b.y + b.h - 38; const sy = Math.abs(my - top) <= Math.abs(my - bot) ? top : bot;
+    return [{ x: Math.min(sx, mx), y: sy - 4, w: Math.abs(sx - mx), h: 8 }, { x: mx - 4, y: Math.min(sy, my), w: 8, h: Math.abs(sy - my) }]; });
+  const pois = V3.placePoiLabels(poiPx, [...hard, ...markerRects, ...dotRects, ...leaderRects], textW, W, H);
+  const labelsIn = (cfg.labels || []).map(l => ({ ...l, px: anchorPx(l) }));
+  const labels = V3.placeNameLabels(labelsIn, zrings.flat(), hard, [...markerRects, ...dotRects, ...leaderRects, ...pois.map(p => p.label.rect)], textW, W, H, { fs: 20, letterSpacing: 6, maxShift: 200 });
+  labels.forEach(l => { if (!l.at) console.warn(`  ⚠ 지명 "${l.text}" 자리 없음 → 뺌`); else if (l.moved > 1) console.log(`  지명 "${l.text}" ${Math.round(l.moved)}px 옮김`); });
+  v3 = { pois, labels: labels.filter(l => l.at), fitted };
+}
 
 const zoneBoxes = []; const rectOf = {};
 cfg.zones.forEach((z, i) => {
@@ -661,14 +744,13 @@ if (DEBUG_GRID) {
   gridSvg = '<g id="debug-grid">' + g.join('') + '</g>';
 }
 
-const labelsSvg = (cfg.labels || []).map(l => {
-  const [x, y] = anchorPx(l);
+const labelsSvg = (IS_V3 && v3 ? v3.labels.map(l => ({ ...l, size: 20 })) : (cfg.labels || [])).map(l => {
+  const [x, y] = l.at || anchorPx(l);
   const big = (l.size || 16) >= 20;
   const attrs = `x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="${l.size || 16}" font-weight="${big ? 700 : 500}" letter-spacing="${big ? 6 : 1}"`;
   return `<text ${attrs} fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round">${esc(l.text)}</text><text ${attrs} fill="${C.ink}">${esc(l.text)}</text>`;
 }).join('\n');
 
-const titleW = Math.max(560, textW(cfg.title, 30) + 60).toFixed(0);
 
 const L = (id, inner, attrs = '') => inner && inner.trim() ? `<g id="${id}"${attrs ? ' ' + attrs : ''}>\n${inner}\n</g>` : '';
 /* --draft : AURI 초안·최종 이미지를 정합값(affine5179 등)대로 반투명하게 얹어 확인 (제출본에는 넣지 않음) */
@@ -695,7 +777,7 @@ ${L('01_위성영상', `<rect width="${W}" height="${H}" fill="${C.sea}"/>\n${ti
 ${L('02_바다_육지', `<path d="${frameRect}${landAll}" fill-rule="evenodd" fill="${C.sea}" opacity="0.9"/>\n<path d="${landAll}" fill="#FFFFFF" opacity="0.30"/>`)}
 ${L('03_전답', P(farm.paths), `fill="${C.farm}" stroke="#FFFFFF" stroke-width="0.2" opacity="0.55"`)}
 ${L('04_수계', P([...river.paths, ...stream.paths, ...lake.paths]), `fill="${C.water}" stroke="${C.contrast}" stroke-width="0.6" opacity="0.85"`)}
-${heat ? L('04-1_위험도_히트맵', `<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="${heat.dataUrl}"/>`) : ''}
+${heat ? L('04-1_위험도_히트맵', `<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" xlink:href="${heat.dataUrl}"/>`, IS_V3 ? 'opacity="0.6"' : '') : ''}
 ${L('05_도로', P(roads.paths), `fill="${C.road}" opacity="0.82"`)}
 ${L('06_건물', P(bldg.paths), `fill="${C.building}" stroke="${C.buildingLine}" stroke-width="0.5" opacity="0.78"`)}
 ${L('07_건물_대상지안', P(bldgIn), `fill="${C.buildingIn}" stroke="${C.buildingInLine}" stroke-width="0.5" opacity="0.9"`)}
@@ -704,20 +786,25 @@ ${L('10_행정경계', `${umdEdges.shared.length ? `<path d="${umdEdges.shared.j
 ${(cfg.style && cfg.style.dimOpacity === 0) ? '' : L('11_대상지밖_어둡게', `<path d="${frameRect}${zonePathAll}" fill-rule="evenodd" fill="${C.dim}" opacity="${(cfg.style && cfg.style.dimOpacity) ?? 0.15}"/>`)}
 ${(cfg.style && cfg.style.hideZoneLines) ? '' : zonePaths ? L('12_조사지_AURI', `<path d="${surveyPathAll}" fill="none" stroke="${SURVEY_COLOR}" stroke-width="1.4" opacity="0.95"/>`) : ''}
 ${(cfg.style && cfg.style.hideZoneLines) ? '' : L('13_대상지_경계', `<path d="${zonePathAll}" fill="none" stroke="#FFFFFF" stroke-width="8" opacity="0.5" stroke-linejoin="round"/>\n<path d="${zonePathAll}" fill="#FFFFFF" opacity="0.14" stroke="none"/>\n<path d="${zonePathAll}" fill="none" stroke="${C.main}" stroke-width="2.6" stroke-linejoin="round"/>`)}
-${L('13-1_사업지_구역', cfg.zones.flatMap(z => (z.polygons || []).map(pg => { const sk = pg.color || z.safety; const col = sk && AURI_COLORS[sk] ? `rgb(${AURI_COLORS[sk].rgb.join(',')})` : C.main; const d = ringPath(pg.draftPx ? pg.draftPx.map(draftToPx) : pg.epsg5179.map(from5179), 0.3); return d ? `<path d="${d}" fill="${col}" opacity="0.13"/><path d="${d}" fill="none" stroke="${col}" stroke-width="${pg.dashed ? 2.2 : 2.8}"${pg.dashed ? ' stroke-dasharray="9 6"' : ''} stroke-linejoin="round"/>` : ''; })).join('\n'))}
+${L('13-1_사업지_구역', IS_V3 && v3
+  ? cfg.zones.flatMap(z => z._v3.rings.map(r => { const col = z.safety && AURI_COLORS[z.safety] ? `rgb(${AURI_COLORS[z.safety].rgb.join(',')})` : C.main; const d = ringPath(r, 0.3); return d ? `<path d="${d}" fill="${col}" opacity="${(cfg.style && cfg.style.zoneFillOpacity) ?? 0.4}"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.8" stroke-linejoin="round"/>` : ''; })).join('\n')
+  : cfg.zones.flatMap(z => (z.polygons || []).map(pg => { const sk = pg.color || z.safety; const col = sk && AURI_COLORS[sk] ? `rgb(${AURI_COLORS[sk].rgb.join(',')})` : C.main; const d = ringPath(pg.draftPx ? pg.draftPx.map(draftToPx) : pg.epsg5179.map(from5179), 0.3); return d ? `<path d="${d}" fill="${col}" opacity="0.13"/><path d="${d}" fill="none" stroke="${col}" stroke-width="${pg.dashed ? 2.2 : 2.8}"${pg.dashed ? ' stroke-dasharray="9 6"' : ''} stroke-linejoin="round"/>` : ''; })).join('\n'))}
 ${L('14_구간표시', (cfg.routes || []).map(routeSvg).join('\n'))}
-${L('14-1_사업지_번호', cfg.zones.flatMap(z => (z.markers || []).map(m => { const [x, y] = anchorPx(m.at); const col = z.safety && AURI_COLORS[z.safety] ? `rgb(${AURI_COLORS[z.safety].rgb.join(',')})` : C.main; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="19" fill="${col}" stroke="#fff" stroke-width="2.5"/><text x="${x.toFixed(1)}" y="${(y + 7).toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="20" font-weight="700" fill="#fff">${esc(String(m.label))}</text>`; })).join('\n'))}
+${IS_V3 && v3 ? L('16_지시선', zoneBoxes.map(b => leader(b.rect, b.z._v3.marker, true)).join('\n')) : ''}
+${L('14-1_사업지_번호', cfg.zones.flatMap(z => (IS_V3 && v3 ? [{ at: null, label: z._v3.label }] : (z.markers || [])).map(m => { const [x, y] = m.at ? anchorPx(m.at) : z._v3.marker; const col = z.safety && AURI_COLORS[z.safety] ? `rgb(${AURI_COLORS[z.safety].rgb.join(',')})` : C.main; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="19" fill="${col}" stroke="#fff" stroke-width="2.5"/><text x="${x.toFixed(1)}" y="${(y + 7).toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="20" font-weight="700" fill="#fff">${esc(String(m.label))}</text>`; })).join('\n'))}
 ${L('15-2_주요_거점', hotspots.map((h, i) => { const [x, y] = from5186([h.x, h.y]); const tag = String.fromCharCode(65 + i); const top = Object.entries(h.parts).sort((a, b) => b[1] - a[1]).filter(e => e[1] >= 0.15).map(e => AURI_COLORS[e[0]].label).join('·'); const txt = `거점 ${tag} · ${top}`; const tw = textW(txt, 12) + 12; return `<path d="M${x.toFixed(1)} ${(y - 15).toFixed(1)}L${(x + 15).toFixed(1)} ${y.toFixed(1)}L${x.toFixed(1)} ${(y + 15).toFixed(1)}L${(x - 15).toFixed(1)} ${y.toFixed(1)}Z" fill="${C.ink}" stroke="#fff" stroke-width="2.2"/><text x="${x.toFixed(1)}" y="${(y + 4.5).toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="12" font-weight="700" fill="#fff">${tag}</text><rect x="${(x + 19).toFixed(1)}" y="${(y - 9).toFixed(1)}" width="${tw.toFixed(1)}" height="18" rx="3" fill="#fff" opacity="0.9"/><text x="${(x + 25).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-family="${FONT}" font-size="12" font-weight="600" fill="${C.text}">${esc(txt)}</text>`; }).join('\n'))}
-${L('15-1_시설', (cfg.pois || []).map(p => { const [x, y] = anchorPx(p); const tw = textW(p.name, 13) + 14; const lx = p.side === 'left' ? x - 12 - tw : x + 12; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="#E03C3C" stroke="#fff" stroke-width="2"/><rect x="${lx.toFixed(1)}" y="${(y - 10).toFixed(1)}" width="${tw.toFixed(1)}" height="20" rx="3" fill="#fff" opacity="0.92"/><text x="${(lx + 7).toFixed(1)}" y="${(y + 4.5).toFixed(1)}" font-family="${FONT}" font-size="13" font-weight="700" fill="${C.text}">${esc(p.name)}</text>`; }).join('\n'))}
+${L('15-1_시설', IS_V3 && v3
+  ? v3.pois.map(p => { const [x, y] = p.px, lb = p.label; const ta = `x="${lb.x.toFixed(1)}" y="${lb.y.toFixed(1)}" text-anchor="${lb.anchor}" font-family="${FONT}" font-size="13" font-weight="700"`; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="#E03C3C" stroke="#fff" stroke-width="2"/><text ${ta} fill="none" stroke="#fff" stroke-width="3.5" stroke-linejoin="round" opacity="0.9">${esc(p.name)}</text><text ${ta} fill="${C.text}">${esc(p.name)}</text>`; }).join('\n')
+  : (cfg.pois || []).map(p => { const [x, y] = anchorPx(p); const tw = textW(p.name, 13) + 14; const lx = p.side === 'left' ? x - 12 - tw : x + 12; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="#E03C3C" stroke="#fff" stroke-width="2"/><rect x="${lx.toFixed(1)}" y="${(y - 10).toFixed(1)}" width="${tw.toFixed(1)}" height="20" rx="3" fill="#fff" opacity="0.92"/><text x="${(lx + 7).toFixed(1)}" y="${(y + 4.5).toFixed(1)}" font-family="${FONT}" font-size="13" font-weight="700" fill="${C.text}">${esc(p.name)}</text>`; }).join('\n'))}
 ${L('15_지명', labelsSvg)}
 ${gridSvg}
-${L('16_지시선', zoneBoxes.flatMap(b => (b.z.anchors || (b.z.markers ? b.z.markers.map(m => m.at) : null) || [b.z.anchor]).map(a => DEBUG_GRID ? anchorDot(anchorPx(a), b.z.id) : leader(b.rect, anchorPx(a)))).join('\n'))}
+${IS_V3 ? '' : L('16_지시선', zoneBoxes.flatMap(b => (b.z.anchors || (b.z.markers ? b.z.markers.map(m => m.at) : null) || [b.z.anchor]).map(a => DEBUG_GRID ? anchorDot(anchorPx(a), b.z.id) : leader(b.rect, anchorPx(a)))).join('\n'))}
 ${DEBUG_GRID ? '' : zoneBoxes.map((b, i) => L(`${String(17 + i).padStart(2, '0')}_사업지_${String(i + 1).padStart(2, '0')}`, b.svg)).join('\n')}
 ${DEBUG_GRID ? '' : L('21_제목', `<rect x="40" y="36" width="${titleW}" height="92" rx="6" fill="#fff" fill-opacity="0.94" stroke="${C.line}" stroke-width="1"/>
 <path d="M48 36H40V128H48Z" fill="${C.ink}"/>
 <text x="66" y="76" font-family="${FONT}" font-size="30" font-weight="700" fill="${C.text}">${esc(cfg.title)}</text>
 <text x="66" y="106" font-family="${FONT}" font-size="15" fill="${C.sub}">${esc(cfg.subtitle)}</text>`)}
-${L('22_방위', northArrow(W - 60, 72))}
+${L('22_방위', IS_V3 ? northCircle(W - 87, 86) : northArrow(W - 60, 72))}
 ${DEBUG_GRID ? '' : L('24_키맵', keymapSvg())}
 ${DEBUG_GRID ? '' : L('23_범례', legendSvg2().svg)}
 ${draftOverlay()}

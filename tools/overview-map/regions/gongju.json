@@ -44,7 +44,8 @@
       "lh": 15.5,
       "rowGap": 3,
       "ic": 20
-    }
+    },
+    "v3": true
   },
   "risk": {
     "enabled": true,
