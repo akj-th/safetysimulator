@@ -1,0 +1,2204 @@
+{
+ "source": "지역별 안전유형 3개 추출_강원대.xlsx (수정본 시트 · 강원대)",
+ "generatedAt": "2026-10-20",
+ "years": [
+  "2025",
+  "2024"
+ ],
+ "rule": {
+  "weight": "w = 등급 ÷ 5 (5등급 → 1.0). 자살은 모든 지자체 1.0 고정. 산업재해는 지수에 없어 0.6. 정렬은 2025 등급, 동률이면 2024 (2026-10-20 실무회의)",
+  "industrialW": 0.6
+ },
+ "regions": {
+  "taebaek": {
+   "label": "강원특별자치도 태백시",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 3,
+     "life": 4,
+     "suicide": 3,
+     "infection": 2
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 1,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.8,
+    "crime": 0.2,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "fire",
+    "traffic",
+    "life",
+    "infection",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "fire",
+    "traffic"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "fire",
+    "industrial",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "jeongseon": {
+   "label": "강원특별자치도 정선군",
+   "grades": {
+    "2024": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 3,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 1,
+     "crime": 3,
+     "life": 4,
+     "suicide": 5,
+     "infection": 2
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.2,
+    "crime": 0.6,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.4,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "life",
+    "crime",
+    "infection",
+    "fire"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "life"
+   ],
+   "lowGrades": [
+    "traffic",
+    "life",
+    "suicide"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "hongcheon": {
+   "label": "강원특별자치도 홍천군",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 4,
+     "life": 1,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 4,
+     "life": 3,
+     "suicide": 5,
+     "infection": 3
+    }
+   },
+   "weights": {
+    "traffic": 0.6,
+    "fire": 0.4,
+    "crime": 0.8,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.6,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "crime",
+    "traffic",
+    "infection",
+    "life",
+    "fire"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "crime",
+    "traffic"
+   ],
+   "lowGrades": [
+    "crime",
+    "suicide"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": true
+  },
+  "bucheon": {
+   "label": "경기도 부천시",
+   "grades": {
+    "2024": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 3,
+     "life": 2,
+     "suicide": 4,
+     "infection": 5
+    },
+    "2025": {
+     "traffic": 1,
+     "fire": 2,
+     "crime": 5,
+     "life": 2,
+     "suicide": 2,
+     "infection": 3
+    }
+   },
+   "weights": {
+    "traffic": 0.2,
+    "fire": 0.4,
+    "crime": 1,
+    "life": 0.4,
+    "suicide": 1,
+    "infection": 0.6,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "crime",
+    "infection",
+    "fire",
+    "life",
+    "traffic"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "crime",
+    "infection"
+   ],
+   "lowGrades": [
+    "crime"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "infection",
+    "suicide"
+   ],
+   "matchesKangwon": true
+  },
+  "pocheon": {
+   "label": "경기도 포천시",
+   "grades": {
+    "2024": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 4,
+     "life": 3,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 3,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.6,
+    "fire": 0.8,
+    "crime": 0.6,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "infection",
+    "life",
+    "fire",
+    "crime",
+    "traffic"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "infection",
+    "life"
+   ],
+   "lowGrades": [
+    "fire",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "life",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "sacheon": {
+   "label": "경상남도 사천시",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 5,
+     "life": 5,
+     "suicide": 3,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.8,
+    "crime": 0.6,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "infection",
+    "fire",
+    "crime",
+    "life"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "infection"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "infection",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "miryang": {
+   "label": "경상남도 밀양시",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 1,
+     "crime": 3,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 5,
+     "fire": 5,
+     "crime": 2,
+     "life": 4,
+     "suicide": 3,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 1,
+    "fire": 1,
+    "crime": 0.4,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "fire",
+    "life",
+    "infection",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "fire"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "life",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "namhae": {
+   "label": "경상남도 남해군",
+   "grades": {
+    "2024": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 2,
+     "life": 3,
+     "suicide": 5,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 3,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.8,
+    "crime": 0.6,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "infection",
+    "fire",
+    "life",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "infection"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "life",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "hamyang": {
+   "label": "경상남도 함양군",
+   "grades": {
+    "2024": {
+     "traffic": 3,
+     "fire": 3,
+     "crime": 3,
+     "life": 2,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 5,
+     "fire": 2,
+     "crime": 3,
+     "life": 4,
+     "suicide": 2,
+     "infection": 3
+    }
+   },
+   "weights": {
+    "traffic": 1,
+    "fire": 0.4,
+    "crime": 0.6,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.6,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "life",
+    "infection",
+    "crime",
+    "fire"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "life"
+   ],
+   "lowGrades": [
+    "traffic",
+    "life"
+   ],
+   "kangwonFocus": [
+    "industrial",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "andong": {
+   "label": "경상북도 안동시",
+   "grades": {
+    "2024": {
+     "traffic": 2,
+     "fire": 3,
+     "crime": 4,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 1,
+     "crime": 2,
+     "life": 4,
+     "suicide": 3,
+     "infection": 5
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.2,
+    "crime": 0.4,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 1,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "infection",
+    "life",
+    "traffic",
+    "crime",
+    "fire"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "infection",
+    "life"
+   ],
+   "lowGrades": [
+    "traffic",
+    "life",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "infection",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "yeongcheon": {
+   "label": "경상북도 영천시",
+   "grades": {
+    "2024": {
+     "traffic": 2,
+     "fire": 1,
+     "crime": 1,
+     "life": 4,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 5,
+     "fire": 5,
+     "crime": 2,
+     "life": 5,
+     "suicide": 4,
+     "infection": 5
+    }
+   },
+   "weights": {
+    "traffic": 1,
+    "fire": 1,
+    "crime": 0.4,
+    "life": 1,
+    "suicide": 1,
+    "infection": 1,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "life",
+    "infection",
+    "traffic",
+    "fire",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "life",
+    "infection"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "cheongsong": {
+   "label": "경상북도 청송군",
+   "grades": {
+    "2024": {
+     "traffic": 1,
+     "fire": 2,
+     "crime": 5,
+     "life": 2,
+     "suicide": 2,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 5,
+     "fire": 2,
+     "crime": 3,
+     "life": 5,
+     "suicide": 4,
+     "infection": 5
+    }
+   },
+   "weights": {
+    "traffic": 1,
+    "fire": 0.4,
+    "crime": 0.6,
+    "life": 1,
+    "suicide": 1,
+    "infection": 1,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "infection",
+    "life",
+    "traffic",
+    "crime",
+    "fire"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "infection",
+    "life"
+   ],
+   "lowGrades": [
+    "traffic",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "fire",
+    "industrial",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "yeongju": {
+   "label": "경상북도 영주시",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 2,
+     "life": 5,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 2,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 1,
+    "fire": 0.8,
+    "crime": 0.4,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "fire",
+    "life",
+    "infection",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "fire"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "bukgu": {
+   "label": "광주광역시 북구",
+   "grades": {
+    "2024": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 1,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 3,
+     "fire": 3,
+     "crime": 3,
+     "life": 4,
+     "suicide": 4,
+     "infection": 5
+    }
+   },
+   "weights": {
+    "traffic": 0.6,
+    "fire": 0.6,
+    "crime": 0.6,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 1,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "infection",
+    "life",
+    "fire",
+    "traffic",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "infection",
+    "life"
+   ],
+   "lowGrades": [
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "infection",
+    "crime",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "gjunggu": {
+   "label": "대구광역시 중구",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 1,
+     "crime": 4,
+     "life": 4,
+     "suicide": 3,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 5,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.6,
+    "fire": 0.4,
+    "crime": 1,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "crime",
+    "life",
+    "infection",
+    "traffic",
+    "fire"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "crime",
+    "life"
+   ],
+   "lowGrades": [
+    "crime",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "industrial",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "jjunggu": {
+   "label": "대전광역시 중구",
+   "grades": {
+    "2024": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 4,
+     "life": 3,
+     "suicide": 4,
+     "infection": 2
+    },
+    "2025": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 4,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.6,
+    "fire": 0.8,
+    "crime": 0.8,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "crime",
+    "life",
+    "fire",
+    "infection",
+    "traffic"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "crime",
+    "life"
+   ],
+   "lowGrades": [
+    "fire",
+    "crime",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "fire",
+    "industrial",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "donggu": {
+   "label": "부산광역시 동구",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 2,
+     "life": 3,
+     "suicide": 5,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 5,
+     "life": 3,
+     "suicide": 2,
+     "infection": 5
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 1,
+    "crime": 1,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 1,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "fire",
+    "infection",
+    "crime",
+    "traffic",
+    "life"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "fire",
+    "infection"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "crime",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "fire",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "yeongdogu": {
+   "label": "부산광역시 영도구",
+   "grades": {
+    "2024": {
+     "traffic": 3,
+     "fire": 3,
+     "crime": 2,
+     "life": 3,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 3,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.6,
+    "crime": 0.6,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "life",
+    "infection",
+    "fire",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "life"
+   ],
+   "lowGrades": [
+    "traffic",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "industrial",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "sasanggu": {
+   "label": "부산광역시 사상구",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 3,
+     "life": 4,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 4,
+     "life": 3,
+     "suicide": 4,
+     "infection": 5
+    }
+   },
+   "weights": {
+    "traffic": 0.6,
+    "fire": 0.4,
+    "crime": 0.8,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 1,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "infection",
+    "crime",
+    "traffic",
+    "life",
+    "fire"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "infection",
+    "crime"
+   ],
+   "lowGrades": [
+    "crime",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "life",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "gwanak": {
+   "label": "서울특별시 관악구",
+   "grades": {
+    "2024": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 2,
+     "life": 5,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 4,
+     "life": 3,
+     "suicide": 3,
+     "infection": 3
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.6,
+    "crime": 0.8,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.6,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "crime",
+    "life",
+    "fire",
+    "infection"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "crime"
+   ],
+   "lowGrades": [
+    "traffic",
+    "crime"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "fire",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "geumcheon": {
+   "label": "서울특별시 금천구",
+   "grades": {
+    "2024": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 2
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.8,
+    "crime": 0.6,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.4,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "fire",
+    "traffic",
+    "crime",
+    "life",
+    "infection"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "fire",
+    "traffic"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "suicide"
+   ],
+   "kangwonFocus": [
+    "infection",
+    "crime",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "sejong": {
+   "label": "세종특별자치시",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 2,
+     "life": 5,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 1,
+     "life": 4,
+     "suicide": 1,
+     "infection": 1
+    }
+   },
+   "weights": {
+    "traffic": 0.6,
+    "fire": 0.8,
+    "crime": 0.2,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.2,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "fire",
+    "life",
+    "traffic",
+    "infection",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "fire",
+    "life"
+   ],
+   "lowGrades": [
+    "fire",
+    "life"
+   ],
+   "kangwonFocus": [
+    "infection",
+    "crime",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "ujunggu": {
+   "label": "울산광역시 중구",
+   "grades": {
+    "2024": {
+     "traffic": 5,
+     "fire": 3,
+     "crime": 1,
+     "life": 5,
+     "suicide": 2,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 2,
+     "fire": 1,
+     "crime": 1,
+     "life": 2,
+     "suicide": 4,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.4,
+    "fire": 0.2,
+    "crime": 0.2,
+    "life": 0.4,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "infection",
+    "traffic",
+    "life",
+    "fire",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "infection",
+    "traffic"
+   ],
+   "lowGrades": [
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "fire",
+    "crime",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "ongjin": {
+   "label": "인천광역시 옹진군",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 1,
+     "life": 5,
+     "suicide": 1,
+     "infection": 1
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 2,
+     "life": 3,
+     "suicide": 3,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.6,
+    "crime": 0.4,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "infection",
+    "fire",
+    "life",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "infection"
+   ],
+   "lowGrades": [
+    "traffic",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "michuhol": {
+   "label": "인천광역시 미추홀구",
+   "grades": {
+    "2024": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 1,
+     "life": 4,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 4,
+     "life": 5,
+     "suicide": 4,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.4,
+    "crime": 0.8,
+    "life": 1,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "life",
+    "traffic",
+    "infection",
+    "crime",
+    "fire"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "life",
+    "traffic"
+   ],
+   "lowGrades": [
+    "traffic",
+    "crime",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "fire",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "gangjin": {
+   "label": "전라남도 강진군",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 5
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.4,
+    "crime": 0.6,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 1,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "infection",
+    "traffic",
+    "life",
+    "crime",
+    "fire"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "infection",
+    "traffic"
+   ],
+   "lowGrades": [
+    "traffic",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "life",
+    "industrial",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "mokpo": {
+   "label": "전라남도 목포시",
+   "grades": {
+    "2024": {
+     "traffic": 2,
+     "fire": 4,
+     "crime": 5,
+     "life": 3,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 3,
+     "fire": 3,
+     "crime": 5,
+     "life": 3,
+     "suicide": 4,
+     "infection": 3
+    }
+   },
+   "weights": {
+    "traffic": 0.6,
+    "fire": 0.6,
+    "crime": 1,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.6,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "crime",
+    "fire",
+    "life",
+    "infection",
+    "traffic"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "crime",
+    "fire"
+   ],
+   "lowGrades": [
+    "crime",
+    "suicide"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "fire",
+    "suicide"
+   ],
+   "matchesKangwon": true
+  },
+  "naju": {
+   "label": "전라남도 나주시",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 2,
+     "infection": 5
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.8,
+    "crime": 0.4,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "infection",
+    "traffic",
+    "fire",
+    "life",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "infection",
+    "traffic"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "fire",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "jangheung": {
+   "label": "전라남도 장흥군",
+   "grades": {
+    "2024": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 2,
+     "life": 3,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 2,
+     "life": 3,
+     "suicide": 3,
+     "infection": 5
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 1,
+    "crime": 0.4,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 1,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "fire",
+    "infection",
+    "traffic",
+    "life",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "fire",
+    "infection"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "fire",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "jindo": {
+   "label": "전라남도 진도군",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 5
+    },
+    "2025": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 5,
+     "infection": 5
+    }
+   },
+   "weights": {
+    "traffic": 0.6,
+    "fire": 0.8,
+    "crime": 0.6,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 1,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "infection",
+    "fire",
+    "traffic",
+    "crime",
+    "life"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "infection",
+    "fire"
+   ],
+   "lowGrades": [
+    "fire",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "industrial",
+    "crime",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "goheung": {
+   "label": "전라남도 고흥군",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 4,
+     "life": 3,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 3,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.8,
+    "crime": 0.6,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "fire",
+    "traffic",
+    "infection",
+    "crime",
+    "life"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "fire",
+    "traffic"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "industrial",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "jeongeup": {
+   "label": "전북특별자치도 정읍시",
+   "grades": {
+    "2024": {
+     "traffic": 5,
+     "fire": 5,
+     "crime": 2,
+     "life": 4,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 5,
+     "fire": 5,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 1,
+    "fire": 1,
+    "crime": 0.4,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "fire",
+    "life",
+    "infection",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "fire"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "fire",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "jinan": {
+   "label": "전북특별자치도 진안군",
+   "grades": {
+    "2024": {
+     "traffic": 5,
+     "fire": 5,
+     "crime": 2,
+     "life": 5,
+     "suicide": 4,
+     "infection": 5
+    },
+    "2025": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 1,
+     "life": 5,
+     "suicide": 3,
+     "infection": 3
+    }
+   },
+   "weights": {
+    "traffic": 0.6,
+    "fire": 0.8,
+    "crime": 0.2,
+    "life": 1,
+    "suicide": 1,
+    "infection": 0.6,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "life",
+    "fire",
+    "traffic",
+    "infection",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "life",
+    "fire"
+   ],
+   "lowGrades": [
+    "fire",
+    "life"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "industrial",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "namwon": {
+   "label": "전북특별자치도 남원시",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 5
+    },
+    "2025": {
+     "traffic": 5,
+     "fire": 5,
+     "crime": 1,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 1,
+    "fire": 1,
+    "crime": 0.2,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "fire",
+    "infection",
+    "life",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "fire"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "jangsu": {
+   "label": "전북특별자치도 장수군",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 2,
+     "life": 4,
+     "suicide": 1,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 1,
+     "life": 4,
+     "suicide": 4,
+     "infection": 1
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.6,
+    "crime": 0.2,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.2,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "life",
+    "fire",
+    "infection",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "life"
+   ],
+   "lowGrades": [
+    "traffic",
+    "life",
+    "suicide"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "jeju": {
+   "label": "제주특별자치도",
+   "grades": {
+    "2024": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 2,
+     "fire": 2,
+     "crime": 5,
+     "life": 5,
+     "suicide": 5,
+     "infection": 2
+    }
+   },
+   "weights": {
+    "traffic": 0.4,
+    "fire": 0.4,
+    "crime": 1,
+    "life": 1,
+    "suicide": 1,
+    "infection": 0.4,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "crime",
+    "life",
+    "traffic",
+    "fire",
+    "infection"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "crime",
+    "life"
+   ],
+   "lowGrades": [
+    "crime",
+    "life",
+    "suicide"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "infection",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "gongju": {
+   "label": "충청남도 공주시",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 2,
+     "life": 4,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 5,
+     "fire": 3,
+     "crime": 1,
+     "life": 5,
+     "suicide": 4,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 1,
+    "fire": 0.6,
+    "crime": 0.2,
+    "life": 1,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "life",
+    "infection",
+    "fire",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "life"
+   ],
+   "lowGrades": [
+    "traffic",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "fire",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "dangjin": {
+   "label": "충청남도 당진시",
+   "grades": {
+    "2024": {
+     "traffic": 5,
+     "fire": 3,
+     "crime": 3,
+     "life": 3,
+     "suicide": 1,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 5,
+     "fire": 3,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 1,
+    "fire": 0.6,
+    "crime": 0.4,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "traffic",
+    "life",
+    "infection",
+    "fire",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "traffic",
+    "life"
+   ],
+   "lowGrades": [
+    "traffic",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "seocheon": {
+   "label": "충청남도 서천군",
+   "grades": {
+    "2024": {
+     "traffic": 3,
+     "fire": 3,
+     "crime": 3,
+     "life": 2,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.8,
+    "crime": 0.6,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "infection",
+    "traffic",
+    "fire",
+    "crime",
+    "life"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "infection",
+    "traffic"
+   ],
+   "lowGrades": [
+    "traffic",
+    "fire",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "industrial",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "danyang": {
+   "label": "충청북도 단양군",
+   "grades": {
+    "2024": {
+     "traffic": 4,
+     "fire": 1,
+     "crime": 1,
+     "life": 5,
+     "suicide": 1,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 5,
+     "fire": 2,
+     "crime": 2,
+     "life": 5,
+     "suicide": 3,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 1,
+    "fire": 0.4,
+    "crime": 0.4,
+    "life": 1,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "life",
+    "traffic",
+    "infection",
+    "fire",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "life",
+    "traffic"
+   ],
+   "lowGrades": [
+    "traffic",
+    "life",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "traffic",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  },
+  "jecheon": {
+   "label": "충청북도 제천시",
+   "grades": {
+    "2024": {
+     "traffic": 2,
+     "fire": 2,
+     "crime": 5,
+     "life": 5,
+     "suicide": 3,
+     "infection": 3
+    },
+    "2025": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    }
+   },
+   "weights": {
+    "traffic": 0.8,
+    "fire": 0.6,
+    "crime": 0.4,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "ranked": [
+    "life",
+    "infection",
+    "traffic",
+    "fire",
+    "crime"
+   ],
+   "focusByIndex": [
+    "suicide",
+    "life",
+    "infection"
+   ],
+   "lowGrades": [
+    "traffic",
+    "life",
+    "suicide",
+    "infection"
+   ],
+   "kangwonFocus": [
+    "crime",
+    "life",
+    "suicide"
+   ],
+   "matchesKangwon": false
+  }
+ }
+}

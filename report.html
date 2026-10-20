@@ -330,6 +330,8 @@
 <script src="assets/palette.js"></script>
 <script src="assets/rules.js"></script>
 <script src="assets/rx-editor.js"></script>
+<script src="assets/dong-hea.js"></script>
+<script src="assets/safety-index.js"></script>
 <script>
 let _results = null;      // 분야별 점수 (사진 판독) — 주변 이력으로 바꾸지 않습니다
 let _localRisk = null;    // 주변 119 이력 종합 지수 (1단계에서 계산해 넘겨받음)
@@ -527,6 +529,29 @@ function renderStats() {
 
    동 이름은 1단계에서 좌표를 행정구역으로 조회해 받아 둡니다.
    119 자료의 동 이름이 법정동이라 지번 주소 쪽과 짝이 맞습니다. */
+/* ★ 지역안전지수 한 줄 (2026-10-20 실무회의) — 지자체가 컨설팅을 신청한 근거(하위 등급)와 우리 중점 분야가 맞는지,
+   이 동의 가중 종합 점수는 얼마인지 읍면동 종합 분석 아래에 적습니다. 자료 없으면 조용히 빠집니다. */
+async function renderSafetyIndexLine(region, dongName) {
+  try {
+    await AuriSafetyIndex.load();
+    const si = AuriSafetyIndex.forRegion(region);
+    if (!si) return;
+    const L = AuriSafetyIndex.LABEL, ys = AuriSafetyIndex.years();
+    const dong = await AuriDongHea.load(region);
+    const w = dong ? AuriSafetyIndex.weightDongs(dong, si) : null;
+    const d = w && dongName ? w.dongs.find((x) => x.name === dongName) : null;
+    const host = document.getElementById('paneDong');
+    if (!host) return;
+    let el = document.getElementById('siLine');
+    if (!el) { el = document.createElement('p'); el.id = 'siLine'; el.className = 'note'; host.appendChild(el); }
+    el.innerHTML = `<b>지역안전지수</b> ${ys[0]} 등급 — ` +
+      AuriSafetyIndex.FIELDS.filter((f) => f !== 'industrial').map((f) => { const g = si.grades[ys[0]][f]; return `${L[f]} <b style="color:${AuriSafetyIndex.gradeColor(g)}">${g == null ? '-' : g}</b>`; }).join(' · ') +
+      `<br>지수 기준 하위 3분야 <b>${si.focusByIndex.map((f) => L[f]).join('·')}</b> ↔ 강원대 확정 ${(si.kangwonFocus || []).map((f) => L[f]).join('·')} <b style="color:${si.matchesKangwon ? '#333' : '#D83D64'}">${si.matchesKangwon ? '일치' : '불일치'}</b>` +
+      (d && d.totalPct != null ? ` · ${dongName} 가중 종합 <b>${d.totalPct}</b>(취약 ${d.weak.join('·')}, 지자체 안 상대 순위)` : '') +
+      `<br><span style="color:var(--g2)">* ${AuriSafetyIndex.DISCLAIMER}</span>`;
+  } catch (e) { /* 표시용 — 실패해도 리포트는 그대로 */ }
+}
+
 function renderDong(dongName) {
   if (!_stats || !_stats.data || !dongName) return;
   const data = _stats.data;
@@ -807,6 +832,7 @@ window.addEventListener('load', async function () {
       renderResults();
     }
     renderDong(picked.dong);          // 읍면동 종합 → 그다음이 지점 상세
+    renderSafetyIndexLine(_stats.data.region, picked.dong);   // ★ 지역안전지수 하위 3분야 ↔ 중점 3분야 (2026-10-20)
     renderDiagnosisTables();          // 사전진단서 2.1 · [표 2] 형식
     renderStats();
 

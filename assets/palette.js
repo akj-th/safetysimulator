@@ -107,6 +107,19 @@ const AuriPalette = (function () {
     return { effect: program.effect || '', source: program.source || '' };
   }
 
+  /** ★ 효과 레퍼런스 한 줄 (2026-10-20 실무회의) — "가로등 조도 개선 사업으로 ○○지자체 자살 발생률 20% 감소" 꼴.
+   *  AURI 가 보도자료 기반 정량 수치를 정리해 보내면 팔레트 엑셀의 효과 칸을 그 문구로 바꾸면 됩니다.
+   *  그전까지는 효과 칸 원문에서 **숫자 + 감소·증가·%** 가 있는 짧은 구절**만** 뽑습니다. 못 찾으면 앞 60자. */
+  function effectLabel(program) {
+    const t = String(program && program.effect || '').replace(/\s+/g, ' ').trim();
+    if (!t) return '';
+    const m = /((?:[^\s]+\s){0,7}\d[\d,.]*\s*(?:%|％|배|건|명|p)?[^\s]*\s*(?:감소|줄어|하락|감축|증가|향상|개선|상승)[^\s]*)/.exec(t);
+    if (m) return m[1].trim();
+    const m2 = /((?:[^\s]+\s){0,6}\d[\d,.]*\s*(?:%|％)[^\s]*(?:\s[^\s]+){0,3})/.exec(t);
+    if (m2) return m2[1].trim();
+    return t.length > 60 ? t.slice(0, 60) + '…' : t;
+  }
+
   /** 출처가 URL이면 도메인만, 논문이면 앞부분만 — 한 줄에 들어가게 */
   function sourceShort(source) {
     const s = String(source || '').trim();
@@ -118,7 +131,7 @@ const AuriPalette = (function () {
 
   return {
     load, ready, byName, byId, byField,
-    heaLabel, heaLegend, heaDesc, amountText, evidence, sourceShort,
+    heaLabel, heaLegend, heaDesc, amountText, evidence, sourceShort, effectLabel,
     get data() { return _data; },
     get note() { return _data ? _data.note : ''; },
     get count() { return _data ? _data.programs.length : 0; },

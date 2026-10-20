@@ -21,6 +21,9 @@
     background:var(--w); border:1px solid var(--g1);
   }
   /* 생성 이미지에 반드시 따라붙는 문구 */
+  /* 번호 태그 범례 — 번호 원 + 사업 이름 (2026-10-20) */
+  .tag-legend{display:none; flex-wrap:wrap; gap:6px 18px; margin:8px 0 0; font-size:var(--fs-sm); color:var(--g3)}
+  .tag-legend b{display:inline-block; width:20px; height:20px; line-height:18px; text-align:center; border:1px solid var(--k); border-radius:50%; background:var(--w); color:var(--k); font-size:var(--fs-cap); margin-right:4px}
   .ba-disclaimer{
     font-size:var(--fs-cap); color:var(--g3); line-height:var(--lh-tight);
     padding:8px 0 0; border-top:1px solid var(--g1); margin-top:9px;
@@ -100,6 +103,10 @@
       <button class="btn ghost sm" id="rxAddBtn" style="display:none" onclick="AuriRx.add()">＋ 항목 추가</button>
       <!-- 목록은 서버(/api/models)에서 받아 채웁니다. 서버에 키가 없는
            제공사의 모델은 아예 나오지 않습니다. -->
+      <!-- ★ 번호 태그 (2026-10-20 실무회의) — 이미지 안에는 ①②③ 번호 원만, 설명은 아래 범례로 -->
+      <label class="opt" style="flex:none; gap:6px; align-items:center" title="시설마다 작은 번호 원을 이미지에 넣고, 무엇인지는 이미지 아래 범례에 적습니다 (글 태그는 모델이 안정적으로 못 그려 번호만)">
+        <input type="checkbox" id="tagsOn"> <span class="t" style="font-weight:400">번호 태그</span>
+      </label>
       <select id="modelSel" style="width:auto; flex:none" title="같은 사진으로 모델을 바꿔가며 비교해 보세요">
         <option value="gemini-3-pro-image">Gemini 3 Pro · 고성능</option>
       </select>
@@ -125,6 +132,8 @@
       <div class="m" id="afterSub">30초 정도 걸립니다.</div>
     </div>
     <div class="ba-disclaimer" id="afterNote"></div>
+    <!-- 번호 태그 범례 — 이미지 안의 ①②③ 가 무엇인지. 문서(document.html)에도 같은 범례가 실립니다 -->
+    <div class="tag-legend" id="afterTags"></div>
     <!-- 고쳤으면 하는 점을 적어 다시 만드는 칸 -->
     <div class="revise-box" id="tweakBox" style="display:none">
       <div class="lab">어떻게 고쳤으면 하나요?</div>
@@ -201,6 +210,18 @@ function shrinkDataUrl(dataUrl, maxEdge, quality) {
   });
 }
 
+/* 번호 태그 범례 — auri_after_tags [{n, name}] 를 이미지 아래에. 없으면 비움 */
+function renderTagLegend() {
+  const host = document.getElementById('afterTags');
+  let tags = null;
+  try { tags = JSON.parse(sessionStorage.getItem('auri_after_tags') || 'null'); } catch (e) { tags = null; }
+  if (!tags || !tags.length) { host.innerHTML = ''; host.style.display = 'none'; return; }
+  host.style.display = 'flex';
+  host.innerHTML = tags.map(function (t) {
+    return '<span><b>' + t.n + '</b> ' + String(t.name).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</span>';
+  }).join('');
+}
+
 function toggleTweak() {
   const box = document.getElementById('tweakBox');
   const opening = box.style.display === 'none';
@@ -236,6 +257,10 @@ async function generateAfter(useNote) {
     ? document.querySelector('input[name=tweakBase]:checked').value
     : 'original';
   const fromGenerated = baseChoice === 'last' && !!_lastGenerated;
+  /* 인적 개입(안부확인·상담·교육)은 거리 사진에 나타나지 않으므로 이미지 생성에서 뺍니다.
+     이 순서가 번호 태그의 번호입니다. */
+  const visualNames = items.filter(function (it) { return auriRxIsVisual(it); }).map(function (it) { return it.name; });
+  const tagsOn = !!document.getElementById('tagsOn').checked;
   const baseImage = fromGenerated ? _lastGenerated : JSON.parse(inputRaw).dataUrl;
 
   const panel = document.getElementById('afterPanel');
@@ -265,12 +290,17 @@ async function generateAfter(useNote) {
       /* 인적 개입(안부확인·상담·교육)은 거리 사진에 나타나지 않으므로
          이미지 생성에서 뺍니다. 넣으면 모델이 없는 시설을 지어냅니다.
          목록·예산·문서에는 그대로 남습니다 — 빠지는 것은 그림뿐입니다. */
-      facilities: items.filter(function (it) { return auriRxIsVisual(it); })
-                       .map(function (it) { return it.name; }),
+      facilities: visualNames,
       model: document.getElementById('modelSel').value,
       note: note,
       fromGenerated: fromGenerated,
+      tags: tagsOn,
     });
+
+    /* 번호 태그 범례 — 서버에 보낸 시설 순서가 곧 번호입니다 */
+    if (tagsOn) sessionStorage.setItem('auri_after_tags', JSON.stringify(visualNames.map(function (n, i) { return { n: i + 1, name: n }; })));
+    else sessionStorage.removeItem('auri_after_tags');
+    renderTagLegend();
 
     _lastGenerated = data.dataUrl;
     img.src = data.dataUrl;
@@ -340,6 +370,8 @@ function showNonVisualNote(items) {
 
 window.addEventListener('load', async function () {
   document.getElementById('afterNote').textContent = AURI_AI_DISCLAIMER;   // 면책 문구 (ui.js 한 곳)
+  renderTagLegend();                                                        // 저장된 번호 태그 범례가 있으면 다시 보임
+  try { document.getElementById('tagsOn').checked = !!sessionStorage.getItem('auri_after_tags'); } catch (e) { /* 없음 */ }
   await AuriPalette.load();   // 사업 이름·HEA·금액이 여기서 옵니다
   const loc = sessionStorage.getItem('auri_picked_location');
   const rxRaw = sessionStorage.getItem('auri_prescriptions');

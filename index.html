@@ -114,10 +114,28 @@
   .panes{display:grid; grid-template-columns:1fr 1fr; gap:26px; margin-bottom:34px}
   @media(max-width:860px){.panes{grid-template-columns:1fr}}
   .panes .panel{margin-bottom:0}
-  #map, #streetview{
+  #map, #streetview, #riskMap{
     width:100%; height:440px; position:relative;
     background:var(--w); border:1px solid var(--g1);
   }
+  #streetview{height:380px}
+
+  /* ── 지역안전지수 등급 현황표 (2026-10-20 실무회의 — 첫 화면 상단) ──
+     행 = 연도, 열 = 분야. 4·5등급 글자만 메인 컬러, 지수 기준 하위 3분야 열에 ★. 카드 없이 선으로만. */
+  .si-table{width:100%; border-collapse:collapse; font-size:var(--fs-sm)}
+  .si-table th, .si-table td{padding:9px 6px; text-align:center; border-bottom:1px solid var(--g1); background:none; color:var(--k); font-weight:400}
+  .si-table thead th{font-weight:700; border-bottom:1px solid var(--k)}
+  .si-table thead th.focus{background:rgba(216,61,100,.06)}
+  .si-table tbody th{text-align:left; color:var(--g3); width:72px}
+  .si-table td.focus{background:rgba(216,61,100,.04)}
+  .si-table tr.w td, .si-table tr.w th{color:var(--g2); font-size:var(--fs-cap); border-bottom:none}
+  .si-foot{font-size:var(--fs-cap); color:var(--g3); margin:10px 0 0; line-height:1.6}
+  .si-foot b{color:var(--k)}
+  /* 우측 지도의 표시 선택 — hea-seg 와 같은 모양 */
+  .rmap-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .rmap-head .hea-seg{margin-left:0}
+  .rmap-head .hea-seg button .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:1px}
+  .rmap-note{font-size:var(--fs-cap); color:var(--g2); margin:8px 0 0; line-height:1.6}
 
   .map-fallback{
     position:absolute; inset:0; display:flex; flex-direction:column;
@@ -145,6 +163,17 @@
     <button class="search-go" onclick="searchAddress()" aria-label="검색">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/></svg>
     </button>
+  </div>
+
+  <!-- ★ 지역안전지수 등급 현황 (2026-10-20 AURI 실무회의 — 첫 화면 상단)
+       지자체가 컨설팅을 신청한 근거(지역안전지수 하위 등급)와 우리 분석의 중점 분야를 한자리에서 맞대어 봅니다.
+       자료: data/stats/safety-index.json (2025·2024 — 2023 은 미수령). 지역 자료를 읽은 뒤 채워집니다. -->
+  <div class="panel" id="siPanel" hidden>
+    <div class="panel-head">
+      <h2>지역안전지수 등급 현황</h2>
+      <span class="tag" id="siTag"></span>
+    </div>
+    <div class="panel-body" id="siBody"></div>
   </div>
 
   <div class="panel">
@@ -194,13 +223,25 @@
         </div>
       </div>
     </div>
+    <!-- ★ 우측: 행정동별 위험도 — 지역안전지수 가중 HEA (2026-10-20 실무회의. 전에는 스트리트뷰 자리)
+         좌측(119 출동 밀도 = 과거·실제 발생)과 나란히 놓고 상대 비교합니다. 스트리트뷰는 아래로 내렸습니다. -->
     <div class="panel">
-      <div class="panel-head">
-        <h2>스트리트뷰</h2>
-        <span class="tag">진단 입력 이미지</span>
+      <div class="panel-head rmap-head">
+        <h2>행정동별 위험도</h2>
+        <span class="tag">지역안전지수 가중</span>
+        <div class="hea-seg" id="rmapSeg" role="group" aria-label="행정동별 위험도 표시" style="margin-left:auto"></div>
       </div>
-      <div id="streetview"></div>
+      <div id="riskMap"></div>
+      <p class="rmap-note" id="rmapNote"></p>
     </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>스트리트뷰</h2>
+      <span class="tag">진단 입력 이미지</span>
+    </div>
+    <div id="streetview"></div>
   </div>
 
   <!-- 읍면동별 HEA 취약도 지표 — 위 "동별 HEA 취약도"에서 H·E·A·종합 중 하나를 켜면 나타남 (2026-09-15, 사전진단서 3.3 에서 옮김) -->
@@ -234,6 +275,7 @@
 <script src="assets/projects.js"></script>
 <script src="assets/risk-weights.js"></script>
 <script src="assets/dong-hea.js"></script>
+<script src="assets/safety-index.js"></script>
 <script>
 let _map, _pano, _marker;
 let picked = null;                 // { lat, lng, addr }
@@ -299,8 +341,9 @@ async function loadIncidents(lat, lng) {
     _loadedRegion = region.region;
     tag.textContent = `${region.label} · 3개년 ${region.total.toLocaleString()}건`;
     buildIncidentLayers(data);
-    loadDongHea(region.region);        // 동별 HEA — 격자 레이어와 따로
+    await loadDongHea(region.region);  // 동별 HEA — 격자 레이어와 따로
     loadOverview(region.region);       // 맞춤형 사업 종합도 — 자료가 있는 지자체만 줄이 보임
+    await applySafetyIndex(region.region);   // ★ 지역안전지수 등급표 + 우측 행정동별 위험도 + 하위 등급 분야 레이어 자동 켜기 + 시 전체 화면
   } catch (err) {
     tag.textContent = '자료 없음';
     document.getElementById('layerTotal').innerHTML = '';
@@ -444,6 +487,7 @@ function buildIncidentLayers(data) {
     const row = makeLayerRow(set.label, cat.color);
     row.title = `${set.label} — 종합 위험도에 반영되는 가중치 ${auriRiskWeight(cat.key)}배\n${RISK_WEIGHTS[cat.key].why}`;
     row.addEventListener('click', function () { toggleIncidentLayer(cat.key, row); });
+    _incidentLayers[cat.key].row = row;   // 지역안전지수 하위 분야를 자동으로 켤 때 씀 (applySafetyIndex)
     host.appendChild(row);
   });
 
@@ -680,6 +724,144 @@ function toggleOverview() {
    중위 검정 · 하위 회색. 격자 점 레이어는 이것과 상관없이 그대로 켜고 끕니다. */
 let _hea = { data: null, mode: '', lines: [], labels: [], info: null };
 
+/* ════════════════════════════════════════════════════════════════════
+   ★ 지역안전지수 가중치 (2026-10-20 AURI 실무회의)
+   ① 상단 등급 현황표  ② 우측 행정동별 위험도(가중 HEA · 복합위험지구 후보 · 하위 등급 분야)
+   ③ 좌측 119 레이어는 지수 기준 하위 3분야만 자동으로 켬  ④ 시 전체가 한 화면에 들어오게 두 지도 맞춤
+   계산은 assets/safety-index.js 한 곳. 여기서는 그리기만 합니다.
+   ════════════════════════════════════════════════════════════════════ */
+let _rmap = null;
+let _si = { region: null, si: null, weighted: null, composite: null, mode: 'total', shapes: [], labels: [], info: null, fitted: null };
+
+async function applySafetyIndex(region) {
+  await AuriSafetyIndex.load();
+  const si = AuriSafetyIndex.forRegion(region);
+  const panel = document.getElementById('siPanel');
+  _si.region = region; _si.si = si;
+  _si.weighted = si && _hea.data ? AuriSafetyIndex.weightDongs(_hea.data, si) : null;
+  _si.composite = _si.weighted ? AuriSafetyIndex.compositeDistricts(_si.weighted) : null;
+
+  /* ① 등급 현황표 */
+  panel.hidden = !si;
+  if (si) {
+    document.getElementById('siTag').textContent = si.label + ' · ' + AuriSafetyIndex.years().join('·');
+    document.getElementById('siBody').innerHTML = AuriSafetyIndex.renderTable(si);
+  }
+
+  /* ③ 좌측 119 레이어 — 하위 등급 분야(지수 기준 중점 3분야)만 켭니다. 나머지는 끈 채로 두되 누르면 켤 수 있습니다 */
+  if (si) {
+    const on = new Set(si.focusByIndex);
+    document.querySelectorAll('#layerChips .layer-row').forEach(function (row) {
+      const key = Object.keys(_incidentLayers).find(function (k) { return _incidentLayers[k].row === row; });
+      if (!key) return;
+      const want = on.has(key);
+      if (_incidentLayers[key].active !== want) toggleIncidentLayer(key, row);
+    });
+  }
+
+  /* ② 우측 지도 — 버튼: 종합 · 복합위험지구 후보 · 하위 등급 분야 */
+  buildRmapSeg();
+  setRmapMode(_si.weighted ? 'total' : '');
+
+  /* ④ 시 전체가 한 화면 — 동 경계 전체 범위. 지자체가 바뀔 때 한 번만 */
+  if (_hea.data && _si.fitted !== region) {
+    _si.fitted = region;
+    let s = 90, n = -90, w = 180, e = -180;
+    _hea.data.dongs.forEach(function (d) { (d.geometry || []).forEach(function (poly) { (poly[0] || []).forEach(function (p) {
+      if (p[0] < s) s = p[0]; if (p[0] > n) n = p[0]; if (p[1] < w) w = p[1]; if (p[1] > e) e = p[1]; }); }); });
+    if (n > s) {
+      const b = new naver.maps.LatLngBounds(new naver.maps.LatLng(s, w), new naver.maps.LatLng(n, e));
+      _map.fitBounds(b); if (_rmap) _rmap.fitBounds(b);
+    }
+  }
+}
+
+function buildRmapSeg() {
+  const seg = document.getElementById('rmapSeg');
+  const note = document.getElementById('rmapNote');
+  seg.innerHTML = '';
+  if (!_si.weighted) {
+    note.textContent = _si.si ? '이 지자체는 동별 HEA 자료가 없어 행정동별 위험도를 그릴 수 없습니다.' : '이 지자체의 지역안전지수 자료가 없습니다.';
+    return;
+  }
+  const si = _si.si;
+  const colorOf = function (k) { const c = INCIDENT_CATEGORIES.find(function (x) { return x.key === k; }); return c ? c.color : '#333'; };
+  const btn = function (mode, label, color, title) {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.mode = mode; b.title = title || '';
+    b.innerHTML = (color ? `<span class="dot" style="background:${color}"></span>` : '') + label;
+    b.addEventListener('click', function () { setRmapMode(mode); });
+    seg.appendChild(b);
+  };
+  btn('total', '종합', '#000', '7개 분야 (H·E·A 평균) × 지역안전지수 가중치 → 지자체 안 백분위');
+  btn('composite', '복합위험지구 후보', '#D83D64', '119 출동 밀도(과거) × 가중 HEA(미래) → 백분위 67 이상');
+  /* 하위 등급 분야 — 지수 기준 중점 3분야 + 4·5등급. 동별 자료가 있는 분야만 */
+  const fields = [];
+  si.focusByIndex.concat(si.lowGrades).forEach(function (k) { if (!fields.includes(k) && _si.weighted.fields.some(function (f) { return f.key === k; })) fields.push(k); });
+  fields.forEach(function (k) { btn(k, AuriSafetyIndex.LABEL[k], colorOf(k), `${AuriSafetyIndex.LABEL[k]} — 가중치 ${si.weights[k]}`); });
+  const order = _si.weighted.fields.map(function (f) { return `${f.label} ${f.regionScore}`; }).join(' · ');
+  note.innerHTML = `분야 재정렬(가중 점수, 지자체 전체) — ${order}<br>` +
+    `${_si.composite ? _si.composite.note + ' · 후보 ' + _si.composite.candidates.map(function (d) { return d.name; }).join('·') : ''}<br>` +
+    `* ${AuriSafetyIndex.DISCLAIMER}`;
+}
+
+function clearRmap() {
+  _si.shapes.forEach(function (s) { s.setMap(null); }); _si.labels.forEach(function (m) { m.setMap(null); });
+  _si.shapes = []; _si.labels = [];
+  if (_si.info) { _si.info.close(); _si.info = null; }
+}
+
+function setRmapMode(mode) {
+  _si.mode = mode;
+  document.querySelectorAll('#rmapSeg button').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === mode); });
+  clearRmap();
+  if (!mode || !_si.weighted || !_rmap) return;
+  const colorOf = function (k) { const c = INCIDENT_CATEGORIES.find(function (x) { return x.key === k; }); return c ? c.color : '#333'; };
+  const color = mode === 'total' ? '#000000' : mode === 'composite' ? '#D83D64' : colorOf(mode);
+  const dongs = mode === 'composite' ? _si.composite.dongs : _si.weighted.dongs;
+  dongs.forEach(function (d) {
+    const score = mode === 'total' ? d.totalPct : mode === 'composite' ? d.compositePct : (d.byField[mode] ? d.byField[mode].pct : null);
+    const op = score == null ? 0 : 0.06 + 0.56 * score / 100;
+    const cand = mode === 'composite' && d.candidate;
+    (d.geometry || []).forEach(function (poly) {
+      const shape = new naver.maps.Polygon({
+        map: _rmap,
+        paths: poly.map(function (ring) { return ring.map(function (p) { return new naver.maps.LatLng(p[0], p[1]); }); }),
+        fillColor: color, fillOpacity: op,
+        strokeColor: cand ? '#D83D64' : '#666666', strokeOpacity: cand ? 1 : 0.7, strokeWeight: cand ? 2.5 : 1,
+        clickable: score != null,
+      });
+      if (score != null) naver.maps.Event.addListener(shape, 'click', function (e) { showRmapInfo(d, e.coord); });
+      _si.shapes.push(shape);
+    });
+    if (!d.center || score == null) return;
+    const bd = AuriSafetyIndex.band(score);
+    const m = new naver.maps.Marker({
+      map: _rmap, position: new naver.maps.LatLng(d.center[0], d.center[1]),
+      icon: { content: `<div class="hea-lbl"><span class="nm">${d.name}${cand ? ' ◆' : ''}</span><b style="color:${bd.color}">${score}</b></div>`, anchor: new naver.maps.Point(0, 0) },
+      zIndex: 50,
+    });
+    naver.maps.Event.addListener(m, 'click', function () { showRmapInfo(d, m); });
+    _si.labels.push(m);
+  });
+}
+
+function showRmapInfo(d, at) {
+  const si = _si.si;
+  const c = _si.composite && _si.composite.dongs.find(function (x) { return x.name === d.name; });
+  const axes = ['H', 'E', 'A'].filter(function (a) { return d.axes[a] != null; }).map(function (a) { return `${a} ${d.axes[a]}`; }).join(' · ');
+  const fields = _si.weighted.fields.filter(function (f) { return d.byField[f.key]; })
+    .map(function (f) { const b = d.byField[f.key]; return `${f.label} ${b.base}×${b.w} = <b>${b.weighted}</b>`; }).join(' · ');
+  const html = `<div style="padding:12px 14px;font-size:13px;line-height:1.6;max-width:360px;font-family:Pretendard,sans-serif">
+    <b style="font-size:15px">${d.name}</b> <span style="color:#999">출동 ${d.n.toLocaleString()}건${d.inside > 0 ? ' · 기존 복합위험지구' : ''}</span>
+    <div style="margin-top:6px"><b>가중 종합 ${d.totalPct == null ? '-' : d.totalPct}</b>${c && c.compositePct != null ? ` · 밀도 ${c.densityPct} · 복합 ${c.compositePct}${c.candidate ? ' <b style="color:#D83D64">후보</b>' : ''}` : ''}</div>
+    ${axes ? `<div>취약 요인 — <b>${d.weak.join('·')}</b> (${axes})</div>` : ''}
+    ${fields ? `<div style="margin-top:4px;color:#666;font-size:12px">${fields}</div>` : ''}
+    <div style="margin-top:6px;color:#999;font-size:11px">가중치 = 지역안전지수 등급 ÷ 5 · 지자체 안 상대 순위(0~100)<br>${AuriSafetyIndex.DISCLAIMER}</div></div>`;
+  if (_si.info) _si.info.close();
+  _si.info = new naver.maps.InfoWindow({ content: html, borderColor: '#000', borderWidth: 1, anchorSize: new naver.maps.Size(8, 8) });
+  _si.info.open(_rmap, at);
+}
+
 async function loadDongHea(region) {
   const block = document.getElementById('heaBlock');
   const data = await AuriDongHea.load(region);
@@ -821,6 +1003,9 @@ function startMap(center) {
   const latlng = new naver.maps.LatLng(center.lat, center.lng);
 
   _map = new naver.maps.Map('map', { center: latlng, zoom: 16 });
+  /* 우측 행정동별 위험도 지도 — 좌측과 같은 범위로 맞추고, 여기를 눌러도 진단 지점이 됩니다 */
+  _rmap = new naver.maps.Map('riskMap', { center: latlng, zoom: 16 });
+  naver.maps.Event.addListener(_rmap, 'click', function (e) { _map.setCenter(e.coord); selectPoint(e.coord); });
   _pano = new naver.maps.Panorama('streetview', {
     position: latlng,
     pov: { pan: 0, tilt: 0, fov: 100 }

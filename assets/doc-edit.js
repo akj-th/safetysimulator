@@ -183,5 +183,17 @@ const AuriDocEdit = (function () {
     });
   }
 
-  return { render, ask, onEdit, refresh, get, set };
+  /** ★ 한 줄짜리 편집칸 (2026-10-20 행안부 카드 제목·세부 유형용) — 같은 저장소(auri_doc_notes)에 글만 남깁니다.
+   *  def = 기본 글(저장된 것이 없을 때 보임), hint = 빈칸 안내. 인쇄·Word 에는 글만 나갑니다. */
+  function inline(id, def, hint) {
+    const saved = get(id);
+    const safe = (s) => String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const text = saved && saved.text != null ? saved.text : (def || '');
+    return `<span class="doc-inline" id="in-${id}" contenteditable="true" spellcheck="false" data-hint="${safe(hint || '')}"
+      oninput="AuriDocEdit.onInline('${id}', this)">${safe(text)}</span>`;
+  }
+  function onInline(id, el) { set(id, el.textContent, false, null); }
+
+  return { render, ask, onEdit, refresh, get, set, inline, onInline };
 })();

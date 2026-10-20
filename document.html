@@ -182,6 +182,22 @@ img[hidden]{display:none !important}
 
 /* 개선 전/후 — 상하로 크게 (좌우로 놓으니 작아서 안 보인다는 의견) */
 .ba-stack{margin:14px 0}
+/* ★ 2026-10-20 실무회의 — 거점 카드 · 행안부 카드 · 번호 태그 범례 · 한 줄 편집칸 */
+.hot-card{border-top:1px solid var(--k); padding-top:10px; margin-top:18px; page-break-inside:avoid}
+.hot-card:first-of-type{margin-top:6px}
+.hot-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+@media(max-width:700px){ .hot-grid{grid-template-columns:1fr} }
+.hot-grid .ba-stack figure{margin:0 0 10px}
+.tag-legend{display:flex; flex-wrap:wrap; gap:6px 18px; margin:-12px 0 12px; font-size:var(--fs-sm); color:var(--g3)}
+.tag-legend b{display:inline-block; width:20px; height:20px; line-height:18px; text-align:center; border:1px solid var(--k); border-radius:50%; background:var(--w); color:var(--k); font-size:var(--fs-cap); margin-right:4px}
+.mois-title{font-weight:700; font-size:var(--fs-lead); padding:8px 10px; border:1px solid var(--k); margin:0 0 -1px}
+.mois-head th{background:#F5F5F5}
+.mois-two{display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start}
+@media(max-width:700px){ .mois-two{grid-template-columns:1fr} }
+.mois-two figure{margin:0} .mois-two img{width:100%; display:block; border:1px solid var(--g1)}
+.doc-inline{display:inline-block; min-width:80px; border-bottom:1px dashed var(--g2); padding:0 4px; outline:none}
+.doc-inline:empty::before{content:attr(data-hint); color:var(--g2); font-weight:400}
+@media print{ .doc-inline{border-bottom:none} .doc-inline:empty::before{content:''} }
 .ba-stack figure{margin:0 0 22px}
 .ba-stack img{width:100%; display:block; border:1px solid var(--g1); background:var(--w)}
 .ba-stack .slot{
@@ -247,7 +263,11 @@ img[hidden]{display:none !important}
       <h1>진단 문서</h1>
       <p class="sub">현장용 리포트로 현장에 나가기 전 확인할 것을 먼저 보고, 사전진단서는 AURI 양식 그대로 그다음에 정리합니다. 인쇄하면 지금 보고 있는 문서만 나옵니다.</p>
     </div>
-    <button class="btn ghost" onclick="window.print()">인쇄 / PDF 저장</button>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <!-- ★ Word 내보내기 (2026-10-20 실무회의 — AURI 는 HWP 로 편집하므로 PDF 대신 편집 가능한 파일) -->
+      <button class="btn ghost" onclick="exportWord()" title="지금 보고 있는 문서를 Word(.doc)로 내려받습니다. 한글(HWP)에서도 열립니다">Word 로 내보내기</button>
+      <button class="btn ghost" onclick="window.print()">인쇄 / PDF 저장</button>
+    </div>
   </div>
 
   <!-- ★ 순서: 현장용 리포트 → 사전진단서 (2026-09-14 AURI 회의)
@@ -287,6 +307,7 @@ img[hidden]{display:none !important}
 <script src="assets/doc-map.js"></script>
 <script src="assets/physical.js"></script>
 <script src="assets/dong-hea.js"></script>
+<script src="assets/safety-index.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════════
    문서 만들기
@@ -473,7 +494,7 @@ function auriCh2() {
       ${(beforeUrl || after || mineP.length) ? `
       <div class="ba-stack">
         ${mineP[0] ? `<figure><img src="${mineP[0].dataUrl}" alt="현장 사진"><figcaption>현장 사진 — ${esc(AuriSitePhoto.caption(mineP[0]))}</figcaption></figure>` : (beforeUrl ? `<figure><img src="${beforeUrl}" alt="개선 전"><figcaption>개선 전 (진단 지점)</figcaption></figure>` : '')}
-        ${after ? `<figure><img src="${after}" alt="개선 후"><figcaption>[그림 ${figEx}] ${af && af.figures[1] ? esc(af.figures[1]) : '맞춤형 사업 예시'} <span class="h-sub">시뮬레이터 생성</span></figcaption></figure><div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>` : ''}
+        ${after ? `<figure><img src="${after}" alt="개선 후"><figcaption>[그림 ${figEx}] ${af && af.figures[1] ? esc(af.figures[1]) : '맞춤형 사업 예시'} <span class="h-sub">시뮬레이터 생성</span></figcaption></figure>${afterTagLegend()}<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>` : ''}
       </div>` : ''}
       ${af && af.checks.length ? `<p class="bullet" style="margin-top:12px"><b>○ 사전 체크 및 현장 확인사항</b></p><ul class="auri-checks">${af.checks.map((t) => `<li>▸ ${esc(t)}</li>`).join('')}</ul>` : ''}`;
   }).join('');
@@ -813,45 +834,162 @@ function chapter4() {
   </section>`;
 }
 
-function chapter5() {
+/* ════════════════════════════════════════════════════════════════════
+   ★ 사업 리스트 구분 — 환경 개선(E, 이미지 반영) / 소프트웨어(H·A, 참고 목록) + 효과 레퍼런스 한 줄
+   (2026-10-20 AURI 실무회의). 붙임 4 · 현장용 리포트 · 행안부 리포트가 **같은 함수**를 씁니다.
+   opts.amount = 사업비 열 · opts.basis = 근거 열
+   ════════════════════════════════════════════════════════════════════ */
+function rxSplitTables(items, opts) {
+  opts = opts || {};
+  const env = items.filter((it) => it.hea === 'E');
+  const soft = items.filter((it) => it.hea !== 'E');
   let total = 0, unpriced = 0;
-  const rows = _items.map(function (it) {
+  const row = (it) => {
     const p = AuriPalette.byName(it.name);
     const a = p ? p.amount : null;
-    if (a && a.won) total += a.won; else unpriced++;
-    return `
-      <tr class="${it.hea ? 'hea-' + it.hea : ''}">
-        <td>${esc(it.name)}</td>
-        <td>${esc(it.category)}</td>
-        <td><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span></td>
-        <td>${it.priority.label}</td>
-        <td class="num">${a && a.won ? auriWon(a.won) + (a.unit ? ' / ' + a.unit : '') : '산출 근거 필요'}</td>
-      </tr>`;
-  }).join('');
+    if (opts.amount) { if (a && a.won) total += a.won; else unpriced++; }
+    const eff = AuriPalette.effectLabel(p);
+    const src = p ? AuriPalette.sourceShort(p.source) : '';
+    return `<tr class="${it.hea ? 'hea-' + it.hea : ''}">
+      <td>${esc(it.name)}${it.required ? ' <span class="h-sub">필수</span>' : ''}</td>
+      <td>${esc(it.category)}</td>
+      <td><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span></td>
+      <td>${it.priority ? it.priority.label : '-'}</td>
+      <td style="font-size:var(--fs-cap)">${eff ? esc(eff) + (src ? `<br><span style="color:var(--g2)">${esc(src)}</span>` : '') : '<span style="color:var(--g2)">효과 레퍼런스 확인 중(AURI)</span>'}</td>
+      ${opts.amount ? `<td class="num">${a && a.won ? auriWon(a.won) + (a.unit ? ' / ' + a.unit : '') : '산출 근거 필요'}</td>` : ''}
+      ${opts.basis ? `<td style="font-size:var(--fs-cap);color:var(--g2)">${it.trigger ? esc(it.trigger.id + ' ' + (it.trigger.note || '')) : (it.custom ? '연구원 추가' : '통계 처방')}</td>` : ''}
+    </tr>`;
+  };
+  const table = (list, title, hint) => `
+    <p class="bullet" style="font-weight:700;margin:14px 0 6px;padding-left:0">${title} <span class="h-sub">${hint}</span></p>
+    ${list.length ? `<table class="tight"><thead><tr>
+      <th style="width:28%">사업</th><th style="width:10%">분야</th><th style="width:12%">개입</th><th style="width:9%">우선</th><th>효과 레퍼런스</th>${opts.amount ? '<th class="num" style="width:15%">사업비</th>' : ''}${opts.basis ? '<th style="width:17%">근거</th>' : ''}
+    </tr></thead><tbody>${list.map(row).join('')}</tbody></table>` : '<p class="bullet">해당 없음</p>'}`;
+  const sum = opts.amount ? `<p class="bullet" style="text-align:right;padding-left:0"><b>합계</b> — 총 ${items.length}종${unpriced ? ` (산출 근거 필요 ${unpriced}종 제외)` : ''} · ${total ? auriWon(total) : '산출 불가'}</p>` : '';
+  const foot = `<p class="note-under">* <b>환경 개선 사업</b>만 개선 후 이미지에 들어갑니다. 교육·단속·상담·지원은 거리 사진에 나타나지 않아 <b>참고 목록</b>으로 둡니다(2026-10-20 실무회의).<br>
+    * 효과 레퍼런스는 AURI 사업 팔레트의 효과 칸에서 숫자가 있는 구절을 뽑은 것입니다. AURI 가 보도자료 기반 정량 수치를 보내면 그 문구로 바뀝니다.${opts.amount ? '<br>* 사업비는 단위와 금액이 분명한 사업만 산정. 지자체 총액·범위·국비 분담 기재분은 제외. 부가세 제외' : ''}</p>`;
+  return table(env, '① 환경 개선 사업', '[E] 환경적 개입 — 개선 이미지에 반영')
+       + table(soft, '② 소프트웨어 사업 (참고 목록)', '[H] 보호·지원 · [A] 행위 개입 — 이미지 제외')
+       + sum + foot;
+}
 
+function chapter5() {
   return `
   <section class="chapter">
     <h2 class="h-chapter">붙임 4. 시뮬레이터 처방 사업 목록 <span class="h-sub">진단 지점 기준</span></h2>
-    ${_items.length ? `
-      <table class="tight">
-        <thead><tr>
-          <th style="width:36%">사업 항목</th><th style="width:13%">분야</th>
-          <th style="width:16%">개입 유형</th><th style="width:12%">우선순위</th>
-          <th class="num" style="width:23%">사업비</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-        <tfoot><tr class="sum">
-          <td colspan="4">합계 — 총 ${_items.length}종${unpriced ? ` (산출 근거 필요 ${unpriced}종 제외)` : ''}</td>
-          <td class="num">${total ? auriWon(total) : '산출 불가'}</td>
-        </tr></tfoot>
-      </table>
-      <p class="note-under">
-        * 개입 유형 — <span class="hea-tag k-H">[H] 피해대상</span> 보호·지원 ·
-        <span class="hea-tag k-E">[E] 환경</span> 개선 ·
-        <span class="hea-tag k-A">[A] 행위</span> 개입<br>
-        * 사업비는 단위와 금액이 분명한 사업만 산정. 지자체 총액·범위·국비 분담 기재분은 제외. 부가세 제외</p>`
-      : '<p class="bullet">처방된 사업 없음</p>'}
+    ${_items.length ? rxSplitTables(_items, { amount: true }) : '<p class="bullet">처방된 사업 없음</p>'}
   </section>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ★ 붙임 5. 주요 거점별 진단 카드 (2026-10-20 실무회의 — "붙임 7 구성 변경")
+   행정동 단위가 아니라 **밀도 높은 중심지(거점)** 기준으로, 거점마다
+     행정동명 · 취약 요인(H/E/A) · 맞춤형 사업 리스트(환경 개선 / 소프트웨어) · 개선 전/후
+   를 자동으로 채웁니다. 복합위험지구 밖 지점을 어떻게 쓸지 공무원이 혼란스럽지 않게 개략 예시를 함께 주는 것이 취지.
+   거점: data/stats/hotspots.json(+관리자 보정) · 취약 요인: 동별 HEA × 지역안전지수 가중(assets/safety-index.js)
+   사업: 연결표의 예비 목록(rules.js fallback, 상위 2분야) · 개선 전/후: 그 거점의 공유 프로젝트(관리자 저장) 또는 지금 진단
+   ════════════════════════════════════════════════════════════════════ */
+let _hotspots = [];          // 이 지자체 거점
+let _hotShared = {};         // 거점 글자 → 공유 프로젝트 (data 까지)
+let _siRegion = null, _weighted = null;
+const AURI_AXIS_NAME = { H: 'H 피해대상', E: 'E 환경', A: 'A 행위·관리' };
+
+async function loadHotspotCards(region) {
+  try { const r = await fetch('data/stats/hotspots.json'); const all = r.ok ? await r.json() : null; _hotspots = (all && all.regions && all.regions[region]) || []; }
+  catch (e) { _hotspots = []; }
+  let server = null;
+  try { const r = await fetch('/api/hotspots/' + encodeURIComponent(region), { cache: 'no-store' }); if (r.ok) server = await r.json(); } catch (e) { /* 서버 없음 */ }
+  if (server) {
+    const edits = {}; (server.edits || []).forEach((e) => { edits[e.tag] = e; });
+    _hotspots = _hotspots.map((h) => {
+      const tag = String.fromCharCode(64 + h.rank), e = edits[tag];
+      if (e && e.removed) return null;
+      return e && e.lat != null ? Object.assign({}, h, { lat: e.lat, lng: e.lng, moved: true }) : h;
+    }).filter(Boolean);
+    _hotShared = {}; (server.projects || []).forEach((p) => { _hotShared[p.tag] = p; });
+    /* 공유 프로젝트의 개선 전/후 — 거점당 한 건만 (최대 10건) */
+    await Promise.all(Object.values(_hotShared).map(async (p) => {
+      try { const r = await fetch('/api/projects/' + encodeURIComponent(p.id), { cache: 'no-store' }); if (r.ok) { const j = await r.json(); p.data = (j.project && j.project.data) || {}; } } catch (e) { /* 건너뜀 */ }
+    }));
+  }
+  await AuriSafetyIndex.load();
+  _siRegion = AuriSafetyIndex.forRegion(region);
+  _weighted = _siRegion && _dongHea ? AuriSafetyIndex.weightDongs(_dongHea, _siRegion) : null;
+}
+
+function hotspotPicks(topFields) {
+  /* 상위 2분야의 연결표 예비 목록(위험 → 주의 순) → 팔레트 사업. 같은 이름은 한 번만 */
+  const picks = [];
+  topFields.slice(0, 2).forEach((k) => {
+    const fb = (typeof RX_RULES !== 'undefined') && RX_RULES[k] && RX_RULES[k].fallback;
+    if (!fb) return;
+    (fb.danger || []).concat(fb.caution || []).forEach((name) => {
+      const p = AuriPalette.byName(name);
+      if (p && !picks.some((x) => x.name === p.name)) picks.push(p);
+    });
+  });
+  return picks;
+}
+
+function hotspotCards() {
+  const list = _hotspots.slice(0, 10);
+  const head = `
+  <section class="chapter">
+    <h2 class="h-chapter">붙임 5. 주요 거점별 진단 카드 <span class="h-sub">밀도 높은 중심지 기준 · 시뮬레이터 산출</span></h2>
+    <p class="note-under" style="margin-bottom:10px">* 복합위험지구 밖 지점도 활용할 수 있도록, 119 출동 밀도가 몰린 거점마다 행정동 · 취약 요인(H/E/A) · 맞춤형 사업 · 개선 전/후 예시를 자동으로 채웁니다(2026-10-20 실무회의).
+      거점은 중점 3분야 밀도의 상위 지점이며 관리자가 지도에서 옮기거나 뺀 것이 반영됩니다. 취약 요인은 동별 HEA 에 지역안전지수 가중치를 곱한 값, 사업은 연결표의 예비 목록입니다. ${esc(AuriSafetyIndex.DISCLAIMER)}</p>`;
+  if (!list.length) return head + '<p class="bullet">이 지자체는 거점 자료가 없습니다 (TIF 미수신 또는 임계값 미달).</p></section>';
+  const beforeNow = (() => { const b = sessionStorage.getItem('auri_input_image'); return b ? (JSON.parse(b).dataUrl || null) : null; })();
+  const label = (k) => AuriSafetyIndex.LABEL[k] || k;
+  const cards = list.map((h) => {
+    const tag = String.fromCharCode(64 + h.rank);
+    const dong = AuriSafetyIndex.dongAt(_dongHea, h.lat, h.lng);
+    const wd = dong && _weighted ? _weighted.dongs.find((d) => d.name === dong.name) : null;
+    const topFields = Object.keys(h.parts).sort((a, b) => h.parts[b] - h.parts[a]);
+    const partsText = topFields.map((k) => `${label(k)} ${Math.round(h.parts[k] * 100)}`).join(' · ');
+    let weak = '표본 부족', axes = '';
+    if (wd && wd.weak.length) {
+      weak = wd.weak.map((a) => AURI_AXIS_NAME[a]).join(' · ');
+      axes = ['H', 'E', 'A'].filter((a) => wd.axes[a] != null).map((a) => `${a} ${wd.axes[a]}`).join(' · ') + (wd.totalPct != null ? ` · 가중 종합 ${wd.totalPct}` : '');
+    } else if (dong) {
+      const s = dong.scores, have = ['H', 'E', 'A'].filter((a) => s[a] != null).sort((a, b) => s[b] - s[a]);
+      if (have.length) { weak = AURI_AXIS_NAME[have[0]]; axes = have.map((a) => `${a} ${s[a]}`).join(' · '); }
+    }
+    const picks = hotspotPicks(topFields);
+    const env = picks.filter((p) => p.hea === 'E'), soft = picks.filter((p) => p.hea !== 'E');
+    const li = (p) => `<li class="hea-${p.hea}" style="padding:2px 4px"><span class="hea-tag k-${p.hea}">${AuriPalette.heaLabel(p.hea, true)}</span> ${esc(p.name)} <span class="h-sub">${esc(label(p.field))}</span>${AuriPalette.effectLabel(p) ? `<br><span style="font-size:var(--fs-cap);color:var(--g2)">${esc(AuriPalette.effectLabel(p))}</span>` : ''}</li>`;
+    const shared = _hotShared[tag];
+    const isCurrent = _picked && _picked.hotspot && _picked.hotspot.tag === tag && _picked.hotspot.region === _data.region;
+    const before = isCurrent ? beforeNow : (shared && shared.data && shared.data.auri_input_image ? (JSON.parse(shared.data.auri_input_image).dataUrl || null) : null);
+    const after = isCurrent ? sessionStorage.getItem('auri_after_image') : (shared && shared.data ? shared.data.auri_after_image || null : null);
+    const srcNote = isCurrent ? '지금 진단' : (shared ? `공유 프로젝트 「${esc(shared.title || '')}」 (${esc(shared.owner_name || '관리자')})` : '');
+    return `
+    <div class="hot-card">
+      <table class="tight" style="margin-top:0">
+        <tbody>
+          <tr><th style="width:14%">거점</th><td style="width:36%"><b>${tag}</b> <span class="h-sub">밀도 ${Math.round(h.score * 100)} · ${h.inside ? '복합위험지구 안' : '복합위험지구 밖'}${h.moved ? ' · 관리자 이동' : ''}</span></td>
+              <th style="width:14%">행정동</th><td><b>${dong ? esc(dong.name) : '-'}</b> <span class="h-sub">위도 ${h.lat.toFixed(5)}, 경도 ${h.lng.toFixed(5)}</span></td></tr>
+          <tr><th>분야 밀도</th><td>${esc(partsText)}</td><th>취약 요인</th><td><b>${esc(weak)}</b>${axes ? ` <span class="h-sub">${esc(axes)}</span>` : ''}</td></tr>
+        </tbody>
+      </table>
+      <div class="hot-grid">
+        <div>
+          <p class="bullet" style="font-weight:700;padding-left:0;margin:8px 0 2px">① 환경 개선 사업 <span class="h-sub">[E] 이미지 반영</span></p>
+          <ul class="auri-checks">${env.length ? env.map(li).join('') : '<li>해당 없음</li>'}</ul>
+          <p class="bullet" style="font-weight:700;padding-left:0;margin:8px 0 2px">② 소프트웨어 사업 <span class="h-sub">[H]·[A] 참고 목록</span></p>
+          <ul class="auri-checks">${soft.length ? soft.map(li).join('') : '<li>해당 없음</li>'}</ul>
+        </div>
+        <div>
+          <div class="ba-stack" style="margin:8px 0 0">
+            <figure>${before ? `<img src="${before}" alt="개선 전">` : '<div class="slot">개선 전 — 이 거점에서 저장한 공유 프로젝트 없음</div>'}<figcaption>개선 전${srcNote ? ' · ' + srcNote : ''}</figcaption></figure>
+            <figure>${after ? `<img src="${after}" alt="개선 후">` : '<div class="slot">개선 후 — 관리자가 이 거점에서 진단·생성 후 프로젝트를 저장하면 자동으로 실립니다</div>'}<figcaption>개선 후 (사업 반영 예시)</figcaption></figure>
+            ${after ? `<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  return head + cards + '</section>';
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -930,36 +1068,14 @@ function fieldReport() {
       </figure>
       <!-- 면책 문구는 개선 전/후 두 장 아래에 **항상** 붙습니다 — 이미지가 아직 없어도,
            인쇄해도 (2026-09-14). 문구는 assets/ui.js 의 AURI_AI_DISCLAIMER 한 곳. -->
+      ${afterTagLegend()}
       <div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>
     </div>
   </section>
 
   <section class="chapter">
     <h2 class="h-chapter">처방 사업 목록</h2>
-    ${_items.length ? `
-      <table class="tight">
-        <thead><tr>
-          <th style="width:38%">사업 항목</th><th style="width:14%">분야</th>
-          <th style="width:16%">개입 유형</th><th style="width:12%">우선순위</th>
-          <th style="width:20%">이미지 반영</th>
-        </tr></thead>
-        <tbody>
-          ${_items.map((it) => `
-            <tr class="${it.hea ? 'hea-' + it.hea : ''}">
-              <td>${esc(it.name)}</td>
-              <td>${esc(it.category)}</td>
-              <td><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span></td>
-              <td>${it.priority.label}</td>
-              <td style="font-size:var(--fs-cap);color:var(--g2)">${auriRxIsVisual(it) ? '반영됨' : '거리 사진에 표현 불가'}</td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
-      <p class="note-under">
-        * 개입 유형 — <span class="hea-tag k-H">[H] 피해대상</span> 보호·지원 ·
-        <span class="hea-tag k-E">[E] 환경</span> 개선 ·
-        <span class="hea-tag k-A">[A] 행위</span> 개입<br>
-        * 교육·단속·상담 등은 거리 사진에 나타나지 않아 개선 후 이미지에 반영되지 않음</p>`
-      : '<p class="bullet">처방된 사업 없음</p>'}
+    ${_items.length ? rxSplitTables(_items, { basis: true }) : '<p class="bullet">처방된 사업 없음</p>'}
 
     ${photos.length ? `
       <h3 class="h-section">현장 사진</h3>
@@ -1214,6 +1330,58 @@ function closeMapPick() {
 }
 
 /* ── 탭 ──────────────────────────────────────────────────────────── */
+/* ★ Word 로 내보내기 (2026-10-20 실무회의 — AURI 는 HWP 로 편집하므로 PDF 가 아니라 편집 가능한 파일)
+   지금 보이는 탭의 HTML 을 MHTML(.doc) 로 묶어 내려받습니다. Word 가 그대로 열고, 한글(HWP)도 .doc 으로 읽습니다.
+   - 입력칸은 인쇄용 사본(.doc-fill-print)의 글로, 화면 전용 요소(.screen-only)·버튼은 뺍니다
+   - 이미지(data:)는 MHTML 의 별도 파트로 넣고 파일 이름으로 참조 — Word 는 data: URI 를 안정적으로 읽지 못합니다
+   - 캔버스 지도는 PNG 로 바꿔 넣습니다 */
+function exportWord() {
+  const which = !document.getElementById('docA').hidden ? 'a' : !document.getElementById('docC').hidden ? 'c' : 'b';
+  const src = document.getElementById('doc' + which.toUpperCase());
+  const clone = src.cloneNode(true);
+  /* 캔버스 → 이미지 (복제본에는 그림이 없으므로 원본 캔버스에서 읽음) */
+  const canvases = src.querySelectorAll('canvas');
+  clone.querySelectorAll('canvas').forEach((c, i) => {
+    try { const img = document.createElement('img'); img.src = canvases[i].toDataURL('image/png'); c.replaceWith(img); } catch (e) { c.remove(); }
+  });
+  clone.querySelectorAll('.screen-only, textarea, button, select, input, .doc-fill-head').forEach((el) => el.remove());
+  clone.querySelectorAll('[hidden]').forEach((el) => el.remove());
+  clone.querySelectorAll('.doc-inline').forEach((el) => { el.removeAttribute('contenteditable'); });
+  const parts = []; let k = 0;
+  clone.querySelectorAll('img').forEach((img) => {
+    const m = /^data:(image\/[a-z+]+);base64,(.+)$/s.exec(img.getAttribute('src') || '');
+    if (!m) { if (!/^https?:/.test(img.getAttribute('src') || '')) img.setAttribute('src', location.origin + '/' + img.getAttribute('src')); return; }
+    const name = `img${++k}.${m[1].includes('png') ? 'png' : 'jpg'}`;
+    parts.push({ name, type: m[1], b64: m[2] });
+    img.setAttribute('src', name); img.setAttribute('width', '640'); img.removeAttribute('style');
+  });
+  const css = Array.from(document.querySelectorAll('style')).map((s) => s.textContent).join('\n');
+  const title = document.getElementById('printFoot').textContent || '진단 문서';
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>${esc(title)}</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+<style>${css}
+@page{size:A4;margin:18mm 16mm 20mm} body{font-family:'맑은 고딕',Pretendard,sans-serif;font-size:10.5pt;line-height:1.6;color:#000}
+table{border-collapse:collapse;width:100%} th,td{border:1px solid #999;padding:4px 6px;font-size:9.5pt;vertical-align:top} th{background:#F5F5F5;color:#000}
+img{max-width:100%} figure{margin:6px 0} figcaption{font-size:9pt;color:#666}
+.h-chapter{font-size:15pt;font-weight:700;margin:18pt 0 8pt} .h-section{font-size:12pt;font-weight:700;margin:12pt 0 6pt} .h-sub{font-size:9pt;color:#666;font-weight:400}
+.note-under{font-size:9pt;color:#666} .chapter{page-break-before:always} .doc-fill-print{display:block !important;border:1px solid #ccc;padding:6px;min-height:24pt}
+.slot{border:1px dashed #999;padding:20px;text-align:center;color:#666} .tag-legend b{border:1px solid #000;padding:0 5px}</style></head>
+<body><div class="doc">${clone.innerHTML}</div></body></html>`;
+  const boundary = '----=_AURI_DOC_' + Date.now();
+  const b64 = (s) => btoa(unescape(encodeURIComponent(s)));
+  const wrap = (s) => s.replace(/(.{76})/g, '$1\r\n');
+  let mht = `MIME-Version: 1.0\r\nContent-Type: multipart/related; boundary="${boundary}"; type="text/html"\r\n\r\n` +
+    `--${boundary}\r\nContent-Type: text/html; charset="utf-8"\r\nContent-Transfer-Encoding: base64\r\nContent-Location: file:///C:/auri/index.html\r\n\r\n${wrap(b64(html))}\r\n\r\n`;
+  parts.forEach((p) => { mht += `--${boundary}\r\nContent-Type: ${p.type}\r\nContent-Transfer-Encoding: base64\r\nContent-Location: file:///C:/auri/${p.name}\r\n\r\n${wrap(p.b64)}\r\n\r\n`; });
+  mht += `--${boundary}--\r\n`;
+  const blob = new Blob([mht], { type: 'application/msword' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${_data ? _data.shortLabel + '_' : ''}${which === 'a' ? '사전진단서' : which === 'c' ? '행안부리포트' : '현장용리포트'}_${new Date().toISOString().slice(0, 10)}.doc`;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+
 function showDoc(which) {
   const a = which === 'a', c = which === 'c';
   document.getElementById('docA').hidden = !a;
@@ -1227,7 +1395,7 @@ function showDoc(which) {
   document.getElementById('docNoteText').innerHTML = a
     ? 'AURI 「지역 안전진단 사전분석 보고서」와 같은 구조입니다. 1·2장의 글과 표는 AURI 보고서 원문이고, <b>시뮬레이터</b> 표시가 붙은 것만 이 앱이 계산한 것입니다. 점선 없는 <b>입력칸</b>은 직접 쓰거나 <b>AI 의견 생성</b>으로 초안을 받을 수 있습니다. AI 초안 표시와 판단 근거는 화면에만 보이고 인쇄물에는 나오지 않습니다.'
     : c
-    ? '행안부가 지정한 양식에 맞출 <b>초안 뼈대</b>입니다(10/14 회의). 양식 원본을 받으면 항목 순서·제목을 그 양식대로 바꿉니다. 현장 확인사항은 현장 배포용이라 여기에는 넣지 않습니다.'
+    ? '행안부 「2차 현장보고서」 <b>예시안(공간분석 카드)</b> 구조입니다(10/20 실무회의). 공간유형·세부 유형은 제목 줄을 바로 고칠 수 있고, 사업목적·복합 사업 설명은 입력칸 또는 AI 의견 생성으로 채웁니다. 행안부 양식 원본을 받으면 항목 순서·제목을 그 양식대로 맞춥니다.'
     : '현장에서 볼 것만 담았습니다. 확인사항은 <b>네모 칸에 체크</b>하며 쓰도록 만들었습니다.';
   AuriDocEdit.refresh();
 }
@@ -1244,105 +1412,97 @@ function showDoc(which) {
    현장 확인사항·사전 체크는 넣지 않습니다(회의 결정: 현장 배포용). 잠재 취약성 분석 워딩은 AURI 가 주면 빈칸에 붙입니다.
    ════════════════════════════════════════════════════════════════════ */
 function moisReport() {
+  /* ★ 2026-10-20 실무회의 — 행안부 「2차 현장보고서」 예시안(붙임 수록) 구조로 재편
+     [공간유형 N] 유형 ➤ 위험요인 / 안전 유형·위치·세부 유형·연계 사고데이터 /
+     1. 현황 및 공간적 취약요인 상세(사진 + ○ 문제) / 2. 사업목적 / 3. 개선 및 맞춤형 사업 적용 방안(필수 개별사업(E) + 근거 → 복합 맞춤형) /
+     4. 예상 소요비용 / 5. 사업 적용 예시(안)(After). 보완(안)의 "복합 분야 진단"은 연계 분야 줄로 넣었습니다. */
   const beforeImg = sessionStorage.getItem('auri_input_image');
   const beforeUrl = beforeImg ? (JSON.parse(beforeImg).dataUrl || null) : null;
   const after = sessionStorage.getItem('auri_after_image');
   const focusKeys = new Set(_focus.map((f) => f.key));
   const ordered = _results.slice().sort((a, b) => (focusKeys.has(b.key) - focusKeys.has(a.key)) || b.score - a.score);
-
-  const factor = _focus.map(function (f) {
-    const opts = { inside: _stats.inside };
-    const human = AuriStats.narrateHuman(f.cat, opts);
-    const type = AuriStats.narrateType(f.cat, opts);
-    const r = _results.find((x) => x.key === f.key);
-    const observed = r && r.observed && r.observed.length ? r.observed.join(' · ') : null;
-    const phys = AuriPhysical.narrate(_data.region, f.key, { catLabel: f.label, fallback: true, limit: 4 });
-    return `
-      <tr>
-        <th style="width:16%; vertical-align:top">${f.label}${r ? `<br><span style="font-weight:400;font-size:var(--fs-cap)">${r.level.label} · ${r.score}점</span>` : ''}</th>
-        <td>
-          ${human ? `<p class="bullet" style="margin-top:0"><span class="tag">(인적요인)</span> ${human.text}</p>` : ''}
-          ${type ? `<p class="bullet"><span class="tag">(사고유형)</span> ${type.text}</p>` : ''}
-          <p class="bullet"><span class="tag">(물적환경)</span> ${observed ? esc(observed) : (r ? `사진 판독 ${r.level.label} 판정(${r.score}점)` : '사진 판독 결과 없음')}</p>
-          ${phys ? `<p class="bullet"><span class="tag">(관련요인)</span> ${esc(phys.text)}<br><span style="font-size:var(--fs-cap);color:var(--g2)">${esc(phys.basis)} · 출처: ${esc(AuriPhysical.source())}</span></p>` : ''}
-        </td>
-      </tr>`;
-  }).join('');
+  const primary = ordered[0] || null;                                  // 안전 유형 = 중점 분야 중 점수가 가장 높은 것
+  const pKey = primary ? primary.key : null;
+  const cat = pKey && _data.categories ? _data.categories[pKey] : null;
+  const type = cat ? AuriStats.narrateType(cat, { inside: _stats.inside }) : null;
+  const human = cat ? AuriStats.narrateHuman(cat, { inside: _stats.inside }) : null;
+  const af = _auri && pKey ? _auri.fields.find((x) => x.key === pKey) : null;
+  const spaceDefault = af && af.groups && af.groups[0] ? af.groups[0].spaceType : '';
+  const linked = ordered.filter((r) => primary && r.key !== primary.key && r.score >= 34);
+  /* 문제 항목 — 사진 판독에서 "문제 있음"으로 잡힌 체크리스트 항목 */
+  const problems = primary && primary.findings ? primary.findings.filter((f) => f.risk) : [];
+  const problemHtml = problems.length
+    ? problems.map((f) => `<p class="bullet" style="margin-top:0"><b>(${esc(f.id)})</b> ${esc(f.note || f.ask || '')}</p>`).join('')
+    : (primary && primary.observed && primary.observed.length ? primary.observed.map((t) => `<p class="bullet" style="margin-top:0">${esc(t)}</p>`).join('') : '<p class="bullet" style="margin-top:0">사진 판독 결과 없음</p>');
+  const env = _items.filter((it) => it.hea === 'E'), soft = _items.filter((it) => it.hea !== 'E');
+  const effLine = (it) => { const p = AuriPalette.byName(it.name); const e = AuriPalette.effectLabel(p); return e ? `<p style="margin:2px 0 6px 28px;font-size:var(--fs-sm);color:var(--g3)">→ ${esc(e)}${p && p.source ? ` <span style="color:var(--g2)">(${esc(AuriPalette.sourceShort(p.source))})</span>` : ''}</p>` : ''; };
+  /* 비용 */
+  let total = 0, unpriced = 0;
+  const costRows = _items.map((it) => { const p = AuriPalette.byName(it.name); const a = p ? p.amount : null; if (a && a.won) total += a.won; else unpriced++;
+    return `<tr class="${it.hea ? 'hea-' + it.hea : ''}"><td>${esc(it.name)}</td><td><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span></td><td class="num">${a && a.won ? auriWon(a.won) + (a.unit ? ' / ' + a.unit : '') : (a && a.text ? '산출 근거 필요 — 참고: ' + esc(a.text) : '산출 근거 필요')}</td></tr>`; }).join('');
+  const ctx = `지자체 ${_data.label} · 지점 ${_picked.addr || ''} · 안전 유형 ${primary ? primary.name + ' ' + primary.score + '점' : ''} · 연계 분야 ${linked.map((r) => r.name + ' ' + r.score).join(', ')} · 문제 항목 ${problems.map((f) => f.id + ' ' + (f.note || '')).join('; ')} · 사업 ${_items.map((it) => '[' + (it.hea || '-') + '] ' + it.name).join(', ')}`;
 
   return `
-  <section class="chapter">
-    <h2 class="h-chapter">안전사업지구 사전진단 결과 리포트 <span style="font-size:var(--fs-sm);font-weight:400;color:var(--g2)">(행안부 양식 적용 전 초안)</span></h2>
-
-    <div class="field-head">
-      <div class="cell">
-        <div class="k">지자체 · 진단 지점</div>
-        <div class="v">${esc(_data.label)}</div>
-        <div class="s">${esc(_picked.addr || '주소 미상')}${_picked.dong ? ' · ' + esc(_picked.dong) : ''} · 위도 ${_picked.lat}, 경도 ${_picked.lng}</div>
-      </div>
-      <div class="cell">
-        <div class="k">중점 3분야</div>
-        <div class="v">${_focus.map((f) => f.label).join(' · ')}</div>
-        <div class="s">강원대 확정 분야 — ${esc(_data.shortLabel)} ${_stats.inside ? '복합위험지구 안' : '복합위험지구 밖'} 지점</div>
-      </div>
-      <div class="cell">
-        <div class="k">종합 판정</div>
-        <div class="v">${ordered.length ? ordered[0].level.label : '—'}</div>
-        <div class="s">${_picked.risk && _picked.risk.score != null ? `주변 이력 지수 ${_picked.risk.score}점 (반경 ${_picked.risk.radius || 188}m · 3개년)` : '주변 이력 없음'}</div>
-      </div>
-    </div>
-
-    <h3 class="h-section">1. 요인별 점수</h3>
-    <table class="tight">
-      <thead><tr><th style="width:22%">분야</th><th style="width:12%">점수</th><th style="width:14%">판정</th><th>판독 근거</th></tr></thead>
+  <section class="chapter mois">
+    <p class="h-sub" style="text-align:center;margin:0 0 6px">&lt; 2차 현장보고서 — 공간분석 카드 (행안부 예시안 구조) &gt;</p>
+    <div class="mois-title">[공간유형 1] ${AuriDocEdit.inline('mois-space', spaceDefault || '○○ 밀집형', '공간유형 (예: 상업·유흥 밀집형)')} ➤ 위험요인 ① ${AuriDocEdit.inline('mois-risk', problems[0] ? (problems[0].note || problems[0].ask || '') : '', '핵심 위험요인 한 줄')}</div>
+    <table class="tight mois-head">
       <tbody>
-        ${ordered.map((r) => `<tr>
-          <td>${esc(r.name)}${focusKeys.has(r.key) ? ' <span class="mark-focus">중점</span>' : ''}${r.edited ? ' <span style="font-size:var(--fs-cap);color:var(--g2)">연구원 보정</span>' : ''}</td>
-          <td>${r.score}</td><td>${r.level.label}</td>
-          <td style="font-size:var(--fs-sm)">${r.observed && r.observed.length ? esc(r.observed.slice(0, 3).join(' · ')) : '—'}</td>
-        </tr>`).join('')}
+        <tr><th style="width:13%">안전 유형</th><td style="width:14%"><b>${primary ? esc(primary.name) : '-'}</b>${primary ? `<br><span class="h-sub">${primary.level.label} · ${primary.score}점</span>` : ''}</td>
+            <th style="width:9%">위치</th><td style="width:30%">${esc(_picked.addr || '주소 미상')}${_picked.dong ? `<br><span class="h-sub">${esc(_data.shortLabel)} ${esc(_picked.dong)}</span>` : ''}</td>
+            <th style="width:11%">세부 유형</th><td>${AuriDocEdit.inline('mois-sub', spaceDefault, '예: 전통시장 일대')}</td></tr>
+        <tr><th>연계 사고<br>데이터</th><td colspan="5" style="color:#D83D64">${type ? type.text : (human ? human.text : '119 출동 통계 없음')}</td></tr>
+        ${linked.length ? `<tr><th>복합 분야</th><td colspan="5">${linked.map((r) => `${esc(r.name)} ${r.score}점(${r.level.label})${focusKeys.has(r.key) ? ' <span class="mark-focus">중점</span>' : ''}`).join(' · ')} <span class="h-sub">— 같은 지점에서 주의 이상으로 판독된 다른 분야 (복합 분야 진단)</span></td></tr>` : ''}
       </tbody>
     </table>
-    <p class="note-under">* 점수는 사진 판독(AI) 결과이며 0~33 안전 · 34~66 주의 · 67~100 위험. 연구원이 보정한 항목은 표시됩니다.</p>
 
-    <h3 class="h-section">2. 위험 요인 분석</h3>
-    <table class="tight"><tbody>${factor}</tbody></table>
-    ${AuriDocEdit.render('mois-latent', '(잠재 취약성 분석)',
-      'AURI 가 정리해 보내는 잠재 취약성 분석 워딩을 여기에 붙입니다 (10/14 회의: 분석은 AURI 담당).', '')}
-
-    <h3 class="h-section">3. 개선 전 · 개선 후</h3>
-    <div class="ba-stack">
-      <figure>
-        ${beforeUrl ? `<img src="${beforeUrl}" alt="개선 전">` : '<div class="slot">개선 전 이미지 없음 — 현장 사진을 2단계에서 업로드하십시오</div>'}
-        <figcaption>개선 전 (현장 사진)</figcaption>
-      </figure>
-      <figure>
-        ${after ? `<img src="${after}" alt="개선 후">` : '<div class="slot">개선 후 이미지 없음 — 4단계에서 생성하십시오</div>'}
-        <figcaption>개선 후 (사업 반영 예시)</figcaption>
-      </figure>
-      <div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>
+    <h3 class="h-section">1. 현황 및 공간적 취약요인 상세</h3>
+    <div class="mois-two">
+      <figure>${beforeUrl ? `<img src="${beforeUrl}" alt="사진 1">` : '<div class="slot">사진 1 — 현장 사진을 2단계에서 업로드하십시오</div>'}<figcaption>사진 1 — ${esc(_picked.addr || '')}</figcaption></figure>
+      <div>${problemHtml}${AuriDocEdit.render('mois-status', '(현황 보완)', '사진에서 보이지 않는 현황·취약요인을 적습니다.', ctx)}</div>
     </div>
 
-    <h3 class="h-section">4. 맞춤형 사업 리스트</h3>
-    ${_items.length ? `
-      <table class="tight">
-        <thead><tr><th style="width:40%">사업</th><th style="width:14%">분야</th><th style="width:16%">개입 유형</th><th style="width:12%">우선순위</th><th>근거</th></tr></thead>
-        <tbody>
-          ${_items.map((it) => `<tr class="${it.hea ? 'hea-' + it.hea : ''}">
-            <td>${esc(it.name)}</td><td>${esc(it.category)}</td>
-            <td><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span></td>
-            <td>${it.priority.label}</td>
-            <td style="font-size:var(--fs-cap);color:var(--g2)">${it.trigger ? esc(it.trigger.id + ' ' + (it.trigger.note || '')) : (it.custom ? '연구원 추가' : '통계 처방')}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>` : '<p class="bullet">처방된 사업 없음</p>'}
-    ${AuriDocEdit.render('mois-remarks', '(검토 의견)', '연구진 검토 의견 — 지역안전지수 하위 등급과의 정합성 등 (AURI 정리 후 반영).', '')}
+    <h3 class="h-section">2. 사업목적</h3>
+    ${AuriDocEdit.render('mois-purpose', '○', '사업목적 — AI 의견 생성으로 초안을 받을 수 있습니다.', ctx)}
+
+    <h3 class="h-section">3. 개선 및 맞춤형 사업 적용 방안</h3>
+    <p class="bullet" style="font-weight:700;padding-left:0">○ (필수 개별사업)</p>
+    ${env.length ? env.map((it) => `<p class="bullet" style="margin-top:2px"><b>(E)</b> ${esc(it.name)}${it.trigger ? `: ${esc(it.trigger.note || it.trigger.ask || '')}` : ''}${it.required ? ' <span class="h-sub">필수</span>' : ''}</p>${effLine(it)}`).join('') : '<p class="bullet">환경 개선 사업 없음</p>'}
+    <p class="bullet" style="font-weight:700;padding-left:0;margin-top:10px">○ (복합 맞춤형 사업)</p>
+    ${soft.length ? soft.map((it) => `<p class="bullet" style="margin-top:2px"><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span> ${esc(it.name)}${it.trigger ? `: ${esc(it.trigger.note || '')}` : ''}</p>${effLine(it)}`).join('') : ''}
+    ${AuriDocEdit.render('mois-combo', '(복합 맞춤형 사업 설명)', '여러 사업을 한 구간으로 묶는 방안 — 예) 보안등·벽면 도색·바닥 LED 를 선(線) 단위로 정비.', ctx)}
+    <p class="note-under">* 환경 개선 사업(E)만 5. 사업 적용 예시 이미지에 반영됩니다. 소프트웨어 사업(H·A)은 참고 목록입니다.</p>
+
+    <h3 class="h-section">4. 예상 소요비용</h3>
+    ${_items.length ? `<table class="tight"><thead><tr><th>사업</th><th style="width:12%">개입</th><th class="num" style="width:30%">단가 · 산출 근거</th></tr></thead>
+      <tbody>${costRows}</tbody>
+      <tfoot><tr class="sum"><td colspan="2">합계 — 총 ${_items.length}종${unpriced ? ` (산출 근거 필요 ${unpriced}종 제외)` : ''}</td><td class="num">${total ? auriWon(total) : '산출 불가'}</td></tr></tfoot></table>
+      <p class="note-under">* AURI 가 나라장터 발주 사업 전수조사로 사업 건수·객단가를 보내면 비어 있는 단가가 채워집니다(2026-10-20).</p>` : '<p class="bullet">○ -</p>'}
+    ${AuriDocEdit.render('mois-cost', '○', '소요비용 산출 방식·분담(국비/지방비) 등을 적습니다.', '')}
+
+    <h3 class="h-section">5. 사업 적용 예시(안)</h3>
+    <div class="ba-stack">
+      <figure>${after ? `<img src="${after}" alt="사진 2 (After)">` : '<div class="slot">사진 2 (After) — 4단계에서 생성하십시오</div>'}<figcaption>사진 2 (After) — 사업 반영 예시</figcaption></figure>
+      ${afterTagLegend()}
+      <div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>
+    </div>
+    ${AuriDocEdit.render('mois-remarks', '(검토 의견)', '연구진 검토 의견 — 지역안전지수 하위 등급과의 정합성 등.', ctx)}
   </section>`;
+}
+
+/* ★ 개선 이미지 번호 태그 범례 (2026-10-20 실무회의 — 번호만 이미지 안에, 설명은 밖으로)
+   4단계에서 "번호 태그" 를 켜고 만들면 auri_after_tags 에 [{n, name}] 이 남습니다. */
+function afterTagLegend() {
+  let tags = null;
+  try { tags = JSON.parse(sessionStorage.getItem('auri_after_tags') || 'null'); } catch (e) { tags = null; }
+  if (!tags || !tags.length) return '';
+  return `<div class="tag-legend">${tags.map((t) => `<span><b>${t.n}</b> ${esc(t.name)}</span>`).join('')}</div>`;
 }
 
 /* ── 그리기 ──────────────────────────────────────────────────────── */
 function renderAll() {
   document.getElementById('docA').innerHTML =
-    cover() + auriCh1() + auriCh2() + chapter1() + chapter2() + chapter3() + chapter5();   // 옛 4장(밀집구간별)은 2장에 흡수
+    cover() + auriCh1() + auriCh2() + chapter1() + chapter2() + chapter3() + chapter5() + hotspotCards();   // 옛 4장(밀집구간별)은 2장에 흡수 · 붙임 5 거점 카드(2026-10-20)
   document.getElementById('docB').innerHTML = fieldReport();
   document.getElementById('docC').innerHTML = moisReport();
   AuriDocEdit.refresh();
@@ -1383,6 +1543,7 @@ window.addEventListener('load', async function () {
   _incidents = await loadIncidents(_data.region);   // 지도에 찍을 119 출동 지점
   _dongHea = await AuriDongHea.load(_data.region);  // 3.3 읍면동별 HEA 지표
   _auri = await loadAuriReport(_data.region);       // AURI 사전분석 보고서 (있는 지자체만)
+  await loadHotspotCards(_data.region);             // 붙임 5 거점 카드 — 거점 + 공유 프로젝트 + 지역안전지수 가중 (2026-10-20)
   try { const hr = await fetch('data/heatmap/index.json'); _heat = hr.ok ? await hr.json() : null; } catch (e) { _heat = null; }
   document.title = `지자체 사전진단서 — ${_data.shortLabel}`;
 

@@ -1,0 +1,75 @@
+/* ════════════════════════════════════════════════════════════════════
+   지역안전지수 등급 → 가중치 (2026-10-20 실무회의 ★)
+     입력  data/raw/analysis_0901/지역별 안전유형 3개 추출_강원대.xlsx  (수정본 시트: 2025·2024 등급 6분야 + 강원대 확정 3분야)
+     출력  data/stats/safety-index.json
+   회의 결정
+     · 가중치 자료는 무조건 지역안전지수. 1~5 등급(5 = 가장 나쁨)을 0~1 로 환산해 HEA 에 곱함
+     · 자살은 모든 지자체 고정(최하위 등급 취급 = 1.0). 나머지는 실제 등급 그대로
+     · 기준 연도 최근 2개년(2025·2024). 2025 로 정렬, 동률이면 2024
+     · 산업재해는 지역안전지수에 없는 분야 → 중간값(3등급 = 0.6)으로 두고 noIndex 표시
+   환산: w = 등급 ÷ 5 (1등급 0.2 … 5등급 1.0). 0 이 나오면 그 분야가 통째로 사라지므로 (등급−1)/4 는 쓰지 않음.
+   실행:  node tools/build-safety-index.mjs
+   ════════════════════════════════════════════════════════════════════ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { readXlsx } from './lib/xlsx.mjs';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const SRC = path.join(ROOT, 'data/raw/analysis_0901/지역별 안전유형 3개 추출_강원대.xlsx');
+const OUT = path.join(ROOT, 'data/stats/safety-index.json');
+const FIELDS = ['traffic', 'fire', 'crime', 'life', 'suicide', 'infection'];
+const LABEL = { traffic: '교통사고', fire: '화재', crime: '범죄', life: '생활안전', suicide: '자살', infection: '감염병', industrial: '산업재해' };
+const KO2KEY = { 교통사고: 'traffic', 교통: 'traffic', 화재: 'fire', 범죄: 'crime', 생활안전: 'life', 자살: 'suicide', 감염병: 'infection', 산업재해: 'industrial', 산재: 'industrial' };
+const INDUSTRIAL_W = 0.6;   // 3등급 상당
+
+const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/stats/index.json'), 'utf8'));
+const regions = Array.isArray(idx) ? idx : idx.regions;
+/* 엑셀 지자체 이름 → slug. 라벨 끝 단어로 맞추되 중구·북구처럼 겹치는 것은 시·도로 가립니다 */
+function slugOf(sido, name) {
+  const n = name.replace(/^\*/, '').trim();
+  const cand = regions.filter(r => r.label.endsWith(n.replace(/^(광주|대구|대전|울산)\s*/, '')) || (n === '세종시' && r.region === 'sejong') || (n === '제주도' && r.region === 'jeju'));
+  if (cand.length === 1) return cand[0].region;
+  const sidoKey = sido.replace(/특별자치도|특별자치시|광역시|특별시|도$/g, '');
+  const c2 = cand.filter(r => r.label.startsWith(sidoKey));
+  return c2.length ? c2[0].region : null;
+}
+
+const wb = readXlsx(SRC);
+const sheet = Object.values(wb).find(s => (s.rows || s)[3] && String((s.rows || s)[3][0]).includes('광역권')) ;
+const rows = (sheet.rows || sheet);
+const out = { source: path.basename(SRC) + ' (수정본 시트 · 강원대)', generatedAt: new Date().toISOString().slice(0, 10), years: ['2025', '2024'],
+  rule: { weight: 'w = 등급 ÷ 5 (5등급 → 1.0). 자살은 모든 지자체 1.0 고정. 산업재해는 지수에 없어 ' + INDUSTRIAL_W + '. 정렬은 2025 등급, 동률이면 2024 (2026-10-20 실무회의)', industrialW: INDUSTRIAL_W },
+  regions: {} };
+let matched = 0;
+for (const r of rows.slice(4)) {
+  if (!r[2] || !/\d/.test(String(r[5]))) continue;
+  const slug = slugOf(String(r[1]), String(r[2]));
+  if (!slug) { console.warn('⚠ 지자체 못 찾음:', r[1], r[2]); continue; }
+  const g25 = {}, g24 = {};
+  FIELDS.forEach((f, i) => { g25[f] = +r[5 + i]; g24[f] = +r[11 + i]; });
+  const kangwon = (regions.find(x => x.region === slug).focusTypes || []).map(s => KO2KEY[String(s || '').trim()]).filter(Boolean);   // 강원대 확정 3분야는 index.json 의 focusTypes(검증된 값)
+  const grade = (f) => Number.isFinite(g25[f]) ? g25[f] : g24[f];
+  const weights = {}; FIELDS.forEach(f => { weights[f] = f === 'suicide' ? 1 : +(grade(f) / 5).toFixed(2); });
+  weights.industrial = INDUSTRIAL_W;
+  /* 하위 등급 분야 순위 — 자살 제외하고 2025 ↓, 2024 ↓, 분야 순 */
+  const ranked = FIELDS.filter(f => f !== 'suicide').sort((a, b) => (g25[b] - g25[a]) || (g24[b] - g24[a]) || (FIELDS.indexOf(a) - FIELDS.indexOf(b)));
+  const focusByIndex = ['suicide', ...ranked.slice(0, 2)];
+  const lowGrades = FIELDS.filter(f => grade(f) >= 4);
+  const same = kangwon.length === 3 && focusByIndex.every(f => kangwon.includes(f));
+  out.regions[slug] = {
+    label: regions.find(x => x.region === slug).label,
+    grades: { 2025: g25, 2024: g24 },
+    weights,
+    ranked,                       // 자살 뺀 5개 분야, 나쁜 등급부터
+    focusByIndex,                 // 자살 + 하위 2개 = 지수 기준 중점 3분야
+    lowGrades,                    // 4·5등급인 분야
+    kangwonFocus: kangwon,        // 강원대 공간분석 기반 확정 3분야
+    matchesKangwon: same,
+  };
+  matched++;
+}
+fs.writeFileSync(OUT, JSON.stringify(out, null, 1));
+const n = Object.keys(out.regions).length, agree = Object.values(out.regions).filter(r => r.matchesKangwon).length;
+console.log(`지역안전지수 → ${path.relative(ROOT, OUT)} · 지자체 ${n}곳 (엑셀 ${matched}) · 지수 기준 3분야 = 강원대 확정 3분야 인 곳 ${agree}곳`);
+for (const [s, r] of Object.entries(out.regions)) console.log(`  ${s.padEnd(11)} 2025 ${FIELDS.map(f => r.grades[2025][f]).join('')} → 지수 ${r.focusByIndex.map(f => LABEL[f]).join('·')} | 강원대 ${r.kangwonFocus.map(f => LABEL[f]).join('·')} ${r.matchesKangwon ? '✓' : ''}`);

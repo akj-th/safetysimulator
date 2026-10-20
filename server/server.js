@@ -612,8 +612,22 @@ function usableImageModels() {
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || IMAGE_MODELS[0].id;
 
-function buildGeneratePrompt(facilities, note, fromGenerated) {
-  const list = facilities.map(function (f) { return `- ${f}`; }).join('\n');
+function buildGeneratePrompt(facilities, note, fromGenerated, tags) {
+  /* 번호 태그를 켜면 목록에 번호를 붙여 모델이 그 번호를 그리게 합니다 */
+  const list = facilities.map(function (f, i) { return tags ? `${i + 1}. ${f}` : `- ${f}`; }).join('\n');
+  /* ★ 번호 태그 (2026-10-20 실무회의) — "어떤 사업이 적용됐는지" 글 태그는 모델이 안정적으로 못 그립니다.
+     번호 원만 이미지 안에 두고 설명은 이미지 밖 범례로 뺍니다(채택안). 사람이 지시선을 그리는 중간 단계는 넣지 않습니다. */
+  const tagBlock = tags ? `
+
+NUMBER TAGS — the ONLY annotation allowed:
+- On each added facility, paint one small white circle (about 3% of the image width) with a
+  thin black outline, containing that facility's number from the list above (1, 2, 3 …) in
+  plain black digits. Place it directly on or just above the facility so it is unambiguous.
+- One circle per facility, no duplicates. No words, arrows, lines, boxes or captions.
+- The circles must not cover the facility itself or anything important behind it.` : '';
+  const noLabels = tags
+    ? 'No labels, arrows, captions, callouts or watermarks other than the numbered circles described below.'
+    : 'No labels, arrows, captions, callouts or watermarks.';
 
   const request = note
     ? `\n\nREVISION REQUESTED BY THE REVIEWER — apply this faithfully:\n${note}\n` +
@@ -637,7 +651,7 @@ ${list}${request}
 PRESERVE EVERYTHING ELSE
 - Buildings, signage, road markings, vehicles, sky, lighting and camera angle stay as they are.
 - Keep the facilities that are already in place unless the revision says otherwise.
-- Photorealistic. No labels, arrows, captions or watermarks.
+- Photorealistic. ${tags ? 'Keep the existing numbered circles; add one only for a facility that lacks it.' : 'No labels, arrows, captions or watermarks.'}${tagBlock}
 
 The scene is a Korean urban street.`;
   }
@@ -700,7 +714,7 @@ harmonise with its surroundings. The facilities must look installed, not pasted 
 HOW TO ADD THEM
 - Place each facility where it would realistically be installed on this street.
 - Match the perspective, scale, shadows and lighting of the original photograph.
-- Photorealistic. No labels, arrows, captions, callouts or watermarks.
+- Photorealistic. ${noLabels}${tagBlock}
 
 The scene is a Korean urban street.`;
 }
@@ -708,12 +722,12 @@ The scene is a Korean urban street.`;
 /* 어느 제공사냐에 따라 호출 방식이 다릅니다.
    지시문(buildGeneratePrompt)과 돌려주는 모양은 양쪽이 똑같으므로,
    화면과 나머지 코드는 어느 모델인지 알 필요가 없습니다. */
-async function callImageAI(mediaType, base64Data, facilities, model, note, fromGenerated) {
+async function callImageAI(mediaType, base64Data, facilities, model, note, fromGenerated, tags) {
   const def = imageModelById(model);
   if (def && def.provider === 'openai') {
-    return callOpenAIImage(mediaType, base64Data, facilities, model, note, fromGenerated);
+    return callOpenAIImage(mediaType, base64Data, facilities, model, note, fromGenerated, tags);
   }
-  return callGeminiImage(mediaType, base64Data, facilities, model, note, fromGenerated);
+  return callGeminiImage(mediaType, base64Data, facilities, model, note, fromGenerated, tags);
 }
 
 /* ── OpenAI (GPT Image) ───────────────────────────────────────────────
@@ -722,13 +736,13 @@ async function callImageAI(mediaType, base64Data, facilities, model, note, fromG
 
    input_fidelity: 'high' — 원본을 최대한 유지하라는 지시입니다.
    이 앱의 판단 기준이 "원본 보존"이라 반드시 켭니다. */
-async function callOpenAIImage(mediaType, base64Data, facilities, model, note, fromGenerated) {
+async function callOpenAIImage(mediaType, base64Data, facilities, model, note, fromGenerated, tags) {
   const ext = mediaType === 'image/jpeg' ? 'jpg' : mediaType === 'image/webp' ? 'webp' : 'png';
   const blob = new Blob([Buffer.from(base64Data, 'base64')], { type: mediaType });
 
   const form = new FormData();
   form.append('model', model);
-  form.append('prompt', buildGeneratePrompt(facilities, note, fromGenerated));
+  form.append('prompt', buildGeneratePrompt(facilities, note, fromGenerated, tags));
   form.append('image', blob, `input.${ext}`);
   form.append('n', '1');
   form.append('size', 'auto');            // 원본 비율에 맞춰 알아서
@@ -776,7 +790,7 @@ async function listOpenAIImageModels() {
 }
 
 /* ── Google (Gemini) ────────────────────────────────────────────────── */
-async function callGeminiImage(mediaType, base64Data, facilities, model, note, fromGenerated) {
+async function callGeminiImage(mediaType, base64Data, facilities, model, note, fromGenerated, tags) {
   const url = `${GEMINI_BASE}/models/${model}:generateContent?key=${GEMINI_KEY}`;
   const res = await fetch(url, {
     method: 'POST',
@@ -785,7 +799,7 @@ async function callGeminiImage(mediaType, base64Data, facilities, model, note, f
       contents: [{
         parts: [
           { inline_data: { mime_type: mediaType, data: base64Data } },
-          { text: buildGeneratePrompt(facilities, note, fromGenerated) },
+          { text: buildGeneratePrompt(facilities, note, fromGenerated, tags) },
         ],
       }],
       generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
@@ -860,11 +874,13 @@ async function handleGenerate(req, res) {
   /* 연구원이 적어 보낸 수정 요청과, 그 요청을 어느 이미지에 반영할지 */
   const note = String(body.note || '').trim().slice(0, 1000);
   const fromGenerated = !!body.fromGenerated;
+  /* ★ 번호 태그 (2026-10-20 실무회의) — 시설마다 작은 번호 원만 이미지에, 설명은 화면·문서의 범례로 */
+  const tags = !!body.tags;
 
   const [, mediaType, base64Data] = match;
   console.log(`[이미지 생성] ${def.provider} ${model} / 시설물 ${facilities.length}종: ${facilities.join(', ')}`);
 
-  const out = await callImageAI(mediaType, base64Data, facilities, model, note, fromGenerated);
+  const out = await callImageAI(mediaType, base64Data, facilities, model, note, fromGenerated, tags);
   console.log(`  · 생성 완료 (${Math.round(out.dataUrl.length / 1024)}KB)`);
   sendJson(res, 200, Object.assign({ model: model }, out));
 }
