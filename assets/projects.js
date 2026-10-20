@@ -118,10 +118,14 @@ const AuriProjects = (function () {
     document.body.appendChild(wrap);
 
     const photoBox = wrap.querySelector('#pjPhotos');
+    /* 무엇이 들어가는지도 적습니다 (2026-10-20) — "개선 후 이미지가 저장 안 됐다" 같은 문제를 저장 전에 알 수 있게 */
+    const PARTS = [['auri_input_image', '입력 사진'], ['auri_diagnosis_results', '판독'], ['auri_prescriptions', '처방'],
+                   ['auri_after_image', '개선 후 이미지'], ['auri_doc_notes', '문서 글'], ['auri_site_photos', '현장 사진']];
     const showSize = function () {
       const data = snapshot(photoBox ? photoBox.checked : false);
       const bytes = new Blob([JSON.stringify(data)]).size;
-      wrap.querySelector('#pjSize').textContent = '저장 크기 약 ' + sizeText(bytes);
+      const parts = PARTS.map(function (p) { return (data[p[0]] ? '✓ ' : '✗ ') + p[1]; }).join('  ');
+      wrap.querySelector('#pjSize').textContent = '저장 크기 약 ' + sizeText(bytes) + '  ·  ' + parts;
     };
     showSize();
     if (photoBox) photoBox.addEventListener('change', showSize);
