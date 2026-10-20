@@ -300,6 +300,7 @@ async function loadIncidents(lat, lng) {
     tag.textContent = `${region.label} · 3개년 ${region.total.toLocaleString()}건`;
     buildIncidentLayers(data);
     loadDongHea(region.region);        // 동별 HEA — 격자 레이어와 따로
+    loadOverview(region.region);       // 맞춤형 사업 종합도 — 자료가 있는 지자체만 줄이 보임
   } catch (err) {
     tag.textContent = '자료 없음';
     document.getElementById('layerTotal').innerHTML = '';
@@ -420,6 +421,7 @@ function buildIncidentLayers(data) {
   Object.values(_incidentLayers).forEach(function (l) { l.layer.setMap(null); });
   _incidentLayers = {};
   _hotMarkers.forEach(function (m) { m.setMap(null); }); _hotMarkers = [];   // 거점도 지역 따라 걷어냄
+  clearOverview();                                                             // 종합도 오버레이도
 
   const host = document.getElementById('layerChips');
   const totalHost = document.getElementById('layerTotal');
@@ -466,6 +468,7 @@ function buildCompositeLayer(data, host) {
   row.addEventListener('click', function () { toggleIncidentLayer('_total', row); });
   host.appendChild(row);
   buildHotspotRow(host);
+  buildOverviewRow(host);
 
   /* 지도가 왜 그렇게 보이는지의 근거를 화면에도 적어 둡니다 */
   document.getElementById('weightLine').textContent =
@@ -522,6 +525,95 @@ async function toggleHotspots() {
     });
     _hotMarkers.push(m);
   });
+}
+
+/* ── 맞춤형 사업 종합도 오버레이 (2026-10-20) ──────────────────────────
+   tools/overview-map 로 만든 종합도(SVG)의 지리 정보 — 사업지 구역 다각형·번호·시설·지명 — 를
+   svg-to-overlay.mjs 가 위경도로 바꿔 data/overview/<지역>.json 에 둡니다. 여기서는 그것을
+   네이버 지도에 그대로 올리고, 구역이나 번호를 누르면 사업 내용(유형·장소·항목)을 말풍선으로 보입니다.
+   설명 상자·범례·키맵은 지도 위 요소가 아니라 싣지 않습니다. 자료가 없는 지자체는 줄 자체를 감춥니다. */
+const OVERVIEW_COLORS = { industrial: '#E03C3C', infection: '#F28C28', traffic: '#F0C828', crime: '#3CA84A', suicide: '#2F7FE0', fire: '#232391', life: '#9650C8' };
+let _ov = { data: null, row: null, shapes: [], info: null };
+
+function buildOverviewRow(host) {
+  _ov.row = makeLayerRow('맞춤형 사업 종합도', '#3CA84A', '사업지 구역·번호·시설 · 누르면 사업 내용');
+  _ov.row.title = 'AURI 사전분석 보고서의 종합도(사업지 구역·시설)를 지도에 얹은 것입니다.\n구역 색은 안전사고 유형, 번호는 종합도의 사업지 번호와 같습니다.';
+  _ov.row.hidden = !_ov.data;
+  _ov.row.addEventListener('click', toggleOverview);
+  host.appendChild(_ov.row);
+}
+
+function clearOverview() {
+  _ov.shapes.forEach(function (s) { s.setMap(null); }); _ov.shapes = [];
+  if (_ov.info) _ov.info.close();
+  if (_ov.row) _ov.row.setAttribute('aria-pressed', 'false');
+}
+
+async function loadOverview(region) {
+  _ov.data = null;
+  try {
+    const res = await fetch('data/overview/' + region + '.json');
+    if (res.ok) _ov.data = await res.json();
+  } catch (e) { /* 없으면 조용히 */ }
+  if (_ov.row) _ov.row.hidden = !_ov.data;
+}
+
+function overviewCard(z) {
+  const color = OVERVIEW_COLORS[z.safety] || '#1F2A33';
+  const items = (z.items || []).map(function (it) { return `<li style="margin:3px 0;padding-left:12px;text-indent:-12px">· ${it.text}</li>`; }).join('');
+  return `<div style="background:#fff;border:1px solid #CCC;border-left:4px solid ${color};padding:10px 12px;font:13px Pretendard,sans-serif;color:#333;max-width:320px">` +
+    `<div style="font-weight:700;font-size:15px"><span style="color:${color}">${z.num}</span> ${z.type}</div>` +
+    `<div style="color:#666;margin:2px 0 6px">${z.place}${z.safetyLabel ? ` · <span style="color:${color}">${z.safetyLabel}</span>` : ''}</div>` +
+    (items ? `<ul style="list-style:none;margin:0;padding:0;border-top:1px solid #DDD;padding-top:6px">${items}</ul>` : '') +
+    `<div style="font-size:11px;color:#999;margin-top:6px">출처: AURI 사전분석 보고서 종합도</div></div>`;
+}
+
+function toggleOverview() {
+  const on = _ov.row.getAttribute('aria-pressed') !== 'true';
+  if (!on || !_ov.data) { clearOverview(); return; }
+  _ov.row.setAttribute('aria-pressed', 'true');
+  if (!_ov.info) _ov.info = new naver.maps.InfoWindow({ borderWidth: 0, disableAnchor: true, backgroundColor: 'transparent' });
+  const ll = function (p) { return new naver.maps.LatLng(p[0], p[1]); };
+  const open = function (z, pos) { _ov.info.setContent(overviewCard(z)); _ov.info.open(_map, pos); };
+
+  _ov.data.zones.forEach(function (z) {
+    const color = OVERVIEW_COLORS[z.safety] || '#1F2A33';
+    z.polygons.forEach(function (pg) {
+      const shape = new naver.maps.Polygon({
+        map: _map, paths: pg.ring.map(ll), zIndex: 20,
+        fillColor: color, fillOpacity: 0.13, strokeColor: color, strokeWeight: 2.5, strokeOpacity: 0.95,
+        strokeStyle: pg.dashed ? 'shortdash' : 'solid', clickable: true,
+      });
+      shape.addListener('click', function (e) { open(z, e.coord); });
+      _ov.shapes.push(shape);
+    });
+    z.markers.forEach(function (m) {
+      const pos = ll(m.at);
+      const mk = new naver.maps.Marker({
+        position: pos, map: _map, zIndex: 60,
+        icon: { content: `<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:#fff;font:700 14px Pretendard,sans-serif">${m.label}</div>`, anchor: new naver.maps.Point(14, 14) },
+      });
+      mk.addListener('click', function () { open(z, pos); });
+      _ov.shapes.push(mk);
+    });
+  });
+  (_ov.data.pois || []).forEach(function (p) {
+    _ov.shapes.push(new naver.maps.Marker({
+      position: ll(p.at), map: _map, zIndex: 55, clickable: false,
+      icon: { content: `<div style="position:relative;width:12px;height:12px"><div style="width:12px;height:12px;border-radius:50%;background:#E03C3C;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.4)"></div><div style="position:absolute;left:50%;top:14px;transform:translateX(-50%);white-space:nowrap;background:rgba(255,255,255,.92);padding:1px 5px;font:700 11px Pretendard,sans-serif;color:#1F2A33">${p.name}</div></div>`, anchor: new naver.maps.Point(6, 6) },
+    }));
+  });
+  (_ov.data.labels || []).forEach(function (l) {
+    _ov.shapes.push(new naver.maps.Marker({
+      position: ll(l.at), map: _map, zIndex: 30, clickable: false,
+      icon: { content: `<div style="white-space:nowrap;font:700 15px Pretendard,sans-serif;letter-spacing:.2em;color:#1F2A33;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff">${l.text}</div>`, anchor: new naver.maps.Point(0, 10) },
+    }));
+  });
+  /* 종합도 범위로 지도를 맞춥니다 */
+  if (_ov.data.frame && _ov.data.frame.bounds) {
+    const b = _ov.data.frame.bounds;
+    _map.fitBounds(new naver.maps.LatLngBounds(ll(b[0]), ll(b[1])));
+  }
 }
 
 /* ── 동별 HEA 취약도 (2026-09-15) ─────────────────────────────────────

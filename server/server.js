@@ -1013,6 +1013,8 @@ const ALLOW_DIRS = [
   { dir: 'data/dong', ext: ['.json'] },
   /* 위험도 히트맵 — 원본 TIF(data/raw/)가 아니라 축소·색칠한 PNG 입니다 */
   { dir: 'data/heatmap', ext: ['.png', '.json'] },
+  /* 맞춤형 사업 종합도 오버레이 (tools/overview-map/svg-to-overlay.mjs) — 사업지 구역·번호·시설 위경도와 사업 글 */
+  { dir: 'data/overview', ext: ['.json'] },
 ];
 const ALLOW_ROOT_EXT = ['.html'];
 
