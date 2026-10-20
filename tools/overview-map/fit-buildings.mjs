@@ -85,6 +85,7 @@ const KR = +(ARGS.kr || 0.05);
 const stages = [{ cell: RANGE > 200 ? 16 : 12, step: Math.max(10, Math.round(RANGE / 20)), rotStep: Math.max(1, ROT / 4), range: RANGE, rot: ROT, kr: KR, ks: Math.max(0.01, KR / 4) }, { cell: 6, step: 3, rotStep: 0.25, range: Math.max(24, Math.round(RANGE / 20)), rot: 1.5, kr: Math.max(0.01, KR / 4), ks: 0.0025 }, { cell: 3, step: 1, rotStep: 0.1, range: 6, rot: 0.4, kr: 0.003, ks: 0.001 }];
 let center = { theta: 0, dx: 0, dy: 0, k: 1 };
 for (const st of stages) {
+  st.rot = Math.min(st.rot, ROT); if (st.rot === 0) st.rotStep = 1;   // --rot=0 이면 모든 단계에서 회전 0 고정 (2026-10-20)
   const M = maskAt(st.cell), B = bldgRaster(st.cell * mpp);
   let sb = { s: -1 };
   for (let k = center.k - st.kr; k <= center.k + st.kr + 1e-9; k += st.ks)
