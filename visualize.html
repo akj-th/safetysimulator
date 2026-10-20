@@ -184,6 +184,23 @@
 let _generating = false;
 let _lastGenerated = null;      // 마지막으로 만들어진 이미지 (이어서 고칠 때 바탕이 됩니다)
 
+/* 이미지를 긴 변 maxEdge 의 JPEG 로 줄입니다 (저장용). 원본이 그보다 작으면 JPEG 로만 바꿉니다. */
+function shrinkDataUrl(dataUrl, maxEdge, quality) {
+  return new Promise(function (resolve, reject) {
+    const im = new Image();
+    im.onload = function () {
+      const k = Math.min(1, maxEdge / Math.max(im.naturalWidth, im.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+      x.drawImage(im, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    im.onerror = function () { reject(new Error('이미지를 읽지 못했습니다.')); };
+    im.src = dataUrl;
+  });
+}
+
 function toggleTweak() {
   const box = document.getElementById('tweakBox');
   const opening = box.style.display === 'none';
@@ -264,11 +281,15 @@ async function generateAfter(useNote) {
     document.getElementById('afterTag').className = 'tag';
     document.getElementById('tweakNote').value = '';
 
-    /* 진단서 서식4(개선 전/후 비교도)가 이 이미지를 받아 씁니다 */
+    /* 진단서 서식4(개선 전/후 비교도)·프로젝트 저장이 이 이미지를 받아 씁니다.
+       생성 모델이 주는 PNG(1024² 에 2~5MB)를 그대로 넣으면 브라우저 저장 공간(보통 5MB)을 넘겨
+       조용히 빠지고, 그러면 프로젝트에 개선 후 이미지가 안 실립니다(2026-10-20 담당자 지적).
+       화면에는 원본을 보여 주고, 저장용은 긴 변 1600px JPEG 로 줄입니다. */
     try {
-      sessionStorage.setItem('auri_after_image', data.dataUrl);
-    } catch {
-      console.warn('이미지가 커서 진단서로 넘기지 못했습니다.');
+      sessionStorage.setItem('auri_after_image', await shrinkDataUrl(data.dataUrl, 1600, 0.86));
+    } catch (e) {
+      try { sessionStorage.setItem('auri_after_image', await shrinkDataUrl(data.dataUrl, 1100, 0.78)); }
+      catch (e2) { alert('개선 후 이미지가 너무 커서 진단서·프로젝트 저장에 넣지 못했습니다. 현장 사진을 줄이거나 지우고 다시 만들어 주세요.'); }
     }
   } catch (err) {
     document.getElementById('afterMsg').textContent = '만들지 못했습니다';
