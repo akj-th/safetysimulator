@@ -1383,6 +1383,21 @@ document.html  heatFor(분야) → doc-map.js 의 heat 옵션(PNG 네 모서리 
 - 정합을 바꾼 뒤에는 `node tools/overview-map/reframe.mjs <지역> --write` 로 지도 창(중심·폭)을 사업지에 다시 맞춥니다.
 - **수정본에서 읽은 바탕 스타일(v3)**: 바다 50% 한 겹(육지 흰 덮개 없음) · 수계 테두리 없이 60% · 건물 선 0.3px 불투명 · 대상지 안 건물 #ccc · 행정경계 1px #333 · 시설 이름 테두리 없음 · 히트맵 60%.
 
+**★ 주요 거점 — 관리자 편집 + 프로젝트 공유 (2026-10-20 담당자 요청)** — `server/projects.js` `hotspot_*` · `index.html` `toggleHotspots`
+
+```
+관리자: 1단계 지도 "주요 거점" 켬 → 마름모를 끌어 옮김(dragend → PUT /api/hotspots/<지역>/<거점>) · 말풍선에서 "거점 빼기"·"원래 자리로"
+        → hotspot_edits 표 (region, tag, lat, lng, removed). 원본 data/stats/hotspots.json 은 손대지 않고 덮어쓰기만 둠
+모든 사용자: 거점을 켜면 서버 보정이 합쳐져 보임(옮긴 거점은 메인색 마름모 + "(관리자 이동)"). 말풍선 "이 자리에서 진단 시작"
+        → picked.hotspot = {region, tag} 가 auri_picked_location 에 실림 → 프로젝트 저장 때 서버가 projects.hotspot_region/tag 에 기록
+관리자가 그 거점에서 저장한 프로젝트 = shared=true → 거점 말풍선에 "공유 프로젝트 · <제목> [저장된 프로젝트 열기]" 가 누구에게나 보이고 열람으로 열림
+```
+- `GET /api/hotspots/<지역>` (로그인한 누구나): `edits` + 거점별 **가장 최근 관리자 공유 프로젝트** `projects` + 내가 그 지자체 거점에서 저장한 것 `mine`. `PUT`·`DELETE` 는 관리자만. 서버가 `AUTH_MODE=off` 면 404 라 화면은 원본 자리 그대로.
+- `getProject` 는 `shared` 면 남의 것도 열람 허용(`mine:false`, 덮어쓰기는 여전히 불가). 일반 사용자가 거점에서 저장한 것은 공유되지 않습니다(자기 말풍선에만 "내 프로젝트").
+- 표는 서버가 켜질 때 `ALTER TABLE projects ADD COLUMN IF NOT EXISTS …` 로 알아서 늘립니다.
+- ⚠️ **DB 가 있는 환경에서는 아직 안 돌려 봤습니다.** 로컬(AUTH_MODE=off)에서 거점 켜기·말풍선·"진단 시작"으로 picked.hotspot 이 실리는 것까지만 확인. 렌더에서 관리자로 드래그 → 새로고침 → 자리 유지, 저장 → 다른 계정 말풍선에 보이는지가 실제 확인입니다.
+- 거점 글자(A~J)는 순위라 `build-hotspots` 를 다시 돌려 순위가 바뀌면 보정·프로젝트 연결이 **다른 거점에 붙습니다**. 거점을 다시 뽑을 때는 `hotspot_edits` 와 `projects.hotspot_tag` 를 정리해야 합니다.
+
 ⚠️ **행안부 양식 원본(한글 2건)은 저장소에 없습니다.** 받으면 `moisReport()` 의 항목 순서·제목·인쇄 여백을 그 양식대로 바꿉니다. 지금 탭은 네 요소를 모아 둔 뼈대입니다.
 
 **★ 종합도 pptx 판 파이프라인 (2026-10-16, 261015 자료부터)** — `tools/overview-map/`

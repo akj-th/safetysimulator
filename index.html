@@ -487,6 +487,36 @@ let _hotspots = null;           // data/stats/hotspots.json
 let _hotMarkers = [];
 let _hotRow = null;
 let _hotInfo = null;
+/* 서버에서 받는 거점 보정 (2026-10-20): 관리자가 끌어 옮긴 자리·뺀 거점 + 거점별 공유 프로젝트.
+   서버가 없거나(AUTH_MODE=off) 계정 방식이 아니면 비어 있고, 원본 자리 그대로 씁니다. */
+let _hotServer = { region: null, edits: {}, projects: {}, mine: {} };
+const _isAdmin = () => !!(window.AuriAuth && AuriAuth.user && AuriAuth.user.role === 'admin');
+async function loadHotServer(region) {
+  _hotServer = { region: region, edits: {}, projects: {}, mine: {} };
+  try {
+    const res = await fetch('/api/hotspots/' + encodeURIComponent(region), { cache: 'no-store' });
+    if (!res.ok) return;
+    const j = await res.json();
+    (j.edits || []).forEach(function (e) { _hotServer.edits[e.tag] = e; });
+    (j.projects || []).forEach(function (p) { _hotServer.projects[p.tag] = p; });
+    (j.mine || []).forEach(function (p) { if (!_hotServer.mine[p.tag]) _hotServer.mine[p.tag] = p; });
+  } catch (e) { /* 서버 없음 — 원본 자리 */ }
+}
+async function hotApi(method, tag, body) {
+  const res = await fetch('/api/hotspots/' + encodeURIComponent(_loadedRegion) + '/' + tag, {
+    method: method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const j = await res.json().catch(function () { return {}; });
+  if (!res.ok) throw new Error(j.error || ('HTTP ' + res.status));
+  return j;
+}
+/* 서버 보정이 바뀐 뒤 거점 마커를 다시 그립니다 */
+async function rebuildHotspots() {
+  _hotMarkers.forEach(function (mk) { mk.setMap(null); }); _hotMarkers = [];
+  if (_hotInfo) _hotInfo.close();
+  _hotServer.region = null;
+  _hotRow.setAttribute('aria-pressed', 'false');
+  await toggleHotspots();
+}
 
 function buildHotspotRow(host) {
   _hotRow = makeLayerRow('주요 거점', '#1F2A33', '밀도 상위 지점 · 누르면 진단 지점으로');
@@ -506,22 +536,50 @@ async function toggleHotspots() {
   const list = (_hotspots.regions && _hotspots.regions[_loadedRegion]) || [];
   if (!list.length) { alert('이 지자체는 거점 자료가 없습니다 (TIF 미수신 또는 임계값 미달).'); _hotRow.setAttribute('aria-pressed', 'false'); return; }
   if (!_hotInfo) _hotInfo = new naver.maps.InfoWindow({ borderWidth: 0, disableAnchor: true, backgroundColor: 'transparent' });
+  if (_hotServer.region !== _loadedRegion) await loadHotServer(_loadedRegion);
+  const admin = _isAdmin();
   list.forEach(function (h) {
     const tag = String.fromCharCode(64 + h.rank);
-    const pos = new naver.maps.LatLng(h.lat, h.lng);
+    const edit = _hotServer.edits[tag];
+    if (edit && edit.removed) return;                       // 관리자가 뺀 거점
+    const moved = !!(edit && edit.lat != null);
+    const pos = new naver.maps.LatLng(moved ? edit.lat : h.lat, moved ? edit.lng : h.lng);
     const m = new naver.maps.Marker({
-      position: pos, map: _map, zIndex: 50,
-      icon: { content: `<div style="width:26px;height:26px;transform:rotate(45deg);background:#1F2A33;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(-45deg);color:#fff;font:700 12px Pretendard,sans-serif">${tag}</span></div>`, anchor: new naver.maps.Point(13, 13) },
+      position: pos, map: _map, zIndex: 50, draggable: admin,
+      icon: { content: `<div style="width:26px;height:26px;transform:rotate(45deg);background:${moved ? '#D83D64' : '#1F2A33'};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;cursor:${admin ? 'move' : 'pointer'}"><span style="transform:rotate(-45deg);color:#fff;font:700 12px Pretendard,sans-serif">${tag}</span></div>`, anchor: new naver.maps.Point(13, 13) },
     });
     const parts = Object.keys(h.parts).sort(function (a, b) { return h.parts[b] - h.parts[a]; })
       .map(function (k) { return `${_catLabels[k] || k} ${Math.round(h.parts[k] * 100)}`; }).join(' · ');
-    m.addListener('click', function () {
-      _hotInfo.setContent(`<div style="background:#fff;border:1px solid #CCC;padding:8px 10px;font:13px Pretendard,sans-serif;color:#333;max-width:260px">` +
-        `<b>거점 ${tag}</b> · 점수 ${Math.round(h.score * 100)} ${h.inside ? '<span style="color:#2793C9">조사지 안</span>' : '<span style="color:#999">조사지 밖</span>'}<br>` +
+    /* 말풍선: 점수 + 이 거점의 공유 프로젝트(관리자가 저장한 것) + 내 프로젝트 + 진단 시작. 관리자는 되돌리기·빼기도 */
+    const card = function () {
+      const shared = _hotServer.projects[tag], mine = _hotServer.mine[tag];
+      const btn = 'style="font:600 12px Pretendard,sans-serif;padding:3px 8px;border:1px solid #333;background:#fff;cursor:pointer;margin:4px 6px 0 0"';
+      return `<div class="hot-card" data-tag="${tag}" style="background:#fff;border:1px solid #CCC;padding:8px 10px;font:13px Pretendard,sans-serif;color:#333;max-width:290px">` +
+        `<b>거점 ${tag}</b> · 점수 ${Math.round(h.score * 100)} ${h.inside ? '<span style="color:#2793C9">조사지 안</span>' : '<span style="color:#999">조사지 밖</span>'}${moved ? ' <span style="color:#D83D64">(관리자 이동)</span>' : ''}<br>` +
         `<span style="font-size:12px;color:#666">${parts}</span><br>` +
-        `<span style="font-size:11px;color:#999">분야 밀도는 지자체 안 상대값(상위 1% = 100)</span></div>`);
-      _hotInfo.open(_map, m);
-      selectPoint(pos, '');
+        `<span style="font-size:11px;color:#999">분야 밀도는 지자체 안 상대값(상위 1% = 100)</span>` +
+        (shared ? `<div style="margin-top:6px;border-top:1px solid #DDD;padding-top:6px"><span style="font-size:12px;color:#666">공유 프로젝트 · ${shared.owner_name}</span><br><b>${shared.title}</b><br><button ${btn} data-open="${shared.id}">저장된 프로젝트 열기</button></div>` : '') +
+        (mine && !(shared && shared.id === mine.id) ? `<div style="margin-top:4px"><span style="font-size:12px;color:#666">내 프로젝트</span> ${mine.title} <button ${btn} data-open="${mine.id}">열기</button></div>` : '') +
+        `<div style="margin-top:6px"><button ${btn} data-pick="1">이 자리에서 진단 시작</button>` +
+        (admin ? `<span style="font-size:11px;color:#999">끌어서 옮길 수 있습니다</span>${moved ? ` <button ${btn} data-reset="1">원래 자리로</button>` : ''} <button ${btn} data-remove="1">거점 빼기</button>` : '') + `</div></div>`;
+    };
+    const onCardClick = async function (e) {
+      const b = e.target.closest('button'); if (!b) return;
+      try {
+        if (b.dataset.open) { await AuriProjects.open(Number(b.dataset.open)); }
+        else if (b.dataset.pick) { selectPoint(m.getPosition(), '', { region: _loadedRegion, tag: tag }); _hotInfo.close(); }
+        else if (b.dataset.reset) { await hotApi('DELETE', tag); await rebuildHotspots(); }
+        else if (b.dataset.remove) { if (confirm('거점 ' + tag + ' 을 지도에서 뺍니다. 다른 사용자에게도 안 보입니다. 계속할까요?')) { await hotApi('PUT', tag, { removed: true }); await rebuildHotspots(); } }
+      } catch (err) { alert(err.message); }
+    };
+    m.addListener('click', function () {
+      _hotInfo.setContent(card()); _hotInfo.open(_map, m);
+      setTimeout(function () { const el = document.querySelector('.hot-card[data-tag="' + tag + '"]'); if (el && !el._bound) { el._bound = true; el.addEventListener('click', onCardClick); } }, 0);
+    });
+    if (admin) m.addListener('dragend', async function () {
+      const p = m.getPosition();
+      try { await hotApi('PUT', tag, { lat: +p.lat().toFixed(6), lng: +p.lng().toFixed(6) }); await rebuildHotspots(); }
+      catch (err) { alert('거점 이동을 저장하지 못했습니다: ' + err.message); m.setPosition(pos); }
     });
     _hotMarkers.push(m);
   });
@@ -794,14 +852,16 @@ function searchAddress() {
 }
 
 /* 한 지점 선택 = 핀 + 스트리트뷰 이동 + 주소 표시 */
-function selectPoint(latlng, knownAddr) {
+function selectPoint(latlng, knownAddr, hotspot) {
   if (_marker) _marker.setMap(null);
   _marker = new naver.maps.Marker({ position: latlng, map: _map });
   if (_pano) _pano.setPosition(latlng);
 
   const lat = latlng.lat().toFixed(6);
   const lng = latlng.lng().toFixed(6);
-  picked = { lat: lat, lng: lng, addr: knownAddr || '', dong: '' };
+  /* hotspot = {region, tag} — 주요 거점에서 시작한 진단. 프로젝트 저장 때 서버가 거점과 묶어 두고,
+     관리자가 저장하면 그 거점의 "공유 프로젝트"가 됩니다. 다른 자리를 고르면 사라집니다. */
+  picked = { lat: lat, lng: lng, addr: knownAddr || '', dong: '', hotspot: hotspot || null };
 
   document.getElementById('picked').classList.add('on');
   document.getElementById('pickedCoord').textContent = `위도 ${lat}, 경도 ${lng}`;

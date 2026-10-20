@@ -1072,6 +1072,13 @@ async function handleProjectsApi(req, res, pathname) {
     r = await projects.getProject(user, idPart);
   } else if (idPart && req.method === 'DELETE') {
     r = await projects.deleteProject(user, idPart);
+  } else if (pathname.startsWith('/api/hotspots/')) {
+    /* 주요 거점 — 관리자 이동 자리 + 거점별 공유 프로젝트 (2026-10-20) */
+    const [region, tag] = pathname.slice('/api/hotspots/'.length).split('/');
+    if (req.method === 'GET' && !tag) r = await projects.hotspotInfo(user, region);
+    else if (req.method === 'PUT' && tag) r = await projects.setHotspotEdit(user, region, tag, await readJsonBody(req));
+    else if (req.method === 'DELETE' && tag) r = await projects.clearHotspotEdit(user, region, tag);
+    else r = { status: 404, error: '없는 주소입니다.' };
   } else {
     r = { status: 404, error: '없는 주소입니다.' };
   }
@@ -1229,13 +1236,14 @@ const server = http.createServer(async function (req, res) {
   /* 다른 주소(예: GitHub Pages)에서도 이 서버를 부를 수 있게 허용 */
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-access-code');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 
   try {
     const pathname = new URL(req.url, 'http://localhost').pathname;
     if (req.method === 'OPTIONS') {
       res.writeHead(204).end();
-    } else if (pathname === '/api/projects' || pathname.startsWith('/api/projects/')) {
-      await handleProjectsApi(req, res, pathname);  // 프로젝트 저장 · 불러오기
+    } else if (pathname === '/api/projects' || pathname.startsWith('/api/projects/') || pathname.startsWith('/api/hotspots/')) {
+      await handleProjectsApi(req, res, pathname);  // 프로젝트 저장 · 불러오기 · 주요 거점
     } else if (pathname.startsWith('/api/auth/') || pathname.startsWith('/api/admin/')) {
       await handleAuthApi(req, res, pathname);    // 로그인 · 가입 · 관리자
     } else if (req.method === 'GET' && req.url === '/api/models' && AUTH_MODE === 'account' &&

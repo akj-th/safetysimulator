@@ -52,6 +52,20 @@ CREATE TABLE IF NOT EXISTS projects (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 )`;
 
+/* 관리자가 지도에서 끌어 옮긴 주요 거점 자리. 원본(data/stats/hotspots.json)은 그대로 두고 여기 덮어쓰기만 둡니다.
+   removed=true 면 그 거점을 지도에서 뺍니다. */
+const HOTSPOT_SCHEMA = `
+CREATE TABLE IF NOT EXISTS hotspot_edits (
+  region     TEXT NOT NULL,
+  tag        TEXT NOT NULL,
+  lat        DOUBLE PRECISION,
+  lng        DOUBLE PRECISION,
+  removed    BOOLEAN NOT NULL DEFAULT false,
+  updated_by INTEGER REFERENCES users(id),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (region, tag)
+)`;
+
 let _ready = false;
 export const projectsReady = () => _ready;
 
@@ -61,6 +75,11 @@ export async function initProjects() {
   try {
     await pool.query(SCHEMA);
     await pool.query('CREATE INDEX IF NOT EXISTS projects_user_idx ON projects (user_id, updated_at)');
+    /* 주요 거점 연동 (2026-10-20) — 어느 거점에서 저장했는지 + 관리자가 저장한 것은 모두에게 열림(shared) */
+    await pool.query('ALTER TABLE projects ADD COLUMN IF NOT EXISTS hotspot_region TEXT');
+    await pool.query('ALTER TABLE projects ADD COLUMN IF NOT EXISTS hotspot_tag TEXT');
+    await pool.query('ALTER TABLE projects ADD COLUMN IF NOT EXISTS shared BOOLEAN NOT NULL DEFAULT false');
+    await pool.query(HOTSPOT_SCHEMA);
     _ready = true;
   } catch (e) {
     _ready = false;
@@ -138,13 +157,14 @@ export async function getProject(user, id) {
   const p = rows[0];
   /* 남의 것은 "없음"과 같은 답을 줍니다 — 번호를 바꿔 가며 남의 프로젝트가
      있는지 떠볼 수 없게 */
-  if (!p || (p.user_id !== user.id && user.role !== 'admin')) {
+  if (!p || (p.user_id !== user.id && user.role !== 'admin' && !p.shared)) {
     return { status: 404, error: '프로젝트를 찾지 못했습니다.' };
   }
   return {
     status: 200,
     project: {
-      id: p.id, title: p.title, addr: p.addr, region: p.region, step: p.step,
+      id: p.id, title: p.title, addr: p.addr, region: p.region, step: p.step, shared: !!p.shared,
+      hotspot: p.hotspot_region ? { region: p.hotspot_region, tag: p.hotspot_tag } : null,
       createdAt: p.created_at, updatedAt: p.updated_at,
       owner: { id: p.user_id, username: p.owner_username, name: p.owner_name },
       mine: p.user_id === user.id,
@@ -172,6 +192,10 @@ export async function saveProject(user, body, siteRoot) {
   const lat = Number.isFinite(Number(picked.lat)) ? Number(picked.lat) : null;
   const lng = Number.isFinite(Number(picked.lng)) ? Number(picked.lng) : null;
   const region = auth.regionOf(addr, siteRoot);
+  /* 주요 거점에서 시작한 진단이면 어느 거점인지 남깁니다. 관리자가 저장한 거점 프로젝트는 모두에게 열립니다(공유). */
+  const hs = picked.hotspot && picked.hotspot.region && picked.hotspot.tag
+    ? { region: String(picked.hotspot.region).slice(0, 40), tag: String(picked.hotspot.tag).slice(0, 8) } : null;
+  const shared = !!(hs && user.role === 'admin');
   const title = String((body && body.title) || '').trim().slice(0, 100)
     || [region, addr].filter(Boolean)[0] || '이름 없는 프로젝트';
   const pool = auth.db();
@@ -185,18 +209,62 @@ export async function saveProject(user, body, siteRoot) {
     }
     await pool.query(
       `UPDATE projects SET title=$1, addr=$2, lat=$3, lng=$4, region=$5, step=$6, summary=$7,
-         size_bytes=$8, data=$9, updated_at=now() WHERE id=$10`,
-      [title, addr, lat, lng, region, stepOf(data), summaryOf(data), size, text, pid]);
+         size_bytes=$8, data=$9, hotspot_region=$11, hotspot_tag=$12, shared=$13, updated_at=now() WHERE id=$10`,
+      [title, addr, lat, lng, region, stepOf(data), summaryOf(data), size, text, pid, hs ? hs.region : null, hs ? hs.tag : null, shared]);
     console.log(`[프로젝트] ${user.username} 덮어쓰기 #${pid} (${Math.round(size / 1024)}KB)`);
     return { status: 200, ok: true, id: pid, title, created: false };
   }
 
   const { rows } = await pool.query(
-    `INSERT INTO projects (user_id, title, addr, lat, lng, region, step, summary, size_bytes, data)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
-    [user.id, title, addr, lat, lng, region, stepOf(data), summaryOf(data), size, text]);
+    `INSERT INTO projects (user_id, title, addr, lat, lng, region, step, summary, size_bytes, data, hotspot_region, hotspot_tag, shared)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`,
+    [user.id, title, addr, lat, lng, region, stepOf(data), summaryOf(data), size, text, hs ? hs.region : null, hs ? hs.tag : null, shared]);
   console.log(`[프로젝트] ${user.username} 새로 저장 #${rows[0].id} (${Math.round(size / 1024)}KB)`);
   return { status: 200, ok: true, id: rows[0].id, title, created: true };
+}
+
+/* ── 주요 거점 (2026-10-20) ──────────────────────────────────────────
+   GET  /api/hotspots/<지역>            관리자가 옮긴 자리 + 거점별 공유 프로젝트 (로그인한 누구나)
+   PUT  /api/hotspots/<지역>/<거점>     {lat,lng} 옮기기 · {removed:true} 빼기   (관리자)
+   DELETE /api/hotspots/<지역>/<거점>   원래 자리로                               (관리자)        */
+const slugOk = (s) => /^[a-z]{2,20}$/.test(String(s || ''));
+const tagOk = (s) => /^[A-Z]$/.test(String(s || ''));
+
+export async function hotspotInfo(user, region) {
+  if (!slugOk(region)) return { status: 400, error: '지자체 이름이 올바르지 않습니다.' };
+  const pool = auth.db();
+  const edits = (await pool.query('SELECT tag, lat, lng, removed FROM hotspot_edits WHERE region = $1', [region])).rows;
+  /* 거점마다 공유 프로젝트 — 관리자가 가장 최근에 저장한 것 하나 */
+  const { rows } = await pool.query(
+    `SELECT DISTINCT ON (p.hotspot_tag) p.id, p.title, p.hotspot_tag AS tag, p.step, p.updated_at, u.name AS owner_name
+       FROM projects p JOIN users u ON u.id = p.user_id
+      WHERE p.shared AND p.hotspot_region = $1
+      ORDER BY p.hotspot_tag, p.updated_at DESC`, [region]);
+  /* 내가 이 지자체 거점에서 저장한(공유 아닌) 것도 — 내 작업 이어가기용 */
+  const mine = (await pool.query(
+    'SELECT id, title, hotspot_tag AS tag, updated_at FROM projects WHERE user_id = $1 AND hotspot_region = $2 AND NOT shared ORDER BY updated_at DESC', [user.id, region])).rows;
+  return { status: 200, region, edits, projects: rows, mine };
+}
+
+export async function setHotspotEdit(user, region, tag, body) {
+  if (user.role !== 'admin') return { status: 403, error: '주요 거점은 관리자만 옮길 수 있습니다.' };
+  if (!slugOk(region) || !tagOk(tag)) return { status: 400, error: '거점 이름이 올바르지 않습니다.' };
+  const removed = !!(body && body.removed);
+  const lat = Number(body && body.lat), lng = Number(body && body.lng);
+  if (!removed && !(lat > 33 && lat < 39 && lng > 124 && lng < 132)) return { status: 400, error: '좌표가 한국 범위 밖입니다.' };
+  await auth.db().query(
+    `INSERT INTO hotspot_edits (region, tag, lat, lng, removed, updated_by, updated_at) VALUES ($1,$2,$3,$4,$5,$6,now())
+     ON CONFLICT (region, tag) DO UPDATE SET lat=$3, lng=$4, removed=$5, updated_by=$6, updated_at=now()`,
+    [region, tag, removed ? null : lat, removed ? null : lng, removed, user.id]);
+  console.log(`[거점] ${user.username} ${region} ${tag} ${removed ? '제외' : '이동 ' + lat.toFixed(5) + ',' + lng.toFixed(5)}`);
+  return { status: 200, ok: true };
+}
+
+export async function clearHotspotEdit(user, region, tag) {
+  if (user.role !== 'admin') return { status: 403, error: '관리자만 되돌릴 수 있습니다.' };
+  if (!slugOk(region) || !tagOk(tag)) return { status: 400, error: '거점 이름이 올바르지 않습니다.' };
+  await auth.db().query('DELETE FROM hotspot_edits WHERE region = $1 AND tag = $2', [region, tag]);
+  return { status: 200, ok: true };
 }
 
 /* ── 삭제 — 자기 것만 ────────────────────────────────────────────────
