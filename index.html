@@ -514,7 +514,7 @@ async function rebuildHotspots() {
   _hotMarkers.forEach(function (mk) { mk.setMap(null); }); _hotMarkers = [];
   if (_hotInfo) _hotInfo.close();
   _hotServer.region = null;
-  _hotRow.setAttribute('aria-pressed', 'false');
+  _hotRow.setAttribute('aria-pressed', 'false'); _hotRow.classList.remove('on');
   await toggleHotspots();
 }
 
@@ -528,13 +528,13 @@ function buildHotspotRow(host) {
 
 async function toggleHotspots() {
   const on = _hotRow.getAttribute('aria-pressed') !== 'true';
-  _hotRow.setAttribute('aria-pressed', on ? 'true' : 'false');
+  _hotRow.setAttribute('aria-pressed', on ? 'true' : 'false'); _hotRow.classList.toggle('on', on);
   if (!on) { _hotMarkers.forEach(function (m) { m.setMap(null); }); _hotMarkers = []; if (_hotInfo) _hotInfo.close(); return; }
   try {
     if (!_hotspots) { const res = await fetch('data/stats/hotspots.json'); if (!res.ok) throw new Error('거점 자료 없음'); _hotspots = await res.json(); }
-  } catch (e) { alert('주요 거점 자료를 불러오지 못했습니다: ' + e.message); _hotRow.setAttribute('aria-pressed', 'false'); return; }
+  } catch (e) { alert('주요 거점 자료를 불러오지 못했습니다: ' + e.message); _hotRow.setAttribute('aria-pressed', 'false'); _hotRow.classList.remove('on'); return; }
   const list = (_hotspots.regions && _hotspots.regions[_loadedRegion]) || [];
-  if (!list.length) { alert('이 지자체는 거점 자료가 없습니다 (TIF 미수신 또는 임계값 미달).'); _hotRow.setAttribute('aria-pressed', 'false'); return; }
+  if (!list.length) { alert('이 지자체는 거점 자료가 없습니다 (TIF 미수신 또는 임계값 미달).'); _hotRow.setAttribute('aria-pressed', 'false'); _hotRow.classList.remove('on'); return; }
   if (!_hotInfo) _hotInfo = new naver.maps.InfoWindow({ borderWidth: 0, disableAnchor: true, backgroundColor: 'transparent' });
   if (_hotServer.region !== _loadedRegion) await loadHotServer(_loadedRegion);
   const admin = _isAdmin();
@@ -604,7 +604,7 @@ function buildOverviewRow(host) {
 function clearOverview() {
   _ov.shapes.forEach(function (s) { s.setMap(null); }); _ov.shapes = [];
   if (_ov.info) _ov.info.close();
-  if (_ov.row) _ov.row.setAttribute('aria-pressed', 'false');
+  if (_ov.row) { _ov.row.setAttribute('aria-pressed', 'false'); _ov.row.classList.remove('on'); }
 }
 
 async function loadOverview(region) {
@@ -629,7 +629,7 @@ function overviewCard(z) {
 function toggleOverview() {
   const on = _ov.row.getAttribute('aria-pressed') !== 'true';
   if (!on || !_ov.data) { clearOverview(); return; }
-  _ov.row.setAttribute('aria-pressed', 'true');
+  _ov.row.setAttribute('aria-pressed', 'true'); _ov.row.classList.add('on');
   if (!_ov.info) _ov.info = new naver.maps.InfoWindow({ borderWidth: 0, disableAnchor: true, backgroundColor: 'transparent' });
   const ll = function (p) { return new naver.maps.LatLng(p[0], p[1]); };
   const open = function (z, pos) { _ov.info.setContent(overviewCard(z)); _ov.info.open(_map, pos); };
