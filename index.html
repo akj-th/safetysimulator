@@ -419,6 +419,7 @@ function buildIncidentLayers(data) {
   /* 이전 지역 레이어를 걷어냅니다 */
   Object.values(_incidentLayers).forEach(function (l) { l.layer.setMap(null); });
   _incidentLayers = {};
+  _hotMarkers.forEach(function (m) { m.setMap(null); }); _hotMarkers = [];   // 거점도 지역 따라 걷어냄
 
   const host = document.getElementById('layerChips');
   const totalHost = document.getElementById('layerTotal');
@@ -464,6 +465,7 @@ function buildCompositeLayer(data, host) {
             + '이 지역 안에서의 상대 순위이며, 다른 지자체와 직접 비교할 수는 없습니다.';
   row.addEventListener('click', function () { toggleIncidentLayer('_total', row); });
   host.appendChild(row);
+  buildHotspotRow(host);
 
   /* 지도가 왜 그렇게 보이는지의 근거를 화면에도 적어 둡니다 */
   document.getElementById('weightLine').textContent =
@@ -471,6 +473,55 @@ function buildCompositeLayer(data, host) {
       .filter(function (c) { return data.categories[c.key]; })
       .map(function (c) { return `${data.categories[c.key].label} ×${auriRiskWeight(c.key)}`; })
       .join(' · ');
+}
+
+/* ── 주요 거점 (2026-10-20, 10/14 AURI 회의 ①) ──────────────────────────
+   "복합위험지구 밖이라도 밀도 높은 거점은 거점별 1개씩 원인·대안" — 강원대 커널밀도(중점 3분야)에서
+   규칙으로 뽑은 지점(tools/build-hotspots.mjs → data/stats/hotspots.json)을 검은 마름모로 올립니다.
+   누르면 그 자리가 진단 지점으로 선택됩니다(현장 사진 촬영 좌표·개선 이미지 대상 고르기용).
+   점수는 지자체 안 상대값(0~1)이라 지자체끼리 비교할 수 없습니다. */
+let _hotspots = null;           // data/stats/hotspots.json
+let _hotMarkers = [];
+let _hotRow = null;
+let _hotInfo = null;
+
+function buildHotspotRow(host) {
+  _hotRow = makeLayerRow('주요 거점', '#1F2A33', '밀도 상위 지점 · 누르면 진단 지점으로');
+  _hotRow.title = '중점 3분야 밀도(강원대 커널밀도, 지자체 p99 기준)가 함께 높은 지점을 반경 400m 안 최대값으로 뽑은 것.\n'
+                + '조사지(복합위험지구) 밖도 포함합니다. 거점을 누르면 그 자리가 선택됩니다.';
+  _hotRow.addEventListener('click', toggleHotspots);
+  host.appendChild(_hotRow);
+}
+
+async function toggleHotspots() {
+  const on = _hotRow.getAttribute('aria-pressed') !== 'true';
+  _hotRow.setAttribute('aria-pressed', on ? 'true' : 'false');
+  if (!on) { _hotMarkers.forEach(function (m) { m.setMap(null); }); _hotMarkers = []; if (_hotInfo) _hotInfo.close(); return; }
+  try {
+    if (!_hotspots) { const res = await fetch('data/stats/hotspots.json'); if (!res.ok) throw new Error('거점 자료 없음'); _hotspots = await res.json(); }
+  } catch (e) { alert('주요 거점 자료를 불러오지 못했습니다: ' + e.message); _hotRow.setAttribute('aria-pressed', 'false'); return; }
+  const list = (_hotspots.regions && _hotspots.regions[_loadedRegion]) || [];
+  if (!list.length) { alert('이 지자체는 거점 자료가 없습니다 (TIF 미수신 또는 임계값 미달).'); _hotRow.setAttribute('aria-pressed', 'false'); return; }
+  if (!_hotInfo) _hotInfo = new naver.maps.InfoWindow({ borderWidth: 0, disableAnchor: true, backgroundColor: 'transparent' });
+  list.forEach(function (h) {
+    const tag = String.fromCharCode(64 + h.rank);
+    const pos = new naver.maps.LatLng(h.lat, h.lng);
+    const m = new naver.maps.Marker({
+      position: pos, map: _map, zIndex: 50,
+      icon: { content: `<div style="width:26px;height:26px;transform:rotate(45deg);background:#1F2A33;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(-45deg);color:#fff;font:700 12px Pretendard,sans-serif">${tag}</span></div>`, anchor: new naver.maps.Point(13, 13) },
+    });
+    const parts = Object.keys(h.parts).sort(function (a, b) { return h.parts[b] - h.parts[a]; })
+      .map(function (k) { return `${_catLabels[k] || k} ${Math.round(h.parts[k] * 100)}`; }).join(' · ');
+    m.addListener('click', function () {
+      _hotInfo.setContent(`<div style="background:#fff;border:1px solid #CCC;padding:8px 10px;font:13px Pretendard,sans-serif;color:#333;max-width:260px">` +
+        `<b>거점 ${tag}</b> · 점수 ${Math.round(h.score * 100)} ${h.inside ? '<span style="color:#2793C9">조사지 안</span>' : '<span style="color:#999">조사지 밖</span>'}<br>` +
+        `<span style="font-size:12px;color:#666">${parts}</span><br>` +
+        `<span style="font-size:11px;color:#999">분야 밀도는 지자체 안 상대값(상위 1% = 100)</span></div>`);
+      _hotInfo.open(_map, m);
+      selectPoint(pos, '');
+    });
+    _hotMarkers.push(m);
+  });
 }
 
 /* ── 동별 HEA 취약도 (2026-09-15) ─────────────────────────────────────

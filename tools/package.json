@@ -18,7 +18,8 @@
     "icon-sheet": "node overview-map/build-icon-sheet.mjs",
     "classify": "node classify-regions.mjs",
     "pptx-extract": "node overview-map/pptx-extract.mjs",
-    "overview-pptx": "node overview-map/run-pptx-region.mjs"
+    "overview-pptx": "node overview-map/run-pptx-region.mjs",
+    "hotspots": "node build-hotspots.mjs"
   },
   "dependencies": {
     "proj4": "^2.21.0"
