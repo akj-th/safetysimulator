@@ -368,6 +368,21 @@ window.addEventListener('load', async function () {
       inputImage.source === 'upload' ? '업로드한 사진' : '캡처한 화면';
   }
 
+  /* 개선 후 = 앞서 만들어 둔 이미지가 있으면 다시 보여 줍니다 (2026-10-20).
+     저장한 프로젝트를 열거나 문서 단계에서 돌아왔을 때 이 칸이 비어 있어 "저장이 안 됐다"로 보였습니다.
+     이어서 고치기의 바탕(_lastGenerated)으로도 씁니다. */
+  const savedAfter = sessionStorage.getItem('auri_after_image');
+  if (savedAfter) {
+    _lastGenerated = savedAfter;
+    const aimg = document.getElementById('afterImg');
+    aimg.src = savedAfter;
+    aimg.style.display = 'block';
+    document.getElementById('afterBlank').style.display = 'none';
+    document.getElementById('afterTag').textContent = '저장된 이미지';
+    document.getElementById('afterTag').className = 'tag';
+    document.getElementById('afterFoot').style.display = 'flex';
+  }
+
   /* 처방 목록 — 여기서 규칙 엔진을 새로 돌리지 않고 리포트 단계의 결과를 받습니다.
      다만 이 화면에서도 사업을 수정·삭제·추가할 수 있고,
      고친 내용은 리포트 화면과 같은 곳에 저장되어 서로 어긋나지 않습니다. */

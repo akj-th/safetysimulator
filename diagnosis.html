@@ -256,10 +256,37 @@ function onUploadChange(e) {
 }
 document.getElementById('uploadInput').addEventListener('change', onUploadChange);
 
+/* 이미지를 긴 변 maxEdge 의 JPEG 로 줄입니다 (저장용). 원본이 그보다 작으면 JPEG 로만 바꿉니다. */
+function shrinkForStorage(dataUrl, maxEdge, quality) {
+  return new Promise(function (resolve, reject) {
+    const im = new Image();
+    im.onload = function () {
+      const k = Math.min(1, maxEdge / Math.max(im.naturalWidth, im.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+      x.drawImage(im, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    im.onerror = function () { reject(new Error('이미지를 읽지 못했습니다.')); };
+    im.src = dataUrl;
+  });
+}
+
 /* 이미지를 확정만 하고, 진단은 사용자가 버튼을 눌러야 시작합니다 */
-function setInputImage(dataUrl, source) {
+async function setInputImage(rawDataUrl, source) {
+  /* 긴 변 1800px JPEG 로 줄여서 둡니다 (2026-10-20). 휴대폰 사진(4000px, 5MB)이나 고해상도 캡처를 그대로 넣으면
+     브라우저 저장 공간(5MB)을 넘겨 저장이 조용히 실패하고, 뒤 단계(개선 후 이미지·프로젝트 저장)까지 빠집니다.
+     판독·생성 모델에는 1800px 이면 충분합니다. */
+  let dataUrl = rawDataUrl;
+  try { dataUrl = await shrinkForStorage(rawDataUrl, 1800, 0.88); } catch (e) { /* 줄이기 실패하면 원본 그대로 시도 */ }
   inputImage = { dataUrl: dataUrl, source: source, pov: _panoPov };
-  sessionStorage.setItem('auri_input_image', JSON.stringify(inputImage));
+  try {
+    sessionStorage.setItem('auri_input_image', JSON.stringify(inputImage));
+  } catch (e) {
+    alert('사진이 너무 커서 저장하지 못했습니다. 더 작은 사진으로 올려 주세요.');
+    return;
+  }
 
   document.getElementById('shotPanel').style.display = 'block';
   document.getElementById('shotImg').src = dataUrl;
