@@ -582,12 +582,17 @@ const OPENAI_BASE = 'https://api.openai.com/v1';
      provider 가 같으면 호출 코드도 그대로 재사용됩니다.
 
    키가 없는 제공사의 모델은 화면 목록에 아예 나오지 않습니다. */
-/* 담당자 지시(2026-09-07)로 두 가지만 씁니다. 화면의 선택 상자는 이 목록을
-   그대로 받아 채우므로, 늘리려면 여기에 한 줄 더 넣으면 됩니다.
+/* 2026-10-20 담당자 지시: GPT Image 2.5 · 2 추가. gpt-image-1 은 OpenAI 가 2026-10-23 종료 예고라
+   목록 끝에 두고(남겨 두면 선택은 되지만 곧 404), 종료 뒤 지우면 됩니다.
+   2.5 두 종(sunburst=편집·정밀 / flare=빠른 생성)은 2026-09-08 스냅샷 — 2차 출처 하나뿐이라
+   호출이 404 면 아래 오류문이 "지금 쓸 수 있는 모델" 목록을 함께 보여 줍니다.
    빼 둔 것: gemini-3.1-flash-image · gemini-2.5-flash-image · gpt-image-1-mini */
 const IMAGE_MODELS = [
-  { id: 'gemini-3-pro-image', provider: 'gemini', label: 'Gemini 3 Pro' },
-  { id: 'gpt-image-1',        provider: 'openai', label: 'GPT Image 1' },
+  { id: 'gemini-3-pro-image',      provider: 'gemini', label: 'Gemini 3 Pro' },
+  { id: 'gpt-image-2.5-sunburst',  provider: 'openai', label: 'GPT Image 2.5 Sunburst (편집 정밀)' },
+  { id: 'gpt-image-2.5-flare',     provider: 'openai', label: 'GPT Image 2.5 Flare (빠름)' },
+  { id: 'gpt-image-2',             provider: 'openai', label: 'GPT Image 2' },
+  { id: 'gpt-image-1',             provider: 'openai', label: 'GPT Image 1 (10/23 종료 예정)' },
 ];
 
 function providerKey(provider) {
@@ -728,7 +733,8 @@ async function callOpenAIImage(mediaType, base64Data, facilities, model, note, f
   form.append('n', '1');
   form.append('size', 'auto');            // 원본 비율에 맞춰 알아서
   form.append('quality', 'high');
-  form.append('input_fidelity', 'high');  // 원본을 최대한 유지
+  /* GPT Image 2 계열(2 · 2.5)은 입력 충실도가 항상 높아 이 값을 받지 않습니다 — 보내면 오류. 1 계열에만 붙입니다 */
+  if (!/^gpt-image-2/.test(model)) form.append('input_fidelity', 'high');  // 원본을 최대한 유지 (gpt-image-1 계열)
 
   const res = await fetch(`${OPENAI_BASE}/images/edits`, {
     method: 'POST',
