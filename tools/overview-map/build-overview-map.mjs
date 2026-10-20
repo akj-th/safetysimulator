@@ -692,6 +692,12 @@ if (IS_V3 && !DEBUG_GRID) {
     }
   }
   const CIRC = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';
+  /* 상자·제목·키맵·범례 밑으로 들어간 구역은 잘라냅니다 (가장자리 10px 는 겹쳐도 둠 — 담당자 수정본도 그 정도는 겹침) */
+  const shrink = (r, d) => ({ x: r.x + d, y: r.y + d, w: r.w - 2 * d, h: r.h - 2 * d });
+  const blockRects = [...lay.boxes.map(b => shrink(b, 10)), shrink({ x: 40, y: 36, w: +titleW, h: 92 }, 6)];
+  if (cfg.keymap) blockRects.push(shrink({ x: lay.keymap.x, y: lay.keymap.y, w: boxW, h: keymapH }, 10));
+  if (legendRows) blockRects.push(shrink({ x: lay.legend.x, y: lay.legend.y, w: boxW, h: legendH }, 10));
+  zrings.forEach((r, i) => { zrings[i] = V3.clipRingsOutside(W, H, r, blockRects, simplify); });
   cfg.zones.forEach((z, i) => {
     const b = lay.boxes[i];
     z.box = { x: b.x, top: b.y, w: boxW }; z.num = CIRC[b.num - 1] || String(b.num);
@@ -712,11 +718,15 @@ if (IS_V3 && !DEBUG_GRID) {
     if (mx >= b.x + 14 && mx <= b.x + b.w - 14) { const sy = my > b.y ? b.y + b.h : b.y; return [{ x: mx - 4, y: Math.min(sy, my), w: 8, h: Math.abs(sy - my) }]; }
     const top = b.y + 38, bot = b.y + b.h - 38; const sy = Math.abs(my - top) <= Math.abs(my - bot) ? top : bot;
     return [{ x: Math.min(sx, mx), y: sy - 4, w: Math.abs(sx - mx), h: 8 }, { x: mx - 4, y: Math.min(sy, my), w: 8, h: Math.abs(sy - my) }]; });
-  const pois = V3.placePoiLabels(poiPx, [...hard, ...markerRects, ...dotRects, ...leaderRects], textW, W, H);
+  /* 주요 거점 라벨도 같은 규칙으로 자리를 잡습니다 (마름모 15px 라 점 대신 반경 17 의 장애물) */
+  const hotPx = hotspots.map((h, i) => { const [x, y] = from5186([h.x, h.y]); const top = Object.entries(h.parts).sort((a, b) => b[1] - a[1]).filter(e => e[1] >= 0.15).map(e => AURI_COLORS[e[0]].label).join('·'); return { name: `거점 ${String.fromCharCode(65 + i)} · ${top}`, px: [x, y], r: 17 }; });
+  const hotRects = hotPx.map(p => ({ x: p.px[0] - 17, y: p.px[1] - 17, w: 34, h: 34 }));
+  const hot = V3.placePoiLabels(hotPx, [...hard, ...markerRects, ...dotRects, ...leaderRects, ...hotRects], textW, W, H, { fs: 12, gap: 20 });
+  const pois = V3.placePoiLabels(poiPx, [...hard, ...markerRects, ...dotRects, ...leaderRects, ...hotRects, ...hot.map(p => p.label.rect)], textW, W, H);
   const labelsIn = (cfg.labels || []).map(l => ({ ...l, px: anchorPx(l) }));
-  const labels = V3.placeNameLabels(labelsIn, zrings.flat(), hard, [...markerRects, ...dotRects, ...leaderRects, ...pois.map(p => p.label.rect)], textW, W, H, { fs: 20, letterSpacing: 6, maxShift: 200 });
+  const labels = V3.placeNameLabels(labelsIn, zrings.flat(), hard, [...markerRects, ...dotRects, ...leaderRects, ...hotRects, ...hot.map(p => p.label.rect), ...pois.map(p => p.label.rect)], textW, W, H, { fs: 20, letterSpacing: 6, maxShift: 200 });
   labels.forEach(l => { if (!l.at) console.warn(`  ⚠ 지명 "${l.text}" 자리 없음 → 뺌`); else if (l.moved > 1) console.log(`  지명 "${l.text}" ${Math.round(l.moved)}px 옮김`); });
-  v3 = { pois, labels: labels.filter(l => l.at), fitted };
+  v3 = { pois, hot, labels: labels.filter(l => l.at), fitted };
 }
 
 const zoneBoxes = []; const rectOf = {};
@@ -792,7 +802,7 @@ ${L('13-1_사업지_구역', IS_V3 && v3
 ${L('14_구간표시', (cfg.routes || []).map(routeSvg).join('\n'))}
 ${IS_V3 && v3 ? L('16_지시선', zoneBoxes.map(b => leader(b.rect, b.z._v3.marker, true)).join('\n')) : ''}
 ${L('14-1_사업지_번호', cfg.zones.flatMap(z => (IS_V3 && v3 ? [{ at: null, label: z._v3.label }] : (z.markers || [])).map(m => { const [x, y] = m.at ? anchorPx(m.at) : z._v3.marker; const col = z.safety && AURI_COLORS[z.safety] ? `rgb(${AURI_COLORS[z.safety].rgb.join(',')})` : C.main; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="19" fill="${col}" stroke="#fff" stroke-width="2.5"/><text x="${x.toFixed(1)}" y="${(y + 7).toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="20" font-weight="700" fill="#fff">${esc(String(m.label))}</text>`; })).join('\n'))}
-${L('15-2_주요_거점', hotspots.map((h, i) => { const [x, y] = from5186([h.x, h.y]); const tag = String.fromCharCode(65 + i); const top = Object.entries(h.parts).sort((a, b) => b[1] - a[1]).filter(e => e[1] >= 0.15).map(e => AURI_COLORS[e[0]].label).join('·'); const txt = `거점 ${tag} · ${top}`; const tw = textW(txt, 12) + 12; return `<path d="M${x.toFixed(1)} ${(y - 15).toFixed(1)}L${(x + 15).toFixed(1)} ${y.toFixed(1)}L${x.toFixed(1)} ${(y + 15).toFixed(1)}L${(x - 15).toFixed(1)} ${y.toFixed(1)}Z" fill="${C.ink}" stroke="#fff" stroke-width="2.2"/><text x="${x.toFixed(1)}" y="${(y + 4.5).toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="12" font-weight="700" fill="#fff">${tag}</text><rect x="${(x + 19).toFixed(1)}" y="${(y - 9).toFixed(1)}" width="${tw.toFixed(1)}" height="18" rx="3" fill="#fff" opacity="0.9"/><text x="${(x + 25).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-family="${FONT}" font-size="12" font-weight="600" fill="${C.text}">${esc(txt)}</text>`; }).join('\n'))}
+${L('15-2_주요_거점', IS_V3 && v3 ? v3.hot.map((p, i) => { const [x, y] = p.px, lb = p.label, tag = String.fromCharCode(65 + i); const ta = `x="${lb.x.toFixed(1)}" y="${lb.y.toFixed(1)}" text-anchor="${lb.anchor}" font-family="${FONT}" font-size="12" font-weight="600"`; return `<path d="M${x.toFixed(1)} ${(y - 15).toFixed(1)}L${(x + 15).toFixed(1)} ${y.toFixed(1)}L${x.toFixed(1)} ${(y + 15).toFixed(1)}L${(x - 15).toFixed(1)} ${y.toFixed(1)}Z" fill="${C.ink}" stroke="#fff" stroke-width="2.2"/><text x="${x.toFixed(1)}" y="${(y + 4.5).toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="12" font-weight="700" fill="#fff">${tag}</text><text ${ta} fill="none" stroke="#fff" stroke-width="3.5" stroke-linejoin="round" opacity="0.9">${esc(p.name)}</text><text ${ta} fill="${C.text}">${esc(p.name)}</text>`; }).join('\n') : hotspots.map((h, i) => { const [x, y] = from5186([h.x, h.y]); const tag = String.fromCharCode(65 + i); const top = Object.entries(h.parts).sort((a, b) => b[1] - a[1]).filter(e => e[1] >= 0.15).map(e => AURI_COLORS[e[0]].label).join('·'); const txt = `거점 ${tag} · ${top}`; const tw = textW(txt, 12) + 12; return `<path d="M${x.toFixed(1)} ${(y - 15).toFixed(1)}L${(x + 15).toFixed(1)} ${y.toFixed(1)}L${x.toFixed(1)} ${(y + 15).toFixed(1)}L${(x - 15).toFixed(1)} ${y.toFixed(1)}Z" fill="${C.ink}" stroke="#fff" stroke-width="2.2"/><text x="${x.toFixed(1)}" y="${(y + 4.5).toFixed(1)}" text-anchor="middle" font-family="${FONT}" font-size="12" font-weight="700" fill="#fff">${tag}</text><rect x="${(x + 19).toFixed(1)}" y="${(y - 9).toFixed(1)}" width="${tw.toFixed(1)}" height="18" rx="3" fill="#fff" opacity="0.9"/><text x="${(x + 25).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-family="${FONT}" font-size="12" font-weight="600" fill="${C.text}">${esc(txt)}</text>`; }).join('\n'))}
 ${L('15-1_시설', IS_V3 && v3
   ? v3.pois.map(p => { const [x, y] = p.px, lb = p.label; const ta = `x="${lb.x.toFixed(1)}" y="${lb.y.toFixed(1)}" text-anchor="${lb.anchor}" font-family="${FONT}" font-size="13" font-weight="700"`; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="#E03C3C" stroke="#fff" stroke-width="2"/><text ${ta} fill="none" stroke="#fff" stroke-width="3.5" stroke-linejoin="round" opacity="0.9">${esc(p.name)}</text><text ${ta} fill="${C.text}">${esc(p.name)}</text>`; }).join('\n')
   : (cfg.pois || []).map(p => { const [x, y] = anchorPx(p); const tw = textW(p.name, 13) + 14; const lx = p.side === 'left' ? x - 12 - tw : x + 12; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="#E03C3C" stroke="#fff" stroke-width="2"/><rect x="${lx.toFixed(1)}" y="${(y - 10).toFixed(1)}" width="${tw.toFixed(1)}" height="20" rx="3" fill="#fff" opacity="0.92"/><text x="${(lx + 7).toFixed(1)}" y="${(y + 4.5).toFixed(1)}" font-family="${FONT}" font-size="13" font-weight="700" fill="${C.text}">${esc(p.name)}</text>`; }).join('\n'))}

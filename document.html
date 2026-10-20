@@ -462,7 +462,7 @@ function auriCh2() {
       <figure class="doc-map">
         <img id="map-${f.key}" alt="${esc(f.label)} 발생 위치도" hidden>
         <div class="slot" id="map-${f.key}-wait">지도를 그리는 중입니다…</div>
-        <figcaption>[그림 ${figLoc}] ${af && af.figures[0] ? esc(af.figures[0]) : `복합위험지구 내 ${esc(f.label)} 발생 위치도`} <span class="h-sub">시뮬레이터 지도 · 진단 지점 반경 ${MAP_RADIUS_M}m</span></figcaption>
+        <figcaption>[그림 ${figLoc}] ${af && af.figures[0] ? esc(af.figures[0]) : `복합위험지구 내 ${esc(f.label)} 발생 위치도`} <span class="h-sub">${heatFor(f.key) ? '강원대 커널밀도 히트맵(그 분야만, 지자체 안 상대값)' : '119 구급출동 지점'} · 진단 지점 반경 ${MAP_RADIUS_M}m</span></figcaption>
       </figure>
       <table class="tight auri-plan">
         <caption>[표 ${1 + i}] (${esc(f.label)}) 공간 유형별 위험 요인 및 맞춤형 사업(안)${af ? '' : ' — AURI 보고서 미수령'}</caption>
@@ -486,7 +486,7 @@ function auriCh2() {
   </section>
   <section class="chapter">
     <h2 class="h-chapter">[그림] 복합위험지구 중점관리분야 맞춤형 사업 종합도</h2>
-    <div class="slot" style="min-height:220px">종합도는 별도 산출물입니다 — tools/overview-map 로 만든 <b>${esc(_data.region)}_종합도.svg</b> 를 여기에 끼워 넣습니다.</div>
+    <figure class="doc-map" style="margin:0"><img src="data/overview/${esc(_data.region)}.jpg" alt="${esc(_data.shortLabel)} 종합도" style="width:100%;display:block" onerror="this.parentNode.innerHTML='<div class=slot style=min-height:160px>${esc(_data.shortLabel)} 종합도가 아직 없습니다 (tools/overview-map 로 생성 → data/overview/${esc(_data.region)}.jpg)</div>'"><figcaption>[그림] ${esc(_data.shortLabel)} 중점관리분야 맞춤형 사업 종합도 <span class="h-sub">tools/overview-map 산출 · AURI 사전분석 보고서 기준</span></figcaption></figure>
   </section>`;
 }
 
@@ -1003,6 +1003,7 @@ const MAP_COLORS = {
 const MAP_RADIUS_M = 450;
 
 let _incidents = null;                 // data/incidents/<지역>.json
+let _heat = null;                      // data/heatmap/index.json — 분야별 밀도 히트맵 (중점 3분야, build-heatmap --focus)
 let _auri = null;                      // data/stats/auri-reports/<지역>.json — AURI 사전분석 보고서 원문(구조화)
 async function loadAuriReport(region) {
   try { const res = await fetch('data/stats/auri-reports/' + region + '.json'); return res.ok ? await res.json() : null; }
@@ -1030,6 +1031,11 @@ function catPoints(key) {
 }
 
 /** 어떤 지도를 그릴지 — 3.1 한 장 + 중점분야마다 한 장 */
+function heatFor(key) {
+  const row = _heat && _heat.regions && _heat.regions[_data.region] && _heat.regions[_data.region].layers && _heat.regions[_data.region].layers[key];
+  return row ? { url: 'data/heatmap/' + row.png, bounds: row.bounds } : null;
+}
+
 function mapSpecs() {
   if (!_incidents) return [];
   const marker = { lat: Number(_picked.lat), lng: Number(_picked.lng) };
@@ -1050,7 +1056,9 @@ function mapSpecs() {
         /* 여백을 좁게 둡니다. 기본값(12%)이면 한 단계 멀어져 거리가 잘 안 보입니다 */
         pad: 0.05,
         focus: { lat: marker.lat, lng: marker.lng, radiusM: MAP_RADIUS_M },
-        points: catPoints(f.key),
+        /* 2026-10-20: 격자 점 대신 그 분야 밀도 히트맵(강원대 커널밀도). 히트맵이 없는 지자체·분야는 점으로 */
+        heat: heatFor(f.key),
+        points: heatFor(f.key) ? [] : catPoints(f.key),
         marker: marker,
         boundary: _data.surveyArea && _data.surveyArea.geometry,
       },
@@ -1375,6 +1383,7 @@ window.addEventListener('load', async function () {
   _incidents = await loadIncidents(_data.region);   // 지도에 찍을 119 출동 지점
   _dongHea = await AuriDongHea.load(_data.region);  // 3.3 읍면동별 HEA 지표
   _auri = await loadAuriReport(_data.region);       // AURI 사전분석 보고서 (있는 지자체만)
+  try { const hr = await fetch('data/heatmap/index.json'); _heat = hr.ok ? await hr.json() : null; } catch (e) { _heat = null; }
   document.title = `지자체 사전진단서 — ${_data.shortLabel}`;
 
   renderAll();

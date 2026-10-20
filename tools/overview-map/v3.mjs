@@ -204,6 +204,21 @@ export function fitZonesToBlocks(W, H, zones, base, opt = {}, simplifyFn) {
   });
 }
 
+/** 구역 링에서 막힌 사각형(상자·제목·키맵·범례) 안쪽을 떼어 냅니다. 다 가려지면 원래 링을 돌려줍니다. */
+export function clipRingsOutside(W, H, rings, blockRects, simplifyFn, opt = {}) {
+  if (!rings.length || !blockRects.length) return rings;
+  const g = opt.g || 2, grid = makeGrid(W, H, g); const n = grid.GW * grid.GH;
+  const m = new Uint8Array(n); fillRings(grid, rings, m, 1);
+  let any = false;
+  for (const r of blockRects) {
+    const i0 = Math.max(0, Math.floor(r.x / g)), i1 = Math.min(grid.GW - 1, Math.ceil((r.x + r.w) / g)), j0 = Math.max(0, Math.floor(r.y / g)), j1 = Math.min(grid.GH - 1, Math.ceil((r.y + r.h) / g));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) { const c = j * grid.GW + i; if (m[c]) { m[c] = 0; any = true; } }
+  }
+  if (!any) return rings;
+  const out = maskToRings(grid, m, simplifyFn, opt.simplifyPx ?? 2, 0.08);
+  return out.length ? out : rings;
+}
+
 /* ── ② 열 배치 · 번호 · 번호 원 자리 ─────────────────────────────── */
 /**
  * @param zones  [{ rings, h(상자 높이) }]
@@ -269,15 +284,15 @@ export function placeMarker(rings, box, titleDy = 20) {
 const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 const inFrame = (r, W, H) => r.x >= 4 && r.y >= 4 && r.x + r.w <= W - 4 && r.y + r.h <= H - 4;
 /** 시설 이름: 아래 가운데 → 위 → 오른쪽 → 왼쪽 순으로 비는 자리. */
-export function placePoiLabels(pois, obstacles, textW, W, H) {
-  const placed = []; const out = [];
+export function placePoiLabels(pois, obstacles, textW, W, H, opt = {}) {
+  const placed = []; const out = []; const fs = opt.fs || 13, gp = opt.gap || 10;
   for (const p of pois) {
-    const w = textW(p.name, 13) + 4, h = 16; const [x, y] = p.px;
+    const w = textW(p.name, fs) + 4, h = fs + 3; const [x, y] = p.px;
     const cands = [
-      { x: x - w / 2, y: y + 10, anchor: 'middle', tx: x, ty: y + 22 },
-      { x: x - w / 2, y: y - 10 - h, anchor: 'middle', tx: x, ty: y - 13 },
-      { x: x + 11, y: y - h / 2, anchor: 'start', tx: x + 12, ty: y + 4.5 },
-      { x: x - 11 - w, y: y - h / 2, anchor: 'end', tx: x - 12, ty: y + 4.5 },
+      { x: x - w / 2, y: y + gp, anchor: 'middle', tx: x, ty: y + gp + fs - 1 },
+      { x: x - w / 2, y: y - gp - h, anchor: 'middle', tx: x, ty: y - gp - 3 },
+      { x: x + gp + 1, y: y - h / 2, anchor: 'start', tx: x + gp + 2, ty: y + 4.5 },
+      { x: x - gp - 1 - w, y: y - h / 2, anchor: 'end', tx: x - gp - 2, ty: y + 4.5 },
     ];
     const ovArea = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
     const cost = (c) => { const r = { x: c.x, y: c.y, w, h }; if (!inFrame(r, W, H)) return 1e9; return [...obstacles, ...placed].reduce((a, o) => a + ovArea(r, o), 0); };

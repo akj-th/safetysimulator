@@ -51,7 +51,7 @@ const TOP_QUANTILE = 0.99;
 const MIN_ALPHA_AT = 0.04;
 
 /** 가장 진한 곳의 불투명도 (0~1). 화면에서 다시 조절할 수 있습니다. */
-const MAX_ALPHA = 0.9;
+const MAX_ALPHA = 0.62;        // 2026-10-20 종합도와 같은 값
 
 /* ── 색을 어떻게 입히는가 ──────────────────────────────────────────
    한 가지 색을 두고 투명도만 바꾸면, 옅은 곳이 "색이 연한 것"이 아니라
@@ -65,11 +65,11 @@ const MAX_ALPHA = 0.9;
 
 /** 투명도가 최대에 이르는 지점. 이 아래는 가장자리가 부드럽게 사라집니다.
     올리면 옅은 영역이 더 투명해져 바탕 지도가 잘 보입니다. */
-const ALPHA_FULL_AT = 0.35;
+const ALPHA_FULL_AT = 0.5;     // 2026-10-20 종합도 SVG(risk.mjs)와 같은 값으로 — 사전진단서 분야별 지도에 씀
 
 /** 색이 짙어지는 곡선. 1보다 작으면 중간값에서도 색이 빨리 올라옵니다.
     (1 = 직선, 0.7 = 중간 밀도에서도 색이 뚜렷) */
-const COLOR_GAMMA = 0.75;
+const COLOR_GAMMA = 0.55;      // 2026-10-20 종합도와 같은 값
 
 /* 분야 → 폴더 이름. 교통사고는 구급·다발지역을 합친 **최종**을 씁니다
    (density/설명.txt: "구급출동 자료와 교통사고 다발지역 자료의 개별
@@ -86,10 +86,11 @@ const FOLDER = {
 
 /* 지도 레이어 점 색과 같은 색을 씁니다 (index.html 의 INCIDENT_CATEGORIES).
    히트맵과 점이 같은 분야인데 색이 다르면 무엇이 무엇인지 알 수 없습니다. */
+/* 2026-10-20: 종합도 SVG(overview-map/risk.mjs AURI_COLORS)와 같은 AURI 7색 — 사전진단서 분야별 지도와 종합도가 같은 색이어야 합니다.
+   (지도 화면 index.html 의 점 색과는 다릅니다) */
 const COLOR = {
-  suicide: [0x7b, 0x5e, 0xa7], traffic: [0x2a, 0x78, 0xd6], fire: [0xe3, 0x49, 0x48],
-  crime: [0xe0, 0x76, 0x1f], life: [0x1b, 0xaf, 0x7a], industrial: [0x8a, 0x6d, 0x3b],
-  infection: [0x4a, 0x3a, 0xa7],
+  industrial: [0xE5, 0x32, 0x2D], infection: [0xF2, 0x8C, 0x28], traffic: [0xF2, 0xD0, 0x2E],
+  crime: [0x3C, 0xA8, 0x4A], suicide: [0x2F, 0x7F, 0xE0], fire: [0x1F, 0x2E, 0x7A], life: [0x8E, 0x44, 0xAD],
 };
 
 const EPSG5186 = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
@@ -190,7 +191,11 @@ function bounds(t) {
 
 /* ════════════════════════════════════════════════════════════════════ */
 
-const only = process.argv[2] || null;
+const argv = process.argv.slice(2);
+const FOCUS_ONLY = argv.includes('--focus');            // 중점 3분야만 (사전진단서 분야별 지도용, 123장)
+const only = argv.find(a => !a.startsWith('--')) || null;
+const FOCUS = {};
+if (FOCUS_ONLY) { const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/stats/index.json'), 'utf8')); const L2K = { 교통사고: 'traffic', 화재: 'fire', 범죄: 'crime', 생활안전: 'life', 산업재해: 'industrial', 자살: 'suicide', 감염병: 'infection' }; for (const r of (Array.isArray(idx) ? idx : idx.regions)) FOCUS[r.region] = (r.focusTypes || []).map(l => L2K[l] || l); }
 const slugs = Object.keys(REGIONS).filter((s) => !only || s === only);
 if (!slugs.length) { console.error(`지자체 slug 를 찾지 못했습니다: ${only}`); process.exit(1); }
 
@@ -210,6 +215,7 @@ for (const slug of slugs) {
   const marks = [];
 
   for (const [cat, folder] of Object.entries(FOLDER)) {
+    if (FOCUS_ONLY && !(FOCUS[slug] || []).includes(cat)) continue;
     const file = findTif(folder, slug);
     if (!file) { skipped++; marks.push(`${cat.slice(0, 3)}—`); continue; }
 

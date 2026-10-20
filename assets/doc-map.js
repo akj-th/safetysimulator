@@ -159,6 +159,21 @@ const AuriDocMap = (function () {
       }
     }
 
+    /* ②-1 밀도 히트맵 (강원대 커널밀도 PNG, data/heatmap) — 한 분야만. 2026-10-20 담당자: 격자 점보다 히트맵이 잘 보임.
+       PNG 네 모서리(sw·ne 위경도)를 화면 좌표로 옮겨 그대로 덮습니다. 원본은 EPSG:5186 격자라 메르카토르와 미세하게 틀어지지만 지자체 크기에서는 몇 m 안입니다. */
+    let heatOk = false;
+    if (o.heat && o.heat.url && o.heat.bounds) {
+      const img = await new Promise(function (res) { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = function () { res(im); }; im.onerror = function () { res(null); }; im.src = o.heat.url; });
+      if (img) {
+        const hb = o.heat.bounds;
+        const X0 = px(hb.sw[1]), X1 = px(hb.ne[1]), Y0 = py(hb.ne[0]), Y1 = py(hb.sw[0]);
+        ctx.globalAlpha = o.heat.opacity == null ? 1 : o.heat.opacity;
+        ctx.drawImage(img, X0, Y0, X1 - X0, Y1 - Y0);
+        ctx.globalAlpha = 1;
+        heatOk = true;
+      }
+    }
+
     /* ③ 조사지 경계 */
     if (ring) {
       ctx.beginPath();
@@ -220,7 +235,7 @@ const AuriDocMap = (function () {
 
     return {
       dataUrl: canvas.toDataURL('image/png'),
-      zoom: z, baseOk: baseOk, attribution: attr,
+      zoom: z, baseOk: baseOk, heatOk: heatOk, attribution: attr,
       /* 사진 위치를 지도에서 찍을 때 쓰라고 되돌리는 함수도 넘깁니다 */
       toLatLng: function (canvasX, canvasY) {
         return {
