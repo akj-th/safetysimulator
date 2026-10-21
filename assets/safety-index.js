@@ -38,7 +38,7 @@ const AuriSafetyIndex = (function () {
     const head = `<tr><th>연도</th>${cols.map((f) => `<th${focus.has(f) ? ' class="focus"' : ''}>${LABEL[f]}</th>`).join('')}</tr>`;
     const rows = ys.map((y) => `<tr><th>${y}</th>${cols.map((f) => {
       const g = si.grades[y] ? si.grades[y][f] : null;
-      const txt = g == null ? '-' : g + '등급';
+      const txt = g == null ? '-' : String(g);   // 숫자만 ('등급' 생략 — 2026-10-21)
       return `<td${focus.has(f) ? ' class="focus"' : ''}>${focus.has(f) ? '<b style="color:' + gradeColor(g) + '">' + txt + '</b>' : '<span style="color:' + gradeColor(g) + '">' + txt + '</span>'}</td>`;
     }).join('')}</tr>`).join('');
     return `<table class="si-table"><thead>${head}</thead><tbody>${rows}</tbody></table>`;
