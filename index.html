@@ -901,7 +901,8 @@ function clearDongHea() {
 /* 지도·스트리트뷰 아래 읍면동별 HEA 지표 표 — 끄기 상태면 감추고, 축을 켜면 표시(켠 축의 행 강조) */
 function renderHeaTable() {
   const panel = document.getElementById('heaPanel');
-  const html = _hea.mode && _hea.data ? AuriDongHea.renderTable(_hea.data, { mode: _hea.mode }) : '';
+  /* 2026-10-21 담당자: 표는 축을 켜지 않아도 지도 아래에 **항상** 보이게 (행정동별 위험도 지도와 짝). 켠 축이 있으면 그 행만 강조 */
+  const html = _hea.data ? AuriDongHea.renderTable(_hea.data, { mode: _hea.mode }) : '';
   panel.hidden = !html;
   document.getElementById('heaTableBody').innerHTML = html;
   document.getElementById('heaPanelTag').textContent = html ? (_hea.data.shortLabel || _hea.data.label) : '';
