@@ -105,7 +105,7 @@
            제공사의 모델은 아예 나오지 않습니다. -->
       <!-- ★ 번호 태그 (2026-10-20 실무회의) — 이미지 안에는 ①②③ 번호 원만, 설명은 아래 범례로 -->
       <label class="opt" style="flex:none; gap:6px; align-items:center" title="시설마다 작은 번호 원을 이미지에 넣고, 무엇인지는 이미지 아래 범례에 적습니다 (글 태그는 모델이 안정적으로 못 그려 번호만)">
-        <input type="checkbox" id="tagsOn"> <span class="t" style="font-weight:400">번호 태그</span>
+        <input type="checkbox" id="tagsOn" checked> <span class="t" style="font-weight:400">번호 태그</span>
       </label>
       <select id="modelSel" style="width:auto; flex:none" title="같은 사진으로 모델을 바꿔가며 비교해 보세요">
         <option value="gemini-3-pro-image">Gemini 3 Pro · 고성능</option>
@@ -371,7 +371,8 @@ function showNonVisualNote(items) {
 window.addEventListener('load', async function () {
   document.getElementById('afterNote').textContent = AURI_AI_DISCLAIMER;   // 면책 문구 (ui.js 한 곳)
   renderTagLegend();                                                        // 저장된 번호 태그 범례가 있으면 다시 보임
-  try { document.getElementById('tagsOn').checked = !!sessionStorage.getItem('auri_after_tags'); } catch (e) { /* 없음 */ }
+  /* 기본은 켬 (2026-10-21 담당자). 번호 없이 만든 이미지를 저장해 둔 탭에서만 꺼진 채로 보임 */
+  try { if (sessionStorage.getItem('auri_after_image') && !sessionStorage.getItem('auri_after_tags')) document.getElementById('tagsOn').checked = false; } catch (e) { /* 없음 */ }
   await AuriPalette.load();   // 사업 이름·HEA·금액이 여기서 옵니다
   const loc = sessionStorage.getItem('auri_picked_location');
   const rxRaw = sessionStorage.getItem('auri_prescriptions');
@@ -463,6 +464,9 @@ async function loadModelList() {
           + byProvider[p].map(function (m) { return `<option value="${m.id}">${m.label}</option>`; }).join('')
           + '</optgroup>';
       }).join('');
+      /* 기본 모델 — GPT Image 2.5 Sunburst (2026-10-21 담당자). 목록에 없으면 첫 번째 */
+      const DEFAULT_MODEL = 'gpt-image-2.5-sunburst';
+      if ([...sel.options].some(function (o) { return o.value === DEFAULT_MODEL; })) sel.value = DEFAULT_MODEL;
     }
 
     /* 못 쓰는 제공사가 있으면 이유를 적어 둡니다.

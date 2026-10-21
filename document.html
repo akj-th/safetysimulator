@@ -76,6 +76,15 @@
   border-bottom:2px solid transparent; margin-bottom:-1px;
 }
 .doc-tab.on{color:var(--k); font-weight:700; border-bottom-color:var(--k)}
+.doc-tab:disabled{opacity:.4; cursor:default}
+.doc-edit-btn{color:var(--k); font-weight:700}
+.doc-edit-btn.saving{background:var(--k); color:var(--w)}
+.doc-edit-cancel, .doc-edit-reset{color:var(--g3)}
+/* 수정 모드 — 점선 테두리로 "지금 고치는 중"을 보임. 인쇄에는 안 나감 */
+.doc.editing{outline:2px dashed var(--main); outline-offset:14px; cursor:text}
+.doc.editing [contenteditable="true"]:focus{outline:none}
+.doc-note-edit{font-size:var(--fs-sm); color:var(--main); margin:0 0 14px}
+.doc-note-edit[hidden]{display:none}
 .doc-tab:hover{color:var(--k)}
 
 /* ── 4장: 좌 지도 / 우 현장사진 (원문 배치) ───────────────────────── */
@@ -263,11 +272,8 @@ img[hidden]{display:none !important}
       <h1>진단 문서</h1>
       <p class="sub">현장용 리포트로 현장에 나가기 전 확인할 것을 먼저 보고, 사전진단서는 AURI 양식 그대로 그다음에 정리합니다. 인쇄하면 지금 보고 있는 문서만 나옵니다.</p>
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap">
-      <!-- ★ Word 내보내기 (2026-10-20 실무회의 — AURI 는 HWP 로 편집하므로 PDF 대신 편집 가능한 파일) -->
-      <button class="btn ghost" onclick="exportWord()" title="지금 보고 있는 문서를 Word(.doc)로 내려받습니다. 한글(HWP)에서도 열립니다">Word 로 내보내기</button>
-      <button class="btn ghost" onclick="window.print()">인쇄 / PDF 저장</button>
-    </div>
+    <!-- Word 내보내기는 뺐습니다(2026-10-21): 글·표·그림만 넘어가고 배열·여백·레이아웃이 안 넘어가 쓸 수 없음. 대신 아래 "수정" 모드 -->
+    <button class="btn ghost" id="printBtn" onclick="window.print()">인쇄 / PDF 저장</button>
   </div>
 
   <!-- ★ 순서: 현장용 리포트 → 사전진단서 (2026-09-14 AURI 회의)
@@ -280,8 +286,14 @@ img[hidden]{display:none !important}
     <button type="button" class="doc-tab on" id="tabB" onclick="showDoc('b')">현장용 리포트</button>
     <button type="button" class="doc-tab" id="tabA" onclick="showDoc('a')">사전진단서</button>
     <button type="button" class="doc-tab" id="tabC" onclick="showDoc('c')">행안부 리포트(초안)</button>
+    <span style="flex:1"></span>
+    <!-- ★ 수정 모드 (2026-10-21 담당자) — 보고 있는 탭의 어떤 글이든 고칠 수 있음. 수정 중에는 인쇄가 잠기고, 저장하면 다시 풀림 -->
+    <button type="button" class="doc-tab doc-edit-reset" id="editReset" hidden onclick="resetEdit()" title="이 탭의 수정 내용을 버리고 자동 생성 문서로 되돌립니다">원래대로</button>
+    <button type="button" class="doc-tab doc-edit-cancel" id="editCancel" hidden onclick="cancelEdit()">취소</button>
+    <button type="button" class="doc-tab doc-edit-btn" id="editBtn" onclick="toggleEdit()" title="문서의 글을 직접 고칩니다">✎ 수정</button>
   </div>
 
+  <p class="doc-note-edit screen-only" id="docNoteEdit" hidden>수정 중입니다 — 글을 바로 고친 뒤 오른쪽 위 <b>저장</b>을 누르세요. 저장 전에는 인쇄·탭 이동이 잠깁니다.</p>
   <p class="note screen-only" id="docNote">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
     <span id="docNoteText"></span>
@@ -400,7 +412,62 @@ function auriBullet(b) {
   return `<p class="bullet"><span class="tag">(${esc(b.tag)})</span> ${esc(b.text)}${b.note ? `<br><span class="note-under" style="margin:0">* ${esc(b.note)}</span>` : ''}</p>`;
 }
 
+/* ★ AURI 보고서 원문 블록 → HTML (2026-10-21). 1장·붙임처럼 구조화하지 않은 부분을 글·표 그대로 싣습니다 */
+function auriBlocksHtml(from, to) {
+  const b = (_auri && _auri.blocks) || [];
+  const out = [];
+  const br = (t) => esc(t).replace(/\n/g, '<br>');
+  const imgs = (list, cls) => (list || []).map((src) => `<img src="${esc(src)}" alt="" class="${cls || ''}" style="max-width:100%;display:block;margin:4px auto">`).join('');
+  for (let i = from; i < Math.min(to, b.length); i++) {
+    const x = b[i];
+    if (x.type === 'table') {
+      const cellOf = (c) => (typeof c === 'string' ? { text: c, colSpan: 1, rowSpan: 1, imgs: [] } : c);
+      const rows = x.rows.map((r) => r.map(cellOf));
+      const cap = x.caption ? `<p class="h-sub" style="text-align:center;margin:10px 0 4px">${br(x.caption)}</p>` : '';
+      /* 그림만 든 1칸 표 = 그림 틀 (위치도 등) */
+      if (rows.length === 1 && rows[0].length === 1 && !rows[0][0].text && (rows[0][0].imgs || []).length) {
+        out.push(`<figure class="doc-map" style="margin:8px 0">${imgs(rows[0][0].imgs)}${x.caption ? `<figcaption>${br(x.caption)}</figcaption>` : ''}</figure>`);
+        continue;
+      }
+      const attr = (c) => `${c.colSpan > 1 ? ` colspan="${c.colSpan}"` : ''}${c.rowSpan > 1 ? ` rowspan="${c.rowSpan}"` : ''}`;
+      const cell = (c, tag) => `<${tag}${attr(c)}>${br(c.text)}${imgs(c.imgs)}</${tag}>`;
+      const head = rows.length > 1 && rows[0].every((c) => c.text.length < 40 && !(c.imgs || []).length) ? `<thead><tr>${rows[0].map((c) => cell(c, 'th')).join('')}</tr></thead>` : '';
+      const body = rows.slice(head ? 1 : 0).map((r) => `<tr>${r.map((c) => cell(c, 'td')).join('')}</tr>`).join('');
+      out.push(`${cap}<table class="tight auri-raw">${head}<tbody>${body}</tbody></table>`);
+    } else if (x.type === 'img') out.push(x.src ? `<figure class="doc-map" style="margin:8px 0">${imgs([x.src])}</figure>` : '');
+    else if (x.type === 'h2') out.push(`</section><section class="chapter"><h2 class="h-chapter">${br(x.text)}</h2>`);
+    else if (x.type === 'h3') out.push(`<h3 class="h-section">□ ${br(x.text)}</h3>`);
+    else if (x.type === 'bullet') out.push(`<p class="bullet">${br(x.text)}</p>`);
+    else if (x.type === 'sub') out.push(`<p style="padding-left:44px;margin:2px 0">- ${br(x.text)}</p>`);
+    else if (x.type === 'caption') out.push(`<p class="h-sub" style="text-align:center;margin:8px 0 4px">${br(x.text)}</p>`);
+    else if (x.type === 'check') out.push(`<p class="bullet" style="padding-left:30px">▸ ${br(x.text)}</p>`);
+    else if (x.type === 'note') out.push(`<p class="note-under">${br(x.text)}</p>`);
+    else out.push(`<p>${br(x.text)}</p>`);
+  }
+  return out.join('');
+}
+/* AURI 붙임(원문) — 2장 뒤의 모든 블록. 전체본(부천 등)에만 있습니다 */
+function auriAppendix() {
+  if (!_auri || !_auri.blocks || _auri.ch2End == null || _auri.ch2End < 0 || _auri.ch2End >= _auri.blocks.length - 1) return '';
+  const html = auriBlocksHtml(_auri.ch2End + 1, _auri.blocks.length);
+  if (!html) return '';
+  return `<section class="chapter"><p class="h-sub" style="margin:0">붙임 — AURI 사전분석 보고서 원문</p>${html}</section>`;
+}
+
 function auriCh1() {
+  /* 원문 블록이 있으면(전체본) 1장을 통째로 원문으로 — 글·표 전부 */
+  if (_auri && _auri.blocks && _auri.ch2Start > 0) {
+    const first = _auri.blocks[0];
+    const skip = first && first.type !== 'h2' && /사전분석 보고서|사전진단|^\(.*\)$/.test(first.text || '') ? 1 : 0;   // 표지 제목 줄은 cover 에 있음
+    const html = auriBlocksHtml(skip, _auri.ch2Start);
+    return `<section class="chapter">${html.replace(/^<\/section><section class="chapter">/, '')}
+    ${_dongHea ? `<h3 class="h-section">[참고] 읍면동별 복합 위험도 및 잠재 취약성(HEA) 분석 <span class="h-sub">시뮬레이터 산출</span></h3>${AuriDongHea.renderTable(_dongHea, { perTable: 7, fillTo: 7, caption: '[표 2-1] 읍면동별 HEA 지표' })}` : ''}
+    </section>`;
+  }
+  return auriCh1Fallback();
+}
+
+function auriCh1Fallback() {
   const name = _data.shortLabel;
   const c = _auri && _auri.ch1;
   const focusLine = _focus.map((f) => f.label).join('·');
@@ -515,7 +582,7 @@ function auriCh2() {
 function chapter1() {
   return `
   <section class="chapter">
-    <h2 class="h-chapter">붙임 1. 개요 <span class="h-sub">분석 자료원과 복합위험지구 선정 기준</span></h2>
+    <h2 class="h-chapter">별첨 1. 개요 <span class="h-sub">분석 자료원과 복합위험지구 선정 기준</span></h2>
 
     <h3 class="h-section">1.1 자료원 및 분석 지표 구성</h3>
     <p class="bullet"><span class="tag">(대상 안전분야)</span>
@@ -580,7 +647,7 @@ function chapter2() {
 
   return `
   <section class="chapter">
-    <h2 class="h-chapter">붙임 2. ${esc(_data.shortLabel)} 중점관리분야 현황 <span class="h-sub">119 구급출동 통계 · 시뮬레이터 산출</span></h2>
+    <h2 class="h-chapter">별첨 2. ${esc(_data.shortLabel)} 중점관리분야 현황 <span class="h-sub">119 구급출동 통계 · 시뮬레이터 산출</span></h2>
 
     <h3 class="h-section">2.1 중점관리분야별 사고 발생 일반 현황</h3>
     <p class="bullet"><span class="tag">(중점관리분야)</span>
@@ -668,7 +735,7 @@ function chapter3() {
 
   return `
   <section class="chapter">
-    <h2 class="h-chapter">붙임 3. 안전사고 공간분석 <span class="h-sub">시뮬레이터 산출</span></h2>
+    <h2 class="h-chapter">별첨 3. 안전사고 공간분석 <span class="h-sub">시뮬레이터 산출</span></h2>
 
     <h3 class="h-section">3.1 GIS 기반 사고 밀집지역 도출</h3>
     <p class="bullet">사고 밀집지역인 ${esc(_data.shortLabel)} 중점대상지는
@@ -876,7 +943,7 @@ function rxSplitTables(items, opts) {
 function chapter5() {
   return `
   <section class="chapter">
-    <h2 class="h-chapter">붙임 4. 시뮬레이터 처방 사업 목록 <span class="h-sub">진단 지점 기준</span></h2>
+    <h2 class="h-chapter">별첨 4. 시뮬레이터 처방 사업 목록 <span class="h-sub">진단 지점 기준</span></h2>
     ${_items.length ? rxSplitTables(_items, { amount: true }) : '<p class="bullet">처방된 사업 없음</p>'}
   </section>`;
 }
@@ -935,7 +1002,7 @@ function hotspotCards() {
   const list = _hotspots.slice(0, 10);
   const head = `
   <section class="chapter">
-    <h2 class="h-chapter">붙임 5. 주요 거점별 진단 카드 <span class="h-sub">밀도 높은 중심지 기준 · 시뮬레이터 산출</span></h2>
+    <h2 class="h-chapter">별첨 5. 주요 거점별 진단 카드 <span class="h-sub">밀도 높은 중심지 기준 · 시뮬레이터 산출</span></h2>
     <p class="note-under" style="margin-bottom:10px">* 복합위험지구 밖 지점도 활용할 수 있도록, 119 출동 밀도가 몰린 거점마다 행정동 · 취약 요인(H/E/A) · 맞춤형 사업 · 개선 전/후 예시를 자동으로 채웁니다(2026-10-20 실무회의).
       거점은 중점 3분야 밀도의 상위 지점이며 관리자가 지도에서 옮기거나 뺀 것이 반영됩니다. 취약 요인은 동별 HEA 에 지역안전지수 가중치를 곱한 값, 사업은 연결표의 예비 목록입니다. ${esc(AuriSafetyIndex.DISCLAIMER)}</p>`;
   if (!list.length) return head + '<p class="bullet">이 지자체는 거점 자료가 없습니다 (TIF 미수신 또는 임계값 미달).</p></section>';
@@ -1330,56 +1397,83 @@ function closeMapPick() {
 }
 
 /* ── 탭 ──────────────────────────────────────────────────────────── */
-/* ★ Word 로 내보내기 (2026-10-20 실무회의 — AURI 는 HWP 로 편집하므로 PDF 가 아니라 편집 가능한 파일)
-   지금 보이는 탭의 HTML 을 MHTML(.doc) 로 묶어 내려받습니다. Word 가 그대로 열고, 한글(HWP)도 .doc 으로 읽습니다.
-   - 입력칸은 인쇄용 사본(.doc-fill-print)의 글로, 화면 전용 요소(.screen-only)·버튼은 뺍니다
-   - 이미지(data:)는 MHTML 의 별도 파트로 넣고 파일 이름으로 참조 — Word 는 data: URI 를 안정적으로 읽지 못합니다
-   - 캔버스 지도는 PNG 로 바꿔 넣습니다 */
-function exportWord() {
-  const which = !document.getElementById('docA').hidden ? 'a' : !document.getElementById('docC').hidden ? 'c' : 'b';
-  const src = document.getElementById('doc' + which.toUpperCase());
-  const clone = src.cloneNode(true);
-  /* 캔버스 → 이미지 (복제본에는 그림이 없으므로 원본 캔버스에서 읽음) */
-  const canvases = src.querySelectorAll('canvas');
-  clone.querySelectorAll('canvas').forEach((c, i) => {
-    try { const img = document.createElement('img'); img.src = canvases[i].toDataURL('image/png'); c.replaceWith(img); } catch (e) { c.remove(); }
-  });
-  clone.querySelectorAll('.screen-only, textarea, button, select, input, .doc-fill-head').forEach((el) => el.remove());
-  clone.querySelectorAll('[hidden]').forEach((el) => el.remove());
-  clone.querySelectorAll('.doc-inline').forEach((el) => { el.removeAttribute('contenteditable'); });
-  const parts = []; let k = 0;
-  clone.querySelectorAll('img').forEach((img) => {
-    const m = /^data:(image\/[a-z+]+);base64,(.+)$/s.exec(img.getAttribute('src') || '');
-    if (!m) { if (!/^https?:/.test(img.getAttribute('src') || '')) img.setAttribute('src', location.origin + '/' + img.getAttribute('src')); return; }
-    const name = `img${++k}.${m[1].includes('png') ? 'png' : 'jpg'}`;
-    parts.push({ name, type: m[1], b64: m[2] });
-    img.setAttribute('src', name); img.setAttribute('width', '640'); img.removeAttribute('style');
-  });
-  const css = Array.from(document.querySelectorAll('style')).map((s) => s.textContent).join('\n');
-  const title = document.getElementById('printFoot').textContent || '진단 문서';
-  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>${esc(title)}</title>
-<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
-<style>${css}
-@page{size:A4;margin:18mm 16mm 20mm} body{font-family:'맑은 고딕',Pretendard,sans-serif;font-size:10.5pt;line-height:1.6;color:#000}
-table{border-collapse:collapse;width:100%} th,td{border:1px solid #999;padding:4px 6px;font-size:9.5pt;vertical-align:top} th{background:#F5F5F5;color:#000}
-img{max-width:100%} figure{margin:6px 0} figcaption{font-size:9pt;color:#666}
-.h-chapter{font-size:15pt;font-weight:700;margin:18pt 0 8pt} .h-section{font-size:12pt;font-weight:700;margin:12pt 0 6pt} .h-sub{font-size:9pt;color:#666;font-weight:400}
-.note-under{font-size:9pt;color:#666} .chapter{page-break-before:always} .doc-fill-print{display:block !important;border:1px solid #ccc;padding:6px;min-height:24pt}
-.slot{border:1px dashed #999;padding:20px;text-align:center;color:#666} .tag-legend b{border:1px solid #000;padding:0 5px}</style></head>
-<body><div class="doc">${clone.innerHTML}</div></body></html>`;
-  const boundary = '----=_AURI_DOC_' + Date.now();
-  const b64 = (s) => btoa(unescape(encodeURIComponent(s)));
-  const wrap = (s) => s.replace(/(.{76})/g, '$1\r\n');
-  let mht = `MIME-Version: 1.0\r\nContent-Type: multipart/related; boundary="${boundary}"; type="text/html"\r\n\r\n` +
-    `--${boundary}\r\nContent-Type: text/html; charset="utf-8"\r\nContent-Transfer-Encoding: base64\r\nContent-Location: file:///C:/auri/index.html\r\n\r\n${wrap(b64(html))}\r\n\r\n`;
-  parts.forEach((p) => { mht += `--${boundary}\r\nContent-Type: ${p.type}\r\nContent-Transfer-Encoding: base64\r\nContent-Location: file:///C:/auri/${p.name}\r\n\r\n${wrap(p.b64)}\r\n\r\n`; });
-  mht += `--${boundary}--\r\n`;
-  const blob = new Blob([mht], { type: 'application/msword' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${_data ? _data.shortLabel + '_' : ''}${which === 'a' ? '사전진단서' : which === 'c' ? '행안부리포트' : '현장용리포트'}_${new Date().toISOString().slice(0, 10)}.doc`;
-  document.body.appendChild(a); a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+/* ════════════════════════════════════════════════════════════════════
+   ★ 수정 모드 (2026-10-21 담당자) — 탭 맨 오른쪽 "✎ 수정" → 보고 있는 문서 전체가 편집 가능(contenteditable).
+   저장하면 그 탭의 HTML 을 auri_doc_html 에 남기고(프로젝트 저장에 포함), 다시 열 때 자동 생성 대신 그 HTML 을 씁니다.
+   이미지(data:)는 HTML 에 넣지 않고 열쇠(data-imgkey)만 남겼다가 다시 그릴 때 같은 그림을 찾아 넣습니다 — 저장 공간 때문.
+   "원래대로" 로 자동 생성 문서로 되돌릴 수 있습니다. 수정 중에는 인쇄·탭 이동이 잠깁니다.
+   ════════════════════════════════════════════════════════════════════ */
+const DOC_HTML_KEY = 'auri_doc_html';
+let _editing = false;
+const _imgReg = {};
+function imgKey(src) { let h = 0; const step = Math.max(1, Math.floor(src.length / 997)); for (let i = 0; i < src.length; i += step) h = (h * 31 + src.charCodeAt(i)) | 0; return src.length + ':' + (h >>> 0).toString(36); }
+function registerImages(root) { root.querySelectorAll('img').forEach((img) => { const v = img.getAttribute('src') || ''; if (v.startsWith('data:')) _imgReg[imgKey(v)] = v; }); }
+function loadDocHtml() { try { return JSON.parse(sessionStorage.getItem(DOC_HTML_KEY) || '{}') || {}; } catch (e) { return {}; } }
+function saveDocHtml(all) { if (Object.keys(all).length) sessionStorage.setItem(DOC_HTML_KEY, JSON.stringify(all)); else sessionStorage.removeItem(DOC_HTML_KEY); }
+function docEl(which) { return document.getElementById('doc' + which.toUpperCase()); }
+function currentTab() { return !document.getElementById('docA').hidden ? 'a' : !document.getElementById('docC').hidden ? 'c' : 'b'; }
+/** 자동 생성한 뒤 호출 — 저장된 수정본이 있으면 그것으로 바꿔치기 */
+function applySavedDoc(which) {
+  const el = docEl(which);
+  registerImages(el);
+  const saved = loadDocHtml()[which];
+  if (!saved) return false;
+  el.innerHTML = saved;
+  el.querySelectorAll('img[data-imgkey]').forEach((img) => { const v = _imgReg[img.dataset.imgkey]; if (v) img.setAttribute('src', v); });
+  return true;
+}
+function setEditUi() {
+  const which = currentTab();
+  document.getElementById('editBtn').textContent = _editing ? '저장' : '✎ 수정';
+  document.getElementById('editBtn').classList.toggle('saving', _editing);
+  document.getElementById('editCancel').hidden = !_editing;
+  document.getElementById('editReset').hidden = _editing || !loadDocHtml()[which];
+  document.getElementById('printBtn').disabled = _editing;
+  document.getElementById('printBtn').title = _editing ? '수정을 저장한 뒤 인쇄할 수 있습니다' : '';
+  ['tabA', 'tabB', 'tabC'].forEach((id) => { document.getElementById(id).disabled = _editing; });
+  const note = document.getElementById('docNoteEdit');
+  if (note) note.hidden = !_editing;
+}
+function toggleEdit() {
+  if (_editing) return saveEdit();
+  const el = docEl(currentTab());
+  _editing = true;
+  el.contentEditable = 'true';
+  el.classList.add('editing');
+  setEditUi();
+  el.focus();
+}
+function saveEdit() {
+  const which = currentTab();
+  const el = docEl(which);
+  el.contentEditable = 'false';
+  el.classList.remove('editing');
+  /* 입력칸(textarea)의 지금 값을 HTML 에도 반영 — innerHTML 은 처음 값만 들고 있어서 */
+  el.querySelectorAll('textarea').forEach((t) => { t.textContent = t.value; });
+  const clone = el.cloneNode(true);
+  clone.querySelectorAll('img').forEach((img) => { const v = img.getAttribute('src') || ''; if (v.startsWith('data:')) { _imgReg[imgKey(v)] = v; img.dataset.imgkey = imgKey(v); img.removeAttribute('src'); } });
+  const all = loadDocHtml();
+  all[which] = clone.innerHTML;
+  try { saveDocHtml(all); } catch (e) { alert('수정 내용이 너무 커서 브라우저에 저장하지 못했습니다. 화면에는 남아 있지만 다시 열면 사라집니다.'); }
+  _editing = false;
+  setEditUi();
+  AuriDocEdit.refresh();
+}
+function cancelEdit() {
+  _editing = false;
+  const el = docEl(currentTab());
+  el.contentEditable = 'false';
+  el.classList.remove('editing');
+  renderAll();          // 저장된 수정본(있으면) 또는 자동 생성으로 되돌림
+  setEditUi();
+}
+function resetEdit() {
+  if (!confirm('이 탭의 수정 내용을 모두 버리고 자동 생성 문서로 되돌립니다. 계속할까요?')) return;
+  const all = loadDocHtml();
+  delete all[currentTab()];
+  saveDocHtml(all);
+  renderAll();
+  setEditUi();
 }
 
 function showDoc(which) {
@@ -1398,6 +1492,7 @@ function showDoc(which) {
     ? '행안부 「2차 현장보고서」 <b>예시안(공간분석 카드)</b> 구조입니다(10/20 실무회의). 공간유형·세부 유형은 제목 줄을 바로 고칠 수 있고, 사업목적·복합 사업 설명은 입력칸 또는 AI 의견 생성으로 채웁니다. 행안부 양식 원본을 받으면 항목 순서·제목을 그 양식대로 맞춥니다.'
     : '현장에서 볼 것만 담았습니다. 확인사항은 <b>네모 칸에 체크</b>하며 쓰도록 만들었습니다.';
   AuriDocEdit.refresh();
+  if (typeof setEditUi === 'function') setEditUi();
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -1501,10 +1596,12 @@ function afterTagLegend() {
 
 /* ── 그리기 ──────────────────────────────────────────────────────── */
 function renderAll() {
+  /* 사전진단서 = AURI 보고서 원문 전체(1장 · 2장 · 붙임) + 시뮬레이터 별첨 (2026-10-21: pdf 내용이 다 들어가야 함) */
   document.getElementById('docA').innerHTML =
-    cover() + auriCh1() + auriCh2() + chapter1() + chapter2() + chapter3() + chapter5() + hotspotCards();   // 옛 4장(밀집구간별)은 2장에 흡수 · 붙임 5 거점 카드(2026-10-20)
+    cover() + auriCh1() + auriCh2() + auriAppendix() + chapter1() + chapter2() + chapter3() + chapter5() + hotspotCards();
   document.getElementById('docB').innerHTML = fieldReport();
   document.getElementById('docC').innerHTML = moisReport();
+  ['a', 'b', 'c'].forEach(applySavedDoc);   // 수정 모드에서 저장한 것이 있으면 그것으로
   AuriDocEdit.refresh();
   /* 지도는 타일을 받아야 해서 시간이 걸립니다. 문서를 먼저 띄우고 뒤따라 채웁니다.
      한 번 그린 것은 _mapCache 에 남아 다시 그리지 않습니다. */

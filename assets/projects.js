@@ -19,7 +19,7 @@ const AuriProjects = (function () {
     'auri_picked_location', 'auri_input_image', 'auri_diagnosis_results',
     'auri_revision_log', 'auri_rx_overrides', 'auri_prescriptions',
     'auri_region_stats', 'auri_after_image', 'auri_doc_notes', 'auri_site_photos',
-    'auri_after_tags',   // 개선 이미지 번호 태그 범례 (2026-10-20)
+    'auri_after_tags', 'auri_doc_html',   // 개선 이미지 번호 태그 범례 (2026-10-20)
   ];
   const META_KEY = 'auri_project';
 

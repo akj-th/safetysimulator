@@ -31,7 +31,7 @@ export const SAVE_KEYS = [
   'auri_picked_location', 'auri_input_image', 'auri_diagnosis_results',
   'auri_revision_log', 'auri_rx_overrides', 'auri_prescriptions',
   'auri_region_stats', 'auri_after_image', 'auri_doc_notes', 'auri_site_photos',
-  'auri_after_tags',   // 개선 이미지 번호 태그 범례 (2026-10-20) — assets/projects.js 와 같은 목록
+  'auri_after_tags', 'auri_doc_html',   // 개선 이미지 번호 태그 범례 (2026-10-20) — assets/projects.js 와 같은 목록
 ];
 
 const MAX_BYTES = 25 * 1024 * 1024;   // 한 건 25MB — 서버가 받는 요청 한도(30MB) 안쪽
@@ -104,6 +104,11 @@ function cleanData(raw) {
 const parse = (s) => { try { return JSON.parse(s); } catch { return null; } };
 
 /* 어디까지 진행했는지 — 목록에 "3 리포트" 처럼 보여 줍니다 */
+/* 렌더 로그에서 "개선 후 이미지가 저장됐는가"를 바로 볼 수 있게 (2026-10-21 — 4단계 저장 안 됨 문의 추적용) */
+function partsOf(d) {
+  return Object.keys(d).map((k) => `${k.replace(/^auri_/, '')}(${Math.round(d[k].length / 1024)}K)`).join(' ');
+}
+
 function stepOf(d) {
   if (d.auri_after_image) return 4;
   if (d.auri_prescriptions) return 3;
@@ -212,7 +217,7 @@ export async function saveProject(user, body, siteRoot) {
       `UPDATE projects SET title=$1, addr=$2, lat=$3, lng=$4, region=$5, step=$6, summary=$7,
          size_bytes=$8, data=$9, hotspot_region=$11, hotspot_tag=$12, shared=$13, updated_at=now() WHERE id=$10`,
       [title, addr, lat, lng, region, stepOf(data), summaryOf(data), size, text, pid, hs ? hs.region : null, hs ? hs.tag : null, shared]);
-    console.log(`[프로젝트] ${user.username} 덮어쓰기 #${pid} (${Math.round(size / 1024)}KB)`);
+    console.log(`[프로젝트] ${user.username} 덮어쓰기 #${pid} (${Math.round(size / 1024)}KB) 포함: ${partsOf(data)}`);
     return { status: 200, ok: true, id: pid, title, created: false };
   }
 
@@ -220,7 +225,7 @@ export async function saveProject(user, body, siteRoot) {
     `INSERT INTO projects (user_id, title, addr, lat, lng, region, step, summary, size_bytes, data, hotspot_region, hotspot_tag, shared)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`,
     [user.id, title, addr, lat, lng, region, stepOf(data), summaryOf(data), size, text, hs ? hs.region : null, hs ? hs.tag : null, shared]);
-  console.log(`[프로젝트] ${user.username} 새로 저장 #${rows[0].id} (${Math.round(size / 1024)}KB)`);
+  console.log(`[프로젝트] ${user.username} 새로 저장 #${rows[0].id} (${Math.round(size / 1024)}KB) 포함: ${partsOf(data)}`);
   return { status: 200, ok: true, id: rows[0].id, title, created: true };
 }
 

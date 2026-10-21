@@ -19,6 +19,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { hwpxDoc } from './lib/hwpx.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'docs/사전진단 보고서 및 지도 작업본(AURI)/_text');
@@ -96,6 +97,63 @@ function parseCh1(text) {
   return { bullets, hea, combined };
 }
 
+/* ★ 보고서 전체를 블록으로 (2026-10-21 담당자: "pdf 에 있는 내용이 다 들어가야 하고 붙임도 동일")
+   글(h2·h3·bullet·sub·caption·check·note·p)과 표(rows[][])로만 나눕니다. 2장(분야별 표)은 위 parseField 가 구조화하므로
+   document.html 은 2장 구간(ch2Start~ch2End)을 건너뛰고 그 밖(1장·붙임)을 이 블록으로 그립니다.
+   표 규칙: hwpx 추출문에서 셀 끝은 " | ", 행 끝은 " | " 만 있는 줄 다음에 " | " 로 시작하지 않는 줄. 빈 줄이 오면 표 끝. */
+function parseBlocks(text) {
+  const lines = text.replace(/^\uFEFF/, '').split('\n');
+  const isCell = (l) => /^\s?\| ?/.test(l);
+  const blocks = [];
+  let i = 0;
+  const tableAhead = (j) => { for (let k = j; k < lines.length && k < j + 12; k++) { if (lines[k].trim() === '' && k > j) return false; if (isCell(lines[k])) return true; } return false; };
+  const readTable = (j) => {
+    const rows = []; let row = []; let cell = [];
+    const push = () => { row.push(clean(cell.join('\n').replace(/\n{2,}/g, '\n'))); cell = []; };
+    while (j < lines.length) {
+      const l = lines[j];
+      if (isCell(l)) {
+        push();
+        const rest = l.replace(/^\s?\| ?/, '');
+        if (rest.trim() === '') {
+          const next = lines[j + 1];
+          if (next === undefined || !isCell(next)) {
+            rows.push(row); row = [];
+            if (next === undefined || next.trim() === '') { j++; break; }
+          }
+        } else cell.push(rest);
+        j++;
+      } else { cell.push(l); j++; }
+    }
+    if (cell.join('').trim()) push();
+    if (row.length) rows.push(row);
+    return { rows: rows.filter((r) => r.some(Boolean)), end: j };
+  };
+  while (i < lines.length) {
+    const raw = lines[i];
+    if (!raw.trim()) { i++; continue; }
+    if (tableAhead(i)) { const t = readTable(i); if (t.rows.length) blocks.push({ type: 'table', rows: t.rows }); i = t.end; continue; }
+    const c = clean(raw);
+    if (!c) { i++; continue; }
+    if (/^\d+\.\s/.test(c)) blocks.push({ type: 'h2', text: c });
+    else if (/^□/.test(c)) blocks.push({ type: 'h3', text: c.replace(/^□\s*/, '') });
+    else if (/^○/.test(c)) blocks.push({ type: 'bullet', text: c.replace(/^○\s*/, '') });
+    else if (/^[-–]\s/.test(c)) blocks.push({ type: 'sub', text: c.replace(/^[-–]\s*/, '') });
+    else if (/^(\[표|\[그림|<.*>$|\(.*\)$)/.test(c)) blocks.push({ type: 'caption', text: c });
+    else if (/^[▸▶]/.test(c)) blocks.push({ type: 'check', text: c.replace(/^[▸▶]\s*/, '') });
+    else if (/^[※*＊⇒→]/.test(c)) blocks.push({ type: 'note', text: c });
+    else blocks.push({ type: 'p', text: c });
+    i++;
+  }
+  return blocks;
+}
+
+/* ★ hwpx 원본 찾기 — _text/<이름>.txt ↔ docs/…/<이름 공백>.hwpx (2026-10-21). 있으면 XML 로 블록을 만들어 표가 깨지지 않습니다 */
+const DOCS = path.join(ROOT, 'docs/사전진단 보고서 및 지도 작업본(AURI)');
+function findHwpx(dir, out = []) { for (const e of fs.readdirSync(dir, { withFileTypes: true })) { const p = path.join(dir, e.name); if (e.isDirectory()) { if (e.name !== '_text') findHwpx(p, out); } else if (/\.hwpx$/i.test(e.name)) out.push(p); } return out; }
+const HWPX = fs.existsSync(DOCS) ? findHwpx(DOCS) : [];
+const hwpxFor = (txtFile) => { const want = txtFile.replace(/\.txt$/, '').replace(/_/g, ' ').replace(/\s+/g, ''); return HWPX.find((p) => path.basename(p, '.hwpx').replace(/\s+/g, '') === want) || null; };
+
 const index = [];
 for (const file of fs.readdirSync(SRC).filter(f => f.endsWith('.txt'))) {
   const slug = slugOf(file); if (!slug) { console.warn('지자체 못 찾음:', file); continue; }
@@ -108,11 +166,34 @@ for (const file of fs.readdirSync(SRC).filter(f => f.endsWith('.txt'))) {
   const fields = parts.map(p => { const m = p.match(/^(\S+?)\s*분야/); return parseField(m ? m[1] : '?', p); }).filter(f => f.groups.length);
   const ch1 = full ? parseCh1(text.slice(0, startM >= 0 ? startM : undefined)) : null;
   const date = (file.match(/^(\d{4})_/) || [])[1];
-  const rec = { region: slug, label: (regions.find(r => r.region === slug) || {}).label, source: file.replace(/\.txt$/, '.hwpx'), sourceDate: date ? `2026-${date.slice(0, 2)}-${date.slice(2)}` : null, full, ch1, fields };
+  const hw = hwpxFor(file);
+  let blocks;
+  let imgCount = 0;
+  try {
+    if (hw) {
+      const doc = hwpxDoc(hw);
+      blocks = doc.blocks;
+      /* 본문 그림(위치도·종합도 등) → data/stats/auri-reports/img/<지역>/<id>.<ext> (커밋 대상). 블록에는 경로만 */
+      /* 원본(PNG·BMP, 지자체당 10~20MB)은 output/auri-img-raw/ 에만 두고(커밋 안 함), 화면이 읽는 것은
+         tools/shrink-images.mjs 가 만든 JPEG(data/stats/auri-reports/img/<지역>/<id>.jpg, 긴 변 1400px) 입니다. 빌드 뒤 그 스크립트를 꼭 돌리세요 */
+      const rawDir = path.join(ROOT, 'output/auri-img-raw', slug);
+      const srcOf = (id) => { const im = doc.images[id]; if (!im) return null; fs.mkdirSync(rawDir, { recursive: true }); fs.writeFileSync(path.join(rawDir, id + '.' + im.ext), im.buf); imgCount++; return 'data/stats/auri-reports/img/' + slug + '/' + id + '.jpg'; };
+      for (const b of blocks) {
+        if (b.type === 'img') { b.src = srcOf(b.id); }
+        if (b.type === 'table') for (const r of b.rows) for (const c of r) { c.imgs = (c.imgs || []).map(srcOf).filter(Boolean); }
+      }
+    } else blocks = parseBlocks(text);
+  } catch (e) { console.warn('hwpx 읽기 실패 → 글 추출 사용:', file, e.message); blocks = parseBlocks(text); }
+  let ch2Start = blocks.findIndex((b) => b.type === 'h2' && /^2\.\s*(복합위험지구|중점관리분야)/.test(b.text));
+  let ch2End = ch2Start >= 0 ? blocks.findIndex((b, k) => k > ch2Start && ((b.type === 'caption' && /종합도/.test(b.text)) || (b.type === 'table' && /종합도/.test(b.caption || '')) || (b.type === 'h2' && /^1\.\s*개요|^<붙임/.test(b.text)))) : -1;
+  if (ch2Start >= 0 && ch2End < 0) ch2End = blocks.length - 1;
+  else if (ch2End >= 0 && blocks[ch2End].type === 'h2') ch2End -= 1;
+  if (ch2Start < 0) { ch2Start = 0; ch2End = blocks.length - 1; }   // 약식본: 문서 전체가 2장
+  const rec = { region: slug, label: (regions.find(r => r.region === slug) || {}).label, source: file.replace(/\.txt$/, '.hwpx'), sourceDate: date ? `2026-${date.slice(0, 2)}-${date.slice(2)}` : null, full, ch1, fields, blocks, ch2Start, ch2End };
   fs.writeFileSync(path.join(OUT, slug + '.json'), JSON.stringify(rec, null, 1));
   const n = fields.reduce((a, f) => a + f.groups.reduce((b, g) => b + g.issues.length, 0), 0), m = fields.reduce((a, f) => a + f.groups.reduce((b, g) => b + g.issues.reduce((c, i) => c + i.measures.length, 0), 0), 0);
   index.push({ region: slug, full, sourceDate: rec.sourceDate, fields: fields.map(f => f.key), issues: n, measures: m });
-  console.log(`${slug.padEnd(11)} ${full ? '전체' : '약식'} ${rec.sourceDate || '-'} · 분야 ${fields.map(f => f.cat + '(' + f.groups.length + '유형/' + f.groups.reduce((b, g) => b + g.issues.length, 0) + '문제)').join(' ')} · 대책 ${m} · 확인사항 ${fields.reduce((a, f) => a + f.checks.length, 0)}${ch1 ? ' · 1장 글머리 ' + ch1.bullets.length + ' 결합표 ' + ch1.combined.length : ''}`);
+  console.log(`${slug.padEnd(11)} ${full ? '전체' : '약식'} 블록 ${blocks.length}(표 ${blocks.filter((b) => b.type === 'table').length}${hw ? ' hwpx 그림 ' + imgCount : ' txt'}) 2장 ${ch2Start}~${ch2End} ${rec.sourceDate || '-'} · 분야 ${fields.map(f => f.cat + '(' + f.groups.length + '유형/' + f.groups.reduce((b, g) => b + g.issues.length, 0) + '문제)').join(' ')} · 대책 ${m} · 확인사항 ${fields.reduce((a, f) => a + f.checks.length, 0)}${ch1 ? ' · 1장 글머리 ' + ch1.bullets.length + ' 결합표 ' + ch1.combined.length : ''}`);
 }
 fs.writeFileSync(path.join(OUT, 'index.json'), JSON.stringify({ generatedAt: new Date().toISOString().slice(0, 10), regions: index }, null, 1));
 console.log(`→ ${OUT} (${index.length}곳)`);

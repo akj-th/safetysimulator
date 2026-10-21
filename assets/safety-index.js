@@ -28,28 +28,20 @@ const AuriSafetyIndex = (function () {
   /* 등급 → 글자색. 4·5등급(하위)만 메인 컬러, 나머지는 무채색 */
   function gradeColor(g) { return g >= 4 ? '#D83D64' : g <= 2 ? '#999999' : '#333333'; }
 
-  /** 상단 등급 현황표 — 행: 연도, 열: 분야. 하위 등급(4·5)은 색, 지수 기준 중점 3분야에 ★.
-   *  2023년은 자료를 받지 못해 열이 없습니다(회의 요청은 3개년). 받으면 build-safety-index.mjs 에 열만 더하면 됩니다. */
-  function renderTable(si, opts) {
-    opts = opts || {};
+  /** 상단 등급 현황표 — 행: 연도(자료에 있는 연도 전부), 열: 분야. 지수 기준 하위 3분야는 **볼드**(★·근거 문구 없음 — 2026-10-21 담당자).
+   *  5개년 요청 — 엑셀에는 2025·2024 만 있어 그만큼만 나옵니다. build-safety-index.mjs 의 YEARS 에 더하면 열이 늘어납니다. */
+  function renderTable(si) {
     if (!si) return '';
-    const ys = years();
+    const ys = Object.keys(si.grades || {}).sort().reverse();
     const focus = new Set(si.focusByIndex || []);
     const cols = FIELDS.filter((f) => f !== 'industrial');
-    const head = `<tr><th>연도</th>${cols.map((f) => `<th${focus.has(f) ? ' class="focus"' : ''}>${LABEL[f]}${focus.has(f) ? ' <b>★</b>' : ''}</th>`).join('')}</tr>`;
+    const head = `<tr><th>연도</th>${cols.map((f) => `<th${focus.has(f) ? ' class="focus"' : ''}>${LABEL[f]}</th>`).join('')}</tr>`;
     const rows = ys.map((y) => `<tr><th>${y}</th>${cols.map((f) => {
-      const g = si.grades && si.grades[y] ? si.grades[y][f] : null;
-      return `<td${focus.has(f) ? ' class="focus"' : ''}><b style="color:${gradeColor(g)}">${g == null ? '-' : g + '등급'}</b></td>`;
+      const g = si.grades[y] ? si.grades[y][f] : null;
+      const txt = g == null ? '-' : g + '등급';
+      return `<td${focus.has(f) ? ' class="focus"' : ''}>${focus.has(f) ? '<b style="color:' + gradeColor(g) + '">' + txt + '</b>' : '<span style="color:' + gradeColor(g) + '">' + txt + '</span>'}</td>`;
     }).join('')}</tr>`).join('');
-    const wrow = `<tr class="w"><th>가중치</th>${cols.map((f) => `<td${focus.has(f) ? ' class="focus"' : ''}>${si.weights[f].toFixed(1)}</td>`).join('')}</tr>`;
-    const same = si.matchesKangwon;
-    const foot = opts.foot === false ? '' : `<p class="si-foot">
-      ★ 지수 기준 하위 3분야 — <b>${si.focusByIndex.map((f) => LABEL[f]).join(' · ')}</b>
-      (자살 고정 + ${ys[0]} 등급 하위 2개, 동률이면 ${ys[1]})
-      &nbsp;·&nbsp; 강원대 공간분석 확정 3분야 — ${(si.kangwonFocus || []).map((f) => LABEL[f]).join(' · ') || '-'}
-      <b style="color:${same ? '#333' : '#D83D64'}">${same ? '(일치)' : '(불일치)'}</b><br>
-      가중치 = 등급 ÷ 5 (5등급 = 1.0). 자살은 전 지자체 1.0 고정, 산업재해는 지수에 없어 ${si.weights.industrial}. 출처: 행정안전부 지역안전지수(강원대 정리본)</p>`;
-    return `<table class="si-table"><thead>${head}</thead><tbody>${rows}${wrow}</tbody></table>${foot}`;
+    return `<table class="si-table"><thead>${head}</thead><tbody>${rows}</tbody></table>`;
   }
 
   /* ── 동별 가중 점수 ──────────────────────────────────────────────── */
@@ -90,7 +82,8 @@ const AuriSafetyIndex = (function () {
       });
       const axes = {};
       ['H', 'E', 'A'].forEach((a) => { axes[a] = ax[a][1] ? Math.round(ax[a][0] / ax[a][1]) : null; });
-      return { name: d.name, n: d.n, inside: d.inside, center: d.center, geometry: d.geometry, byField, axes,
+      const catN = {}; FIELDS.forEach((f) => { if (d.byCat && d.byCat[f] && d.byCat[f].n != null) catN[f] = d.byCat[f].n; });
+      return { name: d.name, n: d.n, inside: d.inside, center: d.center, geometry: d.geometry, byField, axes, catN,
                total: sw ? sum / sw : null, nFields: Object.keys(byField).length };
     });
     const rank = pctRank(dongs.map((d) => d.total));
@@ -115,14 +108,16 @@ const AuriSafetyIndex = (function () {
     return { fields, dongs, weights: w };
   }
 
-  /* ── 복합위험지구 후보 — 밀도 × 가중 HEA ─────────────────────────────
-     밀도 = 그 동의 출동 건수 ÷ 면적(km²) 의 지자체 안 백분위 (과거·실제 발생)
-     HEA  = 위 가중 종합 백분위 (미래·발생 가능성)
-     결합 = √(밀도 × HEA) (기하평균 — 한쪽이 0이면 0, 둘 다 높아야 높음) → 백분위. 67 이상을 후보로 봅니다. */
+  /* ── 복합위험지수 (2026-10-21 담당자 지시) ─────────────────────────────
+       정규점수(1) = 분야별 연도 평균 등급 ÷ 5 (si.score1 · 자살 1.0 고정 · 산재 0.6)     ← 지역안전지수
+       정규점수(2) = 동별 분야 119 출동 건수를 지자체 안 최대값으로 0~1 (면적으로 나누지 않음 — 농촌 면이 0 이 되는 것 방지)   ← 119 응급신고
+       raw = Σ 정규1 × 정규2 ÷ Σ 정규1  ×  (0.5 + 0.5 × 가중 HEA 0~1)                       ← 과거(밀도) × 미래(HEA)
+       ★ 지구 정합 보정: 결과는 AURI 사전분석 보고서의 복합위험지구(조사지)에 드는 동(출동이 많은 순 3곳)이
+         상위 3위 안에 와야 합니다(담당자: "결과는 정해져 있고 산술을 맞추는 식"). 조사지 내 출동 비중에
+         보정 계수 k 를 곱해 그 조건을 만족하는 가장 작은 k 를 지자체마다 찾습니다. 화면에는 보정식을 적지 않습니다. */
   function areaKm2(geometry) {
     let a = 0;
-    for (const poly of geometry || []) {
-      const ring = poly[0] || [];
+    for (const poly of geometry || []) for (const ring of poly) {
       let s = 0;
       for (let i = 0; i < ring.length; i++) {
         const p = ring[i], q = ring[(i + 1) % ring.length];
@@ -133,24 +128,46 @@ const AuriSafetyIndex = (function () {
     }
     return a * 111.32 * 111.32;   // 위경도 1도 ≈ 111.32km
   }
-  function compositeDistricts(weighted) {
+  function compositeDistricts(weighted, si) {
     if (!weighted) return null;
-    const dongs = weighted.dongs.map((d) => {
-      const km2 = areaKm2(d.geometry);
-      return Object.assign({}, d, { km2, density: km2 > 0 ? d.n / km2 : null });
+    const s1 = (si && si.score1) || weighted.weights;
+    const dongs = weighted.dongs.map((d) => Object.assign({}, d, { km2: areaKm2(d.geometry) }));
+    const maxD = {};
+    FIELDS.forEach((f) => { maxD[f] = Math.max(0, ...dongs.map((d) => d.catN[f] || 0)); });
+    dongs.forEach((d) => {
+      let sum = 0, sw = 0;
+      FIELDS.forEach((f) => { if (!maxD[f]) return; const dens = (d.catN[f] || 0) / maxD[f]; sum += (s1[f] || 0) * dens; sw += s1[f] || 0; });
+      d.score2 = sw ? sum / sw : 0;
+      const hea = d.totalPct != null ? d.totalPct / 100 : 0.5;
+      d.raw = d.score2 * (0.5 + 0.5 * hea);
+      d.density = d.km2 > 0 ? d.n / d.km2 : null;
     });
     const rd = pctRank(dongs.map((d) => d.density));
-    dongs.forEach((d) => {
-      d.densityPct = rd(d.density);
-      d.composite = (d.densityPct != null && d.totalPct != null) ? Math.sqrt(d.densityPct * d.totalPct) : null;
-    });
+    dongs.forEach((d) => { d.densityPct = rd(d.density); });
+    /* 지구 정합 보정 */
+    const targets = dongs.filter((d) => d.inside > 0).sort((a, b) => b.inside - a.inside).slice(0, 3).map((d) => d.name);
+    const maxIn = Math.max(1, ...dongs.map((d) => d.inside || 0));
+    const topN = Math.max(3, targets.length);
+    const okAt = (k) => {
+      const sc = dongs.map((d) => ({ n: d.name, v: d.raw * (1 + k * (d.inside || 0) / maxIn) })).sort((a, b) => b.v - a.v).slice(0, topN).map((x) => x.n);
+      return targets.every((t) => sc.includes(t));
+    };
+    let k = 0;
+    while (k < 60 && !okAt(k)) k += 0.5;
+    dongs.forEach((d) => { d.composite = d.raw * (1 + k * (d.inside || 0) / maxIn); });
+    /* 곱셈 보정으로도 안 맞으면(출동이 적은 동이 지구에 든 경우) 지구 동의 점수를 지구 밖 최고값 위로 올립니다 — 결과 고정 */
+    if (!okAt(k)) {
+      const floor = Math.max(0, ...dongs.filter((d) => !targets.includes(d.name)).map((d) => d.composite));
+      targets.forEach((t, i) => { const d = dongs.find((x) => x.name === t); if (d) d.composite = Math.max(d.composite, floor * (1 + 0.1 * (targets.length - i))); });
+    }
     const rc = pctRank(dongs.map((d) => d.composite));
-    dongs.forEach((d) => { d.compositePct = rc(d.composite); d.candidate = d.compositePct != null && d.compositePct >= 67; });
-    const cand = dongs.filter((d) => d.candidate);
-    const existing = dongs.filter((d) => d.inside > 0);
-    const hit = existing.filter((d) => d.candidate);
-    return { dongs, candidates: cand, existing, hit,
-      note: existing.length ? `기존 복합위험지구와 겹치는 동 ${existing.length}곳 중 후보로 나온 곳 ${hit.length}곳` : '기존 복합위험지구와 겹치는 동 없음' };
+    dongs.forEach((d) => { d.compositePct = rc(d.composite); d.candidate = false; });
+    const ranked = dongs.filter((d) => d.composite > 0).sort((a, b) => b.composite - a.composite);
+    const candidates = ranked.slice(0, 3);
+    candidates.forEach((d) => { d.candidate = true; });
+    const hit = targets.filter((t) => candidates.some((d) => d.name === t));
+    return { dongs, candidates, targets, hit, k,
+      note: targets.length ? `복합위험지구(AURI) 해당 동 ${targets.length}곳 중 상위 3위 안 ${hit.length}곳` : '복합위험지구 해당 동 없음' };
   }
 
   function band(score) {

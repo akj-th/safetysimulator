@@ -22,6 +22,8 @@ const FIELDS = ['traffic', 'fire', 'crime', 'life', 'suicide', 'infection'];
 const LABEL = { traffic: '교통사고', fire: '화재', crime: '범죄', life: '생활안전', suicide: '자살', infection: '감염병', industrial: '산업재해' };
 const KO2KEY = { 교통사고: 'traffic', 교통: 'traffic', 화재: 'fire', 범죄: 'crime', 생활안전: 'life', 자살: 'suicide', 감염병: 'infection', 산업재해: 'industrial', 산재: 'industrial' };
 const INDUSTRIAL_W = 0.6;   // 3등급 상당
+const YEARS = ['2025', '2024'];   // 엑셀에 있는 연도 (담당자 요청은 5개년 — 2021~2023 등급 자료가 오면 여기와 열 위치를 더하면 됩니다)
+const YEAR_COL = { 2025: 5, 2024: 11 };   // 수정본 시트에서 그 연도 교통 열의 자리
 
 const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/stats/index.json'), 'utf8'));
 const regions = Array.isArray(idx) ? idx : idx.regions;
@@ -38,7 +40,7 @@ function slugOf(sido, name) {
 const wb = readXlsx(SRC);
 const sheet = Object.values(wb).find(s => (s.rows || s)[3] && String((s.rows || s)[3][0]).includes('광역권')) ;
 const rows = (sheet.rows || sheet);
-const out = { source: path.basename(SRC) + ' (수정본 시트 · 강원대)', generatedAt: new Date().toISOString().slice(0, 10), years: ['2025', '2024'],
+const out = { source: path.basename(SRC) + ' (수정본 시트 · 강원대)', generatedAt: new Date().toISOString().slice(0, 10), years: YEARS,
   rule: { weight: 'w = 등급 ÷ 5 (5등급 → 1.0). 자살은 모든 지자체 1.0 고정. 산업재해는 지수에 없어 ' + INDUSTRIAL_W + '. 정렬은 2025 등급, 동률이면 2024 (2026-10-20 실무회의)', industrialW: INDUSTRIAL_W },
   regions: {} };
 let matched = 0;
@@ -46,8 +48,10 @@ for (const r of rows.slice(4)) {
   if (!r[2] || !/\d/.test(String(r[5]))) continue;
   const slug = slugOf(String(r[1]), String(r[2]));
   if (!slug) { console.warn('⚠ 지자체 못 찾음:', r[1], r[2]); continue; }
-  const g25 = {}, g24 = {};
-  FIELDS.forEach((f, i) => { g25[f] = +r[5 + i]; g24[f] = +r[11 + i]; });
+  const grades = {}; YEARS.forEach(y => { grades[y] = {}; FIELDS.forEach((f, i) => { grades[y][f] = +r[YEAR_COL[y] + i]; }); });
+  const g25 = grades[YEARS[0]], g24 = grades[YEARS[1]];
+  /* ★ 정규점수(1) — 있는 연도 등급 평균 ÷ 5 (2026-10-21 담당자: 5개년 등급 × 가중치). 자살 1.0 고정 */
+  const score1 = {}; FIELDS.forEach(f => { const gs = YEARS.map(y => grades[y][f]).filter(Number.isFinite); score1[f] = f === 'suicide' ? 1 : +(gs.reduce((a, b) => a + b, 0) / gs.length / 5).toFixed(3); }); score1.industrial = INDUSTRIAL_W;
   const kangwon = (regions.find(x => x.region === slug).focusTypes || []).map(s => KO2KEY[String(s || '').trim()]).filter(Boolean);   // 강원대 확정 3분야는 index.json 의 focusTypes(검증된 값)
   const grade = (f) => Number.isFinite(g25[f]) ? g25[f] : g24[f];
   const weights = {}; FIELDS.forEach(f => { weights[f] = f === 'suicide' ? 1 : +(grade(f) / 5).toFixed(2); });
@@ -59,8 +63,9 @@ for (const r of rows.slice(4)) {
   const same = kangwon.length === 3 && focusByIndex.every(f => kangwon.includes(f));
   out.regions[slug] = {
     label: regions.find(x => x.region === slug).label,
-    grades: { 2025: g25, 2024: g24 },
+    grades,
     weights,
+    score1,                       // 연도 평균 등급 ÷ 5 — 복합위험지수의 분야 가중
     ranked,                       // 자살 뺀 5개 분야, 나쁜 등급부터
     focusByIndex,                 // 자살 + 하위 2개 = 지수 기준 중점 3분야
     lowGrades,                    // 4·5등급인 분야

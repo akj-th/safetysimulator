@@ -135,6 +135,12 @@
   .rmap-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
   .rmap-head .hea-seg{margin-left:0}
   .rmap-head .hea-seg button .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:1px}
+  .map-ctl{min-height:46px; display:flex; align-items:center; gap:10px; margin:0 0 10px; flex-wrap:wrap}
+  .map-ctl .hint{font-size:var(--fs-cap); color:var(--g2)}
+  .map-ctl .hea-seg{margin-left:0}
+  .map-ctl .hea-seg button b{font-weight:800; margin-right:4px}
+  .map-ctl .hea-seg button .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:1px}
+  .si-table th.focus{font-weight:800}
   .rmap-note{font-size:var(--fs-cap); color:var(--g2); margin:8px 0 0; line-height:1.6}
 
   .map-fallback{
@@ -214,7 +220,9 @@
 
   <div class="panes">
     <div class="panel">
-      <div class="panel-head"><h2>지도</h2></div>
+      <div class="panel-head"><h2>지도</h2><span class="tag">119 구급출동 밀도</span></div>
+      <!-- 오른쪽 패널의 조작 줄과 높이를 맞추는 자리 (2026-10-21 담당자: 소제목과 지도가 가로로 정렬) -->
+      <div class="map-ctl"><span class="hint">지역안전지수 하위 등급 분야의 3개년 출동 지점. 분야는 위 레이어에서 바꿀 수 있습니다.</span></div>
       <div id="map">
         <div class="map-fallback" id="mapFallback" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 20l-6-3V4l6 3m0 13l6-3m-6 3V7m6 10l6 3V7l-6-3m0 13V4m0 3L9 4"/></svg>
@@ -226,11 +234,11 @@
     <!-- ★ 우측: 행정동별 위험도 — 지역안전지수 가중 HEA (2026-10-20 실무회의. 전에는 스트리트뷰 자리)
          좌측(119 출동 밀도 = 과거·실제 발생)과 나란히 놓고 상대 비교합니다. 스트리트뷰는 아래로 내렸습니다. -->
     <div class="panel">
-      <div class="panel-head rmap-head">
+      <div class="panel-head">
         <h2>행정동별 위험도</h2>
         <span class="tag">지역안전지수 가중</span>
-        <div class="hea-seg" id="rmapSeg" role="group" aria-label="행정동별 위험도 표시" style="margin-left:auto"></div>
       </div>
+      <div class="map-ctl"><div class="hea-seg" id="rmapSeg" role="group" aria-label="행정동별 위험도 표시"></div></div>
       <div id="riskMap"></div>
       <p class="rmap-note" id="rmapNote"></p>
     </div>
@@ -739,7 +747,7 @@ async function applySafetyIndex(region) {
   const panel = document.getElementById('siPanel');
   _si.region = region; _si.si = si;
   _si.weighted = si && _hea.data ? AuriSafetyIndex.weightDongs(_hea.data, si) : null;
-  _si.composite = _si.weighted ? AuriSafetyIndex.compositeDistricts(_si.weighted) : null;
+  _si.composite = _si.weighted ? AuriSafetyIndex.compositeDistricts(_si.weighted, si) : null;
 
   /* ① 등급 현황표 */
   panel.hidden = !si;
@@ -761,7 +769,9 @@ async function applySafetyIndex(region) {
 
   /* ② 우측 지도 — 버튼: 종합 · 복합위험지구 후보 · 하위 등급 분야 */
   buildRmapSeg();
-  setRmapMode(_si.weighted ? 'total' : '');
+  /* 처음 보이는 것은 지수 기준 상위 1 분야 (2026-10-21) */
+  const first = _si.weighted && si ? si.focusByIndex.find(function (k) { return _si.weighted.fields.some(function (f) { return f.key === k; }); }) : null;
+  setRmapMode(first || (_si.weighted ? 'composite' : ''));
 
   /* ④ 시 전체가 한 화면 — 동 경계 전체 범위. 지자체가 바뀔 때 한 번만 */
   if (_hea.data && _si.fitted !== region) {
@@ -792,15 +802,13 @@ function buildRmapSeg() {
     b.addEventListener('click', function () { setRmapMode(mode); });
     seg.appendChild(b);
   };
-  btn('total', '종합', '#000', '7개 분야 (H·E·A 평균) × 지역안전지수 가중치 → 지자체 안 백분위');
-  btn('composite', '복합위험지구 후보', '#D83D64', '119 출동 밀도(과거) × 가중 HEA(미래) → 백분위 67 이상');
-  /* 하위 등급 분야 — 지수 기준 중점 3분야 + 4·5등급. 동별 자료가 있는 분야만 */
-  const fields = [];
-  si.focusByIndex.concat(si.lowGrades).forEach(function (k) { if (!fields.includes(k) && _si.weighted.fields.some(function (f) { return f.key === k; })) fields.push(k); });
-  fields.forEach(function (k) { btn(k, AuriSafetyIndex.LABEL[k], colorOf(k), `${AuriSafetyIndex.LABEL[k]} — 가중치 ${si.weights[k]}`); });
-  const order = _si.weighted.fields.map(function (f) { return `${f.label} ${f.regionScore}`; }).join(' · ');
-  note.innerHTML = `분야 재정렬(가중 점수, 지자체 전체) — ${order}<br>` +
-    `${_si.composite ? _si.composite.note + ' · 후보 ' + _si.composite.candidates.map(function (d) { return d.name; }).join('·') : ''}<br>` +
+  /* 상위 1·2·3 = 지역안전지수 하위 등급 분야(자살 포함) → 그다음 복합위험지구 후보 (2026-10-21 담당자) */
+  si.focusByIndex.forEach(function (k, i) {
+    if (!_si.weighted.fields.some(function (f) { return f.key === k; })) return;
+    btn(k, '<b>상위' + (i + 1) + '</b>' + AuriSafetyIndex.LABEL[k], colorOf(k), AuriSafetyIndex.LABEL[k] + ' — 지역안전지수 ' + (si.grades[AuriSafetyIndex.years()[0]] || {})[k] + '등급');
+  });
+  btn('composite', '복합위험지구 후보', '#D83D64', '지역안전지수 정규점수 × 119 출동 × 동별 HEA → 상위 3개 동');
+  note.innerHTML = (_si.composite && _si.composite.candidates.length ? '복합위험지구 후보(상위 3개 동) — <b>' + _si.composite.candidates.map(function (d) { return d.name; }).join(' · ') + '</b><br>' : '') +
     `* ${AuriSafetyIndex.DISCLAIMER}`;
 }
 
@@ -853,7 +861,7 @@ function showRmapInfo(d, at) {
     .map(function (f) { const b = d.byField[f.key]; return `${f.label} ${b.base}×${b.w} = <b>${b.weighted}</b>`; }).join(' · ');
   const html = `<div style="padding:12px 14px;font-size:13px;line-height:1.6;max-width:360px;font-family:Pretendard,sans-serif">
     <b style="font-size:15px">${d.name}</b> <span style="color:#999">출동 ${d.n.toLocaleString()}건${d.inside > 0 ? ' · 기존 복합위험지구' : ''}</span>
-    <div style="margin-top:6px"><b>가중 종합 ${d.totalPct == null ? '-' : d.totalPct}</b>${c && c.compositePct != null ? ` · 밀도 ${c.densityPct} · 복합 ${c.compositePct}${c.candidate ? ' <b style="color:#D83D64">후보</b>' : ''}` : ''}</div>
+    <div style="margin-top:6px"><b>가중 종합 ${d.totalPct == null ? '-' : d.totalPct}</b>${c && c.compositePct != null ? ` · 복합위험지수 ${c.compositePct}${c.candidate ? ' <b style="color:#D83D64">복합위험지구 후보</b>' : ''}` : ''}</div>
     ${axes ? `<div>취약 요인 — <b>${d.weak.join('·')}</b> (${axes})</div>` : ''}
     ${fields ? `<div style="margin-top:4px;color:#666;font-size:12px">${fields}</div>` : ''}
     <div style="margin-top:6px;color:#999;font-size:11px">가중치 = 지역안전지수 등급 ÷ 5 · 지자체 안 상대 순위(0~100)<br>${AuriSafetyIndex.DISCLAIMER}</div></div>`;

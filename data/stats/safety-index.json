@@ -1,6 +1,6 @@
 {
  "source": "지역별 안전유형 3개 추출_강원대.xlsx (수정본 시트 · 강원대)",
- "generatedAt": "2026-10-20",
+ "generatedAt": "2026-10-21",
  "years": [
   "2025",
   "2024"
@@ -37,6 +37,15 @@
     "life": 0.8,
     "suicide": 1,
     "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.8,
+    "fire": 0.9,
+    "crime": 0.4,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.6,
     "industrial": 0.6
    },
    "ranked": [
@@ -94,6 +103,15 @@
     "infection": 0.4,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.5,
+    "crime": 0.6,
+    "life": 0.7,
+    "suicide": 1,
+    "infection": 0.5,
+    "industrial": 0.6
+   },
    "ranked": [
     "traffic",
     "life",
@@ -145,6 +163,15 @@
     "life": 0.6,
     "suicide": 1,
     "infection": 0.6,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.5,
+    "crime": 0.8,
+    "life": 0.4,
+    "suicide": 1,
+    "infection": 0.7,
     "industrial": 0.6
    },
    "ranked": [
@@ -199,6 +226,15 @@
     "infection": 0.6,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.4,
+    "fire": 0.6,
+    "crime": 0.8,
+    "life": 0.4,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
    "ranked": [
     "crime",
     "infection",
@@ -246,6 +282,15 @@
     "fire": 0.8,
     "crime": 0.6,
     "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.6,
+    "fire": 0.6,
+    "crime": 0.7,
+    "life": 0.7,
     "suicide": 1,
     "infection": 0.8,
     "industrial": 0.6
@@ -304,6 +349,15 @@
     "infection": 0.8,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.8,
+    "fire": 0.6,
+    "crime": 0.8,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.7,
+    "industrial": 0.6
+   },
    "ranked": [
     "traffic",
     "infection",
@@ -353,6 +407,15 @@
     "traffic": 1,
     "fire": 1,
     "crime": 0.4,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.9,
+    "fire": 0.6,
+    "crime": 0.5,
     "life": 0.8,
     "suicide": 1,
     "infection": 0.8,
@@ -412,6 +475,15 @@
     "infection": 0.8,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.6,
+    "crime": 0.5,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.7,
+    "industrial": 0.6
+   },
    "ranked": [
     "traffic",
     "infection",
@@ -463,6 +535,15 @@
     "life": 0.8,
     "suicide": 1,
     "infection": 0.6,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.8,
+    "fire": 0.5,
+    "crime": 0.6,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.7,
     "industrial": 0.6
    },
    "ranked": [
@@ -517,6 +598,15 @@
     "infection": 1,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.6,
+    "fire": 0.4,
+    "crime": 0.6,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.9,
+    "industrial": 0.6
+   },
    "ranked": [
     "infection",
     "life",
@@ -568,6 +658,15 @@
     "life": 1,
     "suicide": 1,
     "infection": 1,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.6,
+    "crime": 0.3,
+    "life": 0.9,
+    "suicide": 1,
+    "infection": 0.8,
     "industrial": 0.6
    },
    "ranked": [
@@ -625,6 +724,15 @@
     "infection": 1,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.6,
+    "fire": 0.4,
+    "crime": 0.8,
+    "life": 0.7,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
    "ranked": [
     "infection",
     "life",
@@ -675,6 +783,15 @@
     "fire": 0.8,
     "crime": 0.4,
     "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.9,
+    "fire": 0.9,
+    "crime": 0.4,
+    "life": 0.9,
     "suicide": 1,
     "infection": 0.8,
     "industrial": 0.6
@@ -734,6 +851,15 @@
     "infection": 1,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.6,
+    "fire": 0.7,
+    "crime": 0.4,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.9,
+    "industrial": 0.6
+   },
    "ranked": [
     "infection",
     "life",
@@ -785,6 +911,15 @@
     "life": 0.8,
     "suicide": 1,
     "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.3,
+    "crime": 0.9,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.7,
     "industrial": 0.6
    },
    "ranked": [
@@ -839,6 +974,15 @@
     "life": 0.8,
     "suicide": 1,
     "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.6,
+    "fire": 0.6,
+    "crime": 0.8,
+    "life": 0.7,
+    "suicide": 1,
+    "infection": 0.6,
     "industrial": 0.6
    },
    "ranked": [
@@ -896,6 +1040,15 @@
     "infection": 1,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.8,
+    "fire": 0.9,
+    "crime": 0.7,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.9,
+    "industrial": 0.6
+   },
    "ranked": [
     "fire",
     "infection",
@@ -948,6 +1101,15 @@
     "life": 0.8,
     "suicide": 1,
     "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.6,
+    "crime": 0.5,
+    "life": 0.7,
+    "suicide": 1,
+    "infection": 0.7,
     "industrial": 0.6
    },
    "ranked": [
@@ -1004,6 +1166,15 @@
     "infection": 1,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.5,
+    "crime": 0.7,
+    "life": 0.7,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
    "ranked": [
     "infection",
     "crime",
@@ -1053,6 +1224,15 @@
     "fire": 0.6,
     "crime": 0.8,
     "life": 0.6,
+    "suicide": 1,
+    "infection": 0.6,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.9,
+    "fire": 0.7,
+    "crime": 0.6,
+    "life": 0.8,
     "suicide": 1,
     "infection": 0.6,
     "industrial": 0.6
@@ -1109,6 +1289,15 @@
     "infection": 0.4,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.8,
+    "crime": 0.6,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.5,
+    "industrial": 0.6
+   },
    "ranked": [
     "fire",
     "traffic",
@@ -1162,6 +1351,15 @@
     "infection": 0.2,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.9,
+    "crime": 0.3,
+    "life": 0.9,
+    "suicide": 1,
+    "infection": 0.5,
+    "industrial": 0.6
+   },
    "ranked": [
     "fire",
     "life",
@@ -1210,6 +1408,15 @@
     "fire": 0.2,
     "crime": 0.2,
     "life": 0.4,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.4,
+    "crime": 0.2,
+    "life": 0.7,
     "suicide": 1,
     "infection": 0.8,
     "industrial": 0.6
@@ -1266,6 +1473,15 @@
     "infection": 0.8,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.8,
+    "fire": 0.8,
+    "crime": 0.3,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.5,
+    "industrial": 0.6
+   },
    "ranked": [
     "traffic",
     "infection",
@@ -1316,6 +1532,15 @@
     "life": 1,
     "suicide": 1,
     "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.9,
+    "fire": 0.6,
+    "crime": 0.5,
+    "life": 0.9,
+    "suicide": 1,
+    "infection": 0.7,
     "industrial": 0.6
    },
    "ranked": [
@@ -1373,6 +1598,15 @@
     "infection": 1,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.8,
+    "fire": 0.7,
+    "crime": 0.5,
+    "life": 0.7,
+    "suicide": 1,
+    "infection": 0.9,
+    "industrial": 0.6
+   },
    "ranked": [
     "infection",
     "traffic",
@@ -1420,6 +1654,15 @@
    "weights": {
     "traffic": 0.6,
     "fire": 0.6,
+    "crime": 1,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.6,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.5,
+    "fire": 0.7,
     "crime": 1,
     "life": 0.6,
     "suicide": 1,
@@ -1478,6 +1721,15 @@
     "infection": 0.8,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.8,
+    "fire": 0.8,
+    "crime": 0.5,
+    "life": 0.7,
+    "suicide": 1,
+    "infection": 0.9,
+    "industrial": 0.6
+   },
    "ranked": [
     "infection",
     "traffic",
@@ -1533,6 +1785,15 @@
     "infection": 1,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.9,
+    "crime": 0.4,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.9,
+    "industrial": 0.6
+   },
    "ranked": [
     "fire",
     "infection",
@@ -1579,6 +1840,15 @@
    },
    "weights": {
     "traffic": 0.6,
+    "fire": 0.8,
+    "crime": 0.6,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 1,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.7,
     "fire": 0.8,
     "crime": 0.6,
     "life": 0.6,
@@ -1639,6 +1909,15 @@
     "infection": 0.8,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.8,
+    "fire": 0.9,
+    "crime": 0.7,
+    "life": 0.6,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
    "ranked": [
     "fire",
     "traffic",
@@ -1684,6 +1963,15 @@
     }
    },
    "weights": {
+    "traffic": 1,
+    "fire": 1,
+    "crime": 0.4,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
     "traffic": 1,
     "fire": 1,
     "crime": 0.4,
@@ -1747,6 +2035,15 @@
     "infection": 0.6,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.8,
+    "fire": 0.9,
+    "crime": 0.3,
+    "life": 1,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
    "ranked": [
     "life",
     "fire",
@@ -1797,6 +2094,15 @@
     "life": 0.8,
     "suicide": 1,
     "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.9,
+    "fire": 0.7,
+    "crime": 0.3,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.9,
     "industrial": 0.6
    },
    "ranked": [
@@ -1854,6 +2160,15 @@
     "infection": 0.2,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.8,
+    "fire": 0.5,
+    "crime": 0.3,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.5,
+    "industrial": 0.6
+   },
    "ranked": [
     "traffic",
     "life",
@@ -1907,6 +2222,15 @@
     "infection": 0.4,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.6,
+    "crime": 0.8,
+    "life": 0.8,
+    "suicide": 1,
+    "infection": 0.6,
+    "industrial": 0.6
+   },
    "ranked": [
     "crime",
     "life",
@@ -1956,6 +2280,15 @@
     "fire": 0.6,
     "crime": 0.2,
     "life": 1,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.9,
+    "fire": 0.7,
+    "crime": 0.3,
+    "life": 0.9,
     "suicide": 1,
     "infection": 0.8,
     "industrial": 0.6
@@ -2014,6 +2347,15 @@
     "infection": 0.8,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 1,
+    "fire": 0.6,
+    "crime": 0.5,
+    "life": 0.7,
+    "suicide": 1,
+    "infection": 0.7,
+    "industrial": 0.6
+   },
    "ranked": [
     "traffic",
     "life",
@@ -2064,6 +2406,15 @@
     "fire": 0.8,
     "crime": 0.6,
     "life": 0.6,
+    "suicide": 1,
+    "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.7,
+    "fire": 0.7,
+    "crime": 0.6,
+    "life": 0.5,
     "suicide": 1,
     "infection": 0.8,
     "industrial": 0.6
@@ -2122,6 +2473,15 @@
     "infection": 0.8,
     "industrial": 0.6
    },
+   "score1": {
+    "traffic": 0.9,
+    "fire": 0.3,
+    "crime": 0.3,
+    "life": 1,
+    "suicide": 1,
+    "infection": 0.7,
+    "industrial": 0.6
+   },
    "ranked": [
     "life",
     "traffic",
@@ -2173,6 +2533,15 @@
     "life": 0.8,
     "suicide": 1,
     "infection": 0.8,
+    "industrial": 0.6
+   },
+   "score1": {
+    "traffic": 0.6,
+    "fire": 0.5,
+    "crime": 0.7,
+    "life": 0.9,
+    "suicide": 1,
+    "infection": 0.7,
     "industrial": 0.6
    },
    "ranked": [
