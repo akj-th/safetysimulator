@@ -105,6 +105,18 @@
      디자인 규칙대로 세로선 없이 가로선만 · 머리행만 검정 반전 · 점수 색은 글자에만 · 켠 축의 행만 아주 옅게. */
   .hea-panel{margin-top:22px}
   .hea-panel[hidden]{display:none}
+  /* 행정동별 분야 HEA 판정 표 (2026-10-21) — 판정 1 은 메인색, 관리등급은 단계별 굵기 */
+  .hea-table.dense th, .hea-table.dense td{padding:8px 7px}
+  .hea-table td.j1{font-weight:800; color:var(--main)}
+  .hea-table td.j0{color:var(--g2)}
+  .hea-table td.grade{text-align:center; white-space:nowrap}
+  .hea-table td.grade.g3{font-weight:700}
+  .hea-table td.grade.g4{font-weight:800; color:var(--main)}
+  .hea-table thead tr.sub th{background:var(--g3); font-weight:400; font-size:var(--fs-cap)}
+  .hea-table td.sep, .hea-table th.sep{border-left:1px solid var(--g1)}
+  .hea-table td.dong{text-align:left; font-weight:700}
+  .hea-table tr.cand td{background:rgba(216,61,100,.05)}
+  .hea-foot{font-size:var(--fs-cap); color:var(--g3); margin:10px 0 0; line-height:1.6}
   /* 표 본체 스타일은 assets/theme.css "읍면동별 HEA 지표 표" (사전진단서 3.3 과 공용) */
 
   .picked .risk{font-size:var(--fs-sm); color:var(--g3); margin-top:6px}
@@ -255,8 +267,9 @@
   <!-- 읍면동별 HEA 취약도 지표 — 위 "동별 HEA 취약도"에서 H·E·A·종합 중 하나를 켜면 나타남 (2026-09-15, 사전진단서 3.3 에서 옮김) -->
   <div class="panel hea-panel" id="heaPanel" hidden>
     <div class="panel-head">
-      <h2>읍면동별 HEA 취약도 지표</h2>
+      <h2 id="heaPanelTitle">읍면동별 HEA 취약도 지표</h2>
       <span class="tag" id="heaPanelTag"></span>
+      <button type="button" class="btn-text" id="heaViewBtn" style="margin-left:auto" onclick="toggleHeaView()">지표 8개 표 보기</button>
     </div>
     <div class="panel-body" id="heaTableBody"></div>
   </div>
@@ -821,6 +834,7 @@ function clearRmap() {
 
 function setRmapMode(mode) {
   _si.mode = mode;
+  renderHeaTable();
   document.querySelectorAll('#rmapSeg button').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === mode); });
   clearRmap();
   if (!mode || !_si.weighted || !_rmap) return;
@@ -899,13 +913,91 @@ function clearDongHea() {
 }
 
 /* 지도·스트리트뷰 아래 읍면동별 HEA 지표 표 — 끄기 상태면 감추고, 축을 켜면 표시(켠 축의 행 강조) */
+/* ════════════════════════════════════════════════════════════════════
+   ★ 지도 아래 표 (2026-10-21 담당자) — 두 가지 보기를 한 패널에서 전환합니다
+     ① 분야 판정 표(기본): 행정동별 위험도에서 고른 분야의 HEA 취약요인 판정(0/1) · 총합 · 관리등급
+        + 오른쪽에 119 밀도 · 가중치 · 분야 지수 · 복합위험지수 · 복합위험지구(후보 / AURI 해당)
+        (AURI 사전분석 보고서 <행정동별 ○○분야 HEA 취약요인 판정 및 관리등급> 꼴에 119 밀도를 덧붙인 것)
+     ② 지표 8개 표: 전부터 있던 읍면동별 HEA 지표 표 (AuriDongHea.renderTable)
+   판정 기준(임시): 백분위 67 이상 = 1. E 는 회귀분석 기여가 양(+)이면 1. 관리등급 = 1 의 비율 — ≥75% 중점관리 · ≥50% 관리 · ≥25% 관찰 · 그 외 안전
+   ════════════════════════════════════════════════════════════════════ */
+const HEA_JUDGE = 67;
+let _heaView = 'field';            // 'field' | 'all'
+function toggleHeaView() { _heaView = _heaView === 'field' ? 'all' : 'field'; renderHeaTable(); }
+function fieldJudge(cat) {
+  const j = (v) => v == null ? null : (v >= HEA_JUDGE ? 1 : 0);
+  const ej = (v) => v == null ? null : (v > 0 ? 1 : 0);
+  const e = cat && cat.E && cat.E.groups;
+  const H = [j(cat && cat.H ? cat.H.score : null)];
+  const E = [ej(e ? e.old : null), ej(e ? e.road : null), ej(e ? e.facility : null)];
+  const A = [j(cat && cat.A && cat.A.repeat ? cat.A.repeat.score : null), j(cat && cat.A && cat.A.night ? cat.A.night.score : null), j(cat && cat.A && cat.A.place ? cat.A.place.score : null)];
+  const all = H.concat(E, A).filter((v) => v != null);
+  return { H, E, A, total: all.reduce((a, b) => a + b, 0), n: all.length };
+}
+function gradeOf(total, n) { if (!n) return null; const r = total / n; return r >= 0.75 ? '중점관리지역' : r >= 0.5 ? '관리지역' : r >= 0.25 ? '관찰지역' : '안전지역'; }
+
 function renderHeaTable() {
   const panel = document.getElementById('heaPanel');
-  /* 2026-10-21 담당자: 표는 축을 켜지 않아도 지도 아래에 **항상** 보이게 (행정동별 위험도 지도와 짝). 켠 축이 있으면 그 행만 강조 */
-  const html = _hea.data ? AuriDongHea.renderTable(_hea.data, { mode: _hea.mode }) : '';
-  panel.hidden = !html;
-  document.getElementById('heaTableBody').innerHTML = html;
-  document.getElementById('heaPanelTag').textContent = html ? (_hea.data.shortLabel || _hea.data.label) : '';
+  const body = document.getElementById('heaTableBody');
+  const title = document.getElementById('heaPanelTitle');
+  const tag = document.getElementById('heaPanelTag');
+  const btn = document.getElementById('heaViewBtn');
+  if (!_hea.data) { panel.hidden = true; body.innerHTML = ''; return; }
+  const mode = _si.mode;
+  const canField = !!(_si.weighted && _si.composite && mode);
+  if (_heaView === 'all' || !canField) {
+    /* ② 지표 8개 표 — 켠 축(H/E/A/종합)이 있으면 그 행 강조 */
+    const html = AuriDongHea.renderTable(_hea.data, { mode: _hea.mode });
+    panel.hidden = !html;
+    body.innerHTML = html;
+    title.textContent = '읍면동별 HEA 취약도 지표';
+    tag.textContent = _hea.data.shortLabel || _hea.data.label;
+    btn.textContent = canField ? '분야 판정 표 보기' : '';
+    return;
+  }
+  const si = _si.si, C = _si.composite;
+  const w = si.weights;
+  const dongOf = {}; _hea.data.dongs.forEach(function (d) { dongOf[d.name] = d; });
+  const cell = (v) => v == null ? '<td class="num hea-na">-</td>' : '<td class="num ' + (v ? 'j1' : 'j0') + '">' + v + '</td>';
+  const num = (v, cls) => v == null ? '<td class="num hea-na' + (cls ? ' ' + cls : '') + '">-</td>' : '<td class="num' + (cls ? ' ' + cls : '') + '">' + v + '</td>';
+  const gradeCell = (g) => g ? '<td class="grade ' + (g === '중점관리지역' ? 'g4' : g === '관리지역' ? 'g3' : '') + '">' + g + '</td>' : '<td class="grade hea-na">-</td>';
+  const flag = (d) => (d.candidate ? '<b style="color:var(--main)">후보</b>' : '') + (C.targets.includes(d.name) ? (d.candidate ? ' · ' : '') + '<span title="AURI 사전분석 보고서 복합위험지구에 드는 동">AURI 해당</span>' : '');
+  const rows = C.dongs.slice().sort(function (a, b) { return ((b.compositePct == null ? -1 : b.compositePct) - (a.compositePct == null ? -1 : a.compositePct)) || a.name.localeCompare(b.name, 'ko'); });
+  let head = '', trs = '';
+  if (mode === 'composite') {
+    const fks = si.focusByIndex;
+    head = '<thead><tr><th rowspan="2" class="hea-corner">행정동</th>' + fks.map(function (k) { return '<th colspan="2" class="sep">' + AuriSafetyIndex.LABEL[k] + ' <span class="hea-out">가중치 ' + w[k] + '</span></th>'; }).join('')
+         + '<th rowspan="2" class="sep">가중 종합</th><th rowspan="2">119 밀도</th><th rowspan="2">복합위험지수</th><th rowspan="2">복합위험지구</th></tr>'
+         + '<tr class="sub">' + fks.map(function () { return '<th class="sep">총합</th><th>관리등급</th>'; }).join('') + '</tr></thead>';
+    trs = rows.map(function (d) {
+      const hd = dongOf[d.name];
+      const cols = fks.map(function (k) { const jd = fieldJudge(hd && hd.byCat ? hd.byCat[k] : null); return num(jd.n ? jd.total + '/' + jd.n : null, 'sep') + gradeCell(gradeOf(jd.total, jd.n)); }).join('');
+      return '<tr' + (d.candidate ? ' class="cand"' : '') + '><td class="dong">' + d.name + '</td>' + cols + num(d.totalPct, 'sep') + num(d.densityPct) + num(d.compositePct) + '<td>' + flag(d) + '</td></tr>';
+    }).join('');
+  } else {
+    const k = mode, L = AuriSafetyIndex.LABEL[k];
+    head = '<thead><tr><th rowspan="2" class="hea-corner">행정동</th><th class="sep">H</th><th colspan="3" class="sep">E</th><th colspan="3" class="sep">A</th><th rowspan="2" class="sep">총합</th><th rowspan="2">관리등급</th>'
+         + '<th rowspan="2" class="sep">119 밀도</th><th rowspan="2">가중치</th><th rowspan="2">' + L + ' 지수</th><th rowspan="2" class="sep">복합위험지수</th><th rowspan="2">복합위험지구</th></tr>'
+         + '<tr class="sub"><th class="sep">H_1 피해집단</th><th class="sep">E_1 노후</th><th>E_2 도로</th><th>E_3 시설</th><th class="sep">A_1 반복</th><th>A_2 야간</th><th>A_3 장소</th></tr></thead>';
+    trs = rows.map(function (d) {
+      const hd = dongOf[d.name];
+      const jd = fieldJudge(hd && hd.byCat ? hd.byCat[k] : null);
+      const idx = d.byField[k] ? d.byField[k].pct : (d.cntPct ? d.cntPct[k] : null);
+      return '<tr' + (d.candidate ? ' class="cand"' : '') + '><td class="dong">' + d.name + '</td>'
+        + cell(jd.H[0]).replace('<td class="', '<td class="sep ') + cell(jd.E[0]).replace('<td class="', '<td class="sep ') + cell(jd.E[1]) + cell(jd.E[2])
+        + cell(jd.A[0]).replace('<td class="', '<td class="sep ') + cell(jd.A[1]) + cell(jd.A[2])
+        + num(jd.n ? jd.total + '/' + jd.n : null, 'sep') + gradeCell(gradeOf(jd.total, jd.n))
+        + num(d.cntPct ? d.cntPct[k] : null, 'sep') + num(w[k]) + num(idx) + num(d.compositePct, 'sep') + '<td>' + flag(d) + '</td></tr>';
+    }).join('');
+  }
+  body.innerHTML = '<div class="hea-table-wrap"><table class="hea-table dense">' + head + '<tbody>' + trs + '</tbody></table></div>'
+    + '<p class="hea-foot">* 판정 1 = 그 지표가 지자체 안 백분위 ' + HEA_JUDGE + ' 이상(상위). E 는 회귀분석 기여가 양(+)인 경우. 관리등급 = 판정 1 의 비율(75% 이상 중점관리 · 50% 관리 · 25% 관찰 · 그 외 안전). 표본 부족·자료 없음은 "-".<br>'
+    + '* 119 밀도 = 그 분야 3개년 출동 건수 × 가중치의 지자체 안 백분위 · 복합위험지수 = 지역안전지수 정규점수 × 119 출동 × 동별 HEA → 백분위, 상위 3개 동이 <b style="color:var(--main)">후보</b>. "AURI 해당" 은 사전분석 보고서 복합위험지구에 드는 동.<br>'
+    + '* ' + AuriSafetyIndex.DISCLAIMER + '</p>';
+  panel.hidden = false;
+  title.textContent = mode === 'composite' ? '행정동별 중점 분야 HEA 판정 · 복합위험지구' : '행정동별 ' + AuriSafetyIndex.LABEL[mode] + ' 분야 HEA 취약요인 판정 · 복합위험지구';
+  tag.textContent = _hea.data.shortLabel || _hea.data.label;
+  btn.textContent = '지표 8개 표 보기';
 }
 
 function setHeaMode(mode) {
