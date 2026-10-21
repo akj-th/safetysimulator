@@ -45,7 +45,11 @@ const AuriDocEdit = (function () {
     try { return JSON.parse(sessionStorage.getItem(STORE_KEY) || '{}'); }
     catch (e) { return {}; }
   }
-  function save(all) { sessionStorage.setItem(STORE_KEY, JSON.stringify(all)); }
+  function save(all) {
+    /* 저장 공간(보통 5MB)이 차면 조용히 빠지던 것 — 알려 줍니다 (2026-10-21) */
+    try { sessionStorage.setItem(STORE_KEY, JSON.stringify(all)); }
+    catch (e) { alert('문서 글을 브라우저에 저장하지 못했습니다 (저장 공간 부족). 현장 사진을 줄이거나 지운 뒤 다시 입력해 주세요.'); }
+  }
 
   function get(id) { return load()[id] || null; }
 

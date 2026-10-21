@@ -407,6 +407,9 @@ window.addEventListener('load', async function () {
   const savedAfter = sessionStorage.getItem('auri_after_image');
   if (savedAfter) {
     _lastGenerated = savedAfter;
+    /* ★ 2026-10-21 — 개선 후 **패널 자체**가 숨겨진 채였습니다(생성 버튼을 눌러야 열리는 구조).
+       이미지는 복원됐는데 패널이 안 보여 "4단계부터 저장이 안 된다"로 보였습니다. */
+    document.getElementById('afterPanel').style.display = 'block';
     const aimg = document.getElementById('afterImg');
     aimg.src = savedAfter;
     aimg.style.display = 'block';
