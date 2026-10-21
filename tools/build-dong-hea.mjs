@@ -800,9 +800,11 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
   /* 경계가 있으면 경계의 동 + 경계에 없지만 출동이 충분한 이름(표기 차이 확인용).
      "부천시"처럼 동 칸에 잘못 적힌 한두 건짜리 이름은 뺍니다 (unmatched 목록에는 남김) */
   const countOf = (d) => (s.dongs[d] ? Object.values(s.dongs[d]).reduce((a, b) => a + b.n, 0) : 0);
-  const allDongs = boundary
+  /* 행정동 경계 묶음이 이웃 시군구까지 걸릴 때(미추홀 표본의 5% 가 동구에 떨어져 동구 행정동 18개가 딸려옴)
+     출동이 0 인 동은 뺍니다 — 3년간 119 출동이 한 건도 없는 행정동은 다른 시군구의 동입니다 (2026-10-21) */
+  const allDongs = (boundary
     ? [...new Set([...Object.keys(boundary.byName), ...unmatched.filter((d) => countOf(d) >= CENTER_MIN_N)])].sort()
-    : dongNames;
+    : dongNames).filter((d) => DONG_UNIT.assign !== 'boundary' || countOf(d) > 0);
   const axisRaw = { H: {}, E: {}, A: {} };
   const indRaw = { hAge: {}, hSex: {}, eOld: {}, eRoad: {}, eFacility: {}, aRepeat: {}, aNight: {}, aPlace: {} };
   const perDong = {};
