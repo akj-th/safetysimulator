@@ -918,7 +918,7 @@ function rxSplitTables(items, opts) {
     const eff = AuriPalette.effectLabel(p);
     const src = p ? AuriPalette.sourceShort(p.source) : '';
     return `<tr class="${it.hea ? 'hea-' + it.hea : ''}">
-      <td>${esc(it.name)}${it.required ? ' <span class="h-sub">필수</span>' : ''}</td>
+      <td>${esc(it.name)}${it.required ? ' <span class="h-sub">필수</span>' : ''}${p && p.std ? `<br><span style="font-size:var(--fs-cap);color:var(--g2)">${esc(p.std.spaceType || '')}${p.std.unit ? ' · ' + esc(p.std.unit) : ''}</span>` : ''}</td>
       <td>${esc(it.category)}</td>
       <td><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span></td>
       <td>${it.priority ? it.priority.label : '-'}</td>

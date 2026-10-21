@@ -1,28 +1,28 @@
 {
-  "generatedAt": "2026-09-15",
-  "dongUnit": "법정동",
+  "generatedAt": "2026-10-21",
+  "dongUnit": "행정동",
   "regions": [
     {
       "region": "andong",
       "label": "경상북도 안동시",
-      "dongs": 56,
-      "scored": 8,
+      "dongs": 24,
+      "scored": 9,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
     {
       "region": "bucheon",
       "label": "경기도 부천시",
-      "dongs": 24,
-      "scored": 22,
+      "dongs": 37,
+      "scored": 37,
       "eStatus": "ok",
       "boundary": "ok"
     },
     {
       "region": "bukgu",
       "label": "광주광역시 북구",
-      "dongs": 41,
-      "scored": 14,
+      "dongs": 27,
+      "scored": 20,
       "eStatus": "ok",
       "boundary": "ok"
     },
@@ -30,15 +30,15 @@
       "region": "cheongsong",
       "label": "경상북도 청송군",
       "dongs": 8,
-      "scored": 7,
+      "scored": 8,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
     {
       "region": "dangjin",
       "label": "충청남도 당진시",
-      "dongs": 22,
-      "scored": 21,
+      "dongs": 14,
+      "scored": 14,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -53,8 +53,8 @@
     {
       "region": "donggu",
       "label": "부산광역시 동구",
-      "dongs": 4,
-      "scored": 3,
+      "dongs": 12,
+      "scored": 6,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -69,16 +69,16 @@
     {
       "region": "geumcheon",
       "label": "서울특별시 금천구",
-      "dongs": 3,
-      "scored": 3,
+      "dongs": 29,
+      "scored": 7,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
     {
       "region": "gjunggu",
       "label": "대구광역시 중구",
-      "dongs": 57,
-      "scored": 7,
+      "dongs": 12,
+      "scored": 5,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -93,16 +93,16 @@
     {
       "region": "gongju",
       "label": "충청남도 공주시",
-      "dongs": 37,
-      "scored": 3,
+      "dongs": 16,
+      "scored": 4,
       "eStatus": "ok",
       "boundary": "ok"
     },
     {
       "region": "gwanak",
       "label": "서울특별시 관악구",
-      "dongs": 3,
-      "scored": 3,
+      "dongs": 21,
+      "scored": 18,
       "eStatus": "ok",
       "boundary": "ok"
     },
@@ -118,7 +118,7 @@
       "region": "hongcheon",
       "label": "강원특별자치도 홍천군",
       "dongs": 10,
-      "scored": 9,
+      "scored": 10,
       "eStatus": "ok",
       "boundary": "ok"
     },
@@ -141,24 +141,24 @@
     {
       "region": "jecheon",
       "label": "충청북도 제천시",
-      "dongs": 36,
-      "scored": 0,
+      "dongs": 17,
+      "scored": 5,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
     {
       "region": "jeju",
       "label": "제주특별자치도",
-      "dongs": 73,
-      "scored": 30,
+      "dongs": 43,
+      "scored": 36,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
     {
       "region": "jeongeup",
       "label": "전북특별자치도 정읍시",
-      "dongs": 42,
-      "scored": 4,
+      "dongs": 23,
+      "scored": 3,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -189,39 +189,39 @@
     {
       "region": "jjunggu",
       "label": "대전광역시 중구",
-      "dongs": 26,
-      "scored": 6,
+      "dongs": 17,
+      "scored": 7,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
     {
       "region": "michuhol",
       "label": "인천광역시 미추홀구",
-      "dongs": 7,
-      "scored": 6,
+      "dongs": 39,
+      "scored": 20,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
     {
       "region": "miryang",
       "label": "경상남도 밀양시",
-      "dongs": 19,
-      "scored": 17,
+      "dongs": 16,
+      "scored": 16,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
     {
       "region": "mokpo",
       "label": "전라남도 목포시",
-      "dongs": 64,
-      "scored": 9,
+      "dongs": 23,
+      "scored": 13,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
     {
       "region": "naju",
       "label": "전라남도 나주시",
-      "dongs": 47,
+      "dongs": 20,
       "scored": 4,
       "eStatus": "no-regression",
       "boundary": "ok"
@@ -237,8 +237,8 @@
     {
       "region": "namwon",
       "label": "전북특별자치도 남원시",
-      "dongs": 41,
-      "scored": 34,
+      "dongs": 23,
+      "scored": 23,
       "eStatus": "ok",
       "boundary": "ok"
     },
@@ -253,7 +253,7 @@
     {
       "region": "pocheon",
       "label": "경기도 포천시",
-      "dongs": 18,
+      "dongs": 14,
       "scored": 8,
       "eStatus": "no-regression",
       "boundary": "ok"
@@ -261,15 +261,15 @@
     {
       "region": "sacheon",
       "label": "경상남도 사천시",
-      "dongs": 35,
-      "scored": 7,
+      "dongs": 14,
+      "scored": 6,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
     {
       "region": "sasanggu",
       "label": "부산광역시 사상구",
-      "dongs": 8,
+      "dongs": 12,
       "scored": 6,
       "eStatus": "no-regression",
       "boundary": "ok"
@@ -277,7 +277,7 @@
     {
       "region": "sejong",
       "label": "세종특별자치시",
-      "dongs": 33,
+      "dongs": 25,
       "scored": 8,
       "eStatus": "no-regression",
       "boundary": "ok"
@@ -293,7 +293,7 @@
     {
       "region": "taebaek",
       "label": "강원특별자치도 태백시",
-      "dongs": 17,
+      "dongs": 8,
       "scored": 0,
       "eStatus": "no-regression",
       "boundary": "ok"
@@ -301,7 +301,7 @@
     {
       "region": "ujunggu",
       "label": "울산광역시 중구",
-      "dongs": 18,
+      "dongs": 24,
       "scored": 10,
       "eStatus": "no-regression",
       "boundary": "ok"
@@ -309,15 +309,15 @@
     {
       "region": "yeongcheon",
       "label": "경상북도 영천시",
-      "dongs": 41,
-      "scored": 31,
+      "dongs": 16,
+      "scored": 16,
       "eStatus": "ok",
       "boundary": "ok"
     },
     {
       "region": "yeongdogu",
       "label": "부산광역시 영도구",
-      "dongs": 21,
+      "dongs": 11,
       "scored": 3,
       "eStatus": "no-regression",
       "boundary": "ok"
@@ -325,7 +325,7 @@
     {
       "region": "yeongju",
       "label": "경상북도 영주시",
-      "dongs": 23,
+      "dongs": 19,
       "scored": 19,
       "eStatus": "no-regression",
       "boundary": "ok"

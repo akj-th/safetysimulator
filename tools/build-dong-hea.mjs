@@ -53,7 +53,13 @@ const OUT = path.join(ROOT, 'data/dong');
    ▶ 행정동으로 바꾸려면: 행정동 경계 SHP 를 받은 뒤 column 을 null 로 두고
      assign 을 'boundary' 로 바꾸면, 출동 좌표를 경계에 넣어 동을 정합니다
      (행정동 칸이 원자료에 없어서). label 도 '행정동'으로. */
-const DONG_UNIT = { label: '법정동', column: '긴급_12', assign: 'column' };
+/* ★ 2026-10-21 담당자: AURI 사전분석 보고서의 복합위험지구·HEA 표가 **행정동**(심곡1동·벌용동·동서금동 …) 기준이라
+   앱도 행정동으로 맞춥니다. 원자료에 행정동 칸이 없어 출동 좌표를 행정동 경계에 넣어 정합니다(assign: 'boundary').
+   경계: vuski/admdongkor HangJeongDong_ver20261001.geojson (data/raw/admin_boundary_hjd, WGS84 → 5186 변환해 씀).
+   법정동으로 되돌리려면 아래 한 줄을 { label:'법정동', column:'긴급_12', assign:'column', source:'shp' } 로. */
+const DONG_UNIT = { label: '행정동', column: null, assign: 'boundary', source: 'hjd' };
+const HJD_DIR = path.join(ROOT, 'data/raw/admin_boundary_hjd');
+const SURVEY_DIR = path.join(ROOT, 'data/raw/gis_0901/최종 조사지');   // 복합위험지구(조사지) — 동별 "지구 내 출동" 건수
 
 /* ── 동 경계 SHP (2026-09-15 수신) ─────────────────────────────────────
    국토부 법정 읍면동 경계 LSMD_ADM_SECT_UMD — 시도별 폴더, 202606·202608 판.
@@ -368,6 +374,31 @@ let _boundaryGroups = null;
 function boundaryGroups() {
   if (_boundaryGroups) return _boundaryGroups;
   _boundaryGroups = [];
+  if (DONG_UNIT.source === 'hjd') {
+    const files = fs.existsSync(HJD_DIR) ? fs.readdirSync(HJD_DIR).filter((f) => /\.geojson$/i.test(f)) : [];
+    for (const f of files) {
+      const gj = JSON.parse(fs.readFileSync(path.join(HJD_DIR, f), 'utf8'));
+      const version = (/ver(\d{8})/.exec(f) || [])[1] || '00000000';
+      const by = {};
+      for (const ft of gj.features || []) {
+        const p = ft.properties || {};
+        const code = String(p.sgg || '').trim();
+        const name = String(p.adm_nm || '').trim().split(/\s+/).pop();
+        if (!code || !name || !ft.geometry) continue;
+        const polys = ft.geometry.type === 'Polygon' ? [ft.geometry.coordinates] : ft.geometry.type === 'MultiPolygon' ? ft.geometry.coordinates : [];
+        const g = (by[code] ||= { code, file: f, version, byName: {}, bbox: [Infinity, Infinity, -Infinity, -Infinity] });
+        for (const poly of polys) {
+          const rings = poly.map((ring) => ring.map(([lng, lat]) => toGrid.forward([lng, lat])));
+          const bbox = [Infinity, Infinity, -Infinity, -Infinity];
+          for (const ring of rings) for (const [x, y] of ring) { if (x < bbox[0]) bbox[0] = x; if (y < bbox[1]) bbox[1] = y; if (x > bbox[2]) bbox[2] = x; if (y > bbox[3]) bbox[3] = y; }
+          (g.byName[name] ||= []).push({ rings, bbox });
+          g.bbox = [Math.min(g.bbox[0], bbox[0]), Math.min(g.bbox[1], bbox[1]), Math.max(g.bbox[2], bbox[2]), Math.max(g.bbox[3], bbox[3])];
+        }
+      }
+      _boundaryGroups.push(...Object.values(by));
+    }
+    return _boundaryGroups;
+  }
   if (!fs.existsSync(BOUNDARY_DIR)) return _boundaryGroups;
   const shps = [];
   for (const d of fs.readdirSync(BOUNDARY_DIR)) {
@@ -473,12 +504,10 @@ for (const cat of CATEGORY_ORDER) {
     if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue;
     const slug = slugFor(r[C.sido], r[C.sgg], lng, lat);
     if (!slug || (onlyRegion && slug !== onlyRegion)) continue;
-    const dong = (C.dong >= 0 ? String(r[C.dong] || '').trim() : '') || '(미상)';
-
-    const s = (store[slug] ||= { dongs: {}, region: {}, pts: [] });
+    const s = (store[slug] ||= { dongs: {}, region: {}, pts: [], recs: [], inside: {} });
+    const xy = toGrid.forward([lng, lat]);
     /* 경계 묶음을 고를 표본 — 50건에 1건꼴로 좌표를 남깁니다 (결과 파일에는 쓰지 않음) */
-    if (s.pts.length < 2000 && (used % 50 === 0 || s.pts.length < 40)) s.pts.push(toGrid.forward([lng, lat]));
-    const bags = [((s.dongs[dong] ||= {})[cat] ||= newBag()), (s.region[cat] ||= newBag())];
+    if (s.pts.length < 2000 && (used % 50 === 0 || s.pts.length < 40)) s.pts.push(xy);
 
     const ageRaw = parseInt(r[C.age], 10);
     const age = Number.isInteger(ageRaw) && ageRaw >= 0 && ageRaw < 130 ? ageRaw : null;
@@ -487,28 +516,59 @@ for (const cat of CATEGORY_ORDER) {
     const hour = parseInt(String(r[C.time] || '').slice(0, 2), 10);
     const place = placeFromAtype ? csv.atype(i) : String(r[C.place] || '').trim();
     const addr = String(r[C.addr] || '').replace(/\s+/g, ' ').trim();
-
-    for (const b of bags) {
-      b.n++;
-      if (age !== null) {
-        b.ageN++; bump(b.age, bandOf(age));
-        if (age >= 65) b.a65++;
-        if (age <= 19) b.u19++;
-      }
-      if (sex) { b.sexN++; bump(b.sex, sex); }
-      if (age !== null && sex) { b.ageSexN++; bump(b.ageSex, `${bandOf(age)}|${sex}`); }
-      if (Number.isInteger(hour) && hour >= 0 && hour < 24) {
-        b.hourN++;
-        if (hour >= NIGHT.from || hour < NIGHT.to) b.night++;
-      }
-      if (place) { b.placeN++; bump(b.place, place); }
-      if (addr) b.addr.set(addr, (b.addr.get(addr) || 0) + 1);
-    }
-    const d = bags[0];
-    d.lat += lat; d.lng += lng; d.ll++;
+    /* 동은 경계를 읽은 뒤 정하므로 여기서는 레코드만 모아 둡니다 (행정동 배정, 2026-10-21) */
+    s.recs.push({ cat, lng, lat, x: xy[0], y: xy[1], colDong: C.dong >= 0 ? String(r[C.dong] || '').trim() : '', age, sex, hour, place, addr });
     used++;
   }
   console.log(`  ${CATEGORY_LABEL[cat].padEnd(5)} ${used.toLocaleString()}건`);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ①-2 동 배정 + 집계 (2026-10-21) — 행정동은 좌표를 경계에 넣어 정하고, 조사지(복합위험지구) 안인지도 함께 셉니다
+   ════════════════════════════════════════════════════════════════════ */
+const bboxOf = (shapes) => shapes.reduce((b, sh) => [Math.min(b[0], sh.bbox[0]), Math.min(b[1], sh.bbox[1]), Math.max(b[2], sh.bbox[2]), Math.max(b[3], sh.bbox[3])], [Infinity, Infinity, -Infinity, -Infinity]);
+const inShapes = (x, y, shapes) => shapes.some((sh) => inBBox(x, y, sh.bbox) && pointInShape(x, y, sh));
+function loadSurvey(slug) { const shp = path.join(SURVEY_DIR, `${slug}_OverlapUnion_1.shp`); return fs.existsSync(shp) ? readPolygons(shp) : null; }
+console.log('\n동 경계를 읽습니다…');
+console.log(`  시군구 묶음 ${boundaryGroups().length}개 (${DONG_UNIT.label}, ${DONG_UNIT.source || 'shp'})`);
+for (const [slug, s] of Object.entries(store)) {
+  s.boundary = loadBoundary(slug, s.pts);
+  const zones = s.boundary ? Object.entries(s.boundary.byName).map(([name, shapes]) => ({ name, shapes, bbox: bboxOf(shapes) })) : [];
+  let last = null;
+  const assign = (x, y) => {
+    if (last && inBBox(x, y, last.bbox) && inShapes(x, y, last.shapes)) return last.name;
+    for (const z of zones) { if (!inBBox(x, y, z.bbox)) continue; if (inShapes(x, y, z.shapes)) { last = z; return z.name; } }
+    return null;
+  };
+  const survey = DONG_UNIT.assign === 'boundary' ? loadSurvey(slug) : null;
+  let miss = 0;
+  for (const rec of s.recs) {
+    let dong;
+    if (DONG_UNIT.assign === 'boundary') { dong = assign(rec.x, rec.y) || '(미상)'; if (dong === '(미상)') miss++; }
+    else dong = rec.colDong || '(미상)';
+    const bags = [((s.dongs[dong] ||= {})[rec.cat] ||= newBag()), (s.region[rec.cat] ||= newBag())];
+    for (const b of bags) {
+      b.n++;
+      if (rec.age !== null) {
+        b.ageN++; bump(b.age, bandOf(rec.age));
+        if (rec.age >= 65) b.a65++;
+        if (rec.age <= 19) b.u19++;
+      }
+      if (rec.sex) { b.sexN++; bump(b.sex, rec.sex); }
+      if (rec.age !== null && rec.sex) { b.ageSexN++; bump(b.ageSex, `${bandOf(rec.age)}|${rec.sex}`); }
+      if (Number.isInteger(rec.hour) && rec.hour >= 0 && rec.hour < 24) {
+        b.hourN++;
+        if (rec.hour >= NIGHT.from || rec.hour < NIGHT.to) b.night++;
+      }
+      if (rec.place) { b.placeN++; bump(b.place, rec.place); }
+      if (rec.addr) b.addr.set(rec.addr, (b.addr.get(rec.addr) || 0) + 1);
+    }
+    const d = bags[0];
+    d.lat += rec.lat; d.lng += rec.lng; d.ll++;
+    if (survey && inShapes(rec.x, rec.y, survey)) s.inside[dong] = (s.inside[dong] || 0) + 1;
+  }
+  if (DONG_UNIT.assign === 'boundary') console.log(`  ${slug.padEnd(11)} ${s.boundary ? Object.keys(s.boundary.byName).length : 0}동 · 배정 ${s.recs.length - miss}건 · 경계 밖 ${miss}건 · 조사지 ${survey ? '있음' : '없음'}`);
+  delete s.recs;
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -519,8 +579,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const indexOut = [];
 const population = loadPopulation();
 console.log(`\n인구 통계: ${population.note}`);
-console.log('동 경계를 읽습니다…');
-console.log(`  시군구 묶음 ${boundaryGroups().length}개`);
+
 
 for (const [slug, meta] of Object.entries(REGIONS)) {
   if (onlyRegion && slug !== onlyRegion) continue;
@@ -532,7 +591,7 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
   const focus = (stats && stats.focusTypes ? stats.focusTypes.map((t) => t.key).filter(Boolean) : []);
   const heaCats = HEA_CATEGORY_SCOPE === 'focus' && focus.length ? focus : CATEGORY_ORDER;
 
-  const boundary = loadBoundary(slug, s.pts);
+  const boundary = s.boundary;
   const dongNames = Object.keys(s.dongs).filter((d) => d !== '(미상)').sort();
   /* 출동자료의 동 이름이 경계에 없는 경우 — 이름 표기가 다르거나 경계 밖 */
   const unmatched = boundary ? dongNames.filter((d) => !boundary.byName[d]) : [];
@@ -819,7 +878,8 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
     }
     const axes = ['H', 'E', 'A'].filter((k) => axis[k][dong] !== undefined);
     const total = axes.length >= TOTAL_MIN_AXES ? Math.round(mean(axes.map((k) => axis[k][dong]))) : null;
-    const inside = stats && stats.byDong && stats.byDong[dong] ? stats.byDong[dong].total.inside : 0;
+    /* 조사지(복합위험지구) 안 출동 — 행정동은 좌표로 센 값, 법정동은 통계 파일 값 */
+    const inside = DONG_UNIT.assign === 'boundary' ? (s.inside[dong] || 0) : (stats && stats.byDong && stats.byDong[dong] ? stats.byDong[dong].total.inside : 0);
     return {
       name: dong,
       n: t.n, inside,

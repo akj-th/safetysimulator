@@ -531,7 +531,7 @@ function renderStats() {
    119 자료의 동 이름이 법정동이라 지번 주소 쪽과 짝이 맞습니다. */
 /* ★ 지역안전지수 한 줄 (2026-10-20 실무회의) — 지자체가 컨설팅을 신청한 근거(하위 등급)와 우리 중점 분야가 맞는지,
    이 동의 가중 종합 점수는 얼마인지 읍면동 종합 분석 아래에 적습니다. 자료 없으면 조용히 빠집니다. */
-async function renderSafetyIndexLine(region, dongName) {
+async function renderSafetyIndexLine(region, dongName, picked) {
   try {
     await AuriSafetyIndex.load();
     const si = AuriSafetyIndex.forRegion(region);
@@ -539,7 +539,10 @@ async function renderSafetyIndexLine(region, dongName) {
     const L = AuriSafetyIndex.LABEL, ys = AuriSafetyIndex.years();
     const dong = await AuriDongHea.load(region);
     const w = dong ? AuriSafetyIndex.weightDongs(dong, si) : null;
-    const d = w && dongName ? w.dongs.find((x) => x.name === dongName) : null;
+    /* 동별 자료는 행정동(2026-10-21), picked.dong 은 법정동 — 이름 대신 좌표로 찾습니다 */
+    const at = dong && picked ? AuriSafetyIndex.dongAt(dong, Number(picked.lat), Number(picked.lng)) : null;
+    const d = w && at ? w.dongs.find((x) => x.name === at.name) : null;
+    dongName = at ? at.name : dongName;
     const host = document.getElementById('paneDong');
     if (!host) return;
     let el = document.getElementById('siLine');
@@ -832,7 +835,7 @@ window.addEventListener('load', async function () {
       renderResults();
     }
     renderDong(picked.dong);          // 읍면동 종합 → 그다음이 지점 상세
-    renderSafetyIndexLine(_stats.data.region, picked.dong);   // ★ 지역안전지수 하위 3분야 ↔ 중점 3분야 (2026-10-20)
+    renderSafetyIndexLine(_stats.data.region, picked.dong, picked);   // ★ 지역안전지수 하위 3분야 ↔ 중점 3분야 (2026-10-20)
     renderDiagnosisTables();          // 사전진단서 2.1 · [표 2] 형식
     renderStats();
 

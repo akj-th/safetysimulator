@@ -770,7 +770,7 @@ async function applySafetyIndex(region) {
   /* ② 우측 지도 — 버튼: 종합 · 복합위험지구 후보 · 하위 등급 분야 */
   buildRmapSeg();
   /* 처음 보이는 것은 지수 기준 상위 1 분야 (2026-10-21) */
-  const first = _si.weighted && si ? si.focusByIndex.find(function (k) { return _si.weighted.fields.some(function (f) { return f.key === k; }); }) : null;
+  const first = _si.weighted && si ? si.focusByIndex[0] : null;   // 상위 1 = 자살(고정)
   setRmapMode(first || (_si.weighted ? 'composite' : ''));
 
   /* ④ 시 전체가 한 화면 — 동 경계 전체 범위. 지자체가 바뀔 때 한 번만 */
@@ -804,8 +804,9 @@ function buildRmapSeg() {
   };
   /* 상위 1·2·3 = 지역안전지수 하위 등급 분야(자살 포함) → 그다음 복합위험지구 후보 (2026-10-21 담당자) */
   si.focusByIndex.forEach(function (k, i) {
-    if (!_si.weighted.fields.some(function (f) { return f.key === k; })) return;
-    btn(k, AuriSafetyIndex.LABEL[k], colorOf(k), AuriSafetyIndex.LABEL[k] + ' — 지역안전지수 ' + (si.grades[AuriSafetyIndex.years()[0]] || {})[k] + '등급 (하위 ' + (i + 1) + '위)');   // 버튼에는 분야 이름만 (2026-10-21)
+    /* HEA 점수가 없는 분야(표본 부족)도 버튼은 두고, 지도는 119 출동 건수 기준으로 칠합니다 */
+    const hasHea = _si.weighted.fields.some(function (f) { return f.key === k; });
+    btn(k, AuriSafetyIndex.LABEL[k], colorOf(k), AuriSafetyIndex.LABEL[k] + ' — 지역안전지수 ' + (si.grades[AuriSafetyIndex.years()[0]] || {})[k] + '등급 (하위 ' + (i + 1) + '위)' + (hasHea ? '' : ' · 동별 HEA 표본 부족 → 119 출동 건수 기준'));   // 버튼에는 분야 이름만 (2026-10-21)
   });
   btn('composite', '복합위험지구 후보', '#D83D64', '지역안전지수 정규점수 × 119 출동 × 동별 HEA → 상위 3개 동');
   note.innerHTML = (_si.composite && _si.composite.candidates.length ? '복합위험지구 후보(상위 3개 동) — <b>' + _si.composite.candidates.map(function (d) { return d.name; }).join(' · ') + '</b><br>' : '') +
@@ -827,7 +828,7 @@ function setRmapMode(mode) {
   const color = mode === 'total' ? '#000000' : mode === 'composite' ? '#D83D64' : colorOf(mode);
   const dongs = mode === 'composite' ? _si.composite.dongs : _si.weighted.dongs;
   dongs.forEach(function (d) {
-    const score = mode === 'total' ? d.totalPct : mode === 'composite' ? d.compositePct : (d.byField[mode] ? d.byField[mode].pct : null);
+    const score = mode === 'total' ? d.totalPct : mode === 'composite' ? d.compositePct : (d.byField[mode] ? d.byField[mode].pct : (d.cntPct ? d.cntPct[mode] : null));
     const op = score == null ? 0 : 0.06 + 0.56 * score / 100;
     const cand = mode === 'composite' && d.candidate;
     (d.geometry || []).forEach(function (poly) {

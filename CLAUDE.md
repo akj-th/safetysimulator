@@ -1981,3 +1981,17 @@ index.html 상단 등급표 + 우측 "행정동별 위험도" / report.html 읍�
 - 24개 PDF 를 pdf.js 로 전부 글로 뽑아 확인: **전체본 4곳(남해·부천·사천·영천, 32~33쪽)에만** "<○○시 안전분야별 년도별 안전등급>" 표(2021~2025 × 6분야)가 있음. 나머지 20곳 PDF 는 3~6쪽 약식본이라 등급표 없음.
 - `build-safety-index.mjs` 가 `data/stats/auri-reports/<지역>.json` 블록에서 그 표를 읽어 덧붙임(`auriYearGrades`). **AURI 표 값이 엑셀보다 우선** — 엑셀 2025 열은 네 곳 모두 AURI 와 일치했지만 **2024 열은 네 곳 모두 달랐음**(부천 엑셀 343245 vs AURI 125223). 엑셀 2024 가 어느 판인지 확인 필요 → 약식본 37곳의 2024 등급은 그대로 엑셀값(의심). `score1` 은 있는 연도 전부의 평균.
 - 등급표는 `grades` 의 연도를 전부 그리므로 전체본 4곳은 5줄, 나머지는 2줄.
+
+## 2026-10-21 (오후) 동 단위를 행정동으로 · 표준 사업팔레트 210종
+
+**★ 동별 HEA = 행정동** (`tools/build-dong-hea.mjs` `DONG_UNIT = { label:'행정동', assign:'boundary', source:'hjd' }`)
+- 계기: 사천시 복합위험지구 후보가 법정동(벌리동·동금동·선구동)으로 나왔는데 AURI 보고서는 행정동(벌용동·동서금동·선구동). AURI 의 복합위험지구·HEA 표가 전부 행정동 기준이라 앱도 행정동으로.
+- 경계: **vuski/admdongkor `HangJeongDong_ver20261001.geojson`** (`data/raw/admin_boundary_hjd/`, 34MB, 커밋 안 함. 다시 받으려면 `https://raw.githubusercontent.com/vuski/admdongkor/master/ver20261001/HangJeongDong_ver20261001.geojson`). raqoon886 판(2021)은 부천이 광역동 10개뿐이라 못 씀. WGS84 → 5186 으로 바꿔 기존 SHP 와 같은 shape 꼴로 씀.
+- 원자료에 행정동 칸이 없어 **출동 좌표를 경계에 넣어 동을 정합니다**(루프에서 레코드만 모은 뒤 경계를 읽고 배정·집계). `inside`(복합위험지구 안 출동)도 조사지 SHP 에 좌표를 넣어 직접 셈(전에는 법정동 통계 파일 값).
+- 인구(행정동) 연결이 이름 그대로 맞아 **H 인구 기준이 되는 지자체가 크게 늘었음**(관악 21/21 등). 법정동으로 되돌리려면 `DONG_UNIT` 한 줄.
+- `data/stats/regions/<지역>.json byDong`(리포트 읍면동 종합 분석)은 아직 법정동. report.html 의 지역안전지수 줄은 좌표로 행정동을 찾음(`dongAt`).
+
+**표준 맞춤형 사업팔레트** (`data/raw/맞춤형사업팔레트_1021/<분야>_30개_예산실증출처_검증수정본_20261020.docx` → `node tools/build-palette-std.mjs` → `assets/palette-std.json` 210종)
+- docx 를 직접 읽음(zip → word/document.xml, 표 파싱). 사업마다 공간유형·개입단위·HEA(검토, 원본 표기)·지역지수 위해지표·상세카드(개요·대상·주요내용·주관·실증·소요예산 산식·예산산정 기준·유의·성과확인·시각화·기초사례·검증 원문).
+- 기존 palette.json(289종)과 이름이 겹치는 것은 **56종**뿐 → `palette.js` 가 두 파일을 함께 읽어 겹치면 `std` 상세를 붙이고 검토 HEA 를 반영(`heaOrig` 보관), 새 이름 154종은 `group:'std1021'` 로 추가. 연결표(rules.js)는 그대로(verify-rules 0건).
+- 단가는 210종 모두 "금액 미확정(산식만)" 또는 "공고/한도 확인" — 사례 금액은 있으나 단가가 아니라 `amount.won` 은 비움. `effectLabel` 은 상세카드 (국내 실증·정책근거) 첫 문장 우선.

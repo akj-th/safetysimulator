@@ -97,6 +97,9 @@ const AuriSafetyIndex = (function () {
     FIELDS.forEach((f) => {
       const r = pctRank(dongs.map((d) => d.byField[f] ? d.byField[f].weighted : null));
       dongs.forEach((d) => { if (d.byField[f]) d.byField[f].pct = r(d.byField[f].weighted); });
+      /* HEA 점수가 없는 분야(표본 부족)도 지도에 색이 나오게 — 119 출동 건수 × 가중치의 백분위 (2026-10-21) */
+      const rc = pctRank(dongs.map((d) => d.catN[f] != null ? d.catN[f] * w[f] : null));
+      dongs.forEach((d) => { d.cntPct = d.cntPct || {}; d.cntPct[f] = d.catN[f] != null ? rc(d.catN[f] * w[f]) : null; });
     });
     /* 분야 재정렬 — 지자체 전체에서 그 분야의 가중 점수 평균(출동 건수로 가중). 높은 순 */
     const fields = FIELDS.map((f) => {

@@ -44,7 +44,32 @@ const AuriPalette = (function () {
           _byName.set(norm(p.name), p);
           _byId.set(p.id, p);
         });
-        return _data;
+        /* ★ 표준 팔레트 210종 (AURI 2026-10-20, assets/palette-std.json — tools/build-palette-std.mjs) 을 덧붙입니다.
+           같은 이름(56종)은 기존 사업에 상세카드(std)를 붙이고 검토 HEA 를 반영, 새 이름(154종)은 사업으로 추가.
+           연결표(rules.js)는 기존 이름을 가리키므로 처방 규칙은 그대로이고, 목록·드롭다운·효과·예산 글만 풍부해집니다. */
+        return fetch('assets/palette-std.json').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+          .then(function (std) {
+            if (!std || !std.programs) return _data;
+            std.programs.forEach(function (sp) {
+              const ex = _byName.get(norm(sp.name));
+              const card = sp.card || {};
+              if (ex) {
+                ex.std = sp;
+                if (sp.hea && sp.hea !== ex.hea) { ex.heaOrig = ex.hea; ex.hea = sp.hea; }   // AURI 검토 HEA 반영
+                if (!ex.effect && card.evidence) ex.effect = card.evidence;
+                if (!ex.source && (card.sourceRef || card.caseRef)) ex.source = card.sourceRef || card.caseRef;
+                if ((!ex.amount || !ex.amount.won) && sp.amount && sp.amount.won) ex.amount = sp.amount;
+                return;
+              }
+              const p = { id: sp.id, field: sp.field, name: sp.name, hea: sp.hea, effect: card.evidence || '', source: card.sourceRef || card.caseRef || '',
+                          amount: sp.amount, group: 'std1021', row: sp.no, std: sp };
+              _data.programs.push(p);
+              _byName.set(norm(p.name), p);
+              _byId.set(p.id, p);
+            });
+            _data.stdSource = std.source;
+            return _data;
+          });
       })
       .catch(function (e) {
         /* 팔레트가 없어도 화면이 통째로 죽지는 않게 합니다.
@@ -100,6 +125,12 @@ const AuriPalette = (function () {
     return '산출 근거 필요';
   }
 
+  /** 표준 팔레트 상세카드 (없으면 null) — 공간유형·개입단위·개요·대상·소요예산 산식·성과확인 … */
+  function std(nameOrProgram) {
+    const p = typeof nameOrProgram === 'string' ? byName(nameOrProgram) : nameOrProgram;
+    return p && p.std ? p.std : null;
+  }
+
   /** 효과크기와 출처. 예산 근거 문서라 출처 표기가 중요합니다. */
   function evidence(program) {
     if (!program) return null;
@@ -111,6 +142,9 @@ const AuriPalette = (function () {
    *  AURI 가 보도자료 기반 정량 수치를 정리해 보내면 팔레트 엑셀의 효과 칸을 그 문구로 바꾸면 됩니다.
    *  그전까지는 효과 칸 원문에서 **숫자 + 감소·증가·%** 가 있는 짧은 구절**만** 뽑습니다. 못 찾으면 앞 60자. */
   function effectLabel(program) {
+    /* 표준 팔레트 상세카드의 (국내 실증·정책근거) 가 있으면 그 첫 문장 */
+    const ev = program && program.std && program.std.card && program.std.card.evidence;
+    if (ev) { const first = ev.split(/(?<=[.다음])\s+/)[0] || ev; return first.length > 110 ? first.slice(0, 110) + '…' : first; }
     const t = String(program && program.effect || '').replace(/\s+/g, ' ').trim();
     if (!t) return '';
     const m = /((?:[^\s]+\s){0,7}\d[\d,.]*\s*(?:%|％|배|건|명|p)?[^\s]*\s*(?:감소|줄어|하락|감축|증가|향상|개선|상승)[^\s]*)/.exec(t);
@@ -131,7 +165,7 @@ const AuriPalette = (function () {
 
   return {
     load, ready, byName, byId, byField,
-    heaLabel, heaLegend, heaDesc, amountText, evidence, sourceShort, effectLabel,
+    heaLabel, heaLegend, heaDesc, amountText, evidence, sourceShort, effectLabel, std,
     get data() { return _data; },
     get note() { return _data ? _data.note : ''; },
     get count() { return _data ? _data.programs.length : 0; },
