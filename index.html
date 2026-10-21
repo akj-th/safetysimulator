@@ -752,7 +752,7 @@ async function applySafetyIndex(region) {
   /* ① 등급 현황표 */
   panel.hidden = !si;
   if (si) {
-    document.getElementById('siTag').textContent = si.label + ' · ' + AuriSafetyIndex.years().join('·');
+    document.getElementById('siTag').textContent = si.label;   // 연도는 표에 다 있으니 지역만 (2026-10-21)
     document.getElementById('siBody').innerHTML = AuriSafetyIndex.renderTable(si);
   }
 
