@@ -22,7 +22,30 @@ const FIELDS = ['traffic', 'fire', 'crime', 'life', 'suicide', 'infection'];
 const LABEL = { traffic: '교통사고', fire: '화재', crime: '범죄', life: '생활안전', suicide: '자살', infection: '감염병', industrial: '산업재해' };
 const KO2KEY = { 교통사고: 'traffic', 교통: 'traffic', 화재: 'fire', 범죄: 'crime', 생활안전: 'life', 자살: 'suicide', 감염병: 'infection', 산업재해: 'industrial', 산재: 'industrial' };
 const INDUSTRIAL_W = 0.6;   // 3등급 상당
-const YEARS = ['2025', '2024'];   // 엑셀에 있는 연도 (담당자 요청은 5개년 — 2021~2023 등급 자료가 오면 여기와 열 위치를 더하면 됩니다)
+const YEARS = ['2025', '2024'];   // 엑셀에 있는 연도. 2021~2023 은 아래 AURI 보고서 표(전체본 4곳)에서 덧붙입니다
+/* ★ 5개년 등급 (2026-10-21 담당자) — AURI 사전분석 보고서 전체본(남해·부천·사천·영천)의 "<X시 안전분야별 년도별 안전등급>" 표
+   (data/stats/auri-reports/<지역>.json 의 blocks, hwpx 원문). 약식본 지자체는 그 표가 없어 엑셀의 2025·2024 만 있습니다 */
+const AURI_DIR = path.join(ROOT, 'data/stats/auri-reports');
+function auriYearGrades(slug) {
+  const f = path.join(AURI_DIR, slug + '.json');
+  if (!fs.existsSync(f)) return null;
+  const j = JSON.parse(fs.readFileSync(f, 'utf8'));
+  const t = (j.blocks || []).find(b => b.type === 'table' && /년도별\s*안전등급|연도별\s*안전등급/.test(b.caption || ''));
+  if (!t) return null;
+  const rows = t.rows.map(r => r.map(c => c.text.trim()));
+  const hdr = rows.find(r => r.some(c => KO2KEY[c]));                       // 분야 이름이 든 줄
+  if (!hdr) return null;
+  const cols = hdr.map(c => KO2KEY[c] || null);
+  const out = {};
+  for (const r of rows) {
+    const y = r.find(c => /^20\d\d$/.test(c)); if (!y) continue;
+    const vals = r.filter(c => c !== y);
+    const keys = cols.filter(Boolean);
+    if (vals.length < keys.length) continue;
+    out[y] = {}; keys.forEach((k, i) => { const g = +vals[i]; if (Number.isFinite(g)) out[y][k] = g; });
+  }
+  return Object.keys(out).length ? out : null;
+}
 const YEAR_COL = { 2025: 5, 2024: 11 };   // 수정본 시트에서 그 연도 교통 열의 자리
 
 const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/stats/index.json'), 'utf8'));
@@ -49,9 +72,13 @@ for (const r of rows.slice(4)) {
   const slug = slugOf(String(r[1]), String(r[2]));
   if (!slug) { console.warn('⚠ 지자체 못 찾음:', r[1], r[2]); continue; }
   const grades = {}; YEARS.forEach(y => { grades[y] = {}; FIELDS.forEach((f, i) => { grades[y][f] = +r[YEAR_COL[y] + i]; }); });
+  const extra = auriYearGrades(slug);
+  /* AURI 보고서 표가 있으면 그 값이 우선 — 엑셀의 2024 열은 네 곳 모두 AURI 표와 달랐고(2025 열은 전부 일치) 어느 판인지 확인 안 됨 */
+  if (extra) for (const [y, g] of Object.entries(extra)) { if (!grades[y]) grades[y] = {}; FIELDS.forEach(f => { if (g[f] != null) grades[y][f] = g[f]; }); }
   const g25 = grades[YEARS[0]], g24 = grades[YEARS[1]];
   /* ★ 정규점수(1) — 있는 연도 등급 평균 ÷ 5 (2026-10-21 담당자: 5개년 등급 × 가중치). 자살 1.0 고정 */
-  const score1 = {}; FIELDS.forEach(f => { const gs = YEARS.map(y => grades[y][f]).filter(Number.isFinite); score1[f] = f === 'suicide' ? 1 : +(gs.reduce((a, b) => a + b, 0) / gs.length / 5).toFixed(3); }); score1.industrial = INDUSTRIAL_W;
+  const allYears = Object.keys(grades).sort().reverse();
+  const score1 = {}; FIELDS.forEach(f => { const gs = allYears.map(y => grades[y][f]).filter(Number.isFinite); score1[f] = f === 'suicide' ? 1 : +(gs.reduce((a, b) => a + b, 0) / gs.length / 5).toFixed(3); }); score1.industrial = INDUSTRIAL_W;
   const kangwon = (regions.find(x => x.region === slug).focusTypes || []).map(s => KO2KEY[String(s || '').trim()]).filter(Boolean);   // 강원대 확정 3분야는 index.json 의 focusTypes(검증된 값)
   const grade = (f) => Number.isFinite(g25[f]) ? g25[f] : g24[f];
   const weights = {}; FIELDS.forEach(f => { weights[f] = f === 'suicide' ? 1 : +(grade(f) / 5).toFixed(2); });
@@ -63,7 +90,8 @@ for (const r of rows.slice(4)) {
   const same = kangwon.length === 3 && focusByIndex.every(f => kangwon.includes(f));
   out.regions[slug] = {
     label: regions.find(x => x.region === slug).label,
-    grades,
+    grades,                       // 연도 → 분야 → 등급 (2021~2023 은 AURI 보고서 전체본에만)
+    years: allYears,
     weights,
     score1,                       // 연도 평균 등급 ÷ 5 — 복합위험지수의 분야 가중
     ranked,                       // 자살 뺀 5개 분야, 나쁜 등급부터
@@ -77,4 +105,5 @@ for (const r of rows.slice(4)) {
 fs.writeFileSync(OUT, JSON.stringify(out, null, 1));
 const n = Object.keys(out.regions).length, agree = Object.values(out.regions).filter(r => r.matchesKangwon).length;
 console.log(`지역안전지수 → ${path.relative(ROOT, OUT)} · 지자체 ${n}곳 (엑셀 ${matched}) · 지수 기준 3분야 = 강원대 확정 3분야 인 곳 ${agree}곳`);
+console.log('5개년 등급이 있는 곳:', Object.values(out.regions).filter(r => r.years.length > 2).map(r => r.label + '(' + r.years.join('·') + ')').join(', ') || '없음');
 for (const [s, r] of Object.entries(out.regions)) console.log(`  ${s.padEnd(11)} 2025 ${FIELDS.map(f => r.grades[2025][f]).join('')} → 지수 ${r.focusByIndex.map(f => LABEL[f]).join('·')} | 강원대 ${r.kangwonFocus.map(f => LABEL[f]).join('·')} ${r.matchesKangwon ? '✓' : ''}`);

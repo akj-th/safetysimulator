@@ -30,6 +30,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.8,
@@ -94,6 +98,10 @@
      "infection": 2
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.2,
@@ -156,6 +164,10 @@
      "infection": 3
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.6,
     "fire": 0.4,
@@ -200,13 +212,37 @@
   "bucheon": {
    "label": "경기도 부천시",
    "grades": {
-    "2024": {
-     "traffic": 3,
+    "2021": {
+     "traffic": 1,
+     "fire": 2,
+     "crime": 5,
+     "life": 1,
+     "suicide": 2,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 1,
      "fire": 4,
-     "crime": 3,
+     "crime": 5,
      "life": 2,
-     "suicide": 4,
-     "infection": 5
+     "suicide": 2,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 2,
+     "fire": 2,
+     "crime": 5,
+     "life": 2,
+     "suicide": 2,
+     "infection": 3
+    },
+    "2024": {
+     "traffic": 1,
+     "fire": 2,
+     "crime": 5,
+     "life": 2,
+     "suicide": 2,
+     "infection": 3
     },
     "2025": {
      "traffic": 1,
@@ -217,6 +253,13 @@
      "infection": 3
     }
    },
+   "years": [
+    "2025",
+    "2024",
+    "2023",
+    "2022",
+    "2021"
+   ],
    "weights": {
     "traffic": 0.2,
     "fire": 0.4,
@@ -227,12 +270,12 @@
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.4,
-    "fire": 0.6,
-    "crime": 0.8,
-    "life": 0.4,
+    "traffic": 0.24,
+    "fire": 0.48,
+    "crime": 1,
+    "life": 0.36,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "ranked": [
@@ -277,6 +320,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.6,
     "fire": 0.8,
@@ -323,13 +370,37 @@
   "sacheon": {
    "label": "경상남도 사천시",
    "grades": {
-    "2024": {
+    "2021": {
      "traffic": 4,
-     "fire": 2,
-     "crime": 5,
-     "life": 5,
+     "fire": 3,
+     "crime": 3,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 3,
+     "life": 3,
      "suicide": 3,
-     "infection": 3
+     "infection": 5
+    },
+    "2024": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 4
     },
     "2025": {
      "traffic": 4,
@@ -340,6 +411,13 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024",
+    "2023",
+    "2022",
+    "2021"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.8,
@@ -350,25 +428,25 @@
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.8,
-    "fire": 0.6,
-    "crime": 0.8,
-    "life": 0.8,
+    "traffic": 0.88,
+    "fire": 0.72,
+    "crime": 0.6,
+    "life": 0.64,
     "suicide": 1,
-    "infection": 0.7,
+    "infection": 0.84,
     "industrial": 0.6
    },
    "ranked": [
     "traffic",
-    "infection",
     "fire",
+    "infection",
     "crime",
     "life"
    ],
    "focusByIndex": [
     "suicide",
     "traffic",
-    "infection"
+    "fire"
    ],
    "lowGrades": [
     "traffic",
@@ -403,6 +481,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 1,
     "fire": 1,
@@ -449,13 +531,37 @@
   "namhae": {
    "label": "경상남도 남해군",
    "grades": {
-    "2024": {
-     "traffic": 3,
-     "fire": 2,
+    "2021": {
+     "traffic": 2,
+     "fire": 3,
      "crime": 2,
      "life": 3,
-     "suicide": 5,
+     "suicide": 1,
+     "infection": 2
+    },
+    "2022": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 3,
+     "life": 4,
+     "suicide": 1,
      "infection": 3
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 3,
+     "life": 4,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2024": {
+     "traffic": 3,
+     "fire": 3,
+     "crime": 3,
+     "life": 2,
+     "suicide": 3,
+     "infection": 4
     },
     "2025": {
      "traffic": 4,
@@ -466,6 +572,13 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024",
+    "2023",
+    "2022",
+    "2021"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.8,
@@ -476,25 +589,25 @@
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.6,
-    "crime": 0.5,
-    "life": 0.6,
+    "traffic": 0.64,
+    "fire": 0.68,
+    "crime": 0.56,
+    "life": 0.64,
     "suicide": 1,
-    "infection": 0.7,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "ranked": [
-    "traffic",
     "infection",
+    "traffic",
     "fire",
-    "life",
-    "crime"
+    "crime",
+    "life"
    ],
    "focusByIndex": [
     "suicide",
-    "traffic",
-    "infection"
+    "infection",
+    "traffic"
    ],
    "lowGrades": [
     "traffic",
@@ -528,6 +641,10 @@
      "infection": 3
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 1,
     "fire": 0.4,
@@ -589,6 +706,10 @@
      "infection": 5
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.2,
@@ -634,13 +755,37 @@
   "yeongcheon": {
    "label": "경상북도 영천시",
    "grades": {
-    "2024": {
-     "traffic": 2,
-     "fire": 1,
-     "crime": 1,
+    "2021": {
+     "traffic": 5,
+     "fire": 5,
+     "crime": 3,
      "life": 4,
+     "suicide": 5,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 5,
+     "fire": 5,
+     "crime": 2,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 2,
+     "life": 4,
+     "suicide": 5,
+     "infection": 5
+    },
+    "2024": {
+     "traffic": 5,
+     "fire": 5,
+     "crime": 2,
+     "life": 5,
      "suicide": 4,
-     "infection": 3
+     "infection": 5
     },
     "2025": {
      "traffic": 5,
@@ -651,6 +796,13 @@
      "infection": 5
     }
    },
+   "years": [
+    "2025",
+    "2024",
+    "2023",
+    "2022",
+    "2021"
+   ],
    "weights": {
     "traffic": 1,
     "fire": 1,
@@ -661,25 +813,25 @@
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.6,
-    "crime": 0.3,
-    "life": 0.9,
+    "traffic": 1,
+    "fire": 0.96,
+    "crime": 0.44,
+    "life": 0.88,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.92,
     "industrial": 0.6
    },
    "ranked": [
-    "life",
-    "infection",
     "traffic",
     "fire",
+    "life",
+    "infection",
     "crime"
    ],
    "focusByIndex": [
     "suicide",
-    "life",
-    "infection"
+    "traffic",
+    "fire"
    ],
    "lowGrades": [
     "traffic",
@@ -715,6 +867,10 @@
      "infection": 5
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 1,
     "fire": 0.4,
@@ -778,6 +934,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 1,
     "fire": 0.8,
@@ -842,6 +1002,10 @@
      "infection": 5
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.6,
     "fire": 0.6,
@@ -904,6 +1068,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.6,
     "fire": 0.4,
@@ -967,6 +1135,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.6,
     "fire": 0.8,
@@ -1031,6 +1203,10 @@
      "infection": 5
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 1,
@@ -1094,6 +1270,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.6,
@@ -1157,6 +1337,10 @@
      "infection": 5
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.6,
     "fire": 0.4,
@@ -1219,6 +1403,10 @@
      "infection": 3
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.6,
@@ -1280,6 +1468,10 @@
      "infection": 2
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.8,
@@ -1342,6 +1534,10 @@
      "infection": 1
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.6,
     "fire": 0.8,
@@ -1403,6 +1599,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.4,
     "fire": 0.2,
@@ -1464,6 +1664,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.6,
@@ -1525,6 +1729,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.4,
@@ -1589,6 +1797,10 @@
      "infection": 5
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.4,
@@ -1651,6 +1863,10 @@
      "infection": 3
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.6,
     "fire": 0.6,
@@ -1712,6 +1928,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.8,
@@ -1776,6 +1996,10 @@
      "infection": 5
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 1,
@@ -1838,6 +2062,10 @@
      "infection": 5
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.6,
     "fire": 0.8,
@@ -1900,6 +2128,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.8,
@@ -1962,6 +2194,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 1,
     "fire": 1,
@@ -2026,6 +2262,10 @@
      "infection": 3
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.6,
     "fire": 0.8,
@@ -2087,6 +2327,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 1,
     "fire": 1,
@@ -2151,6 +2395,10 @@
      "infection": 1
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.6,
@@ -2213,6 +2461,10 @@
      "infection": 2
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.4,
     "fire": 0.4,
@@ -2275,6 +2527,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 1,
     "fire": 0.6,
@@ -2338,6 +2594,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 1,
     "fire": 0.6,
@@ -2401,6 +2661,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.8,
@@ -2464,6 +2728,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 1,
     "fire": 0.4,
@@ -2526,6 +2794,10 @@
      "infection": 4
     }
    },
+   "years": [
+    "2025",
+    "2024"
+   ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.6,
