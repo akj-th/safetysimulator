@@ -956,6 +956,7 @@ function chapter5() {
    거점: data/stats/hotspots.json(+관리자 보정) · 취약 요인: 동별 HEA × 지역안전지수 가중(assets/safety-index.js)
    사업: 연결표의 예비 목록(rules.js fallback, 상위 2분야) · 개선 전/후: 그 거점의 공유 프로젝트(관리자 저장) 또는 지금 진단
    ════════════════════════════════════════════════════════════════════ */
+let _regionType = null;      // data/stats/region-types.json — 도심형/도농복합형/농촌형 (10/14 회의 ④)
 let _hotspots = [];          // 이 지자체 거점
 let _hotShared = {};         // 거점 글자 → 공유 프로젝트 (data 까지)
 let _siRegion = null, _weighted = null;
@@ -1231,6 +1232,11 @@ function mapSpecs() {
       marker: marker,
     },
   }];
+
+  /* 행안부 카드 6. 위치도 — 안전 유형(중점 분야 중 점수 최고) 하나의 밀도 (2026-10-21) */
+  const focusKeys = new Set(_focus.map((f) => f.key));
+  const prim = _results.slice().sort((a, b) => (focusKeys.has(b.key) - focusKeys.has(a.key)) || b.score - a.score)[0];
+  if (prim) out.push({ id: 'map-mois', w: 760, h: 570, opts: { pad: 0.05, focus: { lat: marker.lat, lng: marker.lng, radiusM: MAP_RADIUS_M }, heat: heatFor(prim.key), points: heatFor(prim.key) ? [] : catPoints(prim.key), marker: marker, boundary: _data.surveyArea && _data.surveyArea.geometry } });
 
   _focus.forEach(function (f) {
     out.push({
@@ -1522,7 +1528,10 @@ function moisReport() {
   const type = cat ? AuriStats.narrateType(cat, { inside: _stats.inside }) : null;
   const human = cat ? AuriStats.narrateHuman(cat, { inside: _stats.inside }) : null;
   const af = _auri && pKey ? _auri.fields.find((x) => x.key === pKey) : null;
-  const spaceDefault = af && af.groups && af.groups[0] ? af.groups[0].spaceType : '';
+  /* 공간유형 — AURI 보고서의 그 분야 첫 공간유형, 없으면 표준 팔레트(10/21)의 환경개선 사업 대표 공간유형 (10/14 회의: 공간 유형 17개 참고) */
+  const spaceDefault = (af && af.groups && af.groups[0] ? af.groups[0].spaceType : '') || (function () {
+    const e = _items.find((it) => it.hea === 'E' && AuriPalette.std(it.name)); const sp = e ? AuriPalette.std(e.name) : null; return sp ? sp.spaceType : ''; })();
+  const regionType = _regionType ? `${_regionType.type}${_regionType.tags && _regionType.tags.length ? ' · ' + _regionType.tags.join('·') : ''}` : '';
   const linked = ordered.filter((r) => primary && r.key !== primary.key && r.score >= 34);
   /* 문제 항목 — 사진 판독에서 "문제 있음"으로 잡힌 체크리스트 항목 */
   const problems = primary && primary.findings ? primary.findings.filter((f) => f.risk) : [];
@@ -1547,6 +1556,7 @@ function moisReport() {
             <th style="width:9%">위치</th><td style="width:30%">${esc(_picked.addr || '주소 미상')}${_picked.dong ? `<br><span class="h-sub">${esc(_data.shortLabel)} ${esc(_picked.dong)}</span>` : ''}</td>
             <th style="width:11%">세부 유형</th><td>${AuriDocEdit.inline('mois-sub', spaceDefault, '예: 전통시장 일대')}</td></tr>
         <tr><th>연계 사고<br>데이터</th><td colspan="5" style="color:#D83D64">${type ? type.text : (human ? human.text : '119 출동 통계 없음')}</td></tr>
+        ${regionType ? `<tr><th>지자체 유형</th><td colspan="5">${esc(regionType)} <span class="h-sub">— ${esc(_regionType.why || '')} (41개 지자체 유형화 1차안, 10/14 회의)</span></td></tr>` : ''}
         ${linked.length ? `<tr><th>복합 분야</th><td colspan="5">${linked.map((r) => `${esc(r.name)} ${r.score}점(${r.level.label})${focusKeys.has(r.key) ? ' <span class="mark-focus">중점</span>' : ''}`).join(' · ')} <span class="h-sub">— 같은 지점에서 주의 이상으로 판독된 다른 분야 (복합 분야 진단)</span></td></tr>` : ''}
       </tbody>
     </table>
@@ -1580,6 +1590,15 @@ function moisReport() {
       <figure>${after ? `<img src="${after}" alt="사진 2 (After)">` : '<div class="slot">사진 2 (After) — 4단계에서 생성하십시오</div>'}<figcaption>사진 2 (After) — 사업 반영 예시</figcaption></figure>
       ${afterTagLegend()}
       <div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>
+    </div>
+
+    <h3 class="h-section">6. 위치도 · 마스터플랜(종합도)</h3>
+    <!-- 10/14 회의 "마스터플랜·다이어그램도 export 시 함께 표출" — 진단 지점 위치도(그 분야 밀도) + 복합위험지구 맞춤형 사업 종합도 -->
+    <div class="mois-two">
+      <figure class="doc-map"><img id="map-mois" alt="위치도" hidden><div class="slot" id="map-mois-wait">지도를 그리는 중입니다…</div>
+        <figcaption>위치도 — ${primary ? esc(primary.name) : ''} 밀도 · 진단 지점 반경 ${MAP_RADIUS_M}m</figcaption></figure>
+      <figure class="doc-map"><img src="data/overview/${esc(_data.region)}.jpg" alt="종합도" style="width:100%;display:block" onerror="this.parentNode.innerHTML='<div class=slot style=min-height:120px>종합도 미작성 (tools/overview-map)</div>'">
+        <figcaption>복합위험지구 중점관리분야 맞춤형 사업 종합도 <span class="h-sub">AURI 사전분석 보고서 기준</span></figcaption></figure>
     </div>
     ${AuriDocEdit.render('mois-remarks', '(검토 의견)', '연구진 검토 의견 — 지역안전지수 하위 등급과의 정합성 등.', ctx)}
   </section>`;
@@ -1641,6 +1660,7 @@ window.addEventListener('load', async function () {
   _dongHea = await AuriDongHea.load(_data.region);  // 3.3 읍면동별 HEA 지표
   _auri = await loadAuriReport(_data.region);       // AURI 사전분석 보고서 (있는 지자체만)
   await loadHotspotCards(_data.region);             // 붙임 5 거점 카드 — 거점 + 공유 프로젝트 + 지역안전지수 가중 (2026-10-20)
+  try { const rt = await fetch('data/stats/region-types.json'); const j = rt.ok ? await rt.json() : null; _regionType = j && j.regions ? j.regions.find((r) => r.region === _data.region) || null : null; } catch (e) { _regionType = null; }   // 지자체 유형화 1차안 (10/14)
   try { const hr = await fetch('data/heatmap/index.json'); _heat = hr.ok ? await hr.json() : null; } catch (e) { _heat = null; }
   document.title = `지자체 사전진단서 — ${_data.shortLabel}`;
 
