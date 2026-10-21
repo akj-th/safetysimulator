@@ -33,6 +33,7 @@ import proj4 from 'proj4';
 import { openIncidents, INCIDENT_FILES, ATYPE_AXIS, REPEAT_THRESHOLD } from './lib/incidents.mjs';
 import { readPolygons, readDbf, pointInShape, inBBox } from './lib/shapefile.mjs';
 import { readXlsx } from './lib/xlsx.mjs';
+import { hjdGroups, pickGroups, makeAssigner } from './lib/hjd.mjs';
 import {
   REGIONS, slugFor, isRelabelled, slugForXlsx,
   CATEGORY_BY_CODE, CATEGORY_LABEL, CATEGORY_BY_KOREAN, CATEGORY_ORDER,
@@ -399,6 +400,39 @@ console.log('강원대 엑셀에서 확정 안전유형을 읽습니다…');
 const focus = loadFocusTypes();
 console.log(`  지자체 ${Object.keys(focus).length}개`);
 
+/* ★ 읍면동 = 행정동 (2026-10-21 담당자) — AURI 보고서·동별 HEA 와 같은 단위.
+   원자료의 긴급_12 는 법정동이라 쓰지 않고, 좌표를 행정동 경계(data/raw/admin_boundary_hjd, build-dong-hea 와 같은 자료)에 넣어 정합니다.
+   경계 묶음은 지자체마다 출동 좌표 표본(50건에 1건)이 떨어지는 시군구로 고릅니다(광주·전남은 통합으로 코드가 바뀌어 이름으로 못 맞춤). */
+const DONG_UNIT = '행정동';
+const HJD_DIR = path.join(ROOT, 'data/raw/admin_boundary_hjd');
+const hjdAssign = {};
+{
+  console.log('행정동 경계를 읽습니다…');
+  const groups = hjdGroups(HJD_DIR);
+  const samples = {};
+  for (const category of CATEGORY_ORDER) {
+    let csv; try { csv = openIncidents(fs, ROOT, category); } catch (e) { continue; }
+    const cx = csv.col('X'), cy = csv.col('Y'), cs = csv.col('긴급구'), cg = csv.col('긴급_1');
+    let i = 0;
+    for (const r of csv.rows) {
+      const lng = parseFloat(r[cx]), lat = parseFloat(r[cy]);
+      if (!isFinite(lng) || !isFinite(lat)) continue;
+      const slug = slugFor(r[cs], r[cg], lng, lat);
+      if (!slug) continue;
+      const arr = (samples[slug] ||= []);
+      if (arr.length < 2000 && (i++ % 50 === 0 || arr.length < 40)) arr.push(toGrid.forward([lng, lat]));
+    }
+  }
+  for (const [slug, pts] of Object.entries(samples)) {
+    const picked = pickGroups(groups, pts);
+    const byName = {};
+    for (const { g } of picked) for (const [n, shs] of Object.entries(g.byName)) (byName[n] ||= []).push(...shs);
+    hjdAssign[slug] = Object.keys(byName).length ? makeAssigner(byName) : null;
+    if (!hjdAssign[slug]) console.warn(`  ⚠ ${slug}: 행정동 경계를 찾지 못함 — 동 이름은 (미상)`);
+  }
+  console.log(`  시군구 묶음 ${groups.length}개 · 지자체 ${Object.values(hjdAssign).filter(Boolean).length}곳 배정 가능`);
+}
+
 /* 지역별 그릇을 미리 만들어 둡니다 */
 const store = {};
 for (const slug of Object.keys(REGIONS)) {
@@ -499,7 +533,7 @@ for (const category of CATEGORY_ORDER) {
     /* 반복 발생 지점 — 지번주소가 같으면 같은 장소로 봅니다.
        주소는 묶는 열쇠로만 쓰고 결과물에는 개소 수와 읍면동만 남깁니다. */
     const addr = String(r[C.addr] || '').replace(/s+/g, ' ').trim();
-    const dongName = (r[C.dong] || '').trim() || '(미상)';
+    const dongName = (hjdAssign[slug] ? hjdAssign[slug](gx, gy) : null) || '(미상)';   // 행정동 (경계 배정)
     if (addr) {
       if (!s.spot[cat]) s.spot[cat] = new Map();
       const spot = s.spot[cat].get(addr) || { region: 0, inside: 0, dong: dongName };
@@ -648,6 +682,7 @@ for (const [slug, meta] of Object.entries(REGIONS)) {
     totals: { inside: s.insideTotal, region: s.regionTotal, share: pct(s.insideTotal, s.regionTotal) },
     atypeNotes: Object.keys(atypeNotes).length ? atypeNotes : null,
     categories: catOut,
+    dongUnit: DONG_UNIT,
     byDong: dongOut,
   }));
 

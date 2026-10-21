@@ -834,6 +834,12 @@ window.addEventListener('load', async function () {
       sessionStorage.setItem('auri_diagnosis_results', JSON.stringify(_results));
       renderResults();
     }
+    /* 동 이름을 행정동으로 (2026-10-21) — 네이버 역지오코딩은 법정동을 주는데 통계·동별 HEA 는 행정동이라, 좌표로 행정동 경계에서 찾아 바꿉니다 */
+    try {
+      const dj = await AuriDongHea.load(_stats.data.region);
+      const hj = dj ? AuriSafetyIndex.dongAt(dj, Number(picked.lat), Number(picked.lng)) : null;
+      if (hj && hj.name && hj.name !== picked.dong) { picked.dong = hj.name; sessionStorage.setItem('auri_picked_location', JSON.stringify(picked)); }
+    } catch (e) { /* 경계 없으면 역지오코딩 이름 그대로 */ }
     renderDong(picked.dong);          // 읍면동 종합 → 그다음이 지점 상세
     renderSafetyIndexLine(_stats.data.region, picked.dong, picked);   // ★ 지역안전지수 하위 3분야 ↔ 중점 3분야 (2026-10-20)
     renderDiagnosisTables();          // 사전진단서 2.1 · [표 2] 형식

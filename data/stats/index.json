@@ -1,6 +1,6 @@
 {
   "source": "119 출동자료 (AURI 제공, 2026-08-26 최종본 · 강원대 분류 A_type 2026-09-09) · 2023~2025년 · 개인정보 항목 제외",
-  "generatedAt": "2026-09-14",
+  "generatedAt": "2026-10-21",
   "minSample": 30,
   "categories": {
     "suicide": "자살",
@@ -36,7 +36,7 @@
       ],
       "areaHa": 254.37,
       "meanRisk": 1.94,
-      "dongCount": 25
+      "dongCount": 38
     },
     {
       "region": "jeju",
@@ -53,7 +53,7 @@
       ],
       "areaHa": 1464.73,
       "meanRisk": 0.282,
-      "dongCount": 73
+      "dongCount": 44
     },
     {
       "region": "andong",
@@ -70,7 +70,7 @@
       ],
       "areaHa": 849.76,
       "meanRisk": 0.634,
-      "dongCount": 56
+      "dongCount": 24
     },
     {
       "region": "bukgu",
@@ -87,7 +87,7 @@
       ],
       "areaHa": 492.62,
       "meanRisk": 1.25,
-      "dongCount": 40
+      "dongCount": 28
     },
     {
       "region": "sejong",
@@ -104,7 +104,7 @@
       ],
       "areaHa": 485.56,
       "meanRisk": 0.638,
-      "dongCount": 34
+      "dongCount": 26
     },
     {
       "region": "michuhol",
@@ -121,7 +121,7 @@
       ],
       "areaHa": 188.07,
       "meanRisk": 1.473,
-      "dongCount": 7
+      "dongCount": 24
     },
     {
       "region": "gwanak",
@@ -138,7 +138,7 @@
       ],
       "areaHa": 110.01,
       "meanRisk": 2.143,
-      "dongCount": 3
+      "dongCount": 22
     },
     {
       "region": "dangjin",
@@ -155,7 +155,7 @@
       ],
       "areaHa": 233.18,
       "meanRisk": 0.791,
-      "dongCount": 23
+      "dongCount": 15
     },
     {
       "region": "pocheon",
@@ -172,7 +172,7 @@
       ],
       "areaHa": 97.86,
       "meanRisk": 0.982,
-      "dongCount": 18
+      "dongCount": 15
     },
     {
       "region": "mokpo",
@@ -189,7 +189,7 @@
       ],
       "areaHa": 236.22,
       "meanRisk": 1.191,
-      "dongCount": 50
+      "dongCount": 24
     },
     {
       "region": "gongju",
@@ -206,7 +206,7 @@
       ],
       "areaHa": 253.48,
       "meanRisk": 0.856,
-      "dongCount": 38
+      "dongCount": 17
     },
     {
       "region": "geumcheon",
@@ -223,7 +223,7 @@
       ],
       "areaHa": 90.58,
       "meanRisk": 1.829,
-      "dongCount": 3
+      "dongCount": 17
     },
     {
       "region": "naju",
@@ -240,7 +240,7 @@
       ],
       "areaHa": 235.21,
       "meanRisk": 1.03,
-      "dongCount": 47
+      "dongCount": 21
     },
     {
       "region": "jeongeup",
@@ -257,7 +257,7 @@
       ],
       "areaHa": 224.93,
       "meanRisk": 0.826,
-      "dongCount": 41
+      "dongCount": 23
     },
     {
       "region": "yeongcheon",
@@ -274,7 +274,7 @@
       ],
       "areaHa": 265.63,
       "meanRisk": 0.836,
-      "dongCount": 39
+      "dongCount": 17
     },
     {
       "region": "sasanggu",
@@ -291,7 +291,7 @@
       ],
       "areaHa": 66.4,
       "meanRisk": 1.681,
-      "dongCount": 8
+      "dongCount": 12
     },
     {
       "region": "miryang",
@@ -308,7 +308,7 @@
       ],
       "areaHa": 302.49,
       "meanRisk": 0.675,
-      "dongCount": 20
+      "dongCount": 17
     },
     {
       "region": "sacheon",
@@ -325,7 +325,7 @@
       ],
       "areaHa": 209.63,
       "meanRisk": 1.045,
-      "dongCount": 32
+      "dongCount": 15
     },
     {
       "region": "ujunggu",
@@ -342,7 +342,7 @@
       ],
       "areaHa": 185.19,
       "meanRisk": 1.515,
-      "dongCount": 18
+      "dongCount": 14
     },
     {
       "region": "jjunggu",
@@ -359,7 +359,7 @@
       ],
       "areaHa": 207.58,
       "meanRisk": 1.598,
-      "dongCount": 25
+      "dongCount": 18
     },
     {
       "region": "yeongju",
@@ -376,7 +376,7 @@
       ],
       "areaHa": 230.88,
       "meanRisk": 0.955,
-      "dongCount": 23
+      "dongCount": 19
     },
     {
       "region": "namwon",
@@ -393,7 +393,7 @@
       ],
       "areaHa": 444.27,
       "meanRisk": 0.763,
-      "dongCount": 39
+      "dongCount": 24
     },
     {
       "region": "gjunggu",
@@ -410,7 +410,7 @@
       ],
       "areaHa": 75.39,
       "meanRisk": 3.792,
-      "dongCount": 54
+      "dongCount": 13
     },
     {
       "region": "jecheon",
@@ -427,7 +427,7 @@
       ],
       "areaHa": 128.39,
       "meanRisk": 1.138,
-      "dongCount": 34
+      "dongCount": 18
     },
     {
       "region": "hongcheon",
@@ -444,7 +444,7 @@
       ],
       "areaHa": 162.06,
       "meanRisk": 0.73,
-      "dongCount": 10
+      "dongCount": 11
     },
     {
       "region": "goheung",
@@ -461,7 +461,7 @@
       ],
       "areaHa": 12.46,
       "meanRisk": 1.072,
-      "dongCount": 16
+      "dongCount": 17
     },
     {
       "region": "seocheon",
@@ -478,7 +478,7 @@
       ],
       "areaHa": 73.98,
       "meanRisk": 1.125,
-      "dongCount": 13
+      "dongCount": 14
     },
     {
       "region": "donggu",
@@ -495,7 +495,7 @@
       ],
       "areaHa": 50.66,
       "meanRisk": 2.833,
-      "dongCount": 4
+      "dongCount": 13
     },
     {
       "region": "hamyang",
@@ -546,7 +546,7 @@
       ],
       "areaHa": 61.31,
       "meanRisk": 1.138,
-      "dongCount": 10
+      "dongCount": 11
     },
     {
       "region": "jangheung",
@@ -563,7 +563,7 @@
       ],
       "areaHa": 60.05,
       "meanRisk": 1.116,
-      "dongCount": 10
+      "dongCount": 11
     },
     {
       "region": "yeongdogu",
@@ -580,7 +580,7 @@
       ],
       "areaHa": 77.12,
       "meanRisk": 1.854,
-      "dongCount": 21
+      "dongCount": 12
     },
     {
       "region": "jeongseon",
@@ -597,7 +597,7 @@
       ],
       "areaHa": 99.55,
       "meanRisk": 1.301,
-      "dongCount": 9
+      "dongCount": 10
     },
     {
       "region": "cheongsong",
@@ -614,7 +614,7 @@
       ],
       "areaHa": 91.65,
       "meanRisk": 0.793,
-      "dongCount": 8
+      "dongCount": 9
     },
     {
       "region": "danyang",
@@ -631,7 +631,7 @@
       ],
       "areaHa": 140.88,
       "meanRisk": 0.342,
-      "dongCount": 10
+      "dongCount": 9
     },
     {
       "region": "taebaek",
@@ -648,7 +648,7 @@
       ],
       "areaHa": 79.86,
       "meanRisk": 1.462,
-      "dongCount": 16
+      "dongCount": 9
     },
     {
       "region": "jindo",
@@ -665,7 +665,7 @@
       ],
       "areaHa": 52.43,
       "meanRisk": 1.069,
-      "dongCount": 7
+      "dongCount": 8
     },
     {
       "region": "jinan",
@@ -699,7 +699,7 @@
       ],
       "areaHa": 56.82,
       "meanRisk": 0.876,
-      "dongCount": 7
+      "dongCount": 8
     },
     {
       "region": "ongjin",
@@ -716,7 +716,7 @@
       ],
       "areaHa": 33.22,
       "meanRisk": 0.37,
-      "dongCount": 7
+      "dongCount": 8
     }
   ]
 }
