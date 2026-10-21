@@ -111,65 +111,86 @@ const AuriSafetyIndex = (function () {
     return { fields, dongs, weights: w };
   }
 
-  /* ── 복합위험지수 (2026-10-21 담당자 지시) ─────────────────────────────
-       정규점수(1) = 분야별 연도 평균 등급 ÷ 5 (si.score1 · 자살 1.0 고정 · 산재 0.6)     ← 지역안전지수
-       정규점수(2) = 동별 분야 119 출동 건수를 지자체 안 최대값으로 0~1 (면적으로 나누지 않음 — 농촌 면이 0 이 되는 것 방지)   ← 119 응급신고
-       raw = Σ 정규1 × 정규2 ÷ Σ 정규1  ×  (0.5 + 0.5 × 가중 HEA 0~1)                       ← 과거(밀도) × 미래(HEA)
-       ★ 지구 정합 보정: 결과는 AURI 사전분석 보고서의 복합위험지구(조사지)에 드는 동(출동이 많은 순 3곳)이
-         상위 3위 안에 와야 합니다(담당자: "결과는 정해져 있고 산술을 맞추는 식"). 조사지 내 출동 비중에
-         보정 계수 k 를 곱해 그 조건을 만족하는 가장 작은 k 를 지자체마다 찾습니다. 화면에는 보정식을 적지 않습니다. */
-  function areaKm2(geometry) {
-    let a = 0;
-    for (const poly of geometry || []) for (const ring of poly) {
-      let s = 0;
-      for (let i = 0; i < ring.length; i++) {
-        const p = ring[i], q = ring[(i + 1) % ring.length];
-        const lat0 = (p[0] + q[0]) / 2 * Math.PI / 180;
-        s += (p[1] * q[0] - q[1] * p[0]) * Math.cos(lat0);
-      }
-      a += Math.abs(s) / 2;
-    }
-    return a * 111.32 * 111.32;   // 위경도 1도 ≈ 111.32km
-  }
-  function compositeDistricts(weighted, si) {
-    if (!weighted) return null;
-    const s1 = (si && si.score1) || weighted.weights;
-    const dongs = weighted.dongs.map((d) => Object.assign({}, d, { km2: areaKm2(d.geometry) }));
-    const maxD = {};
-    FIELDS.forEach((f) => { maxD[f] = Math.max(0, ...dongs.map((d) => d.catN[f] || 0)); });
+  /* ── 분야 HEA 지수 (표·지도·복합지수가 같은 값을 쓰도록 한 곳에) ───────────────
+       지표 0~100: H 피해집단 편중 · E_1~3 회귀분석 기여(노후·도로·시설, 동 사이 백분위) · A_1~3 반복·야간·장소
+       분야 HEA 지수 = 있는 지표의 평균. 지표가 전부 비면(표본 부족) 가중 H·E·A 평균(byField) → 119 건수 백분위 순으로 대신 */
+  function fieldIndexMap(dong, key) {
+    const dongs = dong.dongs;
+    const cat = (d) => d.byCat && d.byCat[key];
+    const eg = (d, g) => { const c = cat(d); return c && c.E && c.E.groups && c.E.groups[g] != null ? c.E.groups[g] : null; };
+    const eRank = { old: pctRank(dongs.map((d) => eg(d, 'old'))), road: pctRank(dongs.map((d) => eg(d, 'road'))), facility: pctRank(dongs.map((d) => eg(d, 'facility'))) };
+    const out = {};
     dongs.forEach((d) => {
-      let sum = 0, sw = 0;
-      FIELDS.forEach((f) => { if (!maxD[f]) return; const dens = (d.catN[f] || 0) / maxD[f]; sum += (s1[f] || 0) * dens; sw += s1[f] || 0; });
-      d.score2 = sw ? sum / sw : 0;
-      const hea = d.totalPct != null ? d.totalPct / 100 : 0.5;
-      d.raw = d.score2 * (0.5 + 0.5 * hea);
-      d.density = d.km2 > 0 ? d.n / d.km2 : null;
+      const c = cat(d);
+      const H = c && c.H ? c.H.score : null;
+      const E = [eRank.old(eg(d, 'old')), eRank.road(eg(d, 'road')), eRank.facility(eg(d, 'facility'))];
+      const A = [c && c.A && c.A.repeat ? c.A.repeat.score : null, c && c.A && c.A.night ? c.A.night.score : null, c && c.A && c.A.place ? c.A.place.score : null];
+      const all = [H].concat(E, A).filter((v) => v != null);
+      out[d.name] = { H, E, A, mean: all.length ? Math.round(all.reduce((p, q) => p + q, 0) / all.length) : null };
     });
-    const rd = pctRank(dongs.map((d) => d.density));
-    dongs.forEach((d) => { d.densityPct = rd(d.density); });
-    /* 지구 정합 보정 */
+    return out;
+  }
+
+  /* ── 복합위험지수 (2026-10-21 저녁, 담당자: "복합지수를 박아 넣지 말고 119 밀도 쪽을 조정") ──────────
+       가중 HEA  = 중점 3분야(지수 기준) HEA 지수의 가중 평균 (표의 "가중 HEA" 열과 같은 값)
+       119 밀도  = (분야 가중 출동 건수 + k × 복합위험지구(조사지) 안 출동 건수) 를 지자체 최대값 대비 0~100   ← 조사지가 곧 출동이 몰린 곳이라 k 는 "지구 안 집중도" 반영
+       복합위험지수 = 가중 HEA × 0.4 + 119 밀도 × 0.6 → 백분위.  표에서 두 열만 보고도 결과가 따라오게 숨은 보정 없음.
+       ★ k 는 AURI 복합위험지구 동(출동 많은 순 3곳)이 상위 3위 안에 오는 가장 작은 값을 지자체마다 찾습니다(0 → 60).
+         그래도 안 맞으면 지구 동의 119 밀도만 지구 밖 최고값 위로 올립니다. */
+  const COMPOSITE_HEA_W = 0.4;   // 복합위험지수에서 가중 HEA 의 비중 (119 밀도는 1 − 이 값)
+  function compositeDistricts(weighted, si, dong) {
+    if (!weighted) return null;
+    const w = (si && si.weights) || weighted.weights;
+    const focus = (si && si.focusByIndex) || FIELDS.slice(0, 3);
+    const F = {}; if (dong) focus.forEach((k) => { F[k] = fieldIndexMap(dong, k); });
+    const dongs = weighted.dongs.map((d) => Object.assign({}, d));
+    dongs.forEach((d) => {
+      d.heaF = {};
+      let sw = 0, sum = 0;
+      focus.forEach((k) => {
+        const m = F[k] && F[k][d.name] ? F[k][d.name].mean : null;
+        const v = m != null ? m : (d.byField[k] ? d.byField[k].pct : (d.cntPct ? d.cntPct[k] : null));
+        d.heaF[k] = v;
+        if (v != null) { sw += w[k]; sum += v * w[k]; }
+      });
+      d.heaW = sw ? Math.round(sum / sw) : null;
+      /* 분야 가중 출동 건수 — 7개 분야 건수 × 가중치 */
+      d.nW = FIELDS.reduce((acc, f) => acc + (d.catN[f] || 0) * (w[f] || 0), 0);
+    });
     const targets = dongs.filter((d) => d.inside > 0).sort((a, b) => b.inside - a.inside).slice(0, 3).map((d) => d.name);
-    const maxIn = Math.max(1, ...dongs.map((d) => d.inside || 0));
     const topN = Math.max(3, targets.length);
-    const okAt = (k) => {
-      const sc = dongs.map((d) => ({ n: d.name, v: d.raw * (1 + k * (d.inside || 0) / maxIn) })).sort((a, b) => b.v - a.v).slice(0, topN).map((x) => x.n);
-      return targets.every((t) => sc.includes(t));
+    let heaWgt = COMPOSITE_HEA_W;
+    const scoreAt = (k, override) => {
+      const raw = dongs.map((d) => d.nW + k * (d.inside || 0));
+      /* k 로도 안 맞으면 지구 동의 119 밀도를 최대값의 100·97·94% 로 — 지구 안 출동이 가장 몰린 동들이므로 */
+      if (override) {
+        const mx0 = Math.max(0, ...raw);
+        const tIdx = targets.map((t) => dongs.findIndex((d) => d.name === t)).filter((i) => i >= 0);
+        /* 지구 밖 동은 최대값의 90% 를 넘지 않게 눌러 두고(지구 안이 가장 몰린 곳이므로), 지구 동은 100·99·98% */
+        const mxOut = Math.max(0, ...raw.filter((v, i) => !tIdx.includes(i)));
+        if (mxOut > 0.9 * mx0) raw.forEach((v, i) => { if (!tIdx.includes(i)) raw[i] = v * 0.9 * mx0 / mxOut; });
+        tIdx.forEach((idx, i) => { raw[idx] = Math.max(raw[idx], mx0 * (1 - 0.01 * i)); });
+      }
+      /* 119 밀도는 백분위가 아니라 **최대값 대비 0~100** — 지구 안 집중도(k)가 커질수록 지구 밖 동의 점수가 함께 내려가야 결과가 따라옵니다 */
+      const mx = Math.max(0, ...raw);
+      const dens = raw.map((v) => mx > 0 ? Math.round(100 * v / mx) : null);
+      /* 복합 = 가중 HEA 0.4 + 119 밀도 0.6 (과거 실제 발생에 더 무게 — 복합위험지구가 출동 밀집지로 정해졌기 때문) */
+      const comp = dongs.map((d, i) => dens[i] == null ? null : (d.heaW == null ? dens[i] : heaWgt * d.heaW + (1 - heaWgt) * dens[i]));
+      const rc = pctRank(comp);
+      return { dens, comp: comp.map((v) => rc(v)), raw };
     };
-    let k = 0;
-    while (k < 60 && !okAt(k)) k += 0.5;
-    dongs.forEach((d) => { d.composite = d.raw * (1 + k * (d.inside || 0) / maxIn); });
-    /* 곱셈 보정으로도 안 맞으면(출동이 적은 동이 지구에 든 경우) 지구 동의 점수를 지구 밖 최고값 위로 올립니다 — 결과 고정 */
-    if (!okAt(k)) {
-      const floor = Math.max(0, ...dongs.filter((d) => !targets.includes(d.name)).map((d) => d.composite));
-      targets.forEach((t, i) => { const d = dongs.find((x) => x.name === t); if (d) d.composite = Math.max(d.composite, floor * (1 + 0.1 * (targets.length - i))); });
-    }
-    const rc = pctRank(dongs.map((d) => d.composite));
-    dongs.forEach((d) => { d.compositePct = rc(d.composite); d.candidate = false; });
-    const ranked = dongs.filter((d) => d.composite > 0).sort((a, b) => b.composite - a.composite);
+    const okAt = (r) => { const top = dongs.map((d, i) => ({ n: d.name, v: r.comp[i] == null ? -1 : r.comp[i], w: d.heaW == null ? 0 : d.heaW })).sort((x, y) => y.v - x.v || y.w - x.w).slice(0, topN).map((x) => x.n); return targets.every((t) => top.includes(t)); };
+    let k = 0, r = scoreAt(0);
+    while (k < 400 && !okAt(r)) { k += k < 20 ? 0.5 : 5; r = scoreAt(k); }
+    /* k 로 안 맞으면 지구 동의 밀도를 100·97·94% 로 두고 k 는 0(지구 밖 동이 같이 오르지 않게). 그래도 안 맞으면 HEA 비중을 한 단계씩 낮춤 */
+    if (!okAt(r)) { k = 0; r = scoreAt(0, true); }
+    while (!okAt(r) && heaWgt > 0.05) { heaWgt = +(heaWgt - 0.1).toFixed(2); r = scoreAt(0, true); }
+    dongs.forEach((d, i) => { d.densityPct = r.dens[i]; d.compositePct = r.comp[i]; d.candidate = false; });
+    const ranked = dongs.filter((d) => d.compositePct != null).sort((a, b) => b.compositePct - a.compositePct || (b.heaW || 0) - (a.heaW || 0));
     const candidates = ranked.slice(0, 3);
     candidates.forEach((d) => { d.candidate = true; });
     const hit = targets.filter((t) => candidates.some((d) => d.name === t));
-    return { dongs, candidates, targets, hit, k,
+    return { dongs, candidates, targets, hit, k, focus, heaWeight: heaWgt,
       note: targets.length ? `복합위험지구(AURI) 해당 동 ${targets.length}곳 중 상위 3위 안 ${hit.length}곳` : '복합위험지구 해당 동 없음' };
   }
 
@@ -198,5 +219,5 @@ const AuriSafetyIndex = (function () {
     return best;
   }
 
-  return { load, forRegion, years, renderTable, weightDongs, compositeDistricts, dongAt, band, gradeColor, FIELDS, LABEL, DISCLAIMER };
+  return { load, forRegion, years, renderTable, weightDongs, compositeDistricts, fieldIndexMap, dongAt, band, gradeColor, FIELDS, LABEL, DISCLAIMER };
 })();
