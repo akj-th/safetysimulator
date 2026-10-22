@@ -823,7 +823,7 @@ function buildRmapSeg() {
     const hasHea = _si.weighted.fields.some(function (f) { return f.key === k; });
     btn(k, AuriSafetyIndex.LABEL[k], colorOf(k), AuriSafetyIndex.LABEL[k] + ' — 지역안전지수 ' + (si.grades[AuriSafetyIndex.years()[0]] || {})[k] + '등급 (하위 ' + (i + 1) + '위)' + (hasHea ? '' : ' · 동별 HEA 표본 부족 → 119 출동 건수 기준'));   // 버튼에는 분야 이름만 (2026-10-21)
   });
-  btn('composite', '복합위험지구 후보', '#D83D64', '지역안전지수 정규점수 × 119 출동 × 동별 HEA → 상위 3개 동');
+  btn('composite', '복합위험지구 후보', '#D83D64', '가중 HEA 0.25 + 119 밀도 0.25 + 현장조사단 평가 0.5 → 상위 3개 동');
   note.innerHTML = (_si.composite && _si.composite.candidates.length ? '복합위험지구 후보(상위 3개 동) — <b>' + _si.composite.candidates.map(function (d) { return d.name; }).join(' · ') + '</b><br>' : '') +
     `* ${AuriSafetyIndex.DISCLAIMER}`;
 }
@@ -985,28 +985,29 @@ function renderHeaTable() {
     const fks = si.focusByIndex;
     const F = {}; fks.forEach((k) => { F[k] = fieldScores(k); });
     head = '<thead><tr><th rowspan="2" class="hea-corner">행정동</th>' + fks.map(function (k) { return '<th colspan="2" class="sep">' + AuriSafetyIndex.LABEL[k] + ' <span class="hea-out">가중치 ' + w[k] + '</span></th>'; }).join('')
-         + '<th rowspan="2" class="sep">가중 HEA</th><th rowspan="2">119 밀도</th><th rowspan="2" class="sep">복합위험지수</th><th rowspan="2">복합위험지구</th></tr>'
+         + '<th rowspan="2" class="sep">가중 HEA</th><th rowspan="2">119 밀도</th><th rowspan="2">현장조사단<br>평가</th><th rowspan="2" class="sep">복합위험지수</th><th rowspan="2">복합위험지구</th></tr>'
          + '<tr class="sub">' + fks.map(function () { return '<th class="sep">HEA 지수</th><th>관리등급</th>'; }).join('') + '</tr></thead>';
     trs = rows.map(function (d) {
       const cols = fks.map(function (k) { const v = d.heaF ? d.heaF[k] : heaIdx(d, k, F[k]); return num(v, 'sep') + gradeCell(gradeOf(v)); }).join('');
-      return '<tr' + (d.candidate ? ' class="cand"' : '') + '><td class="dong">' + d.name + '</td>' + cols + bold(d.heaW, 'sep') + bold(d.densityPct) + bold(d.compositePct, 'sep') + '<td>' + flag(d) + '</td></tr>';
+      return '<tr' + (d.candidate ? ' class="cand"' : '') + '><td class="dong">' + d.name + '</td>' + cols + bold(d.heaW, 'sep') + bold(d.densityPct) + bold(d.surveyPct) + bold(d.compositePct, 'sep') + '<td>' + flag(d) + '</td></tr>';
     }).join('');
   } else {
     const k = mode, L = AuriSafetyIndex.LABEL[k], F = fieldScores(k);
     head = '<thead><tr><th rowspan="2" class="hea-corner">행정동</th><th class="sep">H</th><th colspan="3" class="sep">E</th><th colspan="3" class="sep">A</th><th rowspan="2" class="sep">' + L + '<br>HEA 지수</th><th rowspan="2">관리등급</th>'
-         + '<th rowspan="2" class="sep">가중치</th><th rowspan="2">119 밀도</th><th rowspan="2" class="sep">복합위험지수</th><th rowspan="2">복합위험지구</th></tr>'
+         + '<th rowspan="2" class="sep">가중치</th><th rowspan="2">119 밀도</th><th rowspan="2">현장조사단<br>평가</th><th rowspan="2" class="sep">복합위험지수</th><th rowspan="2">복합위험지구</th></tr>'
          + '<tr class="sub"><th class="sep">H_1 피해집단</th><th class="sep">E_1 노후</th><th>E_2 도로</th><th>E_3 시설</th><th class="sep">A_1 반복</th><th>A_2 야간</th><th>A_3 장소</th></tr></thead>';
     trs = rows.map(function (d) {
       const f = F[d.name] || { H: null, E: [null, null, null], A: [null, null, null], mean: null };
       const v = heaIdx(d, k, F);
       return '<tr' + (d.candidate ? ' class="cand"' : '') + '><td class="dong">' + d.name + '</td>'
         + num(f.H, 'sep') + num(f.E[0], 'sep') + num(f.E[1]) + num(f.E[2]) + num(f.A[0], 'sep') + num(f.A[1]) + num(f.A[2])
-        + bold(v, 'sep') + gradeCell(gradeOf(v)) + num(w[k], 'sep') + bold(d.densityPct) + bold(d.compositePct, 'sep') + '<td>' + flag(d) + '</td></tr>';
+        + bold(v, 'sep') + gradeCell(gradeOf(v)) + num(w[k], 'sep') + bold(d.densityPct) + bold(d.surveyPct) + bold(d.compositePct, 'sep') + '<td>' + flag(d) + '</td></tr>';
     }).join('');
   }
   body.innerHTML = '<div class="hea-table-wrap"><table class="hea-table dense">' + head + '<tbody>' + trs + '</tbody></table></div>'
     + '<p class="hea-foot">* 모든 점수는 지자체 안 상대 순위(0~100, 높을수록 취약). H = 피해집단 편중, E = 물적환경 회귀분석 기여(노후·도로·시설밀도), A = 반복 발생·야간 비중·장소 편중. HEA 지수 = 있는 지표의 평균. 관리등급 = HEA 지수 75 이상 중점관리 · 50 관리 · 25 관찰 · 그 외 안전.<br>'
-    + '* 119 밀도 = 7개 분야 3개년 출동 건수에 지역안전지수 가중치와 지구 안 집중도를 반영한 백분위 · 복합위험지수 = 가중 HEA × ' + C.heaWeight + ' + 119 밀도 × ' + (+(1 - C.heaWeight).toFixed(2)) + ' 의 백분위, 상위 3개 동이 <b style="color:var(--main)">후보</b>. "AURI 해당" 은 사전분석 보고서 복합위험지구에 드는 동.<br>'
+    + '* 119 밀도 = 7개 분야 3개년 출동 건수 × 지역안전지수 가중치를 지자체 최대값 대비 0~100 · 현장조사단 평가 = 현장조사단 종합평가 지수(사고 군집과의 인접성·연속성을 함께 본 행정동별 평가, 0~100)<br>'
+    + '* 복합위험지수 = 가중 HEA × ' + C.weights.hea + ' + 119 밀도 × ' + C.weights.density + ' + 현장조사단 평가 × ' + C.weights.survey + ' 의 지자체 안 백분위. 상위 3개 동이 <b style="color:var(--main)">후보</b>. "AURI 해당" 은 사전분석 보고서 복합위험지구에 드는 동.<br>'
     + '* ' + AuriSafetyIndex.DISCLAIMER + '</p>';
   panel.hidden = false;
   title.textContent = mode === 'composite' ? '행정동별 중점 분야 HEA 지수 · 복합위험지구' : '행정동별 ' + AuriSafetyIndex.LABEL[mode] + ' 분야 HEA 취약요인 · 복합위험지구';
