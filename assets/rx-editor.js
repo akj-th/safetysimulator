@@ -122,7 +122,7 @@ const AuriRx = {
           <div class="rx-edit">
             <div class="line">
               <select class="grow" id="rx-name-${i}" onchange="AuriRx.onNameChange(${i})">
-                ${auriCatalogOptions(it.name)}
+                ${auriCatalogOptions(it.name, AuriRx.space)}
               </select>
               <select id="rx-pri-${i}">
                 <option value="must" ${it.priority.cls === 'must' ? 'selected' : ''}>필수</option>
@@ -139,9 +139,15 @@ const AuriRx = {
         </div>`;
     }).join('');
 
-    document.getElementById(this.opts.listId).innerHTML = rows.trim()
+    /* ★ 공간유형 거르기 (표준사업가이드 10/26, 4쪽 공간분류체계) — 고르면 아래 드롭다운이 그 공간유형의 사업만 보여 줍니다 */
+    const spaceBar = `<div class="rx-space-bar">공간유형
+      <select id="rx-space" onchange="AuriRx.setSpace(this.value)">
+        <option value="">전체 (공간유형 거르지 않음)</option>
+        ${AuriPalette.SPACE_GROUPS.map((g) => `<optgroup label="${g.group}"><option value="${g.group}" ${this.space === g.group ? 'selected' : ''}>${g.group} 전체</option>${g.types.map((t) => `<option value="${t}" ${this.space === t ? 'selected' : ''}>${t}</option>`).join('')}</optgroup>`).join('')}
+      </select><span class="rx-space-note">${this.space ? AuriPalette.bySpace(this.space).length + '종' : ''}</span></div>`;
+    document.getElementById(this.opts.listId).innerHTML = spaceBar + (rows.trim()
       ? rows
-      : '<div class="empty">사업이 모두 삭제되었습니다. 항목 추가로 직접 넣을 수 있습니다.</div>';
+      : '<div class="empty">사업이 모두 삭제되었습니다. 항목 추가로 직접 넣을 수 있습니다.</div>');
 
     /* 각 줄의 출처·금액 줄을 채웁니다 (드롭다운을 바꾸면 다시 채워집니다) */
     this.draft.forEach(function (it, i) {
@@ -158,6 +164,14 @@ const AuriRx = {
        드롭다운 한 번에 날려 버리면 손댄 기록이 사라지기 때문입니다.
        (판단 기준: 지금 칸의 내용이 '어느 팔레트 사업의 효과크기 원문'과
         같으면 자동으로 채워진 것 → 갈아 끼움. 아니면 사람이 쓴 것 → 유지) */
+  /* 공간유형을 바꾸면 줄마다 드롭다운 목록만 갈아 끼웁니다(전체를 다시 그리면 쓰던 글이 날아가므로) */
+  space: '',
+  setSpace(v) {
+    this.space = v || '';
+    this.draft.forEach((it, i) => { if (it.deleted) return; const sel = document.getElementById('rx-name-' + i); if (!sel) return; const cur = sel.value === '__custom__' ? it.name : sel.value; sel.innerHTML = auriCatalogOptions(cur, this.space); if (sel.value !== cur && cur) sel.value = cur; });
+    const n = document.querySelector('.rx-space-note'); if (n) n.textContent = this.space ? AuriPalette.bySpace(this.space).length + '종' : '';
+  },
+
   onNameChange(i) {
     const sel = document.getElementById('rx-name-' + i);
     const custom = document.getElementById('rx-custom-' + i);

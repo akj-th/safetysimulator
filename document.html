@@ -204,6 +204,18 @@ img[hidden]{display:none !important}
 .mois-two{display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start}
 @media(max-width:700px){ .mois-two{grid-template-columns:1fr} }
 .mois-two figure{margin:0} .mois-two img{width:100%; display:block; border:1px solid var(--g1)}
+/* 표준사업가이드 적용사례 카드 (2026-10-22) — 검은 띠 제목 + 왼쪽 사진 · 오른쪽 항목표 */
+.guide-title{background:#000; color:#fff; font-weight:700; text-align:center; padding:8px 10px; line-height:1.5}
+.guide-title .sub{display:block; font-weight:400; font-size:var(--fs-sm); color:#ccc}
+.guide-bar{background:#000; color:#fff; font-weight:700; padding:5px 10px; margin:0; font-size:var(--fs-sm); letter-spacing:.02em}
+.guide-grid{display:grid; grid-template-columns:34% 1fr; gap:0; border:1px solid var(--g1); border-top:0}
+.guide-grid > figure{margin:0; padding:10px; border-right:1px solid var(--g1)} .guide-grid img{width:100%; display:block; border:1px solid var(--g1)}
+.guide-grid figcaption{font-size:var(--fs-cap); color:var(--g2); margin-top:4px; text-align:center}
+table.guide{width:100%; border-collapse:collapse; margin:0} table.guide th, table.guide td{border-bottom:1px solid var(--g1); padding:6px 8px; vertical-align:top; font-size:var(--fs-sm)}
+table.guide th{width:19%; background:#F5F5F5; text-align:left; font-weight:700} table.guide th.ax{width:9%; text-align:center; white-space:nowrap}
+table.guide tr:last-child th, table.guide tr:last-child td{border-bottom:0}
+table.guide .bullet{margin:0 0 3px; padding-left:16px; text-align:left} table.guide .doc-fill{margin:4px 0 0}
+@media(max-width:700px){ .guide-grid{grid-template-columns:1fr} .guide-grid > figure{border-right:0; border-bottom:1px solid var(--g1)} }
 .doc-inline{display:inline-block; min-width:80px; border-bottom:1px dashed var(--g2); padding:0 4px; outline:none}
 .doc-inline:empty::before{content:attr(data-hint); color:var(--g2); font-weight:400}
 @media print{ .doc-inline{border-bottom:none} .doc-inline:empty::before{content:''} }
@@ -285,8 +297,8 @@ img[hidden]{display:none !important}
   <div class="doc-tabs screen-only">
     <button type="button" class="doc-tab on" id="tabB" onclick="showDoc('b')">현장용 리포트</button>
     <button type="button" class="doc-tab" id="tabA" onclick="showDoc('a')">사전진단서</button>
-    <!-- 행안부 리포트 탭은 양식 원본·논의가 정리될 때까지 감춥니다 (담당자 2026-10-22). hidden 만 지우면 다시 보입니다 -->
-    <button type="button" class="doc-tab" id="tabC" onclick="showDoc('c')" hidden>행안부 리포트(초안)</button>
+    <!-- 세 번째 탭: AURI 「표준사업가이드 개발(안)」(10/26) 적용사례 카드. 옛 행안부 예시안 카드(moisReport)는 함수만 남겨 둠 (2026-10-22) -->
+    <button type="button" class="doc-tab" id="tabC" onclick="showDoc('c')">적용사례 카드</button>
     <span style="flex:1"></span>
     <!-- ★ 수정 모드 (2026-10-21 담당자) — 보고 있는 탭의 어떤 글이든 고칠 수 있음. 수정 중에는 인쇄가 잠기고, 저장하면 다시 풀림 -->
     <button type="button" class="doc-tab doc-edit-reset" id="editReset" hidden onclick="resetEdit()" title="이 탭의 수정 내용을 버리고 자동 생성 문서로 되돌립니다">원래대로</button>
@@ -1491,11 +1503,11 @@ function showDoc(which) {
   document.getElementById('tabB').classList.toggle('on', !a && !c);
   document.getElementById('tabC').classList.toggle('on', c);
   document.getElementById('printFoot').textContent =
-    (a ? '지자체 사전진단서' : c ? '안전사업지구 사전진단 결과 리포트(초안)' : '현장 확인 리포트') + (_data ? ' — ' + _data.label : '');
+    (a ? '지자체 사전진단서' : c ? '표준사업가이드 적용사례 카드' : '현장 확인 리포트') + (_data ? ' — ' + _data.label : '');
   document.getElementById('docNoteText').innerHTML = a
     ? 'AURI 「지역 안전진단 사전분석 보고서」와 같은 구조입니다. 1·2장의 글과 표는 AURI 보고서 원문이고, 별첨은 이 앱이 계산한 것입니다. 점선 없는 <b>입력칸</b>은 직접 쓰거나 <b>AI 의견 생성</b>으로 초안을 받을 수 있습니다. AI 초안 표시와 판단 근거는 화면에만 보이고 인쇄물에는 나오지 않습니다.'
     : c
-    ? '행안부 「2차 현장보고서」 <b>예시안(공간분석 카드)</b> 구조입니다(10/20 실무회의). 공간유형·세부 유형은 제목 줄을 바로 고칠 수 있고, 사업목적·복합 사업 설명은 입력칸 또는 AI 의견 생성으로 채웁니다. 행안부 양식 원본을 받으면 항목 순서·제목을 그 양식대로 맞춥니다.'
+    ? 'AURI 「표준사업가이드 개발(안)」의 <b>적용사례 카드</b> 구조입니다(원인·진단 → 해법·적용). 제목 줄과 공간유형은 바로 고칠 수 있고, 문제·H/E/A·시범규모·예산근거·사업적용 칸은 직접 쓰거나 <b>AI 의견 생성</b>으로 초안을 받습니다.'
     : '현장에서 볼 것만 담았습니다. 확인사항은 <b>네모 칸에 체크</b>하며 쓰도록 만들었습니다.';
   AuriDocEdit.refresh();
   if (typeof setEditUi === 'function') setEditUi();
@@ -1604,6 +1616,87 @@ function moisReport() {
   </section>`;
 }
 
+/* ★ 표준사업가이드 적용사례 카드 (2026-10-22) — AURI 「지역주도형 안전사업지구 표준사업가이드 개발(안)」(2026-10-26 자료) 7~10쪽 양식
+   헤더  <지자체 생활권> [공간유형 + 공간유형 + …]
+   원인·진단 | WHERE·WHY     공간유형 · 지역안전지수 · 분석결과 · 문제          (왼쪽: 현장 사진)
+   해법·적용 | H/E/A → PALETTE → IMPLEMENT   H/E/A(인적·환경·대응) · 맞춤형 사업 · 시범규모 · 예산근거(선례) · 사업적용   (왼쪽: 개선 후 사진)
+   자동으로 채우는 것: 공간유형(AURI 보고서 2장 → 표준 팔레트) · 지역안전지수 등급 · 분석결과(119 통계) · 문제(AURI 위험요인 + 사진 판독) ·
+   인적(119 인적 특성) · 환경(사진 판독 문제 항목) · 맞춤형 사업(처방, "분야 번호 「이름」" 꼴) · 선례(표준 팔레트 기초사례) · 사업적용(개입 단위 점·선·면)
+   사람이 쓰는 것: 대응 · 시범규모 · 예산근거 보완 · 사업적용 보완 (편집칸 + AI 초안) */
+function guideCard() {
+  const beforeImg = sessionStorage.getItem('auri_input_image');
+  const beforeUrl = beforeImg ? (JSON.parse(beforeImg).dataUrl || null) : null;
+  const after = sessionStorage.getItem('auri_after_image');
+  const focusKeys = new Set(_focus.map((f) => f.key));
+  const ordered = _results.slice().sort((a, b) => (focusKeys.has(b.key) - focusKeys.has(a.key)) || b.score - a.score);
+  const primary = ordered[0] || null;
+  const pKey = primary ? primary.key : null;
+  const pCat = pKey && _data.categories ? _data.categories[pKey] : null;
+  const human = pCat ? AuriStats.narrateHuman(pCat, { inside: _stats.inside }) : null;
+  /* 공간유형 — AURI 보고서 2장(중점 분야)의 공간유형, 없으면 처방 사업의 표준 팔레트 공간유형. 중복 없이 최대 3 */
+  const spaces = []; const pushSp = (s) => { s = String(s || '').trim(); if (s && !spaces.includes(s)) spaces.push(s); };
+  if (_auri) _focus.forEach((f) => { const af = _auri.fields.find((x) => x.key === f.key); if (af) af.groups.forEach((g) => pushSp(g.spaceType)); });
+  _items.forEach((it) => { const sp = AuriPalette.std(it.name); if (sp) pushSp(sp.spaceType); });
+  const spaceLine = spaces.slice(0, 3).join(' + ');
+  const groupLine = spaces.slice(0, 3).map((s) => AuriPalette.spaceGroupOf(s)).filter((g, i, a) => g && a.indexOf(g) === i).join(' · ');
+  /* 지역안전지수 — 최근 연도 등급 (가이드 표기: 범죄(5):교통사고(1):…) */
+  const year = _siRegion && _siRegion.years && _siRegion.years.length ? _siRegion.years[0] : null;
+  const grades = year && _siRegion.grades ? _siRegion.grades[year] : null;
+  const siLine = grades ? ['crime', 'traffic', 'fire', 'life', 'suicide', 'infection'].filter((k) => grades[k] != null).map((k) => `${AuriSafetyIndex.LABEL[k]}(${grades[k]})`).join(' : ') + ` <span class="h-sub">${year}년 등급</span>` : '<span class="h-sub">등급 자료 없음</span>';
+  /* 분석결과 — 중점 분야마다 복합위험지구 내 / 지자체 전체 건수 */
+  const analysis = _focus.map((f) => { const c = f.cat.count || {}; if (c.inside == null) return ''; return `<p class="bullet">복합위험지구 내 ${esc(f.label)} ${Number(c.inside).toLocaleString()}/${Number(c.region || 0).toLocaleString()}건${c.share != null ? `(${c.share}%)` : ''}${focusKeys.has(f.key) ? '' : ''}</p>`; }).filter(Boolean).join('')
+    + `<p class="bullet">진단 지점 ${esc(_picked.addr || '')}${_picked.dong ? ` — ${esc(_data.shortLabel)} ${esc(_picked.dong)}` : ''}${primary ? ` · 사진 판독 ${esc(primary.name)} ${primary.score}점(${esc(primary.level.label)})` : ''}</p>`;
+  /* 문제 — AURI 보고서 위험요인 제목 + 사진 판독 문제 항목 */
+  const auriIssues = [];
+  if (_auri) _focus.forEach((f) => { const af = _auri.fields.find((x) => x.key === f.key); if (af) af.groups.forEach((g) => g.issues.forEach((is) => { if (is.title) auriIssues.push({ field: f.label, title: is.title }); })); });
+  const photoProblems = primary && primary.findings ? primary.findings.filter((x) => x.risk) : [];
+  const perField = {}; const issuesPick = auriIssues.filter((x) => { perField[x.field] = (perField[x.field] || 0) + 1; return perField[x.field] <= 2; });
+  const problemHtml = issuesPick.map((x) => `<p class="bullet">[${esc(x.field)}] ${esc(x.title)}</p>`).join('')
+    + photoProblems.slice(0, 4).map((x) => `<p class="bullet">(사진 판독 ${esc(x.id)}) ${esc(x.note || x.ask || '')}</p>`).join('')
+    + (!auriIssues.length && !photoProblems.length ? '<p class="bullet">-</p>' : '');
+  /* 맞춤형 사업 — 표준 팔레트면 "분야 번호 「이름」", 아니면 "분야 「이름」" */
+  const rxHtml = _items.length ? _items.map((it) => { const sp = AuriPalette.std(it.name); const label = sp ? `${sp.cat} ${String(sp.no).padStart(2, '0')}` : (it.category || ''); return `<p class="bullet"><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span> ${esc(label)} 「${esc(it.name)}」${it.required ? ' <span class="h-sub">필수</span>' : ''}</p>`; }).join('') : '<p class="bullet">처방된 사업 없음</p>';
+  /* 선례 — 표준 팔레트 기초사례(중복 없이 3건) · 사업적용 — 개입 단위(점·선·면) */
+  const cases = []; const units = [];
+  _items.forEach((it) => { const sp = AuriPalette.std(it.name); if (!sp) return; const c = sp.card && sp.card.caseRef ? String(sp.card.caseRef).trim() : ''; if (c && !cases.includes(c)) cases.push(c); if (sp.unit) units.push(`${it.name}(${sp.unit})`); });
+  const casesHtml = cases.slice(0, 3).map((c) => `<p class="bullet">${esc(c)}</p>`).join('');
+  const unitsHtml = units.length ? `<p class="bullet">개입 단위: ${esc(units.join(' · '))}</p>` : '';
+  const envHtml = photoProblems.length ? photoProblems.slice(0, 5).map((x) => `<p class="bullet">${esc(x.note || x.ask || '')}</p>`).join('') : (primary && primary.observed && primary.observed.length ? primary.observed.slice(0, 4).map((t) => `<p class="bullet">${esc(t)}</p>`).join('') : '');
+  const ctx = `지자체 ${_data.label} · 지점 ${_picked.addr || ''} · 공간유형 ${spaceLine} · 지역안전지수 ${siLine.replace(/<[^>]+>/g, '')} · 안전 유형 ${primary ? primary.name + ' ' + primary.score + '점' : ''} · 처방 ${_items.map((it) => it.name).join(', ')}`;
+
+  return `
+  <section class="chapter guide">
+    <p class="h-sub" style="text-align:center;margin:0 0 6px">&lt; 표준사업가이드 적용사례 카드 &gt;</p>
+    <div class="guide-title">${AuriDocEdit.inline('guide-title', `${_data.shortLabel} ${_picked.dong || ''} 생활권`.replace(/\s+/g, ' '), '예: 부천시 원도심 생활권')}
+      <span class="sub">[ ${AuriDocEdit.inline('guide-space', spaceLine || '공간유형', '예: 주거생활형 + 상업·유흥 밀집형 + 도로·보행축형')} ]</span></div>
+    <p class="guide-bar">원인·진단 | WHERE·WHY</p>
+    <div class="guide-grid">
+      <figure>${beforeUrl ? `<img src="${beforeUrl}" alt="현장 사진">` : '<div class="slot">현장 사진 — 2단계에서 업로드</div>'}<figcaption>현장 사진 — ${esc(_picked.addr || '')}</figcaption></figure>
+      <table class="guide"><tbody>
+        <tr><th>공간유형</th><td>${esc(spaceLine || '-')}${groupLine ? ` <span class="h-sub">(${esc(groupLine)})</span>` : ''}</td></tr>
+        <tr><th>지역안전지수</th><td>${siLine}</td></tr>
+        <tr><th>분석결과</th><td>${analysis}</td></tr>
+        <tr><th>문제</th><td>${problemHtml}${AuriDocEdit.render('guide-problem', '', '보완 — 전문기관 의견·현장 확인 등 문제를 덧붙입니다.', ctx)}</td></tr>
+      </tbody></table>
+    </div>
+    <p class="guide-bar" style="margin-top:14px">해법·적용 | H/E/A → PALETTE → IMPLEMENT</p>
+    <div class="guide-grid">
+      <figure>${after ? `<img src="${after}" alt="개선 후 사진">` : '<div class="slot">개선 후 사진 — 4단계에서 생성</div>'}<figcaption>개선 후 사진 (사업 반영 예시)</figcaption>${afterTagLegend()}<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div></figure>
+      <table class="guide"><tbody>
+        <tr><th rowspan="3" class="ax">H<br>E<br>A</th><th class="ax">인적</th><td>${human ? `<p class="bullet">${human.text}</p>` : ''}${AuriDocEdit.render('guide-human', '', '보호대상·이용자 특성을 적습니다.', ctx)}</td></tr>
+        <tr><th class="ax">환경</th><td>${envHtml}${AuriDocEdit.render('guide-env', '', '현장에서 실측·확인할 물리 환경 항목을 적습니다.', ctx)}</td></tr>
+        <tr><th class="ax">대응</th><td><p class="bullet">소방·경찰·CCTV 관제 등 대응체계 — 확인 필요</p>${AuriDocEdit.render('guide-response', '', '기존 사업·순찰·관제 운영과의 연계를 적습니다.', ctx)}</td></tr>
+        <tr><th colspan="2">맞춤형 사업</th><td>${rxHtml}</td></tr>
+        <tr><th colspan="2">시범규모</th><td>${AuriDocEdit.render('guide-scale', '', '예: 보행축 1개 300m · 교차로 2개소 — 위험지도·현장 실측으로 결정', ctx)}</td></tr>
+        <tr><th colspan="2">예산근거(선례)</th><td>${casesHtml}${AuriDocEdit.render('guide-budget', '', '선례 사업비·단가를 적습니다. 표준 팔레트의 소요예산 산식을 참고하십시오.', ctx)}</td></tr>
+        <tr><th colspan="2">사업적용</th><td>${unitsHtml}${AuriDocEdit.render('guide-apply', '', '점·선·면 지정, 협의 기관(도로·교통·경찰·소방 등)을 적습니다.', ctx)}</td></tr>
+      </tbody></table>
+    </div>
+    <figure class="doc-map" style="margin-top:14px"><img id="map-mois" alt="위치도" hidden><div class="slot" id="map-mois-wait">지도를 그리는 중입니다…</div>
+      <figcaption>위치도 — ${primary ? esc(primary.name) : ''} 밀도 · 진단 지점 반경 ${MAP_RADIUS_M}m</figcaption></figure>
+  </section>`;
+}
+
 /* ★ 개선 이미지 번호 태그 범례 (2026-10-20 실무회의 — 번호만 이미지 안에, 설명은 밖으로)
    4단계에서 "번호 태그" 를 켜고 만들면 auri_after_tags 에 [{n, name}] 이 남습니다. */
 function afterTagLegend() {
@@ -1619,7 +1712,7 @@ function renderAll() {
   document.getElementById('docA').innerHTML =
     cover() + auriCh1() + auriCh2() + auriAppendix() + chapter1() + chapter2() + chapter3() + chapter5() + hotspotCards();
   document.getElementById('docB').innerHTML = fieldReport();
-  document.getElementById('docC').innerHTML = moisReport();
+  document.getElementById('docC').innerHTML = guideCard();
   ['a', 'b', 'c'].forEach(applySavedDoc);   // 수정 모드에서 저장한 것이 있으면 그것으로
   AuriDocEdit.refresh();
   /* 지도는 타일을 받아야 해서 시간이 걸립니다. 문서를 먼저 띄우고 뒤따라 채웁니다.

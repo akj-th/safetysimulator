@@ -447,8 +447,16 @@ function auriFindRule(id) { return AuriPalette.byId(id); }
 function auriCatalogHas(name) { return !!AuriPalette.byName(name); }
 
 /** 연구원이 드롭다운에서 고를 수 있는 전체 목록 (<select> 안에 넣는 HTML) */
-function auriCatalogOptions(currentName) {
+function auriCatalogOptions(currentName, space) {
   const esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
+  /* space(세부 공간유형 또는 상위 분류)가 있으면 표준 팔레트 공간유형이 맞는 사업만 — 표준사업가이드(10/26)의
+     "공간유형 → 7대 안전유형·HEA → 후보사업" 검색 흐름. 지금 고른 사업은 거르지 않습니다. */
+  const want = String(space || '').replace(/\s+/g, '');
+  const inSpace = function (p) {
+    if (!want || p.name === currentName) return true;
+    const sp = p.std ? String(p.std.spaceType || '').replace(/\s+/g, '') : '';
+    return !!sp && (sp === want || AuriPalette.spaceGroupOf(sp).replace(/\s+/g, '') === want);
+  };
   const fields = [
     ['traffic', '교통사고'], ['fire', '화재'], ['crime', '범죄'], ['life', '생활안전'],
     ['industrial', '산업재해'], ['suicide', '자살'], ['infection', '감염병'],
@@ -457,7 +465,7 @@ function auriCatalogOptions(currentName) {
 
   let html = `<option value="__custom__" ${known || !currentName ? '' : 'selected'}>직접 입력…</option>`;
   fields.forEach(function (f) {
-    const list = AuriPalette.byField(f[0]);
+    const list = AuriPalette.byField(f[0]).filter(inSpace);
     if (!list.length) return;
     html += `<optgroup label="${esc(f[1])}">`;
     list.forEach(function (p) {

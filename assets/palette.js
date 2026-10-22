@@ -163,8 +163,33 @@ const AuriPalette = (function () {
     return s.length > 46 ? s.slice(0, 46) + '…' : s;
   }
 
+  /* ★ AURI 「표준사업가이드 개발(안)」(2026-10-26 자료, 4쪽) — 210개 표준사업의 13개 세부 공간유형을
+     4개 물리적 사업공간군 + 1개 서비스·관리체계로 묶은 표. palette-std.json 의 spaceType 값과 글자 그대로 같습니다. */
+  const SPACE_GROUPS = [
+    { group: '주거·생활시설',   types: ['주거생활형', '의료·복지거점형', '교육·돌봄시설형', '다중이용·공공시설형'], check: '노후도, 취약인구, 시설안전, 서비스 접근', apply: '생활권·시설 개선' },
+    { group: '교통·이동',       types: ['도로·보행축형', '주요 교차로형', '교통결절·승하차형'], check: '사고유형, 도로구조, 보행·차량 상충', apply: '도로축·교차로 개선' },
+    { group: '상업·산업·생산활동', types: ['산업·사업장형', '상업·유흥 밀집형', '농촌·농작업형', '관광산업 밀집형'], check: '시설·작업 위험, 이용·작업 동선', apply: '활동공간 및 접점 개선' },
+    { group: '자연·연안·옥외',   types: ['자연환경형'], check: '추락·익수 등 위험지점, 구조접근', apply: '위험시설·접근구간 개선' },
+    { group: '지역관리·서비스',  types: ['지역관리·네트워크형'], check: '예방·상담·신고·대응체계 공백', apply: '서비스·기관연계 보완' },
+  ];
+  /** 세부 공간유형 → 상위 공간분류 이름 (모르면 '') */
+  function spaceGroupOf(type) {
+    const t = String(type || '').replace(/\s+/g, '');
+    const hit = SPACE_GROUPS.find(function (g) { return g.types.some(function (x) { return x.replace(/\s+/g, '') === t; }); });
+    return hit ? hit.group : '';
+  }
+  /** 어느 공간유형(세부) 또는 상위 분류에 드는 사업 목록 — 표준 팔레트 상세가 있는 사업만 */
+  function bySpace(typeOrGroup) {
+    const want = String(typeOrGroup || '').replace(/\s+/g, '');
+    if (!want) return _data ? _data.programs : [];
+    return (_data ? _data.programs : []).filter(function (p) {
+      const sp = p.std ? String(p.std.spaceType || '').replace(/\s+/g, '') : '';
+      return sp && (sp === want || spaceGroupOf(sp).replace(/\s+/g, '') === want);
+    });
+  }
+
   return {
-    load, ready, byName, byId, byField,
+    load, ready, byName, byId, byField, bySpace, spaceGroupOf, SPACE_GROUPS,
     heaLabel, heaLegend, heaDesc, amountText, evidence, sourceShort, effectLabel, std,
     get data() { return _data; },
     get note() { return _data ? _data.note : ''; },
