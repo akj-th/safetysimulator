@@ -63,21 +63,21 @@ for (const f of fs.readdirSync(path.join(ROOT, 'data/dong')).filter((x) => x.end
     c = check();
   }
   /* ★ 등급 분포 유지 (2026-10-22 저녁 담당자: 원점수로 보여 주되 관리등급 분포는 백분위 때처럼).
-     ① 코어(복합위험지구 동)는 평가 100·98·96 으로 올려 천장을 만들고, ② 나머지 동을 원점수 순위로 사분위에 나눠
-     (상위 25% = 중점관리 … 하위 25% = 안전) 원점수가 그 등급 구간(75/50/25)을 벗어나면 현장평가 점수만 구간 안으로
+     ① 코어(복합위험지구 동)는 평가 100·98·96 으로 올려 천장을 만들고, ② 나머지 동을 원점수 순위로 3분위에 나눠
+     (상위 25% = 중점관리 … 하위 25% = 안전) 원점수가 그 구간(화면 색 band 67/34)을 벗어나면 현장평가 점수만 구간 안으로
      밀어 넣습니다(평가 0.5 비중 → 점수 1점에 원점수 0.5점). 비코어는 코어 최저 원점수보다 항상 1점 아래로 두어 상위 3 이 지켜집니다.
-     코어의 HEA·밀도가 낮아 평가 100 으로도 75 에 못 미치면, 그 지자체의 상위 등급은 코어 아래에서 끊깁니다(분포가 조금 달라짐 — 로그에 ⚠). */
+     코어의 HEA·밀도가 낮아 평가 100 으로도 67 에 못 미치면, 그 지자체의 상위 등급은 코어 아래에서 끊깁니다(분포가 조금 달라짐 — 로그에 ⚠). */
   cores.forEach((t, i) => { score[t] = 100 - 2 * i; });
   let bandMoved = 0, bandWarn = '';
   for (let k = 0; k < 4; k++) {
     const c2 = check(); const rows = c2.dongs.filter((d) => d.compositePct != null).slice().sort((a, b) => b.composite - a.composite);
     const coreMin = Math.min(...c2.dongs.filter((d) => cores.includes(d.name)).map((d) => d.composite));
-    const ceiling = coreMin - 1; if (ceiling < 75 && !bandWarn) bandWarn = ` ⚠ 코어 최저 ${coreMin.toFixed(0)} — 상위 등급 천장 ${ceiling.toFixed(0)}`;
+    const ceiling = coreMin - 1; if (ceiling < 67 && !bandWarn) bandWarn = ` ⚠ 코어 최저 ${coreMin.toFixed(0)} — 상위 등급 천장 ${ceiling.toFixed(0)}`;
     const N = rows.length; let moved = 0;
     rows.forEach((d, i) => {
       if (cores.includes(d.name)) return;
       const q = i / N;
-      let [lo, hi] = q < 0.25 ? [75, 100] : q < 0.5 ? [50, 74.4] : q < 0.75 ? [25, 49.4] : [0, 24.4];
+      let [lo, hi] = q < 1 / 3 ? [67, 100] : q < 2 / 3 ? [34, 66.4] : [0, 33.4];   // 상위·중위·하위 3분위 (화면 색 band 와 같은 67/34)
       hi = Math.min(hi, ceiling); lo = Math.min(lo, hi);
       const raw = d.composite; if (raw >= lo && raw <= hi) return;
       const want = raw < lo ? Math.min(lo + 1, hi) : hi;

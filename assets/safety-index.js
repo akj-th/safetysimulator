@@ -187,6 +187,9 @@ const AuriSafetyIndex = (function () {
        깔아 버려서 HEA 14·밀도 6·평가 13 인 동도 0 으로 찍혔습니다(당진 대호지면). 원점수는 표의 세 열을 비중대로 더하면 검산이 되고
        순위는 같아 복합위험지구 상위 3곳도 그대로입니다. 이름은 다른 화면이 쓰고 있어 compositePct 그대로 둡니다. */
     dongs.forEach((d) => { d.compositePct = d.composite == null ? null : Math.round(d.composite); d.candidate = false; });
+    /* 색·등급(상위/중위/하위)은 원점수가 아니라 지자체 안 순위 3분위 — 점수가 낮은 지자체에서도 분포가 유지되게 (compositeBand) */
+    const rk = pctRank(dongs.map((d) => d.composite));
+    dongs.forEach((d) => { const r = rk(d.composite); d.compositeRank = r; d.compositeBand = r == null ? 'none' : r >= 67 ? 'high' : r >= 34 ? 'mid' : 'low'; });
     const targets = dongs.filter((d) => d.inside > 0).sort((a, b) => b.inside - a.inside).slice(0, 3).map((d) => d.name);
     const ranked = dongs.filter((d) => d.compositePct != null).sort((a, b) => b.compositePct - a.compositePct || (b.surveyPct || 0) - (a.surveyPct || 0) || (b.heaW || 0) - (a.heaW || 0));
     const candidates = ranked.slice(0, 3);
