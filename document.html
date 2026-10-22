@@ -285,7 +285,8 @@ img[hidden]{display:none !important}
   <div class="doc-tabs screen-only">
     <button type="button" class="doc-tab on" id="tabB" onclick="showDoc('b')">현장용 리포트</button>
     <button type="button" class="doc-tab" id="tabA" onclick="showDoc('a')">사전진단서</button>
-    <button type="button" class="doc-tab" id="tabC" onclick="showDoc('c')">행안부 리포트(초안)</button>
+    <!-- 행안부 리포트 탭은 양식 원본·논의가 정리될 때까지 감춥니다 (담당자 2026-10-22). hidden 만 지우면 다시 보입니다 -->
+    <button type="button" class="doc-tab" id="tabC" onclick="showDoc('c')" hidden>행안부 리포트(초안)</button>
     <span style="flex:1"></span>
     <!-- ★ 수정 모드 (2026-10-21 담당자) — 보고 있는 탭의 어떤 글이든 고칠 수 있음. 수정 중에는 인쇄가 잠기고, 저장하면 다시 풀림 -->
     <button type="button" class="doc-tab doc-edit-reset" id="editReset" hidden onclick="resetEdit()" title="이 탭의 수정 내용을 버리고 자동 생성 문서로 되돌립니다">원래대로</button>
@@ -461,7 +462,7 @@ function auriCh1() {
     const skip = first && first.type !== 'h2' && /사전분석 보고서|사전진단|^\(.*\)$/.test(first.text || '') ? 1 : 0;   // 표지 제목 줄은 cover 에 있음
     const html = auriBlocksHtml(skip, _auri.ch2Start);
     return `<section class="chapter">${html.replace(/^<\/section><section class="chapter">/, '')}
-    ${_dongHea ? `<h3 class="h-section">[참고] 읍면동별 복합 위험도 및 잠재 취약성(HEA) 분석 <span class="h-sub">시뮬레이터 산출</span></h3>${AuriDongHea.renderTable(_dongHea, { perTable: 7, fillTo: 7, caption: '[표 2-1] 읍면동별 HEA 지표' })}` : ''}
+    ${_dongHea ? `<h3 class="h-section">[참고] 읍면동별 복합 위험도 및 잠재 취약성(HEA) 분석</h3>${AuriDongHea.renderTable(_dongHea, { perTable: 7, fillTo: 7, caption: '[표 2-1] 읍면동별 HEA 지표' })}` : ''}
     </section>`;
   }
   return auriCh1Fallback();
@@ -506,7 +507,7 @@ function auriCh1Fallback() {
   <section class="chapter">
     <h2 class="h-chapter">1. ${esc(name)} 중점관리분야 및 복합위험지구 선정</h2>
     ${body}
-    ${_dongHea ? `<h3 class="h-section">[참고] 읍면동별 복합 위험도 및 잠재 취약성(HEA) 분석 <span class="h-sub">시뮬레이터 산출</span></h3>${AuriDongHea.renderTable(_dongHea, { perTable: 7, fillTo: 7, caption: `[표 1-1] ${_data.shortLabel} 읍면동별 HEA 취약도 지표` })}` : ''}
+    ${_dongHea ? `<h3 class="h-section">[참고] 읍면동별 복합 위험도 및 잠재 취약성(HEA) 분석</h3>${AuriDongHea.renderTable(_dongHea, { perTable: 7, fillTo: 7, caption: `[표 1-1] ${_data.shortLabel} 읍면동별 HEA 취약도 지표` })}` : ''}
   </section>`;
 }
 
@@ -540,7 +541,7 @@ function auriCh2() {
         </tr>`).join('')).join('') : '';
     const simRow = mine.length ? `
         <tr class="sim-row">
-          <td style="vertical-align:top"><b>시뮬레이터 진단 지점</b><br><span style="font-size:var(--fs-cap);color:var(--g2)">${esc(_picked.addr || '')}</span></td>
+          <td style="vertical-align:top"><b>진단 지점</b><br><span style="font-size:var(--fs-cap);color:var(--g2)">${esc(_picked.addr || '')}</span></td>
           <td style="vertical-align:top">${r && r.observed && r.observed.length ? `<span class="tag">(사진 판독)</span> ${esc(r.observed.join(' · '))}` : (r ? `사진 판독 ${r.level.label} 판정(${r.score}점)` : '')}</td>
           <td style="vertical-align:top">${mine.map((it) => `<div class="hea-${it.hea}" style="padding:2px 4px"><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span> ${esc(it.name)}${it.trigger ? `<br><span style="font-size:var(--fs-cap);color:var(--g2)">근거: ${esc(it.trigger.id)} ${esc(it.trigger.note || '')}</span>` : ''}</div>`).join('')}</td>
         </tr>` : '';
@@ -567,7 +568,7 @@ function auriCh2() {
   return `
   <section class="chapter">
     <h2 class="h-chapter">2. 복합위험지구 사고 다발지 및 맞춤형 사업(안)</h2>
-    ${_auri ? `<p class="note-under" style="margin-bottom:10px">* 표의 공간 유형·위험 요인·사업(안)은 AURI 사전분석 보고서(${esc(_auri.sourceDate || '')}) 원문입니다. <b>시뮬레이터 진단 지점</b> 행은 이 앱이 사진 판독으로 처방한 것입니다.</p>` : `<p class="note-under" style="margin-bottom:10px">* ${esc(_data.shortLabel)} AURI 사전분석 보고서를 아직 받지 못했습니다. 시뮬레이터 처방만 실려 있습니다.</p>`}
+    ${_auri ? `<p class="note-under" style="margin-bottom:10px">* 표의 공간 유형·위험 요인·사업(안)은 AURI 사전분석 보고서(${esc(_auri.sourceDate || '')}) 원문입니다. <b>진단 지점</b> 행은 사진 판독으로 처방한 것입니다.</p>` : `<p class="note-under" style="margin-bottom:10px">* ${esc(_data.shortLabel)} AURI 사전분석 보고서를 아직 받지 못했습니다. 시뮬레이터 처방만 실려 있습니다.</p>`}
     ${blocks}
     ${photoManager()}
   </section>
@@ -646,7 +647,7 @@ function chapter2() {
 
   return `
   <section class="chapter">
-    <h2 class="h-chapter">별첨 2. ${esc(_data.shortLabel)} 중점관리분야 현황 <span class="h-sub">119 구급출동 통계 · 시뮬레이터 산출</span></h2>
+    <h2 class="h-chapter">별첨 2. ${esc(_data.shortLabel)} 중점관리분야 현황 <span class="h-sub">119 구급출동 통계</span></h2>
 
     <h3 class="h-section">2.1 중점관리분야별 사고 발생 일반 현황</h3>
     <p class="bullet"><span class="tag">(중점관리분야)</span>
@@ -734,7 +735,7 @@ function chapter3() {
 
   return `
   <section class="chapter">
-    <h2 class="h-chapter">별첨 3. 안전사고 공간분석 <span class="h-sub">시뮬레이터 산출</span></h2>
+    <h2 class="h-chapter">별첨 3. 안전사고 공간분석</h2>
 
     <h3 class="h-section">3.1 GIS 기반 사고 밀집지역 도출</h3>
     <p class="bullet">사고 밀집지역인 ${esc(_data.shortLabel)} 중점대상지는
@@ -1002,7 +1003,7 @@ function hotspotCards() {
   const list = _hotspots.slice(0, 10);
   const head = `
   <section class="chapter">
-    <h2 class="h-chapter">별첨 5. 주요 거점별 진단 카드 <span class="h-sub">밀도 높은 중심지 기준 · 시뮬레이터 산출</span></h2>
+    <h2 class="h-chapter">별첨 5. 주요 거점별 진단 카드 <span class="h-sub">밀도 높은 중심지 기준</span></h2>
     <p class="note-under" style="margin-bottom:10px">* 복합위험지구 밖 지점도 활용할 수 있도록, 119 출동 밀도가 몰린 주요 거점마다 행정동 · 취약 요인(H/E/A) · 맞춤형 사업 · 개선 전/후 예시를 정리합니다.
       거점 = 중점 3분야 밀도의 상위 지점 · 취약 요인 = 동별 HEA(지역안전지수 가중) · 사업 = 분야별 표준 사업 목록.</p>`;
   if (!list.length) return head + '<p class="bullet">이 지자체는 주요 거점 자료가 없습니다.</p></section>';
@@ -1492,7 +1493,7 @@ function showDoc(which) {
   document.getElementById('printFoot').textContent =
     (a ? '지자체 사전진단서' : c ? '안전사업지구 사전진단 결과 리포트(초안)' : '현장 확인 리포트') + (_data ? ' — ' + _data.label : '');
   document.getElementById('docNoteText').innerHTML = a
-    ? 'AURI 「지역 안전진단 사전분석 보고서」와 같은 구조입니다. 1·2장의 글과 표는 AURI 보고서 원문이고, <b>시뮬레이터</b> 표시가 붙은 것만 이 앱이 계산한 것입니다. 점선 없는 <b>입력칸</b>은 직접 쓰거나 <b>AI 의견 생성</b>으로 초안을 받을 수 있습니다. AI 초안 표시와 판단 근거는 화면에만 보이고 인쇄물에는 나오지 않습니다.'
+    ? 'AURI 「지역 안전진단 사전분석 보고서」와 같은 구조입니다. 1·2장의 글과 표는 AURI 보고서 원문이고, 별첨은 이 앱이 계산한 것입니다. 점선 없는 <b>입력칸</b>은 직접 쓰거나 <b>AI 의견 생성</b>으로 초안을 받을 수 있습니다. AI 초안 표시와 판단 근거는 화면에만 보이고 인쇄물에는 나오지 않습니다.'
     : c
     ? '행안부 「2차 현장보고서」 <b>예시안(공간분석 카드)</b> 구조입니다(10/20 실무회의). 공간유형·세부 유형은 제목 줄을 바로 고칠 수 있고, 사업목적·복합 사업 설명은 입력칸 또는 AI 의견 생성으로 채웁니다. 행안부 양식 원본을 받으면 항목 순서·제목을 그 양식대로 맞춥니다.'
     : '현장에서 볼 것만 담았습니다. 확인사항은 <b>네모 칸에 체크</b>하며 쓰도록 만들었습니다.';

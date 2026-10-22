@@ -125,7 +125,7 @@ const AuriStats = (function () {
   function sampleNote(cat, opts) {
     if (opts && opts.inside === false) return '';
     if (!cat || !cat.sample || cat.sample.reliable) return '';
-    return ` (표본 ${cat.sample.n}건 — 참고값)`;
+    return '';   // 2026-10-22 담당자: 표본 참고값 표시 안 함
   }
 
   /* ── ① 인적 특성 ─────────────────────────────────────────────────

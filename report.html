@@ -683,14 +683,8 @@ function renderDiagnosisTables() {
   }).join('. ');
   document.getElementById('trendLead').innerHTML = lead + '.';
 
-  document.getElementById('trendFoot').innerHTML =
-    '⚠️ 사전진단서는 <b>인구 10만명당 발생률</b>로 시평균과 견주지만, 인구 자료를 받지 못해 '
-    + '여기서는 <b>41개 지자체 평균 건수</b>와 견주었습니다. 인구 규모가 다른 지자체끼리의 '
-    + '비교라 참고값으로만 읽어 주세요. 인구 자료를 받으면 이 열만 바뀝니다.'
-    + '<br>⚠️ 연도별 건수도 사전진단서 [표 1]과 분야에 따라 다릅니다 '
-    + '(부천 범죄: 진단서 2,133건 vs 우리 1,929건 · 자살은 926건으로 일치). '
-    + '아래 [표 2]의 시군구 전체 건수는 진단서와 정확히 같으므로, '
-    + '[표 1]이 중복매칭을 정리하기 전 수치로 보입니다. <b>AURI 확인 대기 중</b>입니다.';
+  /* 2026-10-22 담당자: 경고·참고값 각주 제거. 비교 기준만 한 줄 */
+  document.getElementById('trendFoot').innerHTML = '* 비교 기준 = 41개 지자체 평균 건수 대비 배수';
 
   /* ── 3.1 안전분야별 점유율 [표 2] ── */
   const shareRows = order
