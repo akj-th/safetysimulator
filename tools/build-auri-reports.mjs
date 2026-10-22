@@ -29,10 +29,11 @@ fs.mkdirSync(OUT, { recursive: true });
 /* 파일 이름 → 지자체 slug (data/stats/index.json) */
 const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/stats/index.json'), 'utf8'));
 const regions = Array.isArray(idx) ? idx : idx.regions || Object.values(idx);
-const NAME2SLUG = { 광주북구: 'bukgu', 북구: 'bukgu', 금천구: 'geumcheon', 미추홀구: 'michuhol' };
-for (const r of regions) { NAME2SLUG[r.short] = r.region; NAME2SLUG[r.short.replace(/(시|군|구)$/, '')] = r.region; }
+const NAME2SLUG = { 광주북구: 'bukgu', 북구: 'bukgu', 금천구: 'geumcheon', 미추홀구: 'michuhol', 제주시: 'jeju', 제주: 'jeju' };
+/* 2026-10-22: '울산 중구'·'부산 동구' 처럼 띄어쓴 이름은 공백을 뺀 꼴로도 넣습니다(파일 이름의 _ 를 지우고 맞대므로) */
+for (const r of regions) { NAME2SLUG[r.short] = r.region; NAME2SLUG[r.short.replace(/\s+/g, '')] = r.region; NAME2SLUG[r.short.replace(/(시|군|구)$/, '')] = r.region; }
 const KEY = { 교통사고: 'traffic', 화재: 'fire', 범죄: 'crime', 생활안전: 'life', 산업재해: 'industrial', 산재: 'industrial', 자살: 'suicide', 감염병: 'infection' };
-const slugOf = (file) => { const base = file.replace(/^\d{4}_/, '').replace(/_?(사전분석|사전진단)[_ ]?(보고서|서)?\.txt$/, '').replace(/_/g, ''); return NAME2SLUG[base] || NAME2SLUG[base.replace(/^(경기|경남|경북|전남|충남|강원|인천|서울)/, '')] || null; };
+const slugOf = (file) => { const base = file.replace(/^\d{4}_/, '').replace(/\.txt$/, '').replace(/\([^)]*\)$/, '').replace(/_?(사전분석|사전진단)[_ ]?(보고서|서)?$/, '').replace(/_/g, ''); return NAME2SLUG[base] || NAME2SLUG[base.replace(/^(경기|경남|경북|전남|전북|충남|충북|강원|인천|서울|부산|대구|대전|울산|광주)/, '')] || null; };
 
 const clean = (s) => s.replace(/ /g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/[ \t]+/g, ' ').trim();
 
@@ -152,7 +153,7 @@ function parseBlocks(text) {
 const DOCS = path.join(ROOT, 'docs/사전진단 보고서 및 지도 작업본(AURI)');
 function findHwpx(dir, out = []) { for (const e of fs.readdirSync(dir, { withFileTypes: true })) { const p = path.join(dir, e.name); if (e.isDirectory()) { if (e.name !== '_text') findHwpx(p, out); } else if (/\.hwpx$/i.test(e.name)) out.push(p); } return out; }
 const HWPX = fs.existsSync(DOCS) ? findHwpx(DOCS) : [];
-const hwpxFor = (txtFile) => { const want = txtFile.replace(/\.txt$/, '').replace(/_/g, ' ').replace(/\s+/g, ''); return HWPX.find((p) => path.basename(p, '.hwpx').replace(/\s+/g, '') === want) || null; };
+const hwpxFor = (txtFile) => { const norm = (s) => s.replace(/[\s_]+/g, ''); const want = norm(txtFile.replace(/\.txt$/, '')); return HWPX.find((p) => norm(path.basename(p, '.hwpx')) === want) || null; };
 
 const index = [];
 for (const file of fs.readdirSync(SRC).filter(f => f.endsWith('.txt'))) {
@@ -162,8 +163,9 @@ for (const file of fs.readdirSync(SRC).filter(f => f.endsWith('.txt'))) {
   /* 2장 범위: "□ X 분야" 들 — 끝은 "[그림 N] … 종합도" 또는 "1. 개요"(붙임) */
   let body = text; const endM = body.search(/\[그림\s*\d*\]\s*[^\n]*종합도|\n1\. 개요/); const startM = body.search(/\n\s*2\.\s*(복합위험지구|중점관리분야)[^\n]*(사업|다발)/);
   if (endM >= 0) body = body.slice(0, endM); if (startM >= 0) body = body.slice(startM);
-  const parts = body.split(/\n\s*□\s*(?=\S+\s*분야)/).slice(1);
-  const fields = parts.map(p => { const m = p.match(/^(\S+?)\s*분야/); return parseField(m ? m[1] : '?', p); }).filter(f => f.groups.length);
+  /* 2026-10-22: 첫 줄에 바로 오는 "□"(앞에 줄바꿈 없음) · "□ 산업재해"(분야 없음) · "□ 자살 분야 *복합위험지구 내 자살 발생 0건으로 위험요인 추정" 메모 */
+  const parts = body.split(/(?:^|\n)[ \t]*□[ \t]*/).slice(1);
+  const fields = parts.map(p => { const m = p.match(/^([가-힣]+)[ \t]*(?:분야)?[ \t]*(\*[^\n]*)?/); if (!m || !KEY[m[1]]) return null; const f = parseField(m[1], p); if (m[2]) f.note = clean(m[2].replace(/^\*\s*/, '')); return f; }).filter(f => f && f.groups.length);
   const ch1 = full ? parseCh1(text.slice(0, startM >= 0 ? startM : undefined)) : null;
   const date = (file.match(/^(\d{4})_/) || [])[1];
   const hw = hwpxFor(file);

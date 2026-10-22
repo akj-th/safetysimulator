@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-10-21",
+ "generatedAt": "2026-10-22",
  "regions": [
   {
    "region": "geumcheon",
@@ -194,6 +194,42 @@
    "measures": 41
   },
   {
+   "region": "gwanak",
+   "full": false,
+   "sourceDate": "2026-10-19",
+   "fields": [
+    "fire",
+    "suicide",
+    "crime"
+   ],
+   "issues": 9,
+   "measures": 38
+  },
+  {
+   "region": "jeongseon",
+   "full": false,
+   "sourceDate": "2026-10-19",
+   "fields": [
+    "crime",
+    "suicide",
+    "traffic"
+   ],
+   "issues": 10,
+   "measures": 34
+  },
+  {
+   "region": "donggu",
+   "full": false,
+   "sourceDate": "2026-10-20",
+   "fields": [
+    "crime",
+    "suicide",
+    "fire"
+   ],
+   "issues": 8,
+   "measures": 35
+  },
+  {
    "region": "gongju",
    "full": false,
    "sourceDate": null,
@@ -230,6 +266,18 @@
    "measures": 47
   },
   {
+   "region": "danyang",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "traffic"
+   ],
+   "issues": 9,
+   "measures": 27
+  },
+  {
    "region": "dangjin",
    "full": false,
    "sourceDate": null,
@@ -240,6 +288,90 @@
    ],
    "issues": 10,
    "measures": 26
+  },
+  {
+   "region": "gjunggu",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "industrial"
+   ],
+   "issues": 9,
+   "measures": 26
+  },
+  {
+   "region": "jjunggu",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "fire",
+    "suicide",
+    "industrial"
+   ],
+   "issues": 10,
+   "measures": 43
+  },
+  {
+   "region": "sasanggu",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "life"
+   ],
+   "issues": 9,
+   "measures": 35
+  },
+  {
+   "region": "yeongdogu",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "industrial"
+   ],
+   "issues": 9,
+   "measures": 29
+  },
+  {
+   "region": "sejong",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "infection"
+   ],
+   "issues": 9,
+   "measures": 34
+  },
+  {
+   "region": "ujunggu",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "fire",
+    "suicide",
+    "crime"
+   ],
+   "issues": 11,
+   "measures": 39
+  },
+  {
+   "region": "jangsu",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "traffic"
+   ],
+   "issues": 7,
+   "measures": 30
   },
   {
    "region": "jangheung",
@@ -254,6 +386,42 @@
    "measures": 23
   },
   {
+   "region": "jeongeup",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "fire"
+   ],
+   "issues": 10,
+   "measures": 37
+  },
+  {
+   "region": "jeju",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "infection"
+   ],
+   "issues": 8,
+   "measures": 32
+  },
+  {
+   "region": "jecheon",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "life"
+   ],
+   "issues": 9,
+   "measures": 39
+  },
+  {
    "region": "jindo",
    "full": false,
    "sourceDate": null,
@@ -264,6 +432,42 @@
    ],
    "issues": 9,
    "measures": 15
+  },
+  {
+   "region": "jinan",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "industrial"
+   ],
+   "issues": 8,
+   "measures": 27
+  },
+  {
+   "region": "taebaek",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "fire",
+    "suicide",
+    "industrial"
+   ],
+   "issues": 10,
+   "measures": 51
+  },
+  {
+   "region": "hamyang",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "traffic",
+    "suicide",
+    "industrial"
+   ],
+   "issues": 8,
+   "measures": 22
   }
  ]
 }

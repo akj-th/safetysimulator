@@ -547,7 +547,7 @@ function auriCh2() {
         </tr>` : '';
     const figLoc = fig++, figEx = fig++;
     return `
-      <h3 class="h-section">□ ${esc(f.label)} 분야</h3>
+      <h3 class="h-section">□ ${esc(f.label)} 분야${af && af.note ? ` <span class="h-sub">* ${esc(af.note)}</span>` : ''}</h3>
       <figure class="doc-map">
         <img id="map-${f.key}" alt="${esc(f.label)} 발생 위치도" hidden>
         <div class="slot" id="map-${f.key}-wait">지도를 그리는 중입니다…</div>
