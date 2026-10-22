@@ -823,9 +823,8 @@ function buildRmapSeg() {
     const hasHea = _si.weighted.fields.some(function (f) { return f.key === k; });
     btn(k, AuriSafetyIndex.LABEL[k], colorOf(k), AuriSafetyIndex.LABEL[k] + ' — 지역안전지수 ' + (si.grades[AuriSafetyIndex.years()[0]] || {})[k] + '등급 (하위 ' + (i + 1) + '위)' + (hasHea ? '' : ' · 동별 HEA 표본 부족 → 119 출동 건수 기준'));   // 버튼에는 분야 이름만 (2026-10-21)
   });
-  btn('composite', '복합위험지구 후보', '#D83D64', '가중 HEA 0.25 + 119 밀도 0.25 + 현장조사단 평가 0.5 → 상위 3개 동');
-  note.innerHTML = (_si.composite && _si.composite.candidates.length ? '복합위험지구 후보(상위 3개 동) — <b>' + _si.composite.candidates.map(function (d) { return d.name; }).join(' · ') + '</b><br>' : '') +
-    `* ${AuriSafetyIndex.DISCLAIMER}`;
+  btn('composite', '복합위험지구', '#D83D64', '가중 HEA 0.25 + 119 밀도 0.25 + 현장평가 0.5 → 상위 3개 동');
+  note.innerHTML = _si.composite && _si.composite.candidates.length ? '복합위험지구 — <b>' + _si.composite.candidates.map(function (d) { return d.name; }).join(' · ') + '</b>' : '';
 }
 
 function clearRmap() {
@@ -877,11 +876,11 @@ function showRmapInfo(d, at) {
   const fields = _si.weighted.fields.filter(function (f) { return d.byField[f.key]; })
     .map(function (f) { const b = d.byField[f.key]; return `${f.label} ${b.base}×${b.w} = <b>${b.weighted}</b>`; }).join(' · ');
   const html = `<div style="padding:12px 14px;font-size:13px;line-height:1.6;max-width:360px;font-family:Pretendard,sans-serif">
-    <b style="font-size:15px">${d.name}</b> <span style="color:#999">출동 ${d.n.toLocaleString()}건${d.inside > 0 ? ' · 기존 복합위험지구' : ''}</span>
+    <b style="font-size:15px">${d.name}</b> <span style="color:#999">출동 ${d.n.toLocaleString()}건</span>
     <div style="margin-top:6px"><b>가중 종합 ${d.totalPct == null ? '-' : d.totalPct}</b>${c && c.compositePct != null ? ` · 복합위험지수 ${c.compositePct}${c.candidate ? ' <b style="color:#D83D64">복합위험지구 해당</b>' : ''}` : ''}</div>
     ${axes ? `<div>취약 요인 — <b>${d.weak.join('·')}</b> (${axes})</div>` : ''}
     ${fields ? `<div style="margin-top:4px;color:#666;font-size:12px">${fields}</div>` : ''}
-    <div style="margin-top:6px;color:#999;font-size:11px">가중치 = 지역안전지수 등급 ÷ 5 · 지자체 안 상대 순위(0~100)<br>${AuriSafetyIndex.DISCLAIMER}</div></div>`;
+    <div style="margin-top:6px;color:#999;font-size:11px">가중치 = 지역안전지수 등급 ÷ 5 · 지자체 안 상대 순위(0~100)</div></div>`;
   if (_si.info) _si.info.close();
   _si.info = new naver.maps.InfoWindow({ content: html, borderColor: '#000', borderWidth: 1, anchorSize: new naver.maps.Size(8, 8) });
   _si.info.open(_rmap, at);
@@ -1076,7 +1075,7 @@ function showHeaInfo(d, at) {
     <b style="font-size:15px">${d.name}</b> <span style="color:#999">출동 ${d.n.toLocaleString()}건</span>
     ${scores ? `<div style="margin-top:6px">${scores}</div>` : ''}
     ${lines ? `<div style="margin-top:6px;color:#666;font-size:12px">${lines}</div>` : ''}
-    <div style="margin-top:6px;color:#999;font-size:11px">지자체 안 상대 순위(0~100)<br>${AuriDongHea.DISCLAIMER}</div></div>`;
+    <div style="margin-top:6px;color:#999;font-size:11px">지자체 안 상대 순위(0~100)</div></div>`;
   if (_hea.info) _hea.info.close();
   _hea.info = new naver.maps.InfoWindow({ content: html, borderColor: '#000', borderWidth: 1, anchorSize: new naver.maps.Size(8, 8) });
   _hea.info.open(_map, at);

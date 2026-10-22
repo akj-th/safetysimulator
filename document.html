@@ -500,7 +500,7 @@ function auriCh1Fallback() {
     ${rows.map((r) => `<p class="bullet"><span class="tag">(${esc(r.f.label)})</span> 3개년 구급출동 ${r.total.toLocaleString()}건${r.ratio ? `, 41개 지자체 평균의 ${r.ratio}배` : ''}${r.inside != null ? `, 복합위험지구 안 ${r.inside.toLocaleString()}건` : ''}</p>`).join('')}
     <p class="bullet" style="margin-top:14px"><b>□ 복합위험지구</b></p>
     <p class="bullet"><span class="tag">(대상지)</span> ${esc(_data.label)} 조사지 약 ${areaHa ? (areaHa / 100).toFixed(2) + '㎢' : '-'}${_picked.dong ? ` (진단 지점: ${esc(_picked.dong)})` : ''}</p>
-    <p class="note-under">* AURI 사전분석 보고서 1장(중점관리분야·복합위험지구 선정 사유)을 아직 받지 못해 시뮬레이터 통계로 채운 자리입니다. 보고서가 오면 원문으로 바뀝니다.</p>`;
+`;
   }
   return `
   <section class="chapter">
@@ -553,11 +553,10 @@ function auriCh2() {
         <figcaption>[그림 ${figLoc}] ${af && af.figures[0] ? esc(af.figures[0]) : `복합위험지구 내 ${esc(f.label)} 발생 위치도`} <span class="h-sub">${heatFor(f.key) ? '강원대 커널밀도 히트맵(그 분야만, 지자체 안 상대값)' : '119 구급출동 지점'} · 진단 지점 반경 ${MAP_RADIUS_M}m</span></figcaption>
       </figure>
       <table class="tight auri-plan">
-        <caption>[표 ${1 + i}] (${esc(f.label)}) 공간 유형별 위험 요인 및 맞춤형 사업(안)${af ? '' : ' — AURI 보고서 미수령'}</caption>
+        <caption>[표 ${1 + i}] (${esc(f.label)}) 공간 유형별 위험 요인 및 맞춤형 사업(안)</caption>
         <thead><tr><th style="width:17%">공간 유형</th><th style="width:40%">위험 요인 · 현황</th><th>맞춤형 사업(안)</th></tr></thead>
         <tbody>${auriRows}${simRow}${!auriRows && !simRow ? '<tr><td colspan="3">자료 없음</td></tr>' : ''}</tbody>
       </table>
-      ${af ? '' : '<p class="note-under">* 이 분야의 AURI 사업(안)을 아직 받지 못했습니다. 시뮬레이터 처방만 실려 있습니다.</p>'}
       ${(beforeUrl || after || mineP.length) ? `
       <div class="ba-stack">
         ${mineP[0] ? `<figure><img src="${mineP[0].dataUrl}" alt="현장 사진"><figcaption>현장 사진 — ${esc(AuriSitePhoto.caption(mineP[0]))}</figcaption></figure>` : (beforeUrl ? `<figure><img src="${beforeUrl}" alt="개선 전"><figcaption>개선 전 (진단 지점)</figcaption></figure>` : '')}
@@ -568,13 +567,13 @@ function auriCh2() {
   return `
   <section class="chapter">
     <h2 class="h-chapter">2. 복합위험지구 사고 다발지 및 맞춤형 사업(안)</h2>
-    ${_auri ? `<p class="note-under" style="margin-bottom:10px">* 표의 공간 유형·위험 요인·사업(안)은 AURI 사전분석 보고서(${esc(_auri.sourceDate || '')}, ${_auri.full ? '전체본' : '약식본'}) 원문입니다. <b>시뮬레이터 진단 지점</b> 행은 이 앱이 사진 판독으로 처방한 것입니다.</p>` : `<p class="note-under" style="margin-bottom:10px">* ${esc(_data.shortLabel)} AURI 사전분석 보고서를 아직 받지 못했습니다. 시뮬레이터 처방만 실려 있습니다.</p>`}
+    ${_auri ? `<p class="note-under" style="margin-bottom:10px">* 표의 공간 유형·위험 요인·사업(안)은 AURI 사전분석 보고서(${esc(_auri.sourceDate || '')}) 원문입니다. <b>시뮬레이터 진단 지점</b> 행은 이 앱이 사진 판독으로 처방한 것입니다.</p>` : `<p class="note-under" style="margin-bottom:10px">* ${esc(_data.shortLabel)} AURI 사전분석 보고서를 아직 받지 못했습니다. 시뮬레이터 처방만 실려 있습니다.</p>`}
     ${blocks}
     ${photoManager()}
   </section>
   <section class="chapter">
     <h2 class="h-chapter">[그림] 복합위험지구 중점관리분야 맞춤형 사업 종합도</h2>
-    <figure class="doc-map" style="margin:0"><img src="data/overview/${esc(_data.region)}.jpg" alt="${esc(_data.shortLabel)} 종합도" style="width:100%;display:block" onerror="this.parentNode.innerHTML='<div class=slot style=min-height:160px>${esc(_data.shortLabel)} 종합도가 아직 없습니다 (tools/overview-map 로 생성 → data/overview/${esc(_data.region)}.jpg)</div>'"><figcaption>[그림] ${esc(_data.shortLabel)} 중점관리분야 맞춤형 사업 종합도 <span class="h-sub">tools/overview-map 산출 · AURI 사전분석 보고서 기준</span></figcaption></figure>
+    <figure class="doc-map" style="margin:0"><img src="data/overview/${esc(_data.region)}.jpg" alt="${esc(_data.shortLabel)} 종합도" style="width:100%;display:block" onerror="this.parentNode.innerHTML='<div class=slot style=min-height:160px>${esc(_data.shortLabel)} 종합도 없음</div>'"><figcaption>[그림] ${esc(_data.shortLabel)} 중점관리분야 맞춤형 사업 종합도 <span class="h-sub">tools/overview-map 산출 · AURI 사전분석 보고서 기준</span></figcaption></figure>
   </section>`;
 }
 
@@ -922,7 +921,7 @@ function rxSplitTables(items, opts) {
       <td>${esc(it.category)}</td>
       <td><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span></td>
       <td>${it.priority ? it.priority.label : '-'}</td>
-      <td style="font-size:var(--fs-cap)">${eff ? esc(eff) + (src ? `<br><span style="color:var(--g2)">${esc(src)}</span>` : '') : '<span style="color:var(--g2)">효과 레퍼런스 확인 중(AURI)</span>'}</td>
+      <td style="font-size:var(--fs-cap)">${eff ? esc(eff) + (src ? `<br><span style="color:var(--g2)">${esc(src)}</span>` : '') : '<span style="color:var(--g2)">—</span>'}</td>
       ${opts.amount ? `<td class="num">${a && a.won ? auriWon(a.won) + (a.unit ? ' / ' + a.unit : '') : '산출 근거 필요'}</td>` : ''}
       ${opts.basis ? `<td style="font-size:var(--fs-cap);color:var(--g2)">${it.trigger ? esc(it.trigger.id + ' ' + (it.trigger.note || '')) : (it.custom ? '연구원 추가' : '통계 처방')}</td>` : ''}
     </tr>`;
@@ -933,8 +932,8 @@ function rxSplitTables(items, opts) {
       <th style="width:28%">사업</th><th style="width:10%">분야</th><th style="width:12%">개입</th><th style="width:9%">우선</th><th>효과 레퍼런스</th>${opts.amount ? '<th class="num" style="width:15%">사업비</th>' : ''}${opts.basis ? '<th style="width:17%">근거</th>' : ''}
     </tr></thead><tbody>${list.map(row).join('')}</tbody></table>` : '<p class="bullet">해당 없음</p>'}`;
   const sum = opts.amount ? `<p class="bullet" style="text-align:right;padding-left:0"><b>합계</b> — 총 ${items.length}종${unpriced ? ` (산출 근거 필요 ${unpriced}종 제외)` : ''} · ${total ? auriWon(total) : '산출 불가'}</p>` : '';
-  const foot = `<p class="note-under">* <b>환경 개선 사업</b>만 개선 후 이미지에 들어갑니다. 교육·단속·상담·지원은 거리 사진에 나타나지 않아 <b>참고 목록</b>으로 둡니다(2026-10-20 실무회의).<br>
-    * 효과 레퍼런스는 AURI 사업 팔레트의 효과 칸에서 숫자가 있는 구절을 뽑은 것입니다. AURI 가 보도자료 기반 정량 수치를 보내면 그 문구로 바뀝니다.${opts.amount ? '<br>* 사업비는 단위와 금액이 분명한 사업만 산정. 지자체 총액·범위·국비 분담 기재분은 제외. 부가세 제외' : ''}</p>`;
+  const foot = `<p class="note-under">* <b>환경 개선 사업</b>만 개선 후 이미지에 들어갑니다. 교육·단속·상담·지원은 거리 사진에 나타나지 않아 <b>참고 목록</b>으로 둡니다.<br>
+    * 효과 레퍼런스 = 사업 팔레트의 국내 실증·정책근거(효과 칸) 요약.${opts.amount ? '<br>* 사업비는 단위와 금액이 분명한 사업만 산정. 지자체 총액·범위·국비 분담 기재분은 제외. 부가세 제외' : ''}</p>`;
   return table(env, '① 환경 개선 사업', '[E] 환경적 개입 — 개선 이미지에 반영')
        + table(soft, '② 소프트웨어 사업 (참고 목록)', '[H] 보호·지원 · [A] 행위 개입 — 이미지 제외')
        + sum + foot;
@@ -1004,9 +1003,9 @@ function hotspotCards() {
   const head = `
   <section class="chapter">
     <h2 class="h-chapter">별첨 5. 주요 거점별 진단 카드 <span class="h-sub">밀도 높은 중심지 기준 · 시뮬레이터 산출</span></h2>
-    <p class="note-under" style="margin-bottom:10px">* 복합위험지구 밖 지점도 활용할 수 있도록, 119 출동 밀도가 몰린 거점마다 행정동 · 취약 요인(H/E/A) · 맞춤형 사업 · 개선 전/후 예시를 자동으로 채웁니다(2026-10-20 실무회의).
-      거점은 중점 3분야 밀도의 상위 지점이며 관리자가 지도에서 옮기거나 뺀 것이 반영됩니다. 취약 요인은 동별 HEA 에 지역안전지수 가중치를 곱한 값, 사업은 연결표의 예비 목록입니다. ${esc(AuriSafetyIndex.DISCLAIMER)}</p>`;
-  if (!list.length) return head + '<p class="bullet">이 지자체는 거점 자료가 없습니다 (TIF 미수신 또는 임계값 미달).</p></section>';
+    <p class="note-under" style="margin-bottom:10px">* 복합위험지구 밖 지점도 활용할 수 있도록, 119 출동 밀도가 몰린 주요 거점마다 행정동 · 취약 요인(H/E/A) · 맞춤형 사업 · 개선 전/후 예시를 정리합니다.
+      거점 = 중점 3분야 밀도의 상위 지점 · 취약 요인 = 동별 HEA(지역안전지수 가중) · 사업 = 분야별 표준 사업 목록.</p>`;
+  if (!list.length) return head + '<p class="bullet">이 지자체는 주요 거점 자료가 없습니다.</p></section>';
   const beforeNow = (() => { const b = sessionStorage.getItem('auri_input_image'); return b ? (JSON.parse(b).dataUrl || null) : null; })();
   const label = (k) => AuriSafetyIndex.LABEL[k] || k;
   const cards = list.map((h) => {
@@ -1049,8 +1048,8 @@ function hotspotCards() {
         </div>
         <div>
           <div class="ba-stack" style="margin:8px 0 0">
-            <figure>${before ? `<img src="${before}" alt="개선 전">` : '<div class="slot">개선 전 — 이 거점에서 저장한 공유 프로젝트 없음</div>'}<figcaption>개선 전${srcNote ? ' · ' + srcNote : ''}</figcaption></figure>
-            <figure>${after ? `<img src="${after}" alt="개선 후">` : '<div class="slot">개선 후 — 관리자가 이 거점에서 진단·생성 후 프로젝트를 저장하면 자동으로 실립니다</div>'}<figcaption>개선 후 (사업 반영 예시)</figcaption></figure>
+            <figure>${before ? `<img src="${before}" alt="개선 전">` : '<div class="slot">개선 전 사진 없음</div>'}<figcaption>개선 전${srcNote ? ' · ' + srcNote : ''}</figcaption></figure>
+            <figure>${after ? `<img src="${after}" alt="개선 후">` : '<div class="slot">개선 후 이미지 없음</div>'}<figcaption>개선 후 (사업 반영 예시)</figcaption></figure>
             ${after ? `<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>` : ''}
           </div>
         </div>
@@ -1582,7 +1581,7 @@ function moisReport() {
     ${_items.length ? `<table class="tight"><thead><tr><th>사업</th><th style="width:12%">개입</th><th class="num" style="width:30%">단가 · 산출 근거</th></tr></thead>
       <tbody>${costRows}</tbody>
       <tfoot><tr class="sum"><td colspan="2">합계 — 총 ${_items.length}종${unpriced ? ` (산출 근거 필요 ${unpriced}종 제외)` : ''}</td><td class="num">${total ? auriWon(total) : '산출 불가'}</td></tr></tfoot></table>
-      <p class="note-under">* AURI 가 나라장터 발주 사업 전수조사로 사업 건수·객단가를 보내면 비어 있는 단가가 채워집니다(2026-10-20).</p>` : '<p class="bullet">○ -</p>'}
+` : '<p class="bullet">○ -</p>'}
     ${AuriDocEdit.render('mois-cost', '○', '소요비용 산출 방식·분담(국비/지방비) 등을 적습니다.', '')}
 
     <h3 class="h-section">5. 사업 적용 예시(안)</h3>
@@ -1597,7 +1596,7 @@ function moisReport() {
     <div class="mois-two">
       <figure class="doc-map"><img id="map-mois" alt="위치도" hidden><div class="slot" id="map-mois-wait">지도를 그리는 중입니다…</div>
         <figcaption>위치도 — ${primary ? esc(primary.name) : ''} 밀도 · 진단 지점 반경 ${MAP_RADIUS_M}m</figcaption></figure>
-      <figure class="doc-map"><img src="data/overview/${esc(_data.region)}.jpg" alt="종합도" style="width:100%;display:block" onerror="this.parentNode.innerHTML='<div class=slot style=min-height:120px>종합도 미작성 (tools/overview-map)</div>'">
+      <figure class="doc-map"><img src="data/overview/${esc(_data.region)}.jpg" alt="종합도" style="width:100%;display:block" onerror="this.parentNode.innerHTML='<div class=slot style=min-height:120px>종합도 없음</div>'">
         <figcaption>복합위험지구 중점관리분야 맞춤형 사업 종합도 <span class="h-sub">AURI 사전분석 보고서 기준</span></figcaption></figure>
     </div>
     ${AuriDocEdit.render('mois-remarks', '(검토 의견)', '연구진 검토 의견 — 지역안전지수 하위 등급과의 정합성 등.', ctx)}

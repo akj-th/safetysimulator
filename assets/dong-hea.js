@@ -232,7 +232,6 @@ const AuriDongHea = (function () {
     }
     out.push('A(행위·관리): 반복 발생 지점 · 야간(22~06시) 비중 · 발생 장소 편중');
     out.push(`점수: ${data.shortLabel || data.label} 안의 상대 순위(0~100)`);
-    out.push(DISCLAIMER);
     return out;
   }
 
