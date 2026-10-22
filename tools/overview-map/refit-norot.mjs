@@ -29,12 +29,22 @@ const cx = W / 2, cy = H / 2;
 /* --survey : 앵커를 지금 affine 이 아니라 '이미지 중심 ↔ 대상지(우리가 뽑은 경계) 중심' 으로. 지금 affine 이 크게 틀렸을 때 */
 let anchorXY = null;
 if (ARGS.survey) {
-  const gj = JSON.parse(fs.readFileSync(path.join(ROOT, 'output/overview-map', slug, slug + '_대상지.geojson'), 'utf8'));
-  const pts = gj.features.flatMap(ft => ft.geometry.coordinates[0]);
-  const lng = pts.reduce((t, p) => t + p[0], 0) / pts.length, lat = pts.reduce((t, p) => t + p[1], 0) / pts.length;
   const proj4 = (await import('../node_modules/proj4/dist/proj4-src.js')).default;
   const P5179 = '+proj=tmerc +lat_0=38 +lon_0=127.5 +k=0.9996 +x_0=1000000 +y_0=2000000 +ellps=GRS80 +units=m +no_defs';
-  anchorXY = proj4('EPSG:4326', P5179, [lng, lat]);
+  const gjPath = path.join(ROOT, 'output/overview-map', slug, slug + '_대상지.geojson');
+  if (fs.existsSync(gjPath)) {
+    const gj = JSON.parse(fs.readFileSync(gjPath, 'utf8'));
+    const pts = gj.features.flatMap(ft => ft.geometry.coordinates[0]);
+    const lng = pts.reduce((t, p) => t + p[0], 0) / pts.length, lat = pts.reduce((t, p) => t + p[1], 0) / pts.length;
+    anchorXY = proj4('EPSG:4326', P5179, [lng, lat]);
+  } else {
+    /* 2026-10-22: 3분야 중첩 대상지가 안 잡힌 농촌(함양 등)은 AURI 조사지(SHP, 5186) 중심을 앵커로 */
+    const { readPolygons } = await import('../lib/shapefile.mjs');
+    const sv = readPolygons(path.join(ROOT, 'data/raw/gis_0901/최종 조사지/' + slug + '_OverlapUnion_1.shp'))[0];
+    const P5186 = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs';
+    anchorXY = proj4(P5186, P5179, [(sv.bbox[0] + sv.bbox[2]) / 2, (sv.bbox[1] + sv.bbox[3]) / 2]);
+    console.log('  대상지 geojson 없음 → 조사지 SHP 중심을 앵커로');
+  }
 }
 /* 지금 affine 으로 이미지 중심이 어디인지 — 회전을 빼고 그 자리를 앵커로 */
 const s = Math.hypot(A.a, A.b || 0);

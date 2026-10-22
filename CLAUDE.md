@@ -2056,3 +2056,10 @@ index.html 상단 등급표 + 우측 "행정동별 위험도" / report.html 읍�
 **예외 — 사전진단서 2장은 AURI 보고서 원문**이라 보고서가 다룬 분야(강원대 확정 3분야)를 그대로 따릅니다(`document.html ch2Fields()`; 분야 지도·현장 사진 배정도 같은 목록). 보고서가 없는 곳만 지수 기준. 별첨은 지수 기준.
 - 순서: `build-stats` → `build-safety-index` → (`apply-focus-index` 자동) → `dong-hea` → `build-field-survey` → `hotspots` · `heatmap -- --focus`.
 - 강원대 확정 3분야로 되돌리려면 `focusTypesKangwon` 을 `focusTypes` 로 복사(또는 apply-focus-index 를 돌리지 않고 build-stats).
+
+**261022 판 17곳 종합도 — SHP 수령 뒤 생성 (2026-10-22 저녁)** — `docs/…/261022 함양군 ~ 정읍시/_pptx/batch-full.sh` (한 번에: run-pptx-region → style.v3 → refit-norot(축척 막대 `mpp.json`) → reframe → build → 스크린샷 → export-jpg → overlay)
+- SHP 는 `data/raw/SDM_5K/261022/*.zip` 을 `<코드_지역>/` 로 풀어 둠(스크래치 unzip-sdm.mjs). 17곳 전부 8레이어.
+- 결과: `output/overview-map/<지역>/` SVG 17 · `data/overview/<지역>.jpg·json` **39곳**(커밋) · 스크린샷 `_pptx/<지역>/<지역>.png`.
+- 고친 도구: `refit-norot --survey` 가 3분야 중첩 대상지가 없으면(함양 등 농촌) **조사지 SHP 중심**을 앵커로 · 종합도 생성기·compose-auto 는 `focusTypesKangwon`(강원대 분야)을 씀(AURI 종합도가 그 기준) · 열 넘침 때 상자를 **둘까지** 바닥으로(사상구).
+- 손본 곳(스크래치 fix-261022.mjs): 정선 ①②(제목 두 줄 상자) · 관악 ⑤ 장소(AURI pptx 오타 "사북시장" → 비움) · 대구중구 ⑧(범례·상자 장소 불일치) · 정읍 ⑥(윤곽 없음 → 원) · 제목 "울산/대구/대전 중구"·"제주시"·"부산 동구".
+- **확인 필요**: 울산중구·관악·사상·제주·정읍·장수는 시설 이름이 건물 레이어에 없어 건물 겹침 정합만(장수 8%·정읍 24% 낮음) · 태백 시설 잔차 309m · 세종 거점 6곳 많음 · 함양·진안 산재 히트맵이 넓게 붉음(진도처럼 `alphaFullAt` 조정 여지).

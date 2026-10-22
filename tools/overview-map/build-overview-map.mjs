@@ -338,7 +338,7 @@ let riskLayers = [], heat = null, zone = null;
 if (RISK.enabled !== false) {
   const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/stats/index.json'), 'utf8'));
   const me = (Array.isArray(idx) ? idx : idx.regions || Object.values(idx)).find(r => r.region === cfg.region);
-  const focus = (cfg.risk && cfg.risk.focus) || (me ? me.focusTypes.map(l => LABEL2KEY[l] || l) : []);
+  const focus = (cfg.risk && cfg.risk.focus) || (me ? (me.focusTypesKangwon || me.focusTypes).map(l => LABEL2KEY[l] || l) : []);   // 2026-10-22: 종합도는 AURI 자료(강원대 확정 3분야) 기준 — index.json focusTypes 는 지수 기준으로 바뀜
   for (const key of focus) {
     const L = loadRaster(ROOT, key, cfg.region, RISK);
     if (L) { riskLayers.push(L); console.log(`  위험도 ${L.label}: 만점(p${RISK.topQuantile * 100}) ${L.top.toFixed(3)} · 유효 칸 ${L.n}`); }
@@ -684,12 +684,20 @@ if (IS_V3 && !DEBUG_GRID) {
     const B0 = Object.assign({ pad: 20, fsT: 24, fsP: 16, fsI: 17, lh: 24, rowGap: 5, ic: 36 }, (cfg.style && cfg.style.box) || {});
     cfg.style = cfg.style || {}; cfg.style.box = Object.fromEntries(Object.entries(B0).map(([k, v]) => [k, +(v * 0.92).toFixed(1)]));
     lay = V3.layoutColumns(zrings.map((r, i) => ({ rings: r, h: heights()[i] })), { W, H, boxW, margin: 60, top: 150, gap: 11, bottom: 30, keymapH, legendH });
-    if (lay.overflow) {   // 그래도 넘치면 넘친 열의 마지막 상자를 바닥 가운데로
+    /* 그래도 넘치면 넘친 열의 마지막 상자를 바닥으로 — 한 번으로 모자라면 둘까지 (2026-10-22 사상구: 한 상자를 옮겨도 ⑥ 이 키맵에 가렸음).
+       바닥 두 상자는 가운데 띠(520~1410) 에 나란히 */
+    let moved = 0;
+    for (let guard = 0; guard < 2 && lay.overflow; guard++) {
       const colOf = lay.overflow.right > 0 ? 'R' : 'L';
-      const last = lay.boxes.map((b, i) => ({ b, i })).filter(o => o.b.col === colOf).sort((a, b) => b.b.y - a.b.y)[0];
-      if (last) { last.b.x = (W - boxW) / 2; last.b.y = H - 30 - last.b.h; last.b.col = 'B'; }
-      console.warn('  ⚠ 상자가 열에 다 안 들어가 하나를 바닥 가운데로 옮김');
+      const col = lay.boxes.map((b, i) => ({ b, i })).filter(o => o.b.col === colOf).sort((a, b) => b.b.y - a.b.y);
+      const last = col[0]; if (!last) break;
+      last.b.y = H - 30 - last.b.h; last.b.col = 'B'; moved++;
+      const rest = col.slice(1); const limit = colOf === 'R' ? lay.keymap.y - 6 : H - 30;
+      const bottom = rest.length ? rest[0].b.y + rest[0].b.h : 150;
+      lay.overflow = bottom > limit ? { right: colOf === 'R' ? bottom - limit : 0, left: colOf === 'L' ? bottom - limit : 0 } : null;
     }
+    if (moved) { const B = lay.boxes.filter(b => b.col === 'B').sort((a, b) => a.y - b.y); if (B.length === 1) B[0].x = (W - boxW) / 2; else B.forEach((b, k) => { b.x = 520 + k * (boxW + 10); }); console.warn(); }
+    if (lay.overflow) console.warn('  ⚠ 상자 둘을 옮겨도 열이 넘칩니다 — 상자 글을 더 줄이거나 항목을 손보세요');
   }
   const CIRC = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';
   /* 상자·제목·키맵·범례 밑으로 들어간 구역은 잘라냅니다 (가장자리 10px 는 겹쳐도 둠 — 담당자 수정본도 그 정도는 겹침) */

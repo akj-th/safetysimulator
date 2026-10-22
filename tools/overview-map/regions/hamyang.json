@@ -1,0 +1,507 @@
+{
+  "region": "hamyang",
+  "title": "함양군 중점관리분야 맞춤형 사업 종합도",
+  "subtitle": "서상면 소재지 일원  |  중점 3분야 · 산업재해 · 교통사고 · 자살",
+  "sdm": "data/raw/SDM_5K/48870_hamyang",
+  "survey": "data/raw/gis_0901/최종 조사지/hamyang_OverlapUnion_1.shp",
+  "frame": {
+    "width": 1920,
+    "height": 1080,
+    "widthMeters": 1540,
+    "center5179": [
+      1017026,
+      1742788
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "zoom": 17,
+    "note": "구역 범위 1231,461,2304,1473 에 맞춤"
+  },
+  "draft": {
+    "file": "docs/사전진단 보고서 및 지도 작업본(AURI)/261022 함양군 ~ 정읍시/14. 함양군/함양군 최종.png",
+    "width": 4028,
+    "height": 2266,
+    "affine5179": {
+      "a": 0.608125,
+      "b": 0,
+      "c": 1015951.13625,
+      "d": 1743375.53125
+    },
+    "note": "회전 0 재정합 2026-10-22 — 건물 윤곽 겹침 7% (축척 0.6081 m/px) · 이전 값은 affine5179_prev",
+    "pptx": "docs/사전진단 보고서 및 지도 작업본(AURI)/261022 함양군 ~ 정읍시/_pptx/hamyang",
+    "affine5179_prev": {
+      "a": 0.7068826632910222,
+      "b": 2.902767941912838e-9,
+      "c": 1015956.3767706201,
+      "d": 1743241.7487554117
+    }
+  },
+  "style": {
+    "dimOpacity": 0,
+    "surveyColor": "#2793C9",
+    "hideZoneLines": true,
+    "box": {
+      "pad": 13,
+      "fsT": 18,
+      "fsP": 12.5,
+      "fsI": 13,
+      "lh": 17.5,
+      "rowGap": 4,
+      "ic": 24
+    },
+    "v3": true
+  },
+  "risk": {
+    "enabled": true,
+    "overlapT": 0.2,
+    "builtBufferM": 40,
+    "closeM": 30,
+    "minAreaHa": 1,
+    "simplifyM": 12,
+    "maxAlpha": 0.62,
+    "alphaFullAt": 0.5,
+    "colorGamma": 0.55
+  },
+  "labels": [],
+  "zones": [
+    {
+      "id": "Z1",
+      "num": "①",
+      "type": "상업·유흥 밀집형",
+      "place": "서상버스터미널 일대",
+      "safety": "traffic",
+      "markers": [
+        {
+          "label": "1",
+          "at": {
+            "draftPx": [
+              1516.3,
+              695.4
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              1399.1,
+              701.5
+            ],
+            [
+              1537.7,
+              701.5
+            ],
+            [
+              1549.3,
+              955.7
+            ],
+            [
+              1433.8,
+              955.7
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 60,
+        "top": 150,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "노인보호구역 지정·노면 표시",
+          "icon": "guide-mark"
+        },
+        {
+          "text": "고령 보행자 교통안전용품 지원",
+          "icon": "guide-mark"
+        },
+        {
+          "text": "PM 서행 노면 표시·안전교육",
+          "icon": "education"
+        }
+      ]
+    },
+    {
+      "id": "Z2",
+      "num": "②",
+      "type": "주요 교차로형",
+      "place": "덕유카센터 앞 교차로",
+      "safety": "traffic",
+      "markers": [
+        {
+          "label": "2",
+          "at": {
+            "draftPx": [
+              1490.6,
+              1172.3
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              1368.8,
+              1078.8
+            ],
+            [
+              1491.8,
+              1078.8
+            ],
+            [
+              1491.8,
+              1177.2
+            ],
+            [
+              1368.8,
+              1177.2
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 60,
+        "below": "Z1",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "교차로 알리미·과속방지턱 설치",
+          "icon": "guide-mark"
+        },
+        {
+          "text": "농기계 등화장치·반사판 부착 지원",
+          "icon": "billboard"
+        }
+      ]
+    },
+    {
+      "id": "Z3",
+      "num": "③",
+      "type": "주거생활형",
+      "place": "도천리 1004-1 인근",
+      "safety": "suicide",
+      "markers": [
+        {
+          "label": "3",
+          "at": {
+            "draftPx": [
+              1353.8,
+              461.1
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              1230.6,
+              477.3
+            ],
+            [
+              1417.1,
+              477.3
+            ],
+            [
+              1446.9,
+              583.2
+            ],
+            [
+              1432,
+              712.5
+            ],
+            [
+              1253,
+              724.3
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 60,
+        "below": "Z2",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "찾아가는 마음안심버스",
+          "icon": "counseling"
+        },
+        {
+          "text": "고립가구 대면방문·생명지킴이 양성",
+          "icon": "community-watch"
+        },
+        {
+          "text": "농약 안전보관함 보급",
+          "icon": "billboard"
+        }
+      ]
+    },
+    {
+      "id": "Z4",
+      "num": "④",
+      "type": "교육시설형",
+      "place": "서상로 232-1 인근",
+      "safety": "suicide",
+      "markers": [
+        {
+          "label": "4",
+          "at": {
+            "draftPx": [
+              1636.2,
+              1346.8
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              1483.6,
+              1333
+            ],
+            [
+              1654.3,
+              1333
+            ],
+            [
+              1654.3,
+              1472.5
+            ],
+            [
+              1483.6,
+              1472.5
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 1420,
+        "top": 150,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "고위험 학생 상담관리·모바일 상담",
+          "icon": "counseling"
+        },
+        {
+          "text": "생명존중 교육(게이트키퍼)",
+          "icon": "education"
+        }
+      ]
+    },
+    {
+      "id": "Z5",
+      "num": "⑤",
+      "type": "농업생산형",
+      "place": "엉터리해장국 일대",
+      "safety": "industrial",
+      "markers": [
+        {
+          "label": "5",
+          "at": {
+            "draftPx": [
+              1646.7,
+              1026.8
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              1468,
+              996.7
+            ],
+            [
+              1652.6,
+              996.7
+            ],
+            [
+              1664.1,
+              1142.6
+            ],
+            [
+              1468,
+              1142.6
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 1420,
+        "below": "Z4",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "농기계 안전장치 부착 지원",
+          "icon": "billboard"
+        },
+        {
+          "text": "농기계 안전교육·순회 점검",
+          "icon": "education"
+        },
+        {
+          "text": "고령 농가 농작업 대행 지원",
+          "icon": "billboard"
+        }
+      ]
+    },
+    {
+      "id": "Z6",
+      "num": "⑥",
+      "type": "농업생산형",
+      "place": "갈고개안길 일대",
+      "safety": "industrial",
+      "markers": [
+        {
+          "label": "6",
+          "at": {
+            "draftPx": [
+              2296.1,
+              1097.3
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              2057.8,
+              1103.4
+            ],
+            [
+              2303.9,
+              1103.4
+            ],
+            [
+              2303.9,
+              1267.4
+            ],
+            [
+              2057.8,
+              1267.4
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 1420,
+        "below": "Z5",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "소형 농기계 안전덮개 보급",
+          "icon": "billboard"
+        },
+        {
+          "text": "찾아가는 농기계 안전교육·편이장비",
+          "icon": "education"
+        }
+      ]
+    }
+  ],
+  "pois": [
+    {
+      "name": "서상버스터미널",
+      "draftPx": [
+        1486.2,
+        771.1
+      ]
+    },
+    {
+      "name": "칠형정마을회관",
+      "draftPx": [
+        1388.4,
+        628.9
+      ]
+    },
+    {
+      "name": "서상면사무소",
+      "draftPx": [
+        1504.2,
+        936
+      ]
+    },
+    {
+      "name": "엉터리해장국",
+      "draftPx": [
+        1510.8,
+        1044.4
+      ],
+      "side": "left"
+    },
+    {
+      "name": "서상고등학교",
+      "draftPx": [
+        1592.8,
+        1408.6
+      ],
+      "side": "left"
+    }
+  ],
+  "routes": [],
+  "keymap": {
+    "x": 60,
+    "y": 0,
+    "below": "Z3",
+    "gap": 8,
+    "w": 440,
+    "h": 110,
+    "name": "함양군",
+    "label": "함양군 전체 · 지도 범위"
+  },
+  "legend": [
+    {
+      "kind": "zonepoly",
+      "key": "industrial",
+      "label": "사업지 구역 — 산업재해"
+    },
+    {
+      "kind": "zonepoly",
+      "key": "traffic",
+      "label": "사업지 구역 — 교통사고"
+    },
+    {
+      "kind": "zonepoly",
+      "key": "suicide",
+      "label": "사업지 구역 — 자살"
+    },
+    {
+      "kind": "poi",
+      "label": "주요 시설"
+    },
+    {
+      "kind": "heat",
+      "keys": [
+        "industrial",
+        "traffic",
+        "suicide"
+      ],
+      "label": "위험도 밀도 — 산업재해 · 교통사고 · 자살 (낮음 → 높음)"
+    }
+  ],
+  "legendPos": {
+    "x": 940,
+    "bottom": 1050,
+    "w": 440,
+    "rowH": 22,
+    "fs": 13
+  }
+}

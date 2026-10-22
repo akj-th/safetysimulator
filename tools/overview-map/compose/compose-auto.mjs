@@ -148,7 +148,7 @@ if (ARGS['pairs-only']) { const pairs = pois.map(p => ({ px: p.draftPx, name: '^
 /* ── 제목 ─────────────────────────────────────────────────────── */
 const t2 = SH.shapes.find(s => s.text.some(t => /중점관리분야 맞춤형 사업 종합도/.test(t)));
 let subtitle = t2 ? t2.text.join(' ').replace(/.*종합도\s*/, '').trim() : '';
-const focus = (me.focusTypes || []).map(l => LABEL2KEY[l] || l);
+const focus = (me.focusTypesKangwon || me.focusTypes || []).map(l => LABEL2KEY[l] || l);   // 2026-10-22: AURI 종합도는 강원대 확정 3분야 기준
 const focusLabel = focus.map(k => KEY2LABEL[k]).join(' · ');
 subtitle = subtitle.replace(/\s*\|.*$/, '') + '  |  중점 3분야 · ' + focusLabel;
 
