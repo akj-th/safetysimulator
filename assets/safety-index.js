@@ -183,8 +183,10 @@ const AuriSafetyIndex = (function () {
       const tw = parts.reduce((t, p) => t + p[1], 0);
       d.composite = tw ? parts.reduce((t, p) => t + p[0] * p[1], 0) / tw : null;
     });
-    const rc = pctRank(dongs.map((d) => d.composite));
-    dongs.forEach((d) => { d.compositePct = rc(d.composite); d.candidate = false; });
+    /* ★ 2026-10-22 담당자: 백분위가 아니라 가중 합 원점수(0~100)를 그대로 보여 줍니다. 백분위는 동 수에 맞춰 0~100 을 등간격으로
+       깔아 버려서 HEA 14·밀도 6·평가 13 인 동도 0 으로 찍혔습니다(당진 대호지면). 원점수는 표의 세 열을 비중대로 더하면 검산이 되고
+       순위는 같아 복합위험지구 상위 3곳도 그대로입니다. 이름은 다른 화면이 쓰고 있어 compositePct 그대로 둡니다. */
+    dongs.forEach((d) => { d.compositePct = d.composite == null ? null : Math.round(d.composite); d.candidate = false; });
     const targets = dongs.filter((d) => d.inside > 0).sort((a, b) => b.inside - a.inside).slice(0, 3).map((d) => d.name);
     const ranked = dongs.filter((d) => d.compositePct != null).sort((a, b) => b.compositePct - a.compositePct || (b.surveyPct || 0) - (a.surveyPct || 0) || (b.heaW || 0) - (a.heaW || 0));
     const candidates = ranked.slice(0, 3);

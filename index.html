@@ -1009,7 +1009,7 @@ function renderHeaTable() {
     + '* 관리등급 = HEA 지수 75 이상 중점관리 · 50 관리 · 25 관찰 · 그 외 안전<br>'
     + '* 119 밀도 = 7개 분야 3개년 출동 건수 × 지역안전지수 가중치를 지자체 최대값 대비 0~100<br>'
     + '* 현장평가 = 현장조사단 종합평가 지수(사고 군집과의 인접성·연속성을 함께 본 행정동별 평가, 0~100)<br>'
-    + '* 복합위험지수 = 가중 HEA × ' + C.weights.hea + ' + 119 밀도 × ' + C.weights.density + ' + 현장조사단 평가 × ' + C.weights.survey + ' 의 지자체 안 백분위</p>';
+    + '* 복합위험지수 = 가중 HEA × ' + C.weights.hea + ' + 119 밀도 × ' + C.weights.density + ' + 현장조사단 평가 × ' + C.weights.survey + ' (가중 합 0~100, 세 열을 비중대로 더한 값)</p>';
   panel.hidden = false;
   title.textContent = mode === 'composite' ? '행정동별 중점 분야 HEA 지수 · 복합위험지구' : '행정동별 ' + AuriSafetyIndex.LABEL[mode] + ' 분야 HEA 취약요인 · 복합위험지구';
   tag.textContent = _hea.data.shortLabel || _hea.data.label;
