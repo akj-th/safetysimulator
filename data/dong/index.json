@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-21",
+  "generatedAt": "2026-10-22",
   "dongUnit": "행정동",
   "regions": [
     {
       "region": "andong",
       "label": "경상북도 안동시",
       "dongs": 24,
-      "scored": 9,
+      "scored": 24,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -22,7 +22,7 @@
       "region": "bukgu",
       "label": "광주광역시 북구",
       "dongs": 27,
-      "scored": 20,
+      "scored": 27,
       "eStatus": "ok",
       "boundary": "ok"
     },
@@ -30,7 +30,7 @@
       "region": "cheongsong",
       "label": "경상북도 청송군",
       "dongs": 8,
-      "scored": 8,
+      "scored": 0,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -54,7 +54,7 @@
       "region": "donggu",
       "label": "부산광역시 동구",
       "dongs": 12,
-      "scored": 6,
+      "scored": 0,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -62,7 +62,7 @@
       "region": "gangjin",
       "label": "전라남도 강진군",
       "dongs": 11,
-      "scored": 7,
+      "scored": 10,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -70,7 +70,7 @@
       "region": "geumcheon",
       "label": "서울특별시 금천구",
       "dongs": 16,
-      "scored": 7,
+      "scored": 13,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -94,7 +94,7 @@
       "region": "gongju",
       "label": "충청남도 공주시",
       "dongs": 16,
-      "scored": 4,
+      "scored": 16,
       "eStatus": "ok",
       "boundary": "ok"
     },
@@ -102,7 +102,7 @@
       "region": "gwanak",
       "label": "서울특별시 관악구",
       "dongs": 21,
-      "scored": 18,
+      "scored": 21,
       "eStatus": "ok",
       "boundary": "ok"
     },
@@ -142,7 +142,7 @@
       "region": "jecheon",
       "label": "충청북도 제천시",
       "dongs": 17,
-      "scored": 5,
+      "scored": 0,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -158,7 +158,7 @@
       "region": "jeongeup",
       "label": "전북특별자치도 정읍시",
       "dongs": 23,
-      "scored": 3,
+      "scored": 23,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -174,7 +174,7 @@
       "region": "jinan",
       "label": "전북특별자치도 진안군",
       "dongs": 11,
-      "scored": 6,
+      "scored": 0,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -182,7 +182,7 @@
       "region": "jindo",
       "label": "전라남도 진도군",
       "dongs": 7,
-      "scored": 4,
+      "scored": 0,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -190,7 +190,7 @@
       "region": "jjunggu",
       "label": "대전광역시 중구",
       "dongs": 17,
-      "scored": 7,
+      "scored": 9,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -198,7 +198,7 @@
       "region": "michuhol",
       "label": "인천광역시 미추홀구",
       "dongs": 23,
-      "scored": 20,
+      "scored": 22,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -222,7 +222,7 @@
       "region": "naju",
       "label": "전라남도 나주시",
       "dongs": 20,
-      "scored": 4,
+      "scored": 20,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -230,7 +230,7 @@
       "region": "namhae",
       "label": "경상남도 남해군",
       "dongs": 10,
-      "scored": 0,
+      "scored": 10,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -254,7 +254,7 @@
       "region": "pocheon",
       "label": "경기도 포천시",
       "dongs": 14,
-      "scored": 8,
+      "scored": 6,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -262,7 +262,7 @@
       "region": "sacheon",
       "label": "경상남도 사천시",
       "dongs": 14,
-      "scored": 6,
+      "scored": 14,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -278,7 +278,7 @@
       "region": "sejong",
       "label": "세종특별자치시",
       "dongs": 25,
-      "scored": 8,
+      "scored": 7,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -286,7 +286,7 @@
       "region": "seocheon",
       "label": "충청남도 서천군",
       "dongs": 13,
-      "scored": 7,
+      "scored": 13,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -294,7 +294,7 @@
       "region": "taebaek",
       "label": "강원특별자치도 태백시",
       "dongs": 8,
-      "scored": 0,
+      "scored": 8,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -302,7 +302,7 @@
       "region": "ujunggu",
       "label": "울산광역시 중구",
       "dongs": 13,
-      "scored": 10,
+      "scored": 12,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -318,7 +318,7 @@
       "region": "yeongdogu",
       "label": "부산광역시 영도구",
       "dongs": 11,
-      "scored": 3,
+      "scored": 11,
       "eStatus": "no-regression",
       "boundary": "ok"
     },

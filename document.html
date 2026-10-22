@@ -509,7 +509,7 @@ function auriCh1Fallback() {
     });
     const areaHa = _data.surveyArea && _data.surveyArea.areaHa;
     body = `
-    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : 강원대 분석으로 확정된 <b>${esc(focusLine)}</b> 3개 분야</p>
+    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : 지역안전지수 하위 등급 기준 <b>${esc(focusLine)}</b> 3개 분야(자살 포함)</p>
     ${rows.map((r) => `<p class="bullet"><span class="tag">(${esc(r.f.label)})</span> 3개년 구급출동 ${r.total.toLocaleString()}건${r.ratio ? `, 41개 지자체 평균의 ${r.ratio}배` : ''}${r.inside != null ? `, 복합위험지구 안 ${r.inside.toLocaleString()}건` : ''}</p>`).join('')}
     <p class="bullet" style="margin-top:14px"><b>□ 복합위험지구</b></p>
     <p class="bullet"><span class="tag">(대상지)</span> ${esc(_data.label)} 조사지 약 ${areaHa ? (areaHa / 100).toFixed(2) + '㎢' : '-'}${_picked.dong ? ` (진단 지점: ${esc(_picked.dong)})` : ''}</p>
@@ -534,13 +534,24 @@ function auriMeasures(list) {
 }
 
 /* 2장 — 분야마다 [위치도(우리 지도)] + AURI 사업(안) 표 + [사업 예시(개선 후 이미지)] + 사전 체크 */
+/* ★ 2026-10-22: 중점 3분야가 지역안전지수 기준으로 통일됐지만, 사전진단서 2장은 AURI 보고서 원문이라
+   보고서가 다룬 분야(강원대 확정 3분야)를 그대로 따릅니다. 보고서가 없으면 _focus(지수 기준). */
+function ch2Fields() {
+  if (_auri && _auri.fields && _auri.fields.length && _data.categories) {
+    const L = { traffic: '교통사고', fire: '화재', crime: '범죄', life: '생활안전', suicide: '자살', infection: '감염병', industrial: '산업재해' };
+    const out = _auri.fields.map((af) => ({ key: af.key, label: L[af.key] || af.cat, cat: _data.categories[af.key] })).filter((f) => f.cat);
+    if (out.length) return out;
+  }
+  return _focus;
+}
 function auriCh2() {
   const photos = AuriSitePhoto.all();
+  const _ch2 = ch2Fields();
   const after = sessionStorage.getItem('auri_after_image');
   const beforeImg = sessionStorage.getItem('auri_input_image');
   const beforeUrl = beforeImg ? (JSON.parse(beforeImg).dataUrl || null) : null;
   let fig = 2;
-  const blocks = _focus.map(function (f, i) {
+  const blocks = _ch2.map(function (f, i) {
     const af = _auri && _auri.fields.find((x) => x.key === f.key);
     const mine = _items.filter((it) => it.field === f.key || it.category === f.label);
     const r = _results.find((x) => x.key === f.key);
@@ -1250,7 +1261,9 @@ function mapSpecs() {
   const prim = _results.slice().sort((a, b) => (focusKeys.has(b.key) - focusKeys.has(a.key)) || b.score - a.score)[0];
   if (prim) out.push({ id: 'map-mois', w: 760, h: 570, opts: { pad: 0.05, focus: { lat: marker.lat, lng: marker.lng, radiusM: MAP_RADIUS_M }, heat: heatFor(prim.key), points: heatFor(prim.key) ? [] : catPoints(prim.key), marker: marker, boundary: _data.surveyArea && _data.surveyArea.geometry } });
 
-  _focus.forEach(function (f) {
+  /* 분야 지도는 2장과 같은 분야(AURI 보고서 기준), 보고서가 없으면 지수 기준 — 한쪽만 바꾸면 지도 칸이 비어 보입니다 */
+  const mapFields = ch2Fields().slice(); _focus.forEach((f) => { if (!mapFields.some((m) => m.key === f.key)) mapFields.push(f); });
+  mapFields.forEach(function (f) {
     out.push({
       id: 'map-' + f.key, w: 760, h: 570,   // 4:3 — 칸과 비율을 맞춰 잘리지 않게
       opts: {
@@ -1302,7 +1315,7 @@ async function renderMaps() {
 
 function photoManager() {
   const photos = AuriSitePhoto.all();
-  const opts = _focus.map(function (f, i) {
+  const opts = ch2Fields().map(function (f, i) {
     return '<option value="' + f.key + '">4.' + (i + 1) + ' ' + f.label + '</option>';
   }).join('');
 
@@ -1355,7 +1368,7 @@ async function onPhotos(input) {
      세 장을 올리면 4.1·4.2·4.3 에 한 장씩 들어갑니다. 물론 바꿀 수 있습니다. */
   const list = AuriSitePhoto.all();
   for (let i = before; i < list.length; i++) {
-    const counts = _focus.map(function (f) {
+    const counts = ch2Fields().map(function (f) {
       return { key: f.key, n: AuriSitePhoto.byField(f.key).length };
     }).sort(function (x, y) { return x.n - y.n; });
     if (counts.length) AuriSitePhoto.setField(list[i].id, counts[0].key);

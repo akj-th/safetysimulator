@@ -79,7 +79,8 @@ for (const r of rows.slice(4)) {
   /* ★ 정규점수(1) — 있는 연도 등급 평균 ÷ 5 (2026-10-21 담당자: 5개년 등급 × 가중치). 자살 1.0 고정 */
   const allYears = Object.keys(grades).sort().reverse();
   const score1 = {}; FIELDS.forEach(f => { const gs = allYears.map(y => grades[y][f]).filter(Number.isFinite); score1[f] = f === 'suicide' ? 1 : +(gs.reduce((a, b) => a + b, 0) / gs.length / 5).toFixed(3); }); score1.industrial = INDUSTRIAL_W;
-  const kangwon = (regions.find(x => x.region === slug).focusTypes || []).map(s => KO2KEY[String(s || '').trim()]).filter(Boolean);   // 강원대 확정 3분야는 index.json 의 focusTypes(검증된 값)
+  const _reg = regions.find(x => x.region === slug);
+  const kangwon = (_reg.focusTypesKangwon || _reg.focusTypes || []).map(s => KO2KEY[String(s || '').trim()]).filter(Boolean);   // 2026-10-22: focusTypes 가 지수 기준으로 바뀌어 강원대 원본은 focusTypesKangwon   // 강원대 확정 3분야는 index.json 의 focusTypes(검증된 값)
   const grade = (f) => Number.isFinite(g25[f]) ? g25[f] : g24[f];
   const weights = {}; FIELDS.forEach(f => { weights[f] = f === 'suicide' ? 1 : +(grade(f) / 5).toFixed(2); });
   weights.industrial = INDUSTRIAL_W;

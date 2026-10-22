@@ -759,3 +759,8 @@ if (stale.length) {
   console.log(`\n⚠ 이번 자료에 없는 예전 파일이 남아 있습니다 (직접 지우세요):`);
   for (const f of stale) console.log(`    data/incidents/${f}`);
 }
+
+/* ★ 2026-10-22: 중점 3분야를 지역안전지수 기준(safety-index.json focusByIndex)으로 통일. 강원대 값은 focusTypesKangwon 에 남김 */
+const { applyFocusIndex } = await import('./apply-focus-index.mjs');
+applyFocusIndex({ quiet: true });
+console.log('중점 3분야 → 지역안전지수 기준으로 갱신 (tools/apply-focus-index.mjs)');

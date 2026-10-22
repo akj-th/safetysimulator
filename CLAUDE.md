@@ -2036,3 +2036,23 @@ index.html 상단 등급표 + 우측 "행정동별 위험도" / report.html 읍�
 
 - 자동으로 채우는 것과 사람이 쓰는 것(대응·시범규모·예산근거·사업적용 보완)은 함수 머리 주석에. 공간유형은 AURI 보고서 2장 → 표준 팔레트 순으로 모아 최대 3개(AURI 보고서의 "의료시설 밀집형"처럼 13종 밖 이름은 상위 분류가 안 붙음).
 - 확인: 금천 더미 진단으로 카드 렌더(스크린샷) · 거르기 전체 444 → 교통·이동 31 · 주요 교차로형 9 · 지역관리·서비스 14 옵션.
+
+## 2026-10-22 중점 3분야 기준 통일 — 지역안전지수 하위 등급 (이은석 박사 지적)
+
+"첫 화면은 지역안전지수 하위 등급으로 HEA 를 보여 주는데 리포트 읍면동 종합 분석은 강원대 구버전" → 한 앱 안에 기준이 둘이었음 (41곳 중 **38곳**이 서로 다름).
+첫 화면(index.html)만 `safety-index.json focusByIndex` 를 읽고, 리포트·문서·진단 안내·AI 판독 우선 분야·동별 HEA·거점·히트맵은 전부 `data/stats` 의 `focusTypes`(강원대)를 읽고 있었습니다.
+
+**고친 방법 — 자료 한 곳을 바꿔 전부 따라오게**: `tools/apply-focus-index.mjs` 가 `data/stats/regions/*.json`·`index.json` 의 `focusTypes` 를 지수 기준(자살 고정 + 하위 2)으로 바꿔 씁니다. 강원대 원본은 `focusTypesKangwon`, 출처는 `focusSource`. `build-stats.mjs` 끝에서 자동으로 불립니다.
+
+| 따라서 바뀐 것 | 비고 |
+|---|---|
+| 리포트 읍면동 종합 분석 · 중점관리분야 현황 · 현장 확인사항(이용자 특성) | `AuriStats.focusCategories` 가 그대로 지수 기준을 읽음. "중점 분야 대체" 안내는 지수 기준이면 안 보임 |
+| 진단 화면 "중점 안전분야" 안내 · 서버 AI 판독 우선 분야(`focusFor`) | index.json 을 읽으므로 자동 |
+| 동별 HEA(`data/dong`) | `HEA_CATEGORY_SCOPE='focus'` 라 지수 기준 분야로 다시 산출 → 첫 화면 표에서 "자살 버튼 없음"·건수 대체가 사라짐 |
+| 현장조사단 평가(`field-survey.json`) · 주요 거점(`hotspots.json`) | 다시 산출 (거점 A~J 순위가 바뀌므로 DB `hotspot_edits`·프로젝트 거점 연결은 초기화 필요) |
+| 히트맵 `--focus` | 지수 기준 + 강원대 **합집합**으로 생성 (사전진단서 2장이 강원대 분야 지도를 쓰므로) |
+| 문서 1장 문구 | "강원대 분석으로 확정된" → "지역안전지수 하위 등급 기준 … (자살 포함)" |
+
+**예외 — 사전진단서 2장은 AURI 보고서 원문**이라 보고서가 다룬 분야(강원대 확정 3분야)를 그대로 따릅니다(`document.html ch2Fields()`; 분야 지도·현장 사진 배정도 같은 목록). 보고서가 없는 곳만 지수 기준. 별첨은 지수 기준.
+- 순서: `build-stats` → `build-safety-index` → (`apply-focus-index` 자동) → `dong-hea` → `build-field-survey` → `hotspots` · `heatmap -- --focus`.
+- 강원대 확정 3분야로 되돌리려면 `focusTypesKangwon` 을 `focusTypes` 로 복사(또는 apply-focus-index 를 돌리지 않고 build-stats).

@@ -458,7 +458,7 @@ function renderSummary() {
    만들고(assets/stats.js), AI는 사진 판독에만 씁니다. 숫자를 AI가 쓰게
    하면 지어낼 수 있고, 그러면 예산 근거 문서로 못 쓰기 때문입니다.
 
-   서술 대상은 강원대가 확정한 **중점 3분야**입니다. 7개 분야를 균등하게
+   서술 대상은 지역안전지수 하위 등급 기준 **중점 3분야**(자살 고정 + 하위 2, 2026-10-22 부터 — 전에는 강원대 확정 3분야)입니다. 7개 분야를 균등하게
    다루지 않는 것은 8/25 협의에서 정해진 방식입니다. */
 function renderStats() {
   if (!_stats || !_stats.data) return;
@@ -486,7 +486,7 @@ function renderStats() {
 
   /* 표본이 모자라 분야를 바꾼 곳이면 그 사실을 적습니다.
      실장 보고에서 "왜 이 분야를 봤나"가 나올 수 있습니다. */
-  const replaced = AuriStats.replacedNote(data);
+  const replaced = data.focusSource ? null : AuriStats.replacedNote(data);   // 2026-10-22: 지수 기준이면 강원대 대체 이력은 해당 없음
   const rBox = document.getElementById('areaReplaced');
   if (replaced) {
     rBox.style.display = 'block';

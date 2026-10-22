@@ -172,7 +172,7 @@ function checklistText(focus) {
 }
 
 /* ── 지자체 중점 3분야 (2026-09-16, 9/15 행안부 국장 보고 요청) ────────────
-   강원대가 확정한 지자체별 중점 분야(data/stats/index.json 의 focusTypes —
+   지자체별 중점 분야(data/stats/index.json 의 focusTypes — 2026-10-22 부터 지역안전지수 하위 등급 기준, 강원대 원본은 focusTypesKangwon —
    「대표_위험_선정_기준_표본수추가.xlsx」 신규 대표위험 + 자살)를 판독 지시문에 넣어
    그 분야 항목을 우선·상세히 보게 합니다.
    ★ 나머지 4개 분야는 없애지 않습니다 — 9/7 회의: "사진에서 문제가 확인된 분야는

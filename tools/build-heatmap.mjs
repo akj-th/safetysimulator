@@ -195,7 +195,7 @@ const argv = process.argv.slice(2);
 const FOCUS_ONLY = argv.includes('--focus');            // 중점 3분야만 (사전진단서 분야별 지도용, 123장)
 const only = argv.find(a => !a.startsWith('--')) || null;
 const FOCUS = {};
-if (FOCUS_ONLY) { const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/stats/index.json'), 'utf8')); const L2K = { 교통사고: 'traffic', 화재: 'fire', 범죄: 'crime', 생활안전: 'life', 산업재해: 'industrial', 자살: 'suicide', 감염병: 'infection' }; for (const r of (Array.isArray(idx) ? idx : idx.regions)) FOCUS[r.region] = (r.focusTypes || []).map(l => L2K[l] || l); }
+if (FOCUS_ONLY) { const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/stats/index.json'), 'utf8')); const L2K = { 교통사고: 'traffic', 화재: 'fire', 범죄: 'crime', 생활안전: 'life', 산업재해: 'industrial', 자살: 'suicide', 감염병: 'infection' }; for (const r of (Array.isArray(idx) ? idx : idx.regions)) FOCUS[r.region] = [...new Set([...(r.focusTypes || []), ...(r.focusTypesKangwon || [])].map(l => L2K[l] || l))]; }   // 2026-10-22: 지수 기준 + 강원대(사전진단서 2장) 합집합
 const slugs = Object.keys(REGIONS).filter((s) => !only || s === only);
 if (!slugs.length) { console.error(`지자체 slug 를 찾지 못했습니다: ${only}`); process.exit(1); }
 
