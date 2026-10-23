@@ -272,6 +272,28 @@ const AuriDongHea = (function () {
     dongs = dongs.slice(0, TABLE_MAX_DONGS);
     if (!dongs.length) return '';
 
+    /* ★ 2026-10-23 (이은석 박사 "지표 항목은 사고 유형에 따라 바뀌어야"): opts.field 가 있으면 그 분야의 H·E·A 로 채웁니다.
+       H 연령·성별 = 그 분야 환자의 편중 집단 · E 노후·도로·시설 = 그 분야 회귀분석 기여(동 사이 순위) · A = 그 분야 반복·야간·장소 */
+    const field = opts.field || null;
+    const rankOf = (vals) => { const xs = vals.filter((v) => v != null).sort((a, b) => a - b); return (v) => { if (v == null || xs.length < 3) return null; let lo = 0, hi = 0; for (const x of xs) { if (x < v) lo++; if (x <= v) hi++; } return Math.round(((lo + hi) / 2) / xs.length * 100); }; };
+    const catOf = (d) => field && d.byCat ? d.byCat[field] : null;
+    const egv = (d, g) => { const c = catOf(d); return c && c.E && c.E.groups && c.E.groups[g] != null ? c.E.groups[g] : null; };
+    const eRank = field ? { old: rankOf(data.dongs.map((d) => egv(d, 'old'))), road: rankOf(data.dongs.map((d) => egv(d, 'road'))), facility: rankOf(data.dongs.map((d) => egv(d, 'facility'))) } : null;
+    const val = (d, key) => {
+      if (!field) return d.indicators[key];
+      const c = catOf(d); if (!c) return null;
+      switch (key) {
+        case 'hAge': return c.H && c.H.age ? c.H.age.score : null;
+        case 'hSex': return c.H && c.H.sex ? c.H.sex.score : null;
+        case 'eOld': return eRank.old(egv(d, 'old'));
+        case 'eRoad': return eRank.road(egv(d, 'road'));
+        case 'eFacility': return eRank.facility(egv(d, 'facility'));
+        case 'aRepeat': return c.A && c.A.repeat ? c.A.repeat.score : null;
+        case 'aNight': return c.A && c.A.night ? c.A.night.score : null;
+        case 'aPlace': return c.A && c.A.place ? c.A.place.score : null;
+      } return null;
+    };
+    const totalOf = (d) => { if (!field) return d.scores.total; const c = catOf(d); if (!c) return null; const xs = [c.H && c.H.score, c.E && c.E.score, c.A && c.A.score].filter((v) => v != null); return xs.length ? Math.round(xs.reduce((p, q) => p + q, 0) / xs.length) : null; };
     const cell = (score) => {
       if (score === null || score === undefined) return '<td class="num hea-na">-</td>';
       const b = band(score);
@@ -290,11 +312,11 @@ const AuriDongHea = (function () {
         return inds.map((ind, k) => `<tr class="ax-${axis}${k === 0 ? ' grp' : ''}${opts.mode === axis ? ' on' : ''}">
             ${k === 0 ? `<th rowspan="${inds.length}" class="hea-axis">${AXIS_LABEL[axis]}</th>` : ''}
             <th class="hea-ind">${ind.label}</th>
-            ${cols.map((d) => cell(d.indicators[ind.key])).join('')}
+            ${cols.map((d) => cell(val(d, ind.key))).join('')}
           </tr>`).join('');
       }).join('');
       const total = `<tr class="hea-total${opts.mode === 'total' ? ' on' : ''}"><th colspan="2">종합</th>
-          ${cols.map((d) => cell(d.scores.total)).join('')}</tr>`;
+          ${cols.map((d) => cell(totalOf(d))).join('')}</tr>`;
       const caption = opts.caption ? `<caption>${esc(opts.caption)}${chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : ''}</caption>` : '';
       return `<div class="hea-table-wrap"><table class="hea-table">${caption}
         <thead><tr><th colspan="2" class="hea-corner">지표</th>
@@ -307,9 +329,19 @@ const AuriDongHea = (function () {
     const hNote = hBasis(data) === 'population'
       ? '연령×성별 집단 중 거주 인구 대비 기대 건수보다 가장 많이 발생한 초과 건수를'
       : '연령×성별 집단 중 나머지 지역 구성 대비 기대 건수보다 가장 많이 발생한 초과 건수를';
+    /* "-" 가 왜 비는지 — 분야·지자체마다 다르므로 자료 상태에서 만듭니다 (2026-10-23 박사님 질문 "데이터가 누락되는 이유는?") */
+    const fieldLabel = field ? ((data.heaCategories || []).find((c) => c.key === field) || {}).label || field : '';
+    const eStatus = data.eStatus;
+    const blank = [];
+    blank.push('H·A 지표는 해당 동의 ' + (field ? fieldLabel + ' 분야 ' : '중점 분야 ') + '구급출동이 10건 미만이면 산출하지 않음(표본 부족)');
+    if (eStatus === 'no-regression') blank.push('E 지표는 강원대 물적환경 회귀분석 결과가 있는 7개 지자체(부천·광주북구·공주·관악·홍천·남원·영천)에서만 산출됨 — ' + esc(label) + '은 해당 없음');
+    else blank.push('E_1 노후·E_2 도로는 기초자료(노후건축물·도로폭)가 없어 전 지자체 비어 있음 · E_3 시설은 회귀분석 유의 변수 중 시설 밀도·거리 자료가 있는 것만');
+    const eParts = field ? (data.dongs.map((d) => { const c = catOf(d); return c && c.E && c.E.parts; }).find(Boolean) || []) : [];
+    const eLine = eParts.length ? `<br>* ${esc(fieldLabel)} 분야 E 반영 변수: ${esc(eParts.slice(0, 5).map((p) => p.name).join(' · '))}${eParts.length > 5 ? ' 외' : ''}` : '';
     return `
-      <p class="hea-lead">조사지와 겹치는 읍면동${insideCount ? ` ${insideCount}곳` : ''}을 중심으로 H(피해대상)·E(환경)·A(행위·관리) 지표를 산출함</p>
+      <p class="hea-lead">조사지와 겹치는 읍면동${insideCount ? ` ${insideCount}곳` : ''}을 중심으로 ${field ? `<b>${esc(fieldLabel)} 분야</b>의 ` : ''}H(피해대상)·E(환경)·A(행위·관리) 지표를 산출함</p>
       ${tables}
+      <p class="hea-foot">* "-" = 산출 자료 없음 — ${blank.join(' · ')}${eLine}</p>
       <p class="hea-foot">* 119 구급출동자료(2023~2025)·강원대 물적환경 분석 결과를 바탕으로 읍면동별 지표를 산출하고, ${esc(label)} 안의 순위(0~100)로 환산함 — 67 이상 상위 · 34~66 중위 · 33 이하 하위<br>
         * H: ${hNote} 동끼리 비교 · E: 회귀분석 계수 × 시설 밀도·거리 · A: 반복 발생 지점 · 야간(22~06시) 비중 · 발생 장소 편중 · 종합: H·E·A 평균<br>
         * HEA 취약도 지표는 현재 개발 중인 모델로 산출한 참고값으로, 정확하지 않을 수 있음</p>`;

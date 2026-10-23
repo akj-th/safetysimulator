@@ -962,10 +962,11 @@ function renderHeaTable() {
   const mode = _si.mode;
   const canField = !!(_si.weighted && _si.composite && mode);
   if (_heaView === 'all' || !canField) {
-    const html = AuriDongHea.renderTable(_hea.data, { mode: _hea.mode });
+    const fieldKey = mode && mode !== 'composite' && mode !== 'total' ? mode : null;   // 2026-10-23: 분야 버튼에 맞춰 분야별 지표
+    const html = AuriDongHea.renderTable(_hea.data, { mode: _hea.mode, field: fieldKey });
     panel.hidden = !html;
     body.innerHTML = html;
-    title.textContent = '읍면동별 HEA 취약도 지표';
+    title.textContent = fieldKey ? '읍면동별 ' + AuriSafetyIndex.LABEL[fieldKey] + ' 분야 HEA 취약도 지표' : '읍면동별 HEA 취약도 지표';
     tag.textContent = _hea.data.shortLabel || _hea.data.label;
     btn.textContent = canField ? '분야 판정 표 보기' : '';
     return;
@@ -1005,6 +1006,7 @@ function renderHeaTable() {
   }
   body.innerHTML = '<div class="hea-table-wrap"><table class="hea-table dense">' + head + '<tbody>' + trs + '</tbody></table></div>'
     + '<p class="hea-foot">* H = 피해집단 편중, E = 물적환경 회귀분석 기여(노후·도로·시설밀도), A = 반복 발생·야간 비중·장소 편중<br>'
+    + '* "-" = 산출 자료 없음: H·A 는 해당 동의 분야 출동 10건 미만(표본 부족) · E_1 노후·E_2 도로는 기초자료(노후건축물·도로폭) 미확보로 전 지자체 비어 있음 · E_3 시설은 강원대 회귀분석이 있는 7개 지자체만<br>'
     + '* HEA 지수 = 각 지표의 평균 점수<br>'
     + '* 관리등급 = HEA 지수 75 이상 중점관리 · 50 관리 · 25 관찰 · 그 외 안전<br>'
     + '* 119 밀도 = 7개 분야 3개년 출동 건수 × 지역안전지수 가중치를 지자체 최대값 대비 0~100<br>'

@@ -1674,6 +1674,14 @@ function guideCard() {
   _items.forEach((it) => { const sp = AuriPalette.std(it.name); if (!sp) return; const c = sp.card && sp.card.caseRef ? String(sp.card.caseRef).trim() : ''; if (c && !cases.includes(c)) cases.push(c); if (sp.unit) units.push(`${it.name}(${sp.unit})`); });
   const casesHtml = cases.slice(0, 3).map((c) => `<p class="bullet">${esc(c)}</p>`).join('');
   const unitsHtml = units.length ? `<p class="bullet">개입 단위: ${esc(units.join(' · '))}</p>` : '';
+  /* ★ 2026-10-23 (박사님 "비워 두신 이유?"): 시범규모·예산근거·사업적용을 표준 팔레트 상세카드에서 미리 채웁니다. 숫자(개소·m)는 현장 실측 몫이라 적지 않고, 편집칸은 그대로 둡니다 */
+  const first = (t) => String(t || '').split(/(?<=[.다])\s+/)[0].replace(/\s*사업별 법정 대상 여부.*$/, '').trim();
+  const stdItems = _items.map((it) => ({ it, sp: AuriPalette.std(it.name) })).filter((x) => x.sp);
+  const UNIT_HINT = { '점': '개소 수', '선': '구간 길이(m)', '면': '구역 범위', '점+선': '개소 수·구간 길이(m)', '점+면': '개소 수·구역 범위', '선+면': '구간 길이(m)·구역 범위', '점+선+면': '개소·구간·구역' };
+  const scaleHtml = stdItems.length ? stdItems.map(({ it, sp }) => `<p class="bullet">「${esc(it.name)}」 ${esc(sp.unit || '')} — ${esc(first(sp.card && sp.card.target))}${UNIT_HINT[sp.unit] ? ` <span class="h-sub">(${esc(UNIT_HINT[sp.unit])}는 현장 실측으로 확정)</span>` : ''}</p>`).join('')
+    + `<p class="bullet">대상 생활권: ${esc(_data.shortLabel)} ${esc(_picked.dong || '')} · 진단 지점 반경 ${MAP_RADIUS_M}m</p>` : '';
+  const budgetHtml = stdItems.filter(({ sp }) => sp.card && (sp.card.budget || sp.card.budgetBasis)).map(({ it, sp }) => `<p class="bullet">「${esc(it.name)}」 ${esc(sp.card.budget || sp.card.budgetBasis)}${sp.card.budget && sp.card.budgetBasis ? ` <span class="h-sub">(${esc(first(sp.card.budgetBasis))})</span>` : ''}</p>`).join('');
+  const applyHtml = stdItems.map(({ it, sp }) => `<p class="bullet">「${esc(it.name)}」 ${esc(sp.unit || '')}${sp.card && sp.card.owner ? ` · 주관/협력: ${esc(sp.card.owner)}` : ''}</p>`).join('');
   const envHtml = photoProblems.length ? photoProblems.slice(0, 5).map((x) => `<p class="bullet">${esc(x.note || x.ask || '')}</p>`).join('') : (primary && primary.observed && primary.observed.length ? primary.observed.slice(0, 4).map((t) => `<p class="bullet">${esc(t)}</p>`).join('') : '');
   const ctx = `지자체 ${_data.label} · 지점 ${_picked.addr || ''} · 공간유형 ${spaceLine} · 지역안전지수 ${siLine.replace(/<[^>]+>/g, '')} · 안전 유형 ${primary ? primary.name + ' ' + primary.score + '점' : ''} · 처방 ${_items.map((it) => it.name).join(', ')}`;
 
@@ -1700,12 +1708,15 @@ function guideCard() {
         <tr><th class="ax">환경</th><td>${envHtml}${AuriDocEdit.render('guide-env', '', '현장에서 실측·확인할 물리 환경 항목을 적습니다.', ctx)}</td></tr>
         <tr><th class="ax">대응</th><td><p class="bullet">소방·경찰·CCTV 관제 등 대응체계 — 확인 필요</p>${AuriDocEdit.render('guide-response', '', '기존 사업·순찰·관제 운영과의 연계를 적습니다.', ctx)}</td></tr>
         <tr><th colspan="2">맞춤형 사업</th><td>${rxHtml}</td></tr>
-        <tr><th colspan="2">시범규모</th><td>${AuriDocEdit.render('guide-scale', '', '예: 보행축 1개 300m · 교차로 2개소 — 위험지도·현장 실측으로 결정', ctx)}</td></tr>
-        <tr><th colspan="2">예산근거(선례)</th><td>${casesHtml}${AuriDocEdit.render('guide-budget', '', '선례 사업비·단가를 적습니다. 표준 팔레트의 소요예산 산식을 참고하십시오.', ctx)}</td></tr>
-        <tr><th colspan="2">사업적용</th><td>${unitsHtml}${AuriDocEdit.render('guide-apply', '', '점·선·면 지정, 협의 기관(도로·교통·경찰·소방 등)을 적습니다.', ctx)}</td></tr>
+        <tr><th colspan="2">시범규모</th><td>${scaleHtml}${AuriDocEdit.render('guide-scale', '', '개소 수·구간 길이 등 실측값을 적습니다.', ctx)}</td></tr>
+        <tr><th colspan="2">예산근거(선례)</th><td>${budgetHtml}${casesHtml}${AuriDocEdit.render('guide-budget', '', '선례 사업비·단가를 보탭니다.', ctx)}</td></tr>
+        <tr><th colspan="2">사업적용</th><td>${applyHtml || unitsHtml}${AuriDocEdit.render('guide-apply', '', '점·선·면 지정, 협의 기관(도로·교통·경찰·소방 등)을 보탭니다.', ctx)}</td></tr>
       </tbody></table>
     </div>
-    <figure class="doc-map" style="margin-top:14px"><img id="map-mois" alt="위치도" hidden><div class="slot" id="map-mois-wait">지도를 그리는 중입니다…</div>
+    <!-- 2026-10-23 박사님: 카드 아래 지도는 종합도로. 종합도가 없는 지자체만 위치도 -->
+    <figure class="doc-map" style="margin-top:14px"><img src="data/overview/${esc(_data.region)}.jpg" alt="종합도" style="width:100%;display:block" onerror="this.parentNode.hidden=true;document.getElementById('guide-locmap').hidden=false">
+      <figcaption>복합위험지구 중점관리분야 맞춤형 사업 종합도 — 진단 지점 ${esc(_picked.addr || '')}</figcaption></figure>
+    <figure class="doc-map" id="guide-locmap" style="margin-top:14px" hidden><img id="map-mois" alt="위치도" hidden><div class="slot" id="map-mois-wait">지도를 그리는 중입니다…</div>
       <figcaption>위치도 — ${primary ? esc(primary.name) : ''} 밀도 · 진단 지점 반경 ${MAP_RADIUS_M}m</figcaption></figure>
   </section>`;
 }

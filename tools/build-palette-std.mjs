@@ -56,19 +56,21 @@ for (const f of fs.readdirSync(SRC).filter((x) => /\.docx$/i.test(x)).sort()) {
   const summary = tables[0].slice(1).filter((r) => /^\d+$/.test(r[0]));
   const cards = tables.slice(1).filter((t) => t.length === 1 && t[0].length === 3);
   const byNo = {};
-  for (const c of cards) {
+  cards.forEach((c, ci) => {
     const [left, mid, right] = c[0];
-    const no = (/(\d+)번/.exec(left) || [])[1];
-    const m = /HEA\s*([EHA])\s*(?:\(원본\s*([EHA])\))?/.exec(mid);
+    /* 카드 번호: 왼쪽 칸 'NN번'. 교통사고·화재 docx 는 번호가 없어 카드 순서(요약표와 같은 순서)로 잇습니다 (2026-10-23 HEA '금' 오류 수정) */
+    const no = (/(\d+)번/.exec(left) || [])[1] || (summary[ci] ? summary[ci][0] : null);
+    const m = /HEA\s*([EHA])\s*(?:\(원본\s*([EHA])\))?/.exec(mid) || /분류\s*H·E·A\s*:\s*([EHA])/.exec(mid);
     const idx = (/지역지수\s*(.+)$/m.exec(mid) || [])[1];
-    byNo[String(+no)] = { hea: m ? m[1] : null, heaOrig: m && m[2] ? m[2] : null, index: idx ? idx.trim() : '', card: parseCard(right) };
-  }
+    if (no != null) byNo[String(+no)] = { hea: m ? m[1] : null, heaOrig: m && m[2] ? m[2] : null, index: idx ? idx.trim() : '', card: parseCard(right) };
+  });
   for (const r of summary) {
     const d = byNo[String(+r[0])] || { card: {} };
     const won = readWon(d.card.budget);
     programs.push({
       id: `S-${field.toUpperCase().slice(0, 3)}-${r[0]}`, no: +r[0], field, cat: catLabel, name: r[1].trim(),
-      spaceType: r[2], unit: r[3], hea: (r[4] || d.hea || '').trim().slice(0, 1) || null, heaOrig: d.heaOrig, note: r[5], index: d.index,
+      /* HEA 열이 없는 docx(교통사고·화재)는 r[4] 가 예산 문구라 카드의 HEA 를 씁니다 */
+      spaceType: r[2], unit: r[3], hea: (/^[EHA]$/.test(String(r[4] || '').trim()) ? String(r[4]).trim() : d.hea) || null, heaOrig: d.heaOrig, note: r[r.length - 1], index: d.index,
       amount: won ? { text: d.card.budget || '', won: won.won, unit: won.unit, reason: null } : { text: d.card.budget || '', won: null, unit: null, reason: d.card.budget ? '산식·미확정 — 현장 산정 필요' : '금액 미기입' },
       card: d.card,
     });
