@@ -416,11 +416,6 @@ function auriWon(n) {
   return n.toLocaleString() + '원';
 }
 
-/** 이 사업이 단가를 갖고 있는가 (합계에 넣을 수 있는가) */
-function auriHasPrice(program) {
-  return !!(program && program.amount && program.amount.won);
-}
-
 /* ── 거리 이미지에 그릴 수 있는가 ──────────────────────────────────
    E(환경적 개입)만 사진에 나타납니다. H(보호·지원)·A(행위 개입)는
    안부확인·교육·단속이라 거리 사진에 그릴 것이 없습니다.

@@ -310,9 +310,9 @@ const START_ADDRESS = '세종특별자치시 가름로 143';
 const START_FALLBACK = { lat: 36.5044, lng: 127.2589 };
 
 /* ── 119 응급신고 이력 레이어 ────────────────────────────────────────
-   AURI에서 받은 3개년 발생 지점을 100×100m 격자 건수로 집계한 자료입니다.
+   AURI에서 받은 3개년 발생 지점을 50×50m 격자 건수로 집계한 자료입니다.
    개인정보 항목(신고일시·환자·주소 등)은 변환 단계에서 제외했습니다.
-   원본 → 집계 변환은 tools/convert-gis.js 가 담당합니다. */
+   원본 → 집계 변환은 tools/build-stats.mjs 가 담당합니다(npm run build). */
 const INCIDENT_CATEGORIES = [
   { key: 'suicide',    color: '#7B5EA7' },
   { key: 'traffic',    color: '#2A78D6' },
@@ -926,31 +926,8 @@ function clearDongHea() {
    ════════════════════════════════════════════════════════════════════ */
 let _heaView = 'field';            // 'field' | 'all'
 function toggleHeaView() { _heaView = _heaView === 'field' ? 'all' : 'field'; renderHeaTable(); }
-/* 값이 있는 동만 0~100 백분위 (safety-index.js 와 같은 규칙) */
-function pctOf(values) {
-  const vals = values.filter((v) => v != null);
-  if (vals.length < 3) return () => null;
-  const sorted = vals.slice().sort((x, y) => x - y);
-  return (v) => { if (v == null) return null; let below = 0, eq = 0; for (const t of sorted) { if (t < v) below++; else if (t === v) eq++; } return Math.round(100 * (below + (eq - 1) / 2) / Math.max(1, sorted.length - 1)); };
-}
 /* 분야 하나의 지표 7개를 0~100 으로 — H(피해집단 편중) · E_1~3(회귀분석 기여, 동 사이 백분위) · A_1~3(반복·야간·장소, 이미 백분위) */
 function fieldScores(key) { return AuriSafetyIndex.fieldIndexMap(_hea.data, key); }
-function fieldScoresOld(key) {
-  const dongs = _hea.data.dongs;
-  const cat = (d) => d.byCat && d.byCat[key];
-  const eg = (d, g) => { const c = cat(d); return c && c.E && c.E.groups && c.E.groups[g] != null ? c.E.groups[g] : null; };
-  const eRank = { old: pctOf(dongs.map((d) => eg(d, 'old'))), road: pctOf(dongs.map((d) => eg(d, 'road'))), facility: pctOf(dongs.map((d) => eg(d, 'facility'))) };
-  const out = {};
-  dongs.forEach((d) => {
-    const c = cat(d);
-    const H = c && c.H ? c.H.score : null;
-    const E = [eRank.old(eg(d, 'old')), eRank.road(eg(d, 'road')), eRank.facility(eg(d, 'facility'))];
-    const A = [c && c.A && c.A.repeat ? c.A.repeat.score : null, c && c.A && c.A.night ? c.A.night.score : null, c && c.A && c.A.place ? c.A.place.score : null];
-    const all = [H].concat(E, A).filter((v) => v != null);
-    out[d.name] = { H, E, A, mean: all.length ? Math.round(all.reduce((p, q) => p + q, 0) / all.length) : null };
-  });
-  return out;
-}
 /* 관리등급 — HEA 지수(0~100) 사분위. AURI 보고서의 안전·관찰·관리·중점관리 명칭 */
 function gradeOf(v) { if (v == null) return null; return v >= 75 ? '중점관리지역' : v >= 50 ? '관리지역' : v >= 25 ? '관찰지역' : '안전지역'; }
 

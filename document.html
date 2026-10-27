@@ -768,8 +768,6 @@ function chapter3() {
     .sort((a, b) => b.d.total.inside - a.d.total.inside)
     .slice(0, 8);
 
-  const ctx3 = shareRows.map((r) =>
-    `${r.c.label}: 시군구 전체 ${r.c.count.region}건, 조사지 내 ${r.c.count.inside}건, 발생비율 ${r.c.count.share}%`).join('\n');
   const ctxDong = dongRows.map((x) => {
     const top = Object.entries(x.d.categories).sort((a, b) => b[1].count.region - a[1].count.region)[0];
     return `${x.name}: 조사지 내 ${x.d.total.inside}건 / 동 전체 ${x.d.total.region}건`

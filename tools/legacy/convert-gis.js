@@ -1,7 +1,10 @@
 ﻿/* ════════════════════════════════════════════════════════════════════
    119 응급신고 SHP → 앱이 읽는 격자 집계 JSON
 
-   실행:  node tools/convert-gis.js
+   실행:  node tools/legacy/convert-gis.js --force
+
+   ⚠ 옛 자료(data/raw/points, 34.4만 건)용으로만 남겨 둔 것입니다. 지금 격자·통계는 tools/build-stats.mjs 가 만듭니다.
+     결과를 지금의 data/incidents/ 에 덮어쓰므로 --force 를 붙여야만 씁니다 (2026-10-27 tools/legacy 로 옮김).
 
    ── 무엇을 하는가 ──────────────────────────────────────────────────
    data/raw/points/*.shp 에서 **좌표와 사건분류 2가지만** 꺼내
@@ -20,8 +23,12 @@ import { fileURLToPath } from 'node:url';
 import proj4 from 'proj4';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const RAW_DIR = path.resolve(HERE, '../data/raw/points');
-const OUT_DIR = path.resolve(HERE, '../data/incidents');
+const RAW_DIR = path.resolve(HERE, '../../data/raw/points');
+const OUT_DIR = path.resolve(HERE, '../../data/incidents');
+if (!process.argv.includes('--force')) {
+  console.error('이 스크립트는 옛 SHP 자료용입니다. 지금의 data/incidents/ (build-stats.mjs 결과)를 덮어쓰므로 --force 를 붙여야 실행됩니다.');
+  process.exit(1);
+}
 
 /* ── 격자 크기 (m) ───────────────────────────────────────────────────
    ★ 이 숫자만 바꾸고 다시 돌리면 해상도가 바뀝니다.

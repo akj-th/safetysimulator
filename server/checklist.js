@@ -133,9 +133,3 @@ export const SCORING_GUIDE = `
 67~100 (위험): 대응 시설이 대부분 없고, 위험 요소가 여러 가지 겹쳐서 확인됨
 `.trim();
 
-/* 항목 번호로 항목을 찾습니다 (서버가 AI 응답을 해석할 때 씁니다) */
-export function findItem(categoryKey, itemId) {
-  const cat = CATEGORIES.find(function (c) { return c.key === categoryKey; });
-  if (!cat) return null;
-  return cat.items.find(function (i) { return i.id === itemId; }) || null;
-}
