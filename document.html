@@ -2036,7 +2036,54 @@ function siteReport() {
 
   const checks = hasAi && !stale && nar.checks && nar.checks.length
     ? `<section class="chapter screen-only"><h3 class="h-section">현장 확인 필요 사항 (AI 초안 — 화면에만)</h3>${nar.checks.map((x) => `<p class="bullet">□ ${esc(x)}</p>`).join('')}</section>` : '';
-  return bar + cardHtml + checks;
+  return bar + cardHtml + siteTotalTable(cards, freshOf, where) + checks;
+}
+
+/* ★ 맞춤형 사업 총괄표 (2026-10-27) — 행안부 「지역 안전진단 결과보고서(안)」(10/26) <표 3-3> 꼴을 카드에서 그대로 모읍니다.
+   사업코드 = 공간단위(P 점 · L 선 · A 면 · S 운영) - 분야(C 범죄 · F 화재 · SU 자살 · T 교통 · LS 생활안전 · I 산재 · IN 감염병, 둘 이상이면 MX) + 번호.
+   단일/복합 = 같은 사업이 몇 개 분야의 카드에 걸렸는가. 위치·수량·예산은 현장 실측·단가 확정 전이라 비워 둡니다.
+   행안부가 양식을 다시 보내면(10/27 예정) 칸 이름·순서를 그 양식에 맞춥니다. */
+const FIELD_CODE = { crime: 'C', fire: 'F', suicide: 'SU', traffic: 'T', life: 'LS', industrial: 'I', infection: 'IN' };
+function siteTotalTable(cards, freshOf, where) {
+  if (!cards.length) return '';
+  const byName = new Map();
+  cards.forEach((c, ci) => c.measures.forEach((m) => {
+    const t = freshOf(c); const hit = t && t.measures ? t.measures.find((x) => x.name === m.name) : null;
+    const e = byName.get(m.name) || { m, fields: new Set(), cards: [], text: '' };
+    e.fields.add(c.fieldKey); e.cards.push(CIRCLED[ci] || String(ci + 1));
+    if (!e.text) e.text = hit ? hit.text : (m.why || m.overview || '');
+    byName.set(m.name, e);
+  }));
+  const seq = {};
+  const rows = [...byName.values()].map((e) => {
+    const physical = e.m.hea === 'E';
+    const unit = String(e.m.unit || '');
+    const pre = !physical ? 'S' : unit.startsWith('선') ? 'L' : unit.startsWith('면') ? 'A' : 'P';
+    const fields = [...e.fields];
+    const mid = fields.length > 1 ? 'MX' : (FIELD_CODE[fields[0]] || 'X');
+    const k = pre + '-' + mid; seq[k] = (seq[k] || 0) + 1;
+    const unitName = !physical ? '운영(SW)' : unit.replace('점', '점(Point)').replace('선', '선(Line)').replace('면', '면(Area)');
+    const kind = fields.length > 1 ? `복합(${fields.map((f) => AuriSafetyIndex.LABEL[f] || f).join('×')})` : `단일(${AuriSafetyIndex.LABEL[fields[0]] || fields[0]})`;
+    const p = AuriPalette.byName(e.m.name);
+    return { code: k + seq[k], pre, unitName, kind, multi: fields.length > 1, cards: e.cards.join('·'), name: e.m.name, kindTag: e.m.kind, text: e.text,
+             cost: p && p.amount && p.amount.won ? auriWon(p.amount.won) + (p.amount.unit ? ' / ' + p.amount.unit : '') : '산출 근거 필요' };
+  });
+  const order = { P: 0, L: 1, A: 2, S: 3 };
+  rows.sort((a, b) => (order[a.pre] - order[b.pre]) || a.code.localeCompare(b.code));
+  const cnt = (pre) => rows.filter((r) => r.pre === pre).length;
+  return `
+  <section class="chapter">
+    <h3 class="h-section">맞춤형 사업 총괄표 <span class="h-sub">행안부 결과보고서 양식 &lt;표 3-3&gt; 꼴</span></h3>
+    <table class="tight">
+      <thead><tr><th style="width:9%">연계 카드</th><th style="width:12%">사업코드<br>/공간단위</th><th style="width:13%">중점분야 구분<br>(단일/복합)</th><th style="width:20%">맞춤형 안전개선사업명</th><th style="width:13%">위치 및 구간<br>(규모·수량)</th><th>핵심 사업 내용 요약</th><th style="width:12%;white-space:nowrap">소요예산</th></tr></thead>
+      <tbody>${rows.map((r) => `<tr><td>카드 ${esc(r.cards)}</td><td><b>${esc(r.code)}</b><br><span class="h-sub">[${esc(r.unitName)}]</span></td><td>${esc(r.kind)}</td>
+        <td>${esc(r.name)}${r.kindTag !== '처방' ? ` <span class="k-tag ref screen-only">${esc(r.kindTag)}</span>` : ''}</td>
+        <td>${esc(where)} 일대<br><span class="h-sub">현장 실측 후 확정</span></td><td>${esc(r.text)}</td><td class="num" style="white-space:nowrap">${esc(r.cost)}</td></tr>`).join('')}</tbody>
+      <tfoot><tr class="sum"><td colspan="3">총 ${rows.length}개 사업 (단일 ${rows.filter((r) => !r.multi).length} · 복합 ${rows.filter((r) => r.multi).length})</td>
+        <td colspan="3">점(P) ${cnt('P')} · 선(L) ${cnt('L')} · 면(A) ${cnt('A')} · 운영(S) ${cnt('S')}</td><td class="num" style="white-space:nowrap">단가 확정 후</td></tr></tfoot>
+    </table>
+    <p class="note-under">* 사업코드는 이 화면에서 자동으로 붙인 것입니다(공간단위-분야+번호). 위치·규모·예산은 현장 실측과 단가 자료가 정해진 뒤 채웁니다.</p>
+  </section>`;
 }
 
 /* ★ 개선 이미지 번호 태그 범례 (2026-10-20 실무회의 — 번호만 이미지 안에, 설명은 밖으로)
