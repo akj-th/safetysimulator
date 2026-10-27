@@ -65,6 +65,7 @@
 | 확정 결과 제시 | 화면·문서에 "후보·개발 중·참고값" 꼬리표를 쓰지 않음. 남긴 것: AI 이미지 면책(상시) · 대응역량 "확인 필요" · 임시 점수 · 연구원 보정 표시 | 10/22 |
 | 로그인 | 렌더는 `AUTH_MODE=account`(승인제). 내 컴퓨터는 `AUTH_MODE=off` | 9/14 · notes/07 |
 | 히트맵 | 1단계 지도에서는 **보류**(9/7). 사전진단서 분야별 지도에는 씀(10/20) | notes/09 |
+| 통계 계산 | 연령 구간 20~49세(**20세 포함**) 유지 · 자살은 구급출동만(자살발생지점 좌표 대기) · 읍면동 = 행정동 · 장소는 강원대 A_type(화재·범죄·자살) | 9/8 · 9/15 · notes/03 |
 | 보류 | 스케치 → AI 입력 (2026-11 2차 조사 즈음 다시 리마인드) | 10/21 |
 
 ## 6. 화면과 흐름
@@ -160,6 +161,9 @@ AI 모델: 진단·재판독·의견 초안 `claude-opus-5`(adaptive thinking) �
 - **저장 칸 목록 `SAVE_KEYS` 는 두 곳**: `server/projects.js` · `assets/projects.js`. 새 `auri_*` 칸을 만들면 둘 다(안 넣으면 프로젝트 저장에서 조용히 빠짐). 지금 14개 — 10/20~27 추가: `auri_after_tags`(번호 태그) · `auri_doc_html`(수정본) · `auri_gen_custom`(직접 입력·`lastImage`) · `auri_narratives`(서술형).
 - **서버 화이트리스트 `ALLOW_DIRS`**(server.js): 앱에 새 폴더·확장자가 필요하면 한 줄. `data/raw/`·`server/` 는 403.
 - **규칙 엔진은 3단계에서 한 번만** — 4·5단계는 `auri_prescriptions` 를 그대로 받습니다. 연구원 보정은 `auri_rx_overrides` 에 따로(덮어쓰지 않음).
+- **처방은 항목 답(`findings`)으로 정해집니다** — 연구원이 판독 근거 글(`observed`)을 고쳐도 처방은 안 바뀝니다. 처방을 바꾸려면 재판독(`/api/revise`).
+- `RX_RULES[분야].fallback` 은 항목 판독이 없을 때(임시 점수·옛 세션)만 쓰는 예비 목록 — 지우지 말 것. 자살은 E 만으로 채우지 않습니다(`RX_REQUIRE_HEA`, 처방 1종인 '주의' 제외).
+- `stats.js PLACE_CHECKS` 는 두 벌(강원대 A_type 장소값 + 발생장 값) — 발생장 열쇠를 지우면 교통·생활안전·산재·감염병의 현장 확인사항이 사라집니다.
 - **3구간 경계 33/66**: 위험도 9단계 · 처방 개수 · 위험지수 · 동별 HEA 색이 같은 경계를 씁니다. 한쪽만 바꾸면 감사 추적이 깨집니다.
 - **지자체 열쇠(slug)·거점 글자(A~J)를 바꾸지 말 것** — DB(`hotspot_edits`·`projects.hotspot_tag`)와 파일 이름이 이것을 씁니다. 거점을 다시 뽑으면(순위가 바뀌면) DB 거점 보정이 다른 거점에 붙습니다.
 - **분야 색 두 벌**: 1단계 지도 점 색 `index.html INCIDENT_CATEGORIES` = 문서 지도 `doc-map.js MAP_COLORS`. 종합도·사전진단서 히트맵은 AURI 7색(`overview-map/risk.mjs AURI_COLORS`).
@@ -169,6 +173,7 @@ AI 모델: 진단·재판독·의견 초안 `claude-opus-5`(adaptive thinking) �
 - **글은 이스케이프**: AI·사람이 쓴 글을 HTML 에 넣을 때 `auriEsc`(document.html 은 `esc` — 따옴표까지).
 - **브라우저 저장 공간 약 260만 자(5MB)** — 이미지는 줄여 담습니다(진단 사진 1800px · 개선 후 1600px · 현장 사진 1400px JPEG).
 - **면책 문구**는 `ui.js AURI_AI_DISCLAIMER` 한 곳. 개선 전/후 이미지 아래에 항상(인쇄 포함).
+- **이미지 모델**: 목록은 `server.js IMAGE_MODELS` 한 곳(화면은 `/api/models` 로 받음, 키 없는 제공사는 안 보임). GPT Image 2 계열에는 `input_fidelity` 를 보내지 않음(오류). OpenAI 는 조직 인증이 있어야 이미지 모델이 열림(403).
 - **법령**은 `server/legal.js` 에서 `verified: true` 인 것만 AI 지시문에. 조례는 지자체별 확인 전까지 인용 제외.
 - 디자인: 색은 메인 `#D83D64` · 대조 `#2793C9` · 무채색만, 카드·박스·그림자 금지, 모서리 0, 글자 크기는 `--fs-*` 토큰만(자세히 notes/08). 로고를 바꾸면 `AURI_BRAND_LOGO` 와 `--logo-h` 를 함께.
 - **종합도**: 정합(refit) 뒤 `check-pois --write` 필수. 생성기는 `_종합도.svg` 만 덮어쓰고 담당자 수정본(`_종합도_최종.svg`)은 그대로. SVG 를 다시 만들면 `export-jpg` · `overlay` 도.
@@ -176,6 +181,7 @@ AI 모델: 진단·재판독·의견 초안 `claude-opus-5`(adaptive thinking) �
 ## 10. 보안 · 개인정보
 
 - `data/raw/`(119 원본: 연령·성별·주소) · `docs/` · `output/` 은 `.gitignore` — **커밋·외부 복사 금지**. 웹 자료는 집계·비식별 결과만.
+- `AUTH_MODE=account` 인데 DB 에 못 붙으면 사이트를 **닫습니다**(503 "설정 필요") — 30초마다 다시 붙어 보고 붙으면 열림. 관리자 계정은 화면에서 끌 수 없고 `ADMIN_ID`·`ADMIN_PW` 환경변수로만(켤 때 비밀번호를 그 값으로 맞춤).
 - 서버가 화면 파일까지 내주고, 로그인 전에는 `login.html` 과 assets 의 css·js·그림만. 비밀번호는 bcrypt 해시, 세션 30분. 가입 신청은 IP당 1시간 5건·대기 200건 상한. 본문은 JSON 만(CSRF).
 - API 키는 `server/.env` 에만(브라우저 노출 금지). 사용량 상한 `DAILY_LIMIT`·`HOURLY_LIMIT_PER_IP`(요청 검증 뒤, AI 호출 전에 셈).
 - ⚠ GitHub Pages 주소는 로그인으로 막히지 않습니다(파일만 내주는 곳). 렌더 무료 DB 는 30일 만료 · 1GB.
