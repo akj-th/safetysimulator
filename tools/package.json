@@ -22,7 +22,8 @@
     "hotspots": "node build-hotspots.mjs",
     "batch-generate": "node batch-generate.mjs",
     "auri-reports": "node build-auri-reports.mjs",
-    "overlay": "node overview-map/svg-to-overlay.mjs"
+    "overlay": "node overview-map/svg-to-overlay.mjs",
+    "space-risk-export": "node export-space-risk.mjs"
   },
   "dependencies": {
     "proj4": "^2.21.0"

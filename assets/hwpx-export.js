@@ -299,7 +299,8 @@
         const p = f.plan.para, tbl = p.xml.slice(f.plan.s, f.plan.e);
         const col0 = [{ style: 'space', text: row.space || '진단 지점(시뮬레이터)' }].concat(row.place ? [{ style: 'body', text: row.place }] : []);
         const col1 = [{ style: 'title', text: '[사진 판독]' }, { style: 'body', text: '- ' + (row.risk || '판독 결과 없음') }];
-        const col2 = [{ style: 'title', text: '[시뮬레이터 처방]' }].concat(...row.measures.map((m) => [{ style: 'measure', text: `${m.hea ? '(' + m.hea + ') ' : ''}${m.text}` }].concat(m.note ? [{ style: 'note', text: '→ ' + m.note }] : [])));
+        /* 근거 줄은 본문 글자 모양으로 — AURI 표의 "→" 줄(굵게·가운데)을 쓰면 긴 근거 문장이 무겁게 보입니다 (2026-10-27) */
+        const col2 = [{ style: 'title', text: '[시뮬레이터 처방]' }].concat(...row.measures.map((m) => [{ style: 'measure', text: `${m.hea ? '(' + m.hea + ') ' : ''}${m.text}` }].concat(m.note ? [{ style: 'body', text: '  · ' + m.note }] : [])));
         const cols = [col0, col1, col2];
         const tblCols = +attr(tbl.slice(0, tbl.indexOf('>')), 'colCnt');
         const fitted = tblCols === 3 ? cols : tblCols === 2 ? [col0.concat(col1), col2] : null;
