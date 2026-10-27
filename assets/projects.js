@@ -178,6 +178,27 @@ const AuriProjects = (function () {
   /* ── 열기 ────────────────────────────────────────────────────────────
      지금 탭의 진단을 비우고 프로젝트 내용으로 채운 뒤, 진행한 만큼의 화면으로 갑니다.
      판독 결과가 있으면 리포트(3단계), 위치만 있으면 진단(2단계).                 */
+  /* ★ 다른 사람이 저장한 프로젝트도 열립니다(관리자 열람 · 공유 거점). 화면에 그림으로 들어갈 칸은 형식을 한 번 확인하고,
+     사진 id(onclick 안에 들어감)는 글자·숫자·_- 만 남깁니다 (2026-10-27 점검). 수정본 HTML 은 document.html 이 걸러 넣습니다 */
+  const IMG_RX = /^data:image\/(?:png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=]+$/;
+  function cleanValue(k, v) {
+    try {
+      if (k === 'auri_after_image') return IMG_RX.test(v) ? v : null;
+      if (k === 'auri_input_image') {
+        const o = JSON.parse(v);
+        if (o && !IMG_RX.test(String(o.dataUrl || ''))) o.dataUrl = '';
+        return JSON.stringify(o);
+      }
+      if (k === 'auri_site_photos') {
+        const a = JSON.parse(v);
+        return JSON.stringify((Array.isArray(a) ? a : [])
+          .filter(function (p) { return p && IMG_RX.test(String(p.dataUrl || '')); })
+          .map(function (p) { return Object.assign({}, p, { id: String(p.id || '').replace(/[^\w-]/g, '') }); }));
+      }
+    } catch (e) { return null; }   // 읽을 수 없는 칸은 비워 둡니다
+    return v;
+  }
+
   async function open(id) {
     const meta = current();
     const hasWork = !!sessionStorage.getItem('auri_picked_location');
@@ -194,7 +215,8 @@ const AuriProjects = (function () {
     const picked = parse(project.data.auri_picked_location || 'null') || {};
     try {
       for (const k of SAVE_KEYS) {
-        if (project.data[k]) sessionStorage.setItem(k, project.data[k]);
+        const v = project.data[k] ? cleanValue(k, project.data[k]) : null;
+        if (v) sessionStorage.setItem(k, v);
       }
       /* "지금 열린 프로젝트" 표시도 같은 보호 안에서 씁니다 — 여기서 공간이 차도 반쯤 남지 않게 */
       sessionStorage.setItem(META_KEY, JSON.stringify({

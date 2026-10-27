@@ -94,7 +94,7 @@ const AuriDocEdit = (function () {
   function basisHtml(basis) {
     if (!basis || !basis.length) return '';
     return '<b>판단 근거</b>' + basis.map(function (b) {
-      return `<span class="bi k-${b.kind === '확인필요' ? 'warn' : 'ok'}">${b.kind}</span> ${b.detail}`;
+      return `<span class="bi k-${b.kind === '확인필요' ? 'warn' : 'ok'}">${auriEsc(b.kind)}</span> ${auriEsc(b.detail)}`;   // AI 가 쓴 글 — HTML 로 해석되지 않게 (2026-10-27)
     }).map(function (s) { return `<div>${s}</div>`; }).join('');
   }
 

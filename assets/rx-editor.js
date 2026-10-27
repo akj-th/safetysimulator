@@ -77,23 +77,23 @@ const AuriRx = {
            없으면 "이 사업이 왜 효과가 있는가"를 화면에서 알 수 없습니다. */
       const ev = auriRxEvidence(it);
       const evidence = ev && ev.effect
-        ? `<div class="rx-evidence">${ev.effect}` +
-          (ev.sourceShort ? ` <span class="src">출처: ${ev.sourceShort}</span>` : '') + '</div>'
+        ? `<div class="rx-evidence">${auriEsc(ev.effect)}` +
+          (ev.sourceShort ? ` <span class="src">출처: ${auriEsc(ev.sourceShort)}</span>` : '') + '</div>'
         /* 비어 있으면 비어 있다고 적습니다 — 조용히 빠지면 있는 줄 압니다 */
         : (it.custom ? '' : '<div class="rx-evidence none">성과증명 자료 없음 — 팔레트에 효과크기가 비어 있습니다</div>');
 
       /* 연구원이 직접 쓴 설명은 팔레트 문장과 별개로 남깁니다 */
       const userNote = (it.custom || it.edited) && it.note && (!program || it.note !== program.effect)
-        ? `<div class="rx-note">${it.note}</div>` : '';
+        ? `<div class="rx-note">${auriEsc(it.note)}</div>` : '';
 
       return `
         <div class="rx-item">
           <span class="rx-priority ${it.priority.cls}">${it.priority.label}</span>
           <div class="rx-body">
-            <div class="rx-name">${heaTag}<span class="nm">${it.name}</span><span class="rx-cat">${it.category}</span>${mark}</div>
+            <div class="rx-name">${heaTag}<span class="nm">${auriEsc(it.name)}</span><span class="rx-cat">${auriEsc(it.category)}</span>${mark}</div>
             ${userNote}
             ${evidence}
-            <div class="rx-basis">${auriRxBasis(it)}</div>
+            <div class="rx-basis">${auriEsc(auriRxBasis(it))}</div>
           </div>
         </div>`;
     }).join('')
@@ -116,7 +116,7 @@ const AuriRx = {
       /* 목록에 없는 이름(규칙표에서 온 것이거나 이전에 직접 넣은 것)이면
          "직접 입력"이 선택된 상태로 그리고, 아래 입력칸을 열어 둡니다. */
       const isCustomName = !!it.name && !auriCatalogHas(it.name);
-      const safeName = (it.name || '').replace(/"/g, '&quot;');
+      const safeName = auriEsc(it.name || '');   // 직접 입력한 이름·AI 글은 HTML 로 해석되지 않게 (2026-10-27 점검)
       return `
         <div class="rx-item">
           <div class="rx-edit">
@@ -132,9 +132,9 @@ const AuriRx = {
             </div>
             <input type="text" id="rx-custom-${i}" placeholder="사업 이름 직접 입력"
                    value="${isCustomName ? safeName : ''}" style="display:${isCustomName ? 'block' : 'none'}">
-            <textarea id="rx-note-${i}" placeholder="이 사업이 왜 필요한지 (비우면 팔레트의 효과크기가 쓰입니다)">${it.note || ''}</textarea>
+            <textarea id="rx-note-${i}" placeholder="이 사업이 왜 필요한지 (비우면 팔레트의 효과크기가 쓰입니다)">${auriEsc(it.note || '')}</textarea>
             <div class="rx-basis" id="rx-meta-${i}"></div>
-            <div class="rx-basis">${it.custom ? '연구원 직접 추가' : `${it.category} · ${it.id}`}</div>
+            <div class="rx-basis">${it.custom ? '연구원 직접 추가' : `${auriEsc(it.category)} · ${auriEsc(it.id)}`}</div>
           </div>
         </div>`;
     }).join('');

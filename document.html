@@ -366,7 +366,7 @@ table.guide .bullet{margin:0 0 3px; padding-left:16px; text-align:left} table.gu
 
 const YEARS = ['2023', '2024', '2025'];
 const esc = (s) => String(s == null ? '' : s)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');   // 따옴표까지 — value="…"·alt="…" 안에도 쓰입니다 (2026-10-27 점검)
 const nf = (n) => (n == null ? '—' : Number(n).toLocaleString());
 
 let _data = null, _national = null, _focus = [], _stats = null;
@@ -603,8 +603,8 @@ function auriCh2() {
       </table>
       ${(beforeUrl || after || mineP.length) ? `
       <div class="ba-stack">
-        ${mineP[0] ? `<figure><img src="${mineP[0].dataUrl}" alt="현장 사진"><figcaption>현장 사진 — ${esc(AuriSitePhoto.caption(mineP[0]))}</figcaption></figure>` : (beforeUrl ? `<figure><img src="${beforeUrl}" alt="개선 전"><figcaption>개선 전 (진단 지점)</figcaption></figure>` : '')}
-        ${after ? `<figure><img src="${after}" alt="개선 후"><figcaption>[그림 ${figEx}] ${af && af.figures[1] ? esc(af.figures[1]) : '맞춤형 사업 예시'} <span class="h-sub">시뮬레이터 생성</span></figcaption></figure>${afterTagLegend()}<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>` : ''}
+        ${mineP[0] ? `<figure><img src="${esc(mineP[0].dataUrl)}" alt="현장 사진"><figcaption>현장 사진 — ${esc(AuriSitePhoto.caption(mineP[0]))}</figcaption></figure>` : (beforeUrl ? `<figure><img src="${esc(beforeUrl)}" alt="개선 전"><figcaption>개선 전 (진단 지점)</figcaption></figure>` : '')}
+        ${after ? `<figure><img src="${esc(after)}" alt="개선 후"><figcaption>[그림 ${figEx}] ${af && af.figures[1] ? esc(af.figures[1]) : '맞춤형 사업 예시'} <span class="h-sub">시뮬레이터 생성</span></figcaption></figure>${afterTagLegend()}<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>` : ''}
       </div>` : ''}
       ${af && af.checks.length ? `<p class="bullet" style="margin-top:12px"><b>○ 사전 체크 및 현장 확인사항</b></p><ul class="auri-checks">${af.checks.map((t) => `<li>▸ ${esc(t)}</li>`).join('')}</ul>` : ''}`;
   }).join('');
@@ -894,14 +894,14 @@ function chapter4() {
         </figure>
         <figure>
           ${photo
-            ? `<img src="${photo.dataUrl}" alt="현장 사진">`
+            ? `<img src="${esc(photo.dataUrl)}" alt="현장 사진">`
             : '<div class="slot">현장 사진<br><span style="font-size:var(--fs-cap)">아래 <b>현장 사진</b>에서 올리고 이 절을 고르면 여기에 실립니다</span></div>'}
           <figcaption>${photo ? esc(AuriSitePhoto.caption(photo)) + (photo.note ? ' — ' + esc(photo.note) : '') : '현장확인사항'}</figcaption>
         </figure>
       </div>
 
       ${extra.length ? `<div class="photo-strip">${extra.map(function (p) {
-        return `<figure><img src="${p.dataUrl}" alt="현장 사진">
+        return `<figure><img src="${esc(p.dataUrl)}" alt="현장 사진">
           <figcaption>${esc(AuriSitePhoto.caption(p))}${p.note ? ' — ' + esc(p.note) : ''}</figcaption></figure>`;
       }).join('')}</div>` : ''}
 
@@ -1071,7 +1071,7 @@ function hotspotCards() {
     const li = (p) => `<li class="hea-${p.hea}" style="padding:2px 4px"><span class="hea-tag k-${p.hea}">${AuriPalette.heaLabel(p.hea, true)}</span> ${esc(p.name)} <span class="h-sub">${esc(label(p.field))}</span>${AuriPalette.effectLabel(p) ? `<br><span style="font-size:var(--fs-cap);color:var(--g2)">${esc(AuriPalette.effectLabel(p))}</span>` : ''}</li>`;
     const shared = _hotShared[tag];
     const isCurrent = _picked && _picked.hotspot && _picked.hotspot.tag === tag && _picked.hotspot.region === _data.region;
-    const before = isCurrent ? beforeNow : (shared && shared.data && shared.data.auri_input_image ? (JSON.parse(shared.data.auri_input_image).dataUrl || null) : null);
+    const before = isCurrent ? beforeNow : (shared && shared.data && shared.data.auri_input_image ? (function () { try { return JSON.parse(shared.data.auri_input_image).dataUrl || null; } catch (e) { return null; } })() : null);
     const after = isCurrent ? sessionStorage.getItem('auri_after_image') : (shared && shared.data ? shared.data.auri_after_image || null : null);
     const srcNote = isCurrent ? '지금 진단' : (shared ? `공유 프로젝트 「${esc(shared.title || '')}」 (${esc(shared.owner_name || '관리자')})` : '');
     return `
@@ -1092,8 +1092,8 @@ function hotspotCards() {
         </div>
         <div>
           <div class="ba-stack" style="margin:8px 0 0">
-            <figure>${before ? `<img src="${before}" alt="개선 전">` : '<div class="slot">개선 전 사진 없음</div>'}<figcaption>개선 전${srcNote ? ' · ' + srcNote : ''}</figcaption></figure>
-            <figure>${after ? `<img src="${after}" alt="개선 후">` : '<div class="slot">개선 후 이미지 없음</div>'}<figcaption>개선 후 (사업 반영 예시)</figcaption></figure>
+            <figure>${before ? `<img src="${esc(before)}" alt="개선 전">` : '<div class="slot">개선 전 사진 없음</div>'}<figcaption>개선 전${srcNote ? ' · ' + srcNote : ''}</figcaption></figure>
+            <figure>${after ? `<img src="${esc(after)}" alt="개선 후">` : '<div class="slot">개선 후 이미지 없음</div>'}<figcaption>개선 후 (사업 반영 예시)</figcaption></figure>
             ${after ? `<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>` : ''}
           </div>
         </div>
@@ -1168,12 +1168,12 @@ function fieldReport() {
     <h2 class="h-chapter">개선 전 · 개선 후</h2>
     <div class="ba-stack">
       <figure>
-        ${beforeUrl ? `<img src="${beforeUrl}" alt="개선 전">`
+        ${beforeUrl ? `<img src="${esc(beforeUrl)}" alt="개선 전">`
           : '<div class="slot">개선 전 이미지 없음 — 2단계에서 사진을 캡처·업로드하십시오</div>'}
         <figcaption>개선 전 (현황)</figcaption>
       </figure>
       <figure>
-        ${after ? `<img src="${after}" alt="개선 후">`
+        ${after ? `<img src="${esc(after)}" alt="개선 후">`
           : '<div class="slot">개선 후 이미지 없음 — 4단계에서 생성하십시오</div>'}
         <figcaption>개선 후 (사업 반영)</figcaption>
       </figure>
@@ -1193,7 +1193,7 @@ function fieldReport() {
       <div class="field-pair">
         ${photos.map((p) => `
           <figure>
-            <img src="${p.dataUrl}" alt="현장 사진">
+            <img src="${esc(p.dataUrl)}" alt="현장 사진">
             <figcaption>${esc(AuriSitePhoto.caption(p))}${p.note ? '<br>' + esc(p.note) : ''}</figcaption>
           </figure>`).join('')}
       </div>` : ''}
@@ -1357,21 +1357,21 @@ function photoManager() {
           const noGps = p.lat === null || p.lng === null;
           return '' +
             '<div class="photo-card">' +
-              '<img src="' + p.dataUrl + '" alt="' + esc(p.name) + '">' +
+              '<img src="' + esc(p.dataUrl) + '" alt="' + esc(p.name) + '">' +
               '<div class="cap' + (noGps ? ' no-gps' : '') + '">' +
                 (noGps ? '위치 정보 없음 — 지도에서 지정해 주세요'
                        : esc(AuriSitePhoto.caption(p))) + '</div>' +
-              '<select onchange="onPhotoField(\'' + p.id + '\', this.value)">' +
+              '<select onchange="onPhotoField(\'' + pidOf(p.id) + '\', this.value)">' +
                 '<option value="">— 실을 곳 선택 —</option>' +
                 opts.replace('value="' + p.field + '"', 'value="' + p.field + '" selected') +
               '</select>' +
               (noGps
                 ? '<div class="row"><button type="button" class="btn ghost sm" style="flex:1"' +
-                  ' onclick="openMapPick(\'' + p.id + '\')">지도에서 지정</button></div>'
+                  ' onclick="openMapPick(\'' + pidOf(p.id) + '\')">지도에서 지정</button></div>'
                 : '') +
               '<input type="text" placeholder="설명 (선택)" value="' + esc(p.note || '') + '"' +
-                ' onchange="AuriSitePhoto.setNote(\'' + p.id + '\', this.value)">' +
-              '<button type="button" class="btn-text danger rm" onclick="onPhotoRemove(\'' + p.id + '\')">삭제</button>' +
+                ' onchange="AuriSitePhoto.setNote(\'' + pidOf(p.id) + '\', this.value)">' +
+              '<button type="button" class="btn-text danger rm" onclick="onPhotoRemove(\'' + pidOf(p.id) + '\')">삭제</button>' +
             '</div>';
         }).join('') + '</div>'
       : '<p style="font-size:var(--fs-cap); color:var(--g2); margin-top:12px">아직 올린 사진이 없습니다.</p>') +
@@ -1464,13 +1464,35 @@ function saveDocHtml(all) { if (Object.keys(all).length) sessionStorage.setItem(
 function docEl(which) { return document.getElementById('doc' + which.toUpperCase()); }
 const DOC_TABS = ['b', 'a', 'c', 'd'];   // 화면 순서 — 안쪽 이름(a=사전진단서 b=현장용 c=적용사례 d=2차 현장보고서)
 function currentTab() { return DOC_TABS.find((k) => !docEl(k).hidden) || 'b'; }
+/* ★ 수정본(auri_doc_html)은 다른 사람이 저장한 프로젝트에서 올 수 있어 그대로 넣지 않습니다 (2026-10-27 점검).
+   관리자가 남의 프로젝트를 열람하거나 공유 거점 프로젝트를 열 때 그 안의 스크립트가 실행되면 안 되기 때문입니다.
+   script·iframe 등은 빼고, on… 속성은 이 화면이 원래 넣는 함수 호출 꼴(아래 목록)만 남깁니다. */
+const SAFE_ARG = String.raw`(?:'[\w.\-]*'|this\.value|this\.checked|this|event|\d+)`;
+const SAFE_HANDLER = new RegExp(String.raw`^\s*(?:openMapPick|onPhotoRemove|generateNarrative|onPhotos|onPhotoField|narToggleField|showDoc|exportHwpx|AuriSitePhoto\.setNote|AuriDocEdit\.(?:onInline|onEdit|ask))\(\s*(?:${SAFE_ARG}\s*(?:,\s*${SAFE_ARG}\s*)*)?\)\s*;?\s*$`);
+function cleanSavedHtml(html) {
+  const t = document.createElement('template');   // template 안은 실행되지 않습니다(스크립트·이미지 로드 없음)
+  t.innerHTML = String(html || '');
+  t.content.querySelectorAll('script,iframe,frame,object,embed,link,meta,base,form,style').forEach((n) => n.remove());
+  t.content.querySelectorAll('*').forEach((el) => {
+    [...el.attributes].forEach((a) => {
+      const name = a.name.toLowerCase(), v = String(a.value || '');
+      const bad = name.startsWith('on') ? !SAFE_HANDLER.test(v)
+        : name === 'srcdoc' || (/^(src|href|xlink:href|action|formaction|background|poster)$/.test(name) && /^\s*(javascript|vbscript|data:(?!image\/))/i.test(v));
+      if (bad) el.removeAttribute(a.name);
+    });
+  });
+  return t.innerHTML;
+}
+/* 사진 id 는 onclick="…('id')" 안에 들어가므로 글자·숫자·_- 만 */
+const pidOf = (id) => String(id == null ? '' : id).replace(/[^\w-]/g, '');
+
 /** 자동 생성한 뒤 호출 — 저장된 수정본이 있으면 그것으로 바꿔치기 */
 function applySavedDoc(which) {
   const el = docEl(which);
   registerImages(el);
   const saved = loadDocHtml()[which];
   if (!saved) return false;
-  el.innerHTML = saved;
+  el.innerHTML = cleanSavedHtml(saved);
   el.querySelectorAll('img[data-imgkey]').forEach((img) => { const v = _imgReg[img.dataset.imgkey]; if (v) img.setAttribute('src', v); });
   return true;
 }
@@ -1688,7 +1710,7 @@ function moisReport() {
 
     <h3 class="h-section">1. 현황 및 공간적 취약요인 상세</h3>
     <div class="mois-two">
-      <figure>${beforeUrl ? `<img src="${beforeUrl}" alt="사진 1">` : '<div class="slot">사진 1 — 현장 사진을 2단계에서 업로드하십시오</div>'}<figcaption>사진 1 — ${esc(_picked.addr || '')}</figcaption></figure>
+      <figure>${beforeUrl ? `<img src="${esc(beforeUrl)}" alt="사진 1">` : '<div class="slot">사진 1 — 현장 사진을 2단계에서 업로드하십시오</div>'}<figcaption>사진 1 — ${esc(_picked.addr || '')}</figcaption></figure>
       <div>${problemHtml}${AuriDocEdit.render('mois-status', '(현황 보완)', '사진에서 보이지 않는 현황·취약요인을 적습니다.', ctx)}</div>
     </div>
 
@@ -1712,7 +1734,7 @@ function moisReport() {
 
     <h3 class="h-section">5. 사업 적용 예시(안)</h3>
     <div class="ba-stack">
-      <figure>${after ? `<img src="${after}" alt="사진 2 (After)">` : '<div class="slot">사진 2 (After) — 4단계에서 생성하십시오</div>'}<figcaption>사진 2 (After) — 사업 반영 예시</figcaption></figure>
+      <figure>${after ? `<img src="${esc(after)}" alt="사진 2 (After)">` : '<div class="slot">사진 2 (After) — 4단계에서 생성하십시오</div>'}<figcaption>사진 2 (After) — 사업 반영 예시</figcaption></figure>
       ${afterTagLegend()}
       <div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>
     </div>
@@ -1816,7 +1838,7 @@ function guideCard() {
       <span class="sub">[ ${AuriDocEdit.inline('guide-space', spaceLine || '공간유형', '예: 주거생활형 + 상업·유흥 밀집형 + 도로·보행축형')} ]</span></div>
     <p class="guide-bar">원인·진단 | WHERE·WHY</p>
     <div class="guide-grid">
-      <figure>${beforeUrl ? `<img src="${beforeUrl}" alt="현장 사진">` : '<div class="slot">현장 사진 — 2단계에서 업로드</div>'}<figcaption>현장 사진 — ${esc(_picked.addr || '')}</figcaption></figure>
+      <figure>${beforeUrl ? `<img src="${esc(beforeUrl)}" alt="현장 사진">` : '<div class="slot">현장 사진 — 2단계에서 업로드</div>'}<figcaption>현장 사진 — ${esc(_picked.addr || '')}</figcaption></figure>
       <table class="guide"><tbody>
         <tr><th>공간유형</th><td>${esc(spaceLine || '-')}${groupLine ? ` <span class="h-sub">(${esc(groupLine)})</span>` : ''}</td></tr>
         <tr><th>지역안전지수</th><td>${siLine}</td></tr>
@@ -1827,7 +1849,7 @@ function guideCard() {
     ${spaceTable}
     <p class="guide-bar" style="margin-top:14px">해법·적용 | H/E/A → PALETTE → IMPLEMENT</p>
     <div class="guide-grid">
-      <figure>${after ? `<img src="${after}" alt="개선 후 사진">` : '<div class="slot">개선 후 사진 — 4단계에서 생성</div>'}<figcaption>개선 후 사진 (사업 반영 예시)</figcaption>${afterTagLegend()}<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div></figure>
+      <figure>${after ? `<img src="${esc(after)}" alt="개선 후 사진">` : '<div class="slot">개선 후 사진 — 4단계에서 생성</div>'}<figcaption>개선 후 사진 (사업 반영 예시)</figcaption>${afterTagLegend()}<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div></figure>
       <table class="guide"><tbody>
         <tr><th rowspan="3" class="ax">H<br>E<br>A</th><th class="ax">인적</th><td>${human ? `<p class="bullet">${human.text}</p>` : ''}${AuriDocEdit.render('guide-human', '', '보호대상·이용자 특성을 적습니다.', ctx)}</td></tr>
         <tr><th class="ax">환경</th><td>${envHtml}${AuriDocEdit.render('guide-env', '', '현장에서 실측·확인할 물리 환경 항목을 적습니다.', ctx)}</td></tr>
@@ -2013,7 +2035,7 @@ function siteReport() {
     </tbody></table>
     <h3 class="h-section">1. 현황 및 공간적 취약요인 상세</h3>
     <div class="mois-two">
-      <figure>${beforeUrl ? `<img src="${beforeUrl}" alt="현장 사진">` : '<div class="slot">현장 사진 — 2단계 진단 사진</div>'}<figcaption>${esc(caption)}</figcaption></figure>
+      <figure>${beforeUrl ? `<img src="${esc(beforeUrl)}" alt="현장 사진">` : '<div class="slot">현장 사진 — 2단계 진단 사진</div>'}<figcaption>${esc(caption)}</figcaption></figure>
       <div>${status.map((s) => `<p class="bullet" style="margin-top:0">(${esc(s.head)})</p><p class="sec">${esc(s.text)}</p>`).join('')}</div>
     </div>
     <h3 class="h-section">2. 사업목적</h3>
@@ -2027,7 +2049,7 @@ function siteReport() {
     <p class="bullet">- <span class="h-sub">(사업별 단가 확정 전 — 개소·구간은 현장 실측 후 산정)</span></p>${budgets}
     <h3 class="h-section">5. 사업 적용 예시(안)</h3>
     <div class="ba-stack">
-      <figure>${after ? `<img src="${after}" alt="사진 2 (After)">` : '<div class="slot">사진 2 (After) — 4단계에서 생성</div>'}<figcaption>사진 2 (After)</figcaption></figure>
+      <figure>${after ? `<img src="${esc(after)}" alt="사진 2 (After)">` : '<div class="slot">사진 2 (After) — 4단계에서 생성</div>'}<figcaption>사진 2 (After)</figcaption></figure>
       ${afterTagLegend()}
       <div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>
     </div>
