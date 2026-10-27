@@ -207,7 +207,7 @@ img[hidden]{display:none !important}
 /* 표준사업가이드 적용사례 카드 (2026-10-22) — 검은 띠 제목 + 왼쪽 사진 · 오른쪽 항목표 */
 .guide-title{background:#000; color:#fff; font-weight:700; text-align:center; padding:8px 10px; line-height:1.5}
 .guide-title .sub{display:block; font-weight:400; font-size:var(--fs-sm); color:#ccc}
-.guide-bar{background:#000; color:#fff; font-weight:700; padding:5px 10px; margin:0; font-size:var(--fs-sm); letter-spacing:.02em}
+.guide-bar{background:#000; color:#fff; font-weight:700; padding:5px 10px; margin:0; font-size:var(--fs-sm); letter-spacing:.02em; break-after:avoid; page-break-after:avoid}
 .guide-grid{display:grid; grid-template-columns:34% 1fr; gap:0; border:1px solid var(--g1); border-top:0}
 .guide-grid > figure{margin:0; padding:10px; border-right:1px solid var(--g1)} .guide-grid img{width:100%; display:block; border:1px solid var(--g1)}
 .guide-grid figcaption{font-size:var(--fs-cap); color:var(--g2); margin-top:4px; text-align:center}
@@ -1853,7 +1853,7 @@ function guideCard() {
   const spaceTable = spaceRows ? `
     <p class="guide-bar" style="margin-top:14px">공간유형별 위험요인 | SPACE TYPE → RISK</p>
     <table class="guide space-split"><thead><tr><th style="width:17%">공간유형</th><th>정의 · 위험요인</th><th style="width:30%">맞춤형 사업</th></tr></thead><tbody>${spaceRows}</tbody></table>
-    <p class="note-under screen-only">공간유형 정의·유형 대표 위험요인은 AKJ 임시 정리본입니다(AURI 공간유형 분류체계·정의 수령 시 교체). 사진의 공간유형은 진단 때 AI 가 13종 중에서 고른 것입니다${space && space.reason ? ` — ${esc(space.reason)}` : ''}.</p>` : '';
+    <p class="note-under screen-only">공간유형 정의·유형 대표 위험요인은 AKJ 임시 정리본입니다(AURI 공간유형 분류체계·정의 수령 시 교체). ${space && space.source !== 'ai' ? `이 진단에는 사진의 공간유형 판독이 없어(공간유형 판독 이전 진단) <b>${esc(space.reason)}</b>을 대신 썼습니다 — 2단계에서 다시 판독하면 사진 기준으로 바뀝니다.` : `사진의 공간유형은 진단 때 AI 가 13종 중에서 고른 것입니다${space && space.reason ? ` — ${esc(space.reason)}` : ''}.`}</p>` : '';
 
   return `
   <section class="chapter guide">
@@ -1917,12 +1917,12 @@ function stripTags(s) { return String(s || '').replace(/<[^>]+>/g, ''); }
 
 /* 사진의 공간유형 — 진단 때 AI 가 13종 중에서 고른 것. 없으면 AURI 보고서 그 분야 첫 공간유형 → 처방 사업의 표준 팔레트 공간유형 */
 function photoSpace() {
-  try { const im = JSON.parse(sessionStorage.getItem('auri_input_image') || 'null'); if (im && im.space && im.space.primary) return im.space; } catch (e) { /* 없음 */ }
+  try { const im = JSON.parse(sessionStorage.getItem('auri_input_image') || 'null'); if (im && im.space && im.space.primary) return Object.assign({ source: 'ai' }, im.space); } catch (e) { /* 없음 */ }
   const pf = _focus[0] && _auri ? _auri.fields.find((x) => x.key === _focus[0].key) : null;
   const fromAuri = pf && pf.groups && pf.groups[0] ? pf.groups[0].spaceType : '';
-  if (fromAuri) return { primary: fromAuri, secondary: '', reason: 'AURI 사전분석 보고서 2장의 공간유형' };
+  if (fromAuri) return { primary: fromAuri, secondary: '', reason: 'AURI 사전분석 보고서 2장의 공간유형', source: 'auri' };
   const e = _items.find((it) => AuriPalette.std(it.name));
-  return e ? { primary: AuriPalette.std(e.name).spaceType, secondary: '', reason: '처방 사업의 표준 팔레트 공간유형' } : null;
+  return e ? { primary: AuriPalette.std(e.name).spaceType, secondary: '', reason: '처방 사업의 표준 팔레트 공간유형', source: 'palette' } : null;
 }
 
 /* 카드에 넣을 분야 — 문제 항목이 있는 분야 중, 고른 것(auri_narratives.fields). 고른 적이 없으면 중점 분야 + 위험 판정 분야 */
@@ -1976,7 +1976,7 @@ function siteCards() {
   });
 }
 /* 카드 한 장의 서명 — 위험요인 + 사업 후보 + 판독 요약. 바뀌면 그 카드의 AI 문장은 '다시 만들기' 대상 */
-function cardSig(c) { return c.rf + ':' + c.measures.map((m) => m.name).join('|') + ':' + (c.summary || '').length; }
+function cardSig(c) { return c.rf + ':' + c.measures.map((m) => m.name).join('|') + ':' + imgKey((c.summary || '') + '|' + c.findings.map((f) => f.id + '=' + (f.note || '')).join('|') + '|' + (c.space || '')); }
 
 async function generateNarrative() {
   if (_narBusy) return;
@@ -2041,7 +2041,8 @@ function siteReport() {
       <span class="k-tag">처방</span> 규칙 엔진이 고른 사업 · <span class="k-tag ref">연계표</span>·<span class="k-tag ref">연계 검토</span> 처방 목록 밖, 검토용 후보</p>
   </div>`;
   if (!cards.length) {
-    return `<section class="chapter">${bar}<p class="bullet">사진 판독에서 문제로 확인된 항목이 없어 위험요인 카드를 만들지 않았습니다. 2단계에서 판독 결과를 확인해 주세요.</p></section>`;
+    const why = narCandidates().length && !narFields().length ? '카드에 넣을 분야를 하나도 고르지 않았습니다. 위 "카드에 넣을 분야"에서 골라 주세요.' : '사진 판독에서 문제로 확인된 항목이 없어 위험요인 카드를 만들지 않았습니다. 2단계에서 판독 결과를 확인해 주세요.';
+    return `<section class="chapter">${bar}<p class="bullet">${why}</p></section>`;
   }
 
   const combo = hasAi && nar.combo && nar.comboFields === fieldsNow ? nar.combo : null;   // 분야 선택이 바뀌면 복합 사업은 연계표 문장으로
@@ -2080,7 +2081,7 @@ function siteReport() {
       <div>${status.map((s) => `<p class="bullet" style="margin-top:0">(${esc(s.head)})</p><p class="sec">${esc(s.text)}</p>`).join('')}</div>
     </div>
     <h3 class="h-section">2. 사업목적</h3>
-    <p class="bullet">${t && t.purpose ? esc(t.purpose) : '<span class="nar-empty screen-only">AI 초안을 만들거나 수정 모드로 적습니다.</span>'}</p>
+    ${t && t.purpose ? `<p class="bullet">${esc(t.purpose)}</p>` : '<p class="bullet screen-only"><span class="nar-empty">AI 초안을 만들거나 수정 모드로 적습니다.</span></p>'}
     <h3 class="h-section">3. 개선 및 맞춤형 사업 적용 방안</h3>
     <p class="bullet" style="font-weight:700;padding-left:0">○ (필수 개별사업)</p>
     ${c.measures.map((m) => `<p class="sec"><b>(${esc(m.hea || '-')})</b> ${esc(m.name)}${kindTag(m)}${m.unit ? ` <span class="h-sub">[${esc(m.unit)}]</span>` : ''}: ${esc(mText(m))}</p>`).join('') || '<p class="sec">-</p>'}
@@ -2137,13 +2138,13 @@ function siteTotalTable(cards, freshOf, where) {
   return `
   <section class="chapter">
     <h3 class="h-section">맞춤형 사업 총괄표 <span class="h-sub">행안부 결과보고서 양식 &lt;표 3-3&gt; 꼴</span></h3>
-    <table class="tight">
-      <thead><tr><th style="width:9%">연계 카드</th><th style="width:12%">사업코드<br>/공간단위</th><th style="width:13%">중점분야 구분<br>(단일/복합)</th><th style="width:20%">맞춤형 안전개선사업명</th><th style="width:13%">위치 및 구간<br>(규모·수량)</th><th>핵심 사업 내용 요약</th><th style="width:12%;white-space:nowrap">소요예산</th></tr></thead>
+    <table class="tight" style="table-layout:fixed">
+      <thead><tr><th style="width:7%">연계 카드</th><th style="width:10%">사업코드<br>/공간단위</th><th style="width:10%">중점분야 구분<br>(단일/복합)</th><th style="width:18%">맞춤형 안전개선사업명</th><th style="width:12%">위치 및 구간<br>(규모·수량)</th><th>핵심 사업 내용 요약</th><th style="width:11%">소요예산</th></tr></thead>
       <tbody>${rows.map((r) => `<tr><td>카드 ${esc(r.cards)}</td><td><b>${esc(r.code)}</b><br><span class="h-sub">[${esc(r.unitName)}]</span></td><td>${esc(r.kind)}</td>
         <td>${esc(r.name)}${r.kindTag !== '처방' ? ` <span class="k-tag ref screen-only">${esc(r.kindTag)}</span>` : ''}</td>
-        <td>${esc(where)} 일대<br><span class="h-sub">현장 실측 후 확정</span></td><td>${esc(r.text)}</td><td class="num" style="white-space:nowrap">${esc(r.cost)}</td></tr>`).join('')}</tbody>
-      <tfoot><tr class="sum"><td colspan="3">총 ${rows.length}개 사업 (단일 ${rows.filter((r) => !r.multi).length} · 복합 ${rows.filter((r) => r.multi).length})</td>
-        <td colspan="3">점(P) ${cnt('P')} · 선(L) ${cnt('L')} · 면(A) ${cnt('A')} · 운영(S) ${cnt('S')}</td><td class="num" style="white-space:nowrap">단가 확정 후</td></tr></tfoot>
+        <td>${esc(where)} 일대<br><span class="h-sub">현장 실측 후 확정</span></td><td>${esc(r.text)}</td><td class="num" style="word-break:keep-all">${esc(r.cost)}</td></tr>`).join('')}
+      <tr class="sum"><td colspan="3">총 ${rows.length}개 사업 (단일 ${rows.filter((r) => !r.multi).length} · 복합 ${rows.filter((r) => r.multi).length})</td>
+        <td colspan="3">점(P) ${cnt('P')} · 선(L) ${cnt('L')} · 면(A) ${cnt('A')} · 운영(S) ${cnt('S')}</td><td class="num" style="word-break:keep-all">단가 확정 후</td></tr></tbody>
     </table>
     <p class="note-under">* 사업코드는 이 화면에서 자동으로 붙인 것입니다(공간단위-분야+번호). 위치·규모·예산은 현장 실측과 단가 자료가 정해진 뒤 채웁니다.</p>
   </section>`;
