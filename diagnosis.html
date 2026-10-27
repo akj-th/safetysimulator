@@ -38,7 +38,13 @@
   .result-row .badge{width:48px; flex:none}
   .result-why{margin-top:7px; padding-left:112px; font-size:var(--fs-sm); color:var(--g3); line-height:var(--lh-body)}
   .result-why .dim{color:var(--g2)}
-  @media(max-width:640px){ .result-why{padding-left:0} }
+  /* 판독 요약 한 문장 (2026-10-27) — 근거 목록보다 위에, 본문 색으로 */
+  .result-sum{margin-top:7px; padding-left:112px; font-size:var(--fs-sm); color:var(--k); line-height:var(--lh-body)}
+  @media(max-width:640px){ .result-why, .result-sum{padding-left:0} }
+  .space-line{font-size:var(--fs-sm); color:var(--g3); padding:2px 0 12px; border-bottom:1px solid var(--g1); margin-bottom:2px}
+  .space-line b{color:var(--k); margin-right:6px}
+  .space-line .dim{color:var(--g2)}
+  .edit-note .lab + textarea + .lab{margin-top:8px}
 
   .loading{padding:44px 0; text-align:center; font-size:var(--fs-body); color:var(--g3)}
 
@@ -137,6 +143,8 @@
       <button class="btn-text" id="cancelBtn" style="display:none" onclick="cancelEdit()">취소</button>
       <button class="btn-text" id="saveBtn" style="display:none" onclick="saveEdit()">저장</button>
     </div>
+    <!-- 사진의 공간유형 (AURI 표준 공간분류 13종 중, 2026-10-27) — 적용사례 카드·서술형 사업의 [공간유형] 자리 -->
+    <div class="space-line" id="spaceLine" hidden></div>
     <div class="result-list" id="resultList">
       <div class="empty">이미지를 확정하고 <b>AI 진단 실행</b>을 누르면 분야별 결과가 표시됩니다.</div>
     </div>
@@ -281,6 +289,7 @@ async function setInputImage(rawDataUrl, source) {
   let dataUrl = rawDataUrl;
   try { dataUrl = await shrinkForStorage(rawDataUrl, 1800, 0.88); } catch (e) { /* 줄이기 실패하면 원본 그대로 시도 */ }
   inputImage = { dataUrl: dataUrl, source: source, pov: _panoPov };
+  showSpace(null);   // 새 사진 — 공간유형은 진단 뒤에 다시 정해집니다
   try {
     sessionStorage.setItem('auri_input_image', JSON.stringify(inputImage));
   } catch (e) {
@@ -296,6 +305,7 @@ async function setInputImage(rawDataUrl, source) {
 
 function clearInputImage() {
   inputImage = null;
+  showSpace(null);
   sessionStorage.removeItem('auri_input_image');
   document.getElementById('shotPanel').style.display = 'none';
   document.getElementById('uploadInput').value = '';
@@ -327,8 +337,10 @@ function renderResults(results) {
 
   document.getElementById('resultList').innerHTML = results.map(function (r) {
     let why = '';
+    /* 판독 요약 — 위치 + 현황 + 위험요인 한 문장 (2026-10-27, AURI 요청 3). 없으면(예전 결과) 근거 목록만 */
+    if (r.summary) why += `<div class="result-sum">${auriEsc(r.summary)}</div>`;
     if (r.observed && r.observed.length) {
-      why = `<div class="result-why">${r.observed.join(' · ')}` +
+      why += `<div class="result-why">${r.observed.map(auriEsc).join(' · ')}` +
             (r.confidence === 'low' ? ' <span class="dim">(확인 가능한 항목이 적어 신뢰도 낮음)</span>' : '') +
             `</div>`;
     }
@@ -381,8 +393,10 @@ function startEdit() {
           <span class="badge" id="badge-${r.key}">${r.level.label}</span>
         </div>
         <div class="edit-note">
+          <div class="lab">판독 요약 — 위치 + 현황 + 위험요인 한 문장</div>
+          <textarea id="sum-${r.key}" rows="2" placeholder="예: 시장4길 공설시장 주차장 출입부 일대에 방범 CCTV 미설치로 인한 감시 사각지대 발생 우려">${auriEsc(r.summary || '')}</textarea>
           <div class="lab">판독 근거 — 한 줄에 하나씩</div>
-          <textarea id="obs-${r.key}" placeholder="예: 가로등 없음">${obs}</textarea>
+          <textarea id="obs-${r.key}" placeholder="예: 가로등 없음">${auriEsc(obs)}</textarea>
         </div>
       </div>`;
   }).join('');
@@ -405,15 +419,18 @@ function saveEdit() {
     const step = Number(document.querySelector(`#row-${r.key} input[type=range]`).value);
     const text = document.getElementById('obs-' + r.key).value;
     const observed = text.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+    const summary = document.getElementById('sum-' + r.key).value.replace(/\s+/g, ' ').trim();
 
     const changed = step !== r.level.step ||
-                    observed.join('\n') !== (r.observed || []).join('\n');
+                    observed.join('\n') !== (r.observed || []).join('\n') ||
+                    summary !== (r.summary || '');
     const score = step === r.level.step ? r.score : auriStepToScore(step);
 
     return Object.assign({}, r, {
       score: score,
       level: auriLevel(score),
       observed: observed,
+      summary: summary,
       edited: r.edited || changed,
     });
   });
@@ -466,12 +483,30 @@ function toResults(data) {
       level: auriLevel(c.score),
       findings: c.findings,        // 항목별 판독 — 처방이 이 값으로 시설물을 고릅니다
       observed: c.observed,
+      summary: c.summary || '',    // 위치 + 현황 + 위험요인 한 문장 (2026-10-27)
       notVisible: c.notVisible,
       confidence: c.confidence,
       focus: focusKeys.indexOf(cat.key) !== -1,
     };
   });
+  /* 사진의 공간유형(13종 중) — 사진의 성질이라 입력 이미지에 붙여 둡니다(프로젝트 저장에 함께 실림).
+     적용사례 카드·서술형 사업의 [공간유형] 자리에 씁니다. 처방에는 쓰지 않습니다. */
+  if (inputImage) {
+    inputImage.space = data.space || null;
+    try { sessionStorage.setItem('auri_input_image', JSON.stringify(inputImage)); } catch (e) { /* 공간 부족 — 공간유형만 빠짐 */ }
+  }
+  showSpace(inputImage && inputImage.space);
   return results.sort(function (a, b) { return (b.focus ? 1 : 0) - (a.focus ? 1 : 0); });
+}
+
+/* 공간유형 한 줄 — 진단 결과 위에 */
+function showSpace(space) {
+  const el = document.getElementById('spaceLine');
+  if (!el) return;
+  if (!space || !space.primary) { el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = `<b>공간유형</b> ${auriEsc(space.primary)}${space.secondary ? ' + ' + auriEsc(space.secondary) : ''}` +
+    (space.reason ? ` <span class="dim">— ${auriEsc(space.reason)}</span>` : '');
 }
 
 function showServerError(err) {
@@ -481,11 +516,14 @@ function showServerError(err) {
 /* ── AI 진단 실행 ───────────────────────────────────────────────── */
 
 /* 진단 실행 기록에 남길 위치 (2026-09-14 — 누가 언제 어느 지점을 진단했는지).
-   좌표와 주소만 보냅니다. 서버가 주소로 지자체 이름을 찾아 함께 적습니다. */
+   서버가 주소로 지자체 이름을 찾아 함께 적습니다.
+   ★ 2026-10-27 (AURI 정호경 요청 3 "진단 결과 구체화") — 도로명·건물명·동도 함께 보냅니다.
+     AI 가 판독 요약을 "○○길 일대 … 우려" 꼴로 쓸 때 위치 표현에만 씁니다(판단 근거로는 쓰지 않음). */
 function pickedForLog() {
   try {
     const p = JSON.parse(sessionStorage.getItem('auri_picked_location') || 'null');
-    return p ? { lat: p.lat, lng: p.lng, addr: p.addr || '' } : null;
+    return p ? { lat: p.lat, lng: p.lng, addr: p.addr || '', roadAddr: p.roadAddr || '', jibunAddr: p.jibunAddr || '',
+                 road: p.road || '', bldg: p.bldg || '', dong: p.dong || '' } : null;
   } catch (e) { return null; }
 }
 
@@ -545,7 +583,7 @@ async function sendRevise() {
   const previous = {};
   const before = {};
   _results.forEach(function (r) {
-    previous[r.key] = { score: r.score, findings: r.findings || [] };
+    previous[r.key] = { score: r.score, findings: r.findings || [], summary: r.summary || '' };
     before[r.key] = r;
   });
 
@@ -650,6 +688,7 @@ window.addEventListener('load', function () {
     document.getElementById('shotPanel').style.display = 'block';
     document.getElementById('shotImg').src = img.dataUrl;
     document.getElementById('shotTag').textContent = img.source === 'upload' ? '업로드한 사진' : '캡처한 화면';
+    showSpace(img.space);
   }
   /* 이전 진단 결과가 있으면 그대로 보여 줍니다 */
   const savedResults = sessionStorage.getItem('auri_diagnosis_results');

@@ -2107,3 +2107,22 @@ data/hwpx/<지역>.hwpx + index.json  (✅ 커밋 · 39곳 12MB, 서버 화이�
   - bash 반복문에서 `"$WIN\$f"` 로 경로를 넘기면 역슬래시가 풀려 한글이 "열기 실패"를 냅니다 — 파일마다 `cygpath -w` 로.
 - AURI 보고서가 새로 오면: `npm run auri-reports` → `node tools/shrink-images.mjs` → `node tools/build-hwpx-templates.mjs` → 커밋.
 - 남은 것: 원본 hwpx 를 서버(공개 저장소)에 올리는 것 — 본문 글·그림은 이미 `data/stats/auri-reports` 에 실려 있어 노출 범위는 같지만, **AURI 쪽에 한 번 알리는 것이 안전**. 한글 2014 미만·한컴 뷰어·한컴독스(웹)에서는 아직 안 열어 봤습니다.
+
+## 2026-10-27 AURI 정호경 연구원 보완 요청 5건 반영 (회신 메일: "테스트해 보고 내일 공유")
+
+회신 원칙(담당자): "다 된다"가 아니라 **제약 → 시도 → 안 될 수도 있음**. 연구 내용(위험요인–사업 인과관계, 공간유형 정의)은 AURI 몫이고, 그 자료가 오기 전에는 **AKJ 임시 데이터**로 돌립니다.
+
+| 요청 | 반영 | 어디 |
+|---|---|---|
+| 1 한글 다운로드 | 10/27 오전 구현(사전진단서 탭 "한글(hwpx) 내려받기"). 진단 지점 행의 글은 이제 판독 요약 문장 | `assets/hwpx-export.js` |
+| 2 적용사례 카드 공간유형 구분 | 카드에 **공간유형별 위험요인** 표 — 유형마다 정의(임시) · 위험요인(AURI 보고서 2장 → 사진 판독 → 유형 대표 위험요인) · 맞춤형 사업 | `document.html guideCard()` · `assets/space-risk.json` |
+| 3 진단 구체화 | 분야마다 **판독 요약(summary)** "<위치> 일대에 <현황>(으)로 인한 <위험요인> 우려" 한 문장. 지도에서 고른 자리의 도로명·건물명을 지시문에 넘김(위치 표현에만, 판단 근거 아님). 사진 속 도로명판이 있으면 그것 우선. 사진의 **공간유형**(13종 중)도 함께 | `server/server.js locationBlock·SUMMARY_GUIDE·spaceBlock` · `index.html selectPoint`(road·bldg·roadAddr) · 진단·리포트·문서가 summary 를 먼저 보여 줌 |
+| 4 서술형 맞춤형 사업 | 문서 네 번째 탭 **2차 현장보고서** — 영천 예시안 카드 꼴([공간유형] ➤ 위험요인 ①, 현황·사업목적·필수 개별사업 → 효과·복합 맞춤형 사업 점·선·면·소요비용·적용 예시). 문장은 `/api/narrative`(claude-opus-5-5, fallbacks default, 사업명 enum 으로 목록 밖 사업 금지). 카드에 넣을 분야는 체크박스(기본: 중점 + 위험 판정) | `document.html siteReport()` · `assets/space-risk.js` · `server.js handleNarrative` |
+| 5 지정 사업만 이미지 | 4단계 "이미지에 반영할 사업" — 처방 목록(E) / **직접 입력한 사업만**(strict: 목록 밖 시설 금지 · 정비=있는 시설 손보기 · 안내표지는 표지만) | `visualize.html` · `server.js buildGeneratePrompt(strict)` |
+
+- **체크리스트 CRM-2 분리**: "CCTV나 비상벨" 한 항목 → CRM-2 방범 CCTV / **CRM-7** 안전비상벨·위치 안내표지 (43개). 감시체계 부족과 신고체계 부족을 따로 잡기 위해. rules.js byItem·field-check.js 함께.
+- **연계표 `assets/space-risk.json`** (AKJ 임시 draft1) — 공간유형 13종(정의·사진 단서·대표 위험요인) + 위험요인 26개(체크리스트 항목·연결 논리·사업·연결 근거·개입 단위). `node tools/verify-rules.mjs` 가 사업명·항목·공간유형 이름을 함께 점검합니다(⑦). AURI 자료가 오면 이 파일만 바꿉니다.
+- 저장 칸 추가: `auri_gen_custom`(직접 입력 사업) · `auri_narratives`(서술형 초안·카드 분야 선택) — server/projects.js 와 assets/projects.js 두 곳.
+- `gpt-image-1` 은 10/23 종료라 목록에서 뺐습니다. `auriEsc()`(ui.js) — AI 글을 화면에 넣을 때 이스케이프.
+- **시험(10/27 밤, 영천 예시안 사진 2장)**: 진단 2장 · 지정 사업 이미지 6장(GPT 2.5 Sunburst 5 · Gemini 1) · 서술형 초안 2건. 결과·한계는 `docs/2026-10-28_정호경_후속보고/`(로컬).
+  - 이미지: 지시 보강 전 GPT 는 "비상벨 위치 안내표시"에 비상벨 본체까지 그림(3회 중 2회) → "표지만" 지시 뒤 2회 모두 표지만. "안전시설 정비"처럼 대상이 모호한 사업은 매번 해석이 다름(전주 보호커버·가스배관 보호대·노면 경계선·차양 조명) → **사업명을 구체적으로** 적어야 안정적. Gemini 는 지시는 잘 따르나 해상도가 줄고 도로명판 글자가 뭉개짐.

@@ -216,6 +216,18 @@ table.guide th{width:19%; background:#F5F5F5; text-align:left; font-weight:700} 
 table.guide tr:last-child th, table.guide tr:last-child td{border-bottom:0}
 table.guide .bullet{margin:0 0 3px; padding-left:16px; text-align:left} table.guide .doc-fill{margin:4px 0 0}
 @media(max-width:700px){ .guide-grid{grid-template-columns:1fr} .guide-grid > figure{border-right:0; border-bottom:1px solid var(--g1)} }
+/* 2차 현장보고서 — 서술형 카드 (2026-10-27) */
+.nar-bar{display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; padding:0 0 14px; margin:0 0 18px; border-bottom:1px solid var(--g1)}
+.nar-bar .d{font-size:var(--fs-sm); color:var(--g3)}
+.nar-bar .d2{flex-basis:100%; margin:0; font-size:var(--fs-cap); color:var(--g2); line-height:var(--lh-tight)}
+.k-tag{display:inline-block; font-size:var(--fs-cap); font-weight:700; color:var(--k); border:1px solid var(--k); padding:0 4px; line-height:1.5}
+.k-tag.ref{color:var(--contrast); border-color:var(--contrast)}
+.site-card .sec{margin:2px 0 4px 14px; text-align:left}
+.site-card + .site-card{break-before:page; page-break-before:always}
+.nar-empty{color:var(--g2)}
+.nar-fields{flex-basis:100%; display:flex; flex-wrap:wrap; gap:4px 16px; font-size:var(--fs-sm); color:var(--g3)}
+.nar-fields .lab{font-weight:700; color:var(--k); margin-right:4px}
+.nar-fields label{display:inline-flex; align-items:center; gap:5px; cursor:pointer}
 .doc-inline{display:inline-block; min-width:80px; border-bottom:1px dashed var(--g2); padding:0 4px; outline:none}
 .doc-inline:empty::before{content:attr(data-hint); color:var(--g2); font-weight:400}
 @media print{ .doc-inline{border-bottom:none} .doc-inline:empty::before{content:''} }
@@ -302,6 +314,8 @@ table.guide .bullet{margin:0 0 3px; padding-left:16px; text-align:left} table.gu
     <button type="button" class="doc-tab" id="tabA" onclick="showDoc('a')">사전진단서</button>
     <!-- 세 번째 탭: AURI 「표준사업가이드 개발(안)」(10/26) 적용사례 카드. 옛 행안부 예시안 카드(moisReport)는 함수만 남겨 둠 (2026-10-22) -->
     <button type="button" class="doc-tab" id="tabC" onclick="showDoc('c')">적용사례 카드</button>
+    <!-- 네 번째 탭: 2차 현장보고서 — 서술형 맞춤형 사업 (AURI 영천시 예시안 형식, 2026-10-27 정호경 요청 4) -->
+    <button type="button" class="doc-tab" id="tabD" onclick="showDoc('d')">2차 현장보고서</button>
     <span style="flex:1"></span>
     <!-- ★ 수정 모드 (2026-10-21 담당자) — 보고 있는 탭의 어떤 글이든 고칠 수 있음. 수정 중에는 인쇄가 잠기고, 저장하면 다시 풀림 -->
     <button type="button" class="doc-tab doc-edit-reset" id="editReset" hidden onclick="resetEdit()" title="이 탭의 수정 내용을 버리고 자동 생성 문서로 되돌립니다">원래대로</button>
@@ -318,6 +332,7 @@ table.guide .bullet{margin:0 0 3px; padding-left:16px; text-align:left} table.gu
   <div class="doc" id="docB"></div>
   <div class="doc" id="docA" hidden></div>
   <div class="doc" id="docC" hidden></div>
+  <div class="doc" id="docD" hidden></div>
 
   <div class="print-foot" id="printFoot">현장 확인 리포트</div>
 </main>
@@ -327,6 +342,7 @@ table.guide .bullet{margin:0 0 3px; padding-left:16px; text-align:left} table.gu
 <script src="assets/projects.js"></script>
 <script src="assets/risk-weights.js"></script>
 <script src="assets/palette.js"></script>
+<script src="assets/space-risk.js"></script>
 <script src="assets/stats.js"></script>
 <script src="assets/rules.js"></script>
 <script src="assets/field-check.js"></script>
@@ -569,7 +585,7 @@ function auriCh2() {
     const simRow = mine.length ? `
         <tr class="sim-row">
           <td style="vertical-align:top"><b>진단 지점</b><br><span style="font-size:var(--fs-cap);color:var(--g2)">${esc(_picked.addr || '')}</span></td>
-          <td style="vertical-align:top">${r && r.observed && r.observed.length ? `<span class="tag">(사진 판독)</span> ${esc(r.observed.join(' · '))}` : (r ? `사진 판독 ${r.level.label} 판정(${r.score}점)` : '')}</td>
+          <td style="vertical-align:top">${r && (r.summary || (r.observed && r.observed.length)) ? `<span class="tag">(사진 판독)</span> ${esc(r.summary || r.observed.join(' · '))}` : (r ? `사진 판독 ${r.level.label} 판정(${r.score}점)` : '')}</td>
           <td style="vertical-align:top">${mine.map((it) => `<div class="hea-${it.hea}" style="padding:2px 4px"><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span> ${esc(it.name)}${it.trigger ? `<br><span style="font-size:var(--fs-cap);color:var(--g2)">근거: ${esc(it.trigger.id)} ${esc(it.trigger.note || '')}</span>` : ''}</div>`).join('')}</td>
         </tr>` : '';
     const figLoc = fig++, figEx = fig++;
@@ -853,7 +869,7 @@ function chapter4() {
     const human = AuriStats.narrateHuman(f.cat, opts);
     const type = AuriStats.narrateType(f.cat, opts);
     const r = _results.find((x) => x.key === f.key);
-    const observed = r && r.observed && r.observed.length ? r.observed.join(' · ') : null;
+    const observed = r && r.summary ? r.summary : (r && r.observed && r.observed.length ? r.observed.join(' · ') : null);   // 판독 요약 한 문장 우선 (2026-10-27)
 
     /* 물적환경 회귀분석 — 7개 지자체에만 있습니다.
        조사지 내에 유의한 요인이 없으면 지자체 전체 결과로 대신하고,
@@ -1446,7 +1462,8 @@ function registerImages(root) { root.querySelectorAll('img').forEach((img) => { 
 function loadDocHtml() { try { return JSON.parse(sessionStorage.getItem(DOC_HTML_KEY) || '{}') || {}; } catch (e) { return {}; } }
 function saveDocHtml(all) { if (Object.keys(all).length) sessionStorage.setItem(DOC_HTML_KEY, JSON.stringify(all)); else sessionStorage.removeItem(DOC_HTML_KEY); }
 function docEl(which) { return document.getElementById('doc' + which.toUpperCase()); }
-function currentTab() { return !document.getElementById('docA').hidden ? 'a' : !document.getElementById('docC').hidden ? 'c' : 'b'; }
+const DOC_TABS = ['b', 'a', 'c', 'd'];   // 화면 순서 — 안쪽 이름(a=사전진단서 b=현장용 c=적용사례 d=2차 현장보고서)
+function currentTab() { return DOC_TABS.find((k) => !docEl(k).hidden) || 'b'; }
 /** 자동 생성한 뒤 호출 — 저장된 수정본이 있으면 그것으로 바꿔치기 */
 function applySavedDoc(which) {
   const el = docEl(which);
@@ -1465,7 +1482,7 @@ function setEditUi() {
   document.getElementById('editReset').hidden = _editing || !loadDocHtml()[which];
   document.getElementById('printBtn').disabled = _editing;
   document.getElementById('printBtn').title = _editing ? '수정을 저장한 뒤 인쇄할 수 있습니다' : '';
-  ['tabA', 'tabB', 'tabC'].forEach((id) => { document.getElementById(id).disabled = _editing; });
+  DOC_TABS.forEach((k) => { document.getElementById('tab' + k.toUpperCase()).disabled = _editing; });
   const note = document.getElementById('docNoteEdit');
   if (note) note.hidden = !_editing;
 }
@@ -1512,16 +1529,14 @@ function resetEdit() {
 }
 
 function showDoc(which) {
-  const a = which === 'a', c = which === 'c';
-  document.getElementById('docA').hidden = !a;
-  document.getElementById('docB').hidden = a || c;
-  document.getElementById('docC').hidden = !c;
-  document.getElementById('tabA').classList.toggle('on', a);
-  document.getElementById('tabB').classList.toggle('on', !a && !c);
-  document.getElementById('tabC').classList.toggle('on', c);
+  if (!DOC_TABS.includes(which)) which = 'b';
+  const a = which === 'a', c = which === 'c', d = which === 'd';
+  DOC_TABS.forEach((k) => { docEl(k).hidden = k !== which; document.getElementById('tab' + k.toUpperCase()).classList.toggle('on', k === which); });
   document.getElementById('printFoot').textContent =
-    (a ? '지자체 사전진단서' : c ? '표준사업가이드 적용사례 카드' : '현장 확인 리포트') + (_data ? ' — ' + _data.label : '');
-  document.getElementById('docNoteText').innerHTML = a
+    (a ? '지자체 사전진단서' : c ? '표준사업가이드 적용사례 카드' : d ? '2차 현장보고서' : '현장 확인 리포트') + (_data ? ' — ' + _data.label : '');
+  document.getElementById('docNoteText').innerHTML = d
+    ? 'AURI 영천시 2차 사전진단서 예시안 형식의 <b>위험요인 카드</b>입니다. 사진 판독에서 문제로 확인된 항목을 위험요인별로 묶고, 처방 사업을 위험요인과 엮어 서술합니다. 문장은 <b>서술형 초안 만들기(AI)</b>로 받고 <b>✎ 수정</b>으로 고칩니다.'
+    : a
     ? 'AURI 「지역 안전진단 사전분석 보고서」와 같은 구조입니다. 1·2장의 글과 표는 AURI 보고서 원문이고, 별첨은 이 앱이 계산한 것입니다. 점선 없는 <b>입력칸</b>은 직접 쓰거나 <b>AI 의견 생성</b>으로 초안을 받을 수 있습니다. AI 초안 표시와 판단 근거는 화면에만 보이고 인쇄물에는 나오지 않습니다.'
     : c
     ? 'AURI 「표준사업가이드 개발(안)」의 <b>적용사례 카드</b> 구조입니다(원인·진단 → 해법·적용). 제목 줄과 공간유형은 바로 고칠 수 있고, 문제·H/E/A·시범규모·예산근거·사업적용 칸은 직접 쓰거나 <b>AI 의견 생성</b>으로 초안을 받습니다.'
@@ -1576,7 +1591,7 @@ async function exportHwpx() {
       const r = _results.find((x) => x.key === f.key);
       return {
         key: f.key, label: f.label, place: _picked.addr || '',
-        risk: r && r.observed && r.observed.length ? r.observed.join(' · ') : (r ? '사진 판독 ' + r.level.label + ' 판정(' + r.score + '점)' : ''),
+        risk: r && r.summary ? r.summary : (r && r.observed && r.observed.length ? r.observed.join(' · ') : (r ? '사진 판독 ' + r.level.label + ' 판정(' + r.score + '점)' : '')),
         measures: mine.map((it) => ({ hea: it.hea || '', text: it.name, note: it.trigger ? ('근거: ' + it.trigger.id + ' ' + (it.trigger.note || '')).trim() : '' })),
       };
     }).filter(Boolean);
@@ -1733,6 +1748,7 @@ function guideCard() {
   const human = pCat ? AuriStats.narrateHuman(pCat, { inside: _stats.inside }) : null;
   /* 공간유형 — AURI 보고서 2장(중점 분야)의 공간유형, 없으면 처방 사업의 표준 팔레트 공간유형. 중복 없이 최대 3 */
   const spaces = []; const pushSp = (s) => { s = String(s || '').trim(); if (s && !spaces.includes(s)) spaces.push(s); };
+  { const ps = photoSpace(); if (ps) { pushSp(ps.primary); pushSp(ps.secondary); } }   // 사진의 공간유형(진단 AI, 2026-10-27)이 맨 앞
   if (_auri) _focus.forEach((f) => { const af = _auri.fields.find((x) => x.key === f.key); if (af) af.groups.forEach((g) => pushSp(g.spaceType)); });
   _items.forEach((it) => { const sp = AuriPalette.std(it.name); if (sp) pushSp(sp.spaceType); });
   const spaceLine = spaces.slice(0, 3).join(' + ');
@@ -1769,6 +1785,29 @@ function guideCard() {
   const applyHtml = stdItems.map(({ it, sp }) => `<p class="bullet">「${esc(it.name)}」 ${esc(sp.unit || '')}${sp.card && sp.card.owner ? ` · 주관/협력: ${esc(sp.card.owner)}` : ''}</p>`).join('');
   const envHtml = photoProblems.length ? photoProblems.slice(0, 5).map((x) => `<p class="bullet">${esc(x.note || x.ask || '')}</p>`).join('') : (primary && primary.observed && primary.observed.length ? primary.observed.slice(0, 4).map((t) => `<p class="bullet">${esc(t)}</p>`).join('') : '');
   const ctx = `지자체 ${_data.label} · 지점 ${_picked.addr || ''} · 공간유형 ${spaceLine} · 지역안전지수 ${siLine.replace(/<[^>]+>/g, '')} · 안전 유형 ${primary ? primary.name + ' ' + primary.score + '점' : ''} · 처방 ${_items.map((it) => it.name).join(', ')}`;
+  /* ★ 공간유형별 위험요인 (2026-10-27, AURI 정호경 요청 2) — 카드의 공간유형마다 정의·위험요인·맞춤형 사업을 따로 정리
+       위험요인 출처: AURI 보고서 2장(그 공간유형으로 적힌 것) → 사진 판독(사진의 공간유형일 때, 연계표로 묶음) → 없으면 연계표의 유형 대표 위험요인
+       정의·대표 위험요인은 assets/space-risk.json(AKJ 임시) — AURI 분류체계·정의를 받으면 그 파일만 바꿉니다 */
+  const space = photoSpace();
+  const photoTypes = space ? [space.primary, space.secondary].filter(Boolean) : [];
+  const typeList = [];
+  photoTypes.concat(spaces).forEach((s) => { if (s && !typeList.includes(s)) typeList.push(s); });
+  const diagGroups = AuriSpaceRisk.groupFindings(_results.slice().sort((a, b) => (focusKeys.has(b.key) - focusKeys.has(a.key)) || b.score - a.score));
+  const spaceRows = typeList.slice(0, 4).map((s) => {
+    const st = AuriSpaceRisk.spaceType(s);
+    const risks = [];
+    if (_auri) _auri.fields.forEach((af) => (af.groups || []).forEach((g) => { if (String(g.spaceType || '').replace(/\s/g, '') === s.replace(/\s/g, '')) (g.issues || []).forEach((is) => { if (is.title) risks.push(`<p class="bullet">[${esc((AuriSafetyIndex.LABEL && AuriSafetyIndex.LABEL[af.key]) || af.cat || af.key || '')}] ${esc(is.title)} <span class="h-sub">AURI 보고서</span></p>`); }); }));
+    if (photoTypes[0] === s) diagGroups.slice(0, 4).forEach((g) => risks.push(`<p class="bullet">[${esc(g.fieldName)}] ${esc(g.rf.name)} — ${esc(g.result.summary || g.findings.map((f) => f.note || f.ask).join(', '))} <span class="h-sub">사진 판독</span></p>`));
+    if (!risks.length && st) (st.risks || []).slice(0, 3).map((id) => AuriSpaceRisk.riskFactor(id)).filter(Boolean).forEach((rf) => risks.push(`<p class="bullet">[${esc((AuriSafetyIndex.LABEL && AuriSafetyIndex.LABEL[rf.field]) || rf.field)}] ${esc(rf.name)} <span class="h-sub">유형 대표 위험요인</span></p>`));
+    const rx = _items.filter((it) => { const sp = AuriPalette.std(it.name); if (sp && sp.spaceType === s) return true; return photoTypes[0] === s && it.trigger && diagGroups.some((g) => (g.rf.items || []).includes(it.trigger.id)); });
+    return `<tr><th>${esc(s)}${st ? `<br><span class="h-sub">${esc(st.group)}</span>` : ''}</th>
+      <td>${st ? `<p class="bullet" style="color:var(--g3)">${esc(st.def)}</p>` : ''}${risks.join('') || '<p class="bullet">-</p>'}</td>
+      <td>${rx.length ? rx.map((it) => { const sp = AuriPalette.std(it.name); return `<p class="bullet"><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span> ${sp ? `${esc(sp.cat)} ${String(sp.no).padStart(2, '0')} ` : ''}「${esc(it.name)}」</p>`; }).join('') : '<p class="bullet">-</p>'}</td></tr>`;
+  }).join('');
+  const spaceTable = spaceRows ? `
+    <p class="guide-bar" style="margin-top:14px">공간유형별 위험요인 | SPACE TYPE → RISK</p>
+    <table class="guide space-split"><thead><tr><th style="width:17%">공간유형</th><th>정의 · 위험요인</th><th style="width:30%">맞춤형 사업</th></tr></thead><tbody>${spaceRows}</tbody></table>
+    <p class="note-under screen-only">공간유형 정의·유형 대표 위험요인은 AKJ 임시 정리본입니다(AURI 공간유형 분류체계·정의 수령 시 교체). 사진의 공간유형은 진단 때 AI 가 13종 중에서 고른 것입니다${space && space.reason ? ` — ${esc(space.reason)}` : ''}.</p>` : '';
 
   return `
   <section class="chapter guide">
@@ -1785,6 +1824,7 @@ function guideCard() {
         <tr><th>문제</th><td>${problemHtml}${AuriDocEdit.render('guide-problem', '', '보완 — 전문기관 의견·현장 확인 등 문제를 덧붙입니다.', ctx)}</td></tr>
       </tbody></table>
     </div>
+    ${spaceTable}
     <p class="guide-bar" style="margin-top:14px">해법·적용 | H/E/A → PALETTE → IMPLEMENT</p>
     <div class="guide-grid">
       <figure>${after ? `<img src="${after}" alt="개선 후 사진">` : '<div class="slot">개선 후 사진 — 4단계에서 생성</div>'}<figcaption>개선 후 사진 (사업 반영 예시)</figcaption>${afterTagLegend()}<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div></figure>
@@ -1806,6 +1846,199 @@ function guideCard() {
   </section>`;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   ★ 2차 현장보고서 — 서술형 맞춤형 사업 (2026-10-27, AURI 정호경 요청 4 · 영천시 예시안 형식)
+
+   [공간유형 1] <사진의 공간유형> ➤ 위험요인 ① <연계표 위험요인>
+     안전 유형 · 위치 · 세부 유형 · 연계 사고 데이터
+     1. 현황 및 공간적 취약요인 상세   2. 사업목적
+     3. 개선 및 맞춤형 사업 적용 방안 (필수 개별사업 → 효과 · 복합 맞춤형 사업 점·선·면)
+     4. 예상 소요비용   5. 사업 적용 예시(안)
+
+   무엇이 어디서 오는가
+     위험요인 묶음      사진 판독 문제 항목 → assets/space-risk.json (AKJ 임시 연계표)        결정론
+     사업 후보          처방 목록(rules.js) → 모자라면 연계표 사업 · 사람 중심 연계 검토     결정론 (AuriSpaceRisk.measuresFor)
+     문장               /api/narrative (AI 초안) — 안 만들었으면 연계표의 연결 근거 문장으로 채움
+   저장: auri_narratives { sig, at, model, cards:{rf:{…}}, combo, checks } — 사업 후보가 바뀌면 sig 가 달라져 "다시 생성" 안내
+   ════════════════════════════════════════════════════════════════════ */
+const NAR_KEY = 'auri_narratives';
+const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
+let _narBusy = false;
+
+function narLoad() { try { return JSON.parse(sessionStorage.getItem(NAR_KEY) || 'null'); } catch (e) { return null; } }
+function stripTags(s) { return String(s || '').replace(/<[^>]+>/g, ''); }
+
+/* 사진의 공간유형 — 진단 때 AI 가 13종 중에서 고른 것. 없으면 AURI 보고서 그 분야 첫 공간유형 → 처방 사업의 표준 팔레트 공간유형 */
+function photoSpace() {
+  try { const im = JSON.parse(sessionStorage.getItem('auri_input_image') || 'null'); if (im && im.space && im.space.primary) return im.space; } catch (e) { /* 없음 */ }
+  const pf = _focus[0] && _auri ? _auri.fields.find((x) => x.key === _focus[0].key) : null;
+  const fromAuri = pf && pf.groups && pf.groups[0] ? pf.groups[0].spaceType : '';
+  if (fromAuri) return { primary: fromAuri, secondary: '', reason: 'AURI 사전분석 보고서 2장의 공간유형' };
+  const e = _items.find((it) => AuriPalette.std(it.name));
+  return e ? { primary: AuriPalette.std(e.name).spaceType, secondary: '', reason: '처방 사업의 표준 팔레트 공간유형' } : null;
+}
+
+/* 카드에 넣을 분야 — 문제 항목이 있는 분야 중, 고른 것(auri_narratives.fields). 고른 적이 없으면 중점 분야 + 위험 판정 분야 */
+function narCandidates() {
+  const focusKeys = new Set(_focus.map((f) => f.key));
+  return _results.slice().filter((r) => (r.findings || []).some((f) => f.risk))
+    .sort((a, b) => (focusKeys.has(b.key) - focusKeys.has(a.key)) || b.score - a.score)
+    .map((r) => Object.assign({}, r, { focus: focusKeys.has(r.key) }));
+}
+function narFields() {
+  const n = narLoad();
+  if (n && Array.isArray(n.fields)) return n.fields;
+  return narCandidates().filter((r) => r.focus || r.score >= 67).map((r) => r.key);
+}
+function narToggleField(key, on) {
+  const n = narLoad() || {};
+  const f = new Set(narFields());
+  if (on) f.add(key); else f.delete(key);
+  n.fields = narCandidates().map((r) => r.key).filter((k) => f.has(k));
+  try { sessionStorage.setItem(NAR_KEY, JSON.stringify(n)); } catch (e) { /* 공간 부족 */ }
+  renderAll(); showDoc('d');
+}
+
+/* 카드 자료 — 화면과 /api/narrative 가 같은 것을 씁니다 */
+function siteCards() {
+  const want = new Set(narFields());
+  const ordered = narCandidates().filter((r) => want.has(r.key));
+  const space = photoSpace();
+  const st = space ? AuriSpaceRisk.spaceType(space.primary) : null;
+  const groups = AuriSpaceRisk.groupFindings(ordered);
+  /* 분야마다 위험요인 최대 3개(예시안 ①②③), 카드는 모두 9장까지 */
+  const perField = {};
+  return groups.filter((g) => { perField[g.field] = (perField[g.field] || 0) + 1; return perField[g.field] <= 3; }).slice(0, 9).map((g) => {
+    const cat = _data.categories ? _data.categories[g.field] : null;
+    const type = cat ? AuriStats.narrateType(cat, { inside: _stats.inside }) : null;
+    const human = cat ? AuriStats.narrateHuman(cat, { inside: _stats.inside }) : null;
+    return {
+      rf: g.rf.id, name: g.rf.name, logic: g.rf.logic || '', field: g.fieldName, fieldKey: g.field,
+      space: space ? space.primary : '', spaceDef: st ? st.def : '',
+      summary: g.result.summary || '', findings: g.findings.map((f) => ({ id: f.id, ask: f.ask, note: f.note || '' })),
+      stats: stripTags(type ? type.text : (human ? human.text : '')),
+      measures: AuriSpaceRisk.measuresFor(g, _items),
+    };
+  });
+}
+/* 카드 한 장의 서명 — 위험요인 + 사업 후보 + 판독 요약. 바뀌면 그 카드의 AI 문장은 '다시 만들기' 대상 */
+function cardSig(c) { return c.rf + ':' + c.measures.map((m) => m.name).join('|') + ':' + (c.summary || '').length; }
+
+async function generateNarrative() {
+  if (_narBusy) return;
+  const cards = siteCards();
+  if (!cards.length) { alert('사진 판독에서 문제로 확인된 항목이 없어 위험요인 카드를 만들 수 없습니다.'); return; }
+  if (!cards.some((c) => c.measures.length)) { alert('카드에 넣을 사업 후보가 없습니다. 3단계 리포트에서 처방을 먼저 확인해 주세요.'); return; }
+  _narBusy = true;
+  const btn = document.getElementById('narBtn'); if (btn) { btn.disabled = true; btn.textContent = 'AI 초안 작성 중… (1분 정도)'; }
+  try {
+    const p = _picked || {};
+    const data = await auriCallServer('/api/narrative', {
+      region: _data.label,
+      location: { addr: p.addr || '', roadAddr: p.roadAddr || '', jibunAddr: p.jibunAddr || '', road: p.road || '', bldg: p.bldg || '', dong: p.dong || '' },
+      fields: _results.filter((r) => r.score >= 34).map((r) => r.name),
+      allProjects: _items.map((it) => it.name),
+      cards: cards.filter((c) => c.measures.length),
+    });
+    const byRf = {};
+    (data.cards || []).forEach((c) => { const src = cards.find((x) => x.rf === c.rf); if (src) byRf[c.rf] = Object.assign({ sig: cardSig(src) }, c); });
+    sessionStorage.setItem(NAR_KEY, JSON.stringify({ fields: narFields(), comboFields: narFields().join(','), at: data.at, model: data.model, cards: byRf, combo: data.combo || null, checks: data.checks || [] }));
+  } catch (e) {
+    alert('서술형 초안을 만들지 못했습니다.\n' + e.message);
+  } finally {
+    _narBusy = false;
+    renderAll(); showDoc('d');
+  }
+}
+
+function siteReport() {
+  const cards = siteCards();
+  const nar = narLoad();
+  const hasAi = !!(nar && nar.cards && Object.keys(nar.cards).length);
+  const freshOf = (c) => hasAi && nar.cards[c.rf] && nar.cards[c.rf].sig === cardSig(c) ? nar.cards[c.rf] : null;
+  const stale = hasAi && cards.some((c) => !freshOf(c));
+  const fieldsNow = narFields().join(',');
+  const space = photoSpace();
+  const beforeImg = sessionStorage.getItem('auri_input_image');
+  const beforeUrl = beforeImg ? (JSON.parse(beforeImg).dataUrl || null) : null;
+  const after = sessionStorage.getItem('auri_after_image');
+  const p = _picked || {};
+  const where = [p.bldg, p.road].filter(Boolean).join(' · ') || (p.addr || '');
+
+  const bar = `
+  <div class="nar-bar screen-only">
+    <button type="button" class="btn accent sm" id="narBtn" onclick="generateNarrative()">${hasAi ? '서술형 초안 다시 만들기 (AI)' : '서술형 초안 만들기 (AI)'}</button>
+    <span class="d">${hasAi
+      ? (!stale ? `AI 초안 · ${esc(String(nar.at || '').slice(0, 10))} · ${esc(nar.model || '')} — 고칠 곳은 오른쪽 위 <b>✎ 수정</b>으로 바로 고칩니다.`
+               : '<b style="color:var(--main)">분야 선택·처방·판독이 바뀐 카드가 있습니다.</b> 그 카드는 연계표 문장으로 보입니다 — 다시 만들어 주세요.')
+      : '아직 AI 초안이 없습니다. 지금은 연계표의 연결 근거 문장으로 채워져 있습니다.'}</span>
+    <div class="nar-fields"><span class="lab">카드에 넣을 분야</span>${narCandidates().map((r) => `<label><input type="checkbox" ${narFields().includes(r.key) ? 'checked' : ''} onchange="narToggleField('${r.key}', this.checked)"> ${esc(r.name)} ${r.score}점${r.focus ? ' <span class="mark-focus">중점</span>' : ''}</label>`).join('')}</div>
+    <p class="d2">사업 선정은 처방 규칙(3단계)이 하고, AI 는 정해진 사업을 위험요인과 엮어 문장으로만 씁니다.
+      위험요인–사업 연계표는 <b>AKJ 임시 작성본</b>입니다(${esc(AuriSpaceRisk.version || '')}) — AURI 인과관계 자료를 받으면 교체합니다.
+      <span class="k-tag">처방</span> 규칙 엔진이 고른 사업 · <span class="k-tag ref">연계표</span>·<span class="k-tag ref">연계 검토</span> 처방 목록 밖, 검토용 후보</p>
+  </div>`;
+  if (!cards.length) {
+    return `<section class="chapter">${bar}<p class="bullet">사진 판독에서 문제로 확인된 항목이 없어 위험요인 카드를 만들지 않았습니다. 2단계에서 판독 결과를 확인해 주세요.</p></section>`;
+  }
+
+  const combo = hasAi && nar.combo && nar.comboFields === fieldsNow ? nar.combo : null;   // 분야 선택이 바뀌면 복합 사업은 연계표 문장으로
+  const comboFields = combo ? combo.fields : [...new Set(cards.map((c) => c.field))].join('·') + (new Set(cards.map((c) => c.field)).size > 1 ? ' 복합' : '');
+  /* AI 초안이 없을 때의 복합 사업 — 연계표 개입 단위로 모읍니다 (점·선·면) */
+  const byUnit = { 점: [], 선: [], 면: [] };
+  cards.forEach((c) => c.measures.forEach((m) => { ['점', '선', '면'].forEach((u) => { if (String(m.unit).includes(u) && !byUnit[u].includes(m.name)) byUnit[u].push(m.name); }); }));
+  const comboHtml = combo
+    ? `<p class="bullet" style="font-weight:700;padding-left:0;margin-top:10px">○ (복합 맞춤형 사업) ${esc(combo.name)}(${esc(combo.fields)})</p>
+       <p class="sec">§ (점 단위) ${esc(combo.point)}</p><p class="sec">§ (선 단위) ${esc(combo.line)}</p><p class="sec">§ (면 단위) ${esc(combo.area)}</p>`
+    : `<p class="bullet" style="font-weight:700;padding-left:0;margin-top:10px">○ (복합 맞춤형 사업) ${esc(where)} 일대 안심 생활권 조성사업(${esc(comboFields)})</p>
+       ${byUnit['점'].length ? `<p class="sec">§ (점 단위) ${esc(byUnit['점'].join(' · '))} — 취약 지점 집중 개선</p>` : ''}
+       ${byUnit['선'].length ? `<p class="sec">§ (선 단위) ${esc(byUnit['선'].join(' · '))} — 구간 연속 정비</p>` : ''}
+       ${byUnit['면'].length ? `<p class="sec">§ (면 단위) ${esc(byUnit['면'].join(' · '))} — 생활권 통합 관리·운영</p>` : ''}`;
+
+  const cardHtml = cards.map((c, i) => {
+    const t = freshOf(c);
+    const status = t && t.status && t.status.length ? t.status
+      : [{ head: c.name, text: c.summary || c.findings.map((f) => f.note || f.ask).join(', ') }];
+    const mText = (m) => { const hit = t && t.measures ? t.measures.find((x) => x.name === m.name) : null; return hit ? hit.text : (m.why || m.overview || ''); };
+    const kindTag = (m) => m.kind === '처방' ? '' : ` <span class="k-tag ref screen-only">${esc(m.kind)}</span>`;
+    const caption = c.findings[0] ? (c.findings[0].note || c.findings[0].ask) : '';
+    const budgets = c.measures.map((m) => { const sp = AuriPalette.std(m.name); return sp && sp.card && (sp.card.budget || sp.card.budgetBasis) ? `<p class="sec">「${esc(m.name)}」 ${esc(sp.card.budget || sp.card.budgetBasis)}</p>` : ''; }).join('');
+    return `
+  <section class="chapter site-card">
+    <div class="mois-title">[공간유형 1] ${esc(space ? space.primary : '공간유형 미정')} ➤ 위험요인 ${CIRCLED[i] || (i + 1)} ${esc(c.name)}</div>
+    <table class="tight mois-head"><tbody>
+      <tr><th style="width:13%">안전 유형</th><td style="width:20%"><b>${esc(c.field)}</b></td>
+          <th style="width:9%">위치</th><td>${esc(where)}${p.roadAddr || p.addr ? `<br><span class="h-sub">(${esc(p.roadAddr || p.addr)})</span>` : ''}</td></tr>
+      <tr><th>세부 유형</th><td colspan="3">${AuriDocEdit.inline('site-sub-' + c.rf, p.bldg ? `${p.bldg} 일대` : (p.road ? `${p.road} 일대` : ''), '예: 영천 공설시장 일대')}</td></tr>
+      <tr><th>연계 사고<br>데이터</th><td colspan="3" style="color:#D83D64">${esc(c.stats || '—')}</td></tr>
+    </tbody></table>
+    <h3 class="h-section">1. 현황 및 공간적 취약요인 상세</h3>
+    <div class="mois-two">
+      <figure>${beforeUrl ? `<img src="${beforeUrl}" alt="현장 사진">` : '<div class="slot">현장 사진 — 2단계 진단 사진</div>'}<figcaption>${esc(caption)}</figcaption></figure>
+      <div>${status.map((s) => `<p class="bullet" style="margin-top:0">(${esc(s.head)})</p><p class="sec">${esc(s.text)}</p>`).join('')}</div>
+    </div>
+    <h3 class="h-section">2. 사업목적</h3>
+    <p class="bullet">${t && t.purpose ? esc(t.purpose) : '<span class="nar-empty screen-only">AI 초안을 만들거나 수정 모드로 적습니다.</span>'}</p>
+    <h3 class="h-section">3. 개선 및 맞춤형 사업 적용 방안</h3>
+    <p class="bullet" style="font-weight:700;padding-left:0">○ (필수 개별사업)</p>
+    ${c.measures.map((m) => `<p class="sec"><b>(${esc(m.hea || '-')})</b> ${esc(m.name)}${kindTag(m)}${m.unit ? ` <span class="h-sub">[${esc(m.unit)}]</span>` : ''}: ${esc(mText(m))}</p>`).join('') || '<p class="sec">-</p>'}
+    ${t && t.effect ? `<p class="sec">→ ${esc(t.effect)}</p>` : ''}
+    ${comboHtml}
+    <h3 class="h-section">4. 예상 소요비용</h3>
+    <p class="bullet">- <span class="h-sub">(사업별 단가 확정 전 — 개소·구간은 현장 실측 후 산정)</span></p>${budgets}
+    <h3 class="h-section">5. 사업 적용 예시(안)</h3>
+    <div class="ba-stack">
+      <figure>${after ? `<img src="${after}" alt="사진 2 (After)">` : '<div class="slot">사진 2 (After) — 4단계에서 생성</div>'}<figcaption>사진 2 (After)</figcaption></figure>
+      ${afterTagLegend()}
+      <div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>
+    </div>
+  </section>`;
+  }).join('');
+
+  const checks = hasAi && !stale && nar.checks && nar.checks.length
+    ? `<section class="chapter screen-only"><h3 class="h-section">현장 확인 필요 사항 (AI 초안 — 화면에만)</h3>${nar.checks.map((x) => `<p class="bullet">□ ${esc(x)}</p>`).join('')}</section>` : '';
+  return bar + cardHtml + checks;
+}
+
 /* ★ 개선 이미지 번호 태그 범례 (2026-10-20 실무회의 — 번호만 이미지 안에, 설명은 밖으로)
    4단계에서 "번호 태그" 를 켜고 만들면 auri_after_tags 에 [{n, name}] 이 남습니다. */
 function afterTagLegend() {
@@ -1822,7 +2055,8 @@ function renderAll() {
     cover() + auriCh1() + auriCh2() + auriAppendix() + chapter1() + chapter2() + chapter3() + chapter5() + hotspotCards();
   document.getElementById('docB').innerHTML = fieldReport();
   document.getElementById('docC').innerHTML = guideCard();
-  ['a', 'b', 'c'].forEach(applySavedDoc);   // 수정 모드에서 저장한 것이 있으면 그것으로
+  document.getElementById('docD').innerHTML = siteReport();
+  DOC_TABS.forEach(applySavedDoc);   // 수정 모드에서 저장한 것이 있으면 그것으로
   AuriDocEdit.refresh();
   /* 지도는 타일을 받아야 해서 시간이 걸립니다. 문서를 먼저 띄우고 뒤따라 채웁니다.
      한 번 그린 것은 _mapCache 에 남아 다시 그리지 않습니다. */
@@ -1832,7 +2066,7 @@ function renderAll() {
 window.addEventListener('load', async function () {
   /* 물적환경 회귀분석은 7개 지자체에만 있습니다. 없으면 조용히 비고,
      4장의 (물적환경) 줄은 사진 판독만으로 채워집니다. */
-  await Promise.all([AuriPalette.load(), AuriPhysical.load()]);
+  await Promise.all([AuriPalette.load(), AuriPhysical.load(), AuriSpaceRisk.load()]);
 
   const loc = sessionStorage.getItem('auri_picked_location');
   const resultsRaw = sessionStorage.getItem('auri_diagnosis_results');

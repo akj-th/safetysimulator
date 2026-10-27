@@ -169,11 +169,53 @@ try {
   errors.push(`[실행 오류] auriPrescribe 실행 중 예외: ${e.message}`);
 }
 
+/* ── ⑦ 공간유형·위험요인 연계표 (assets/space-risk.json, 2026-10-27) ─────────
+   서술형 맞춤형 사업(2차 현장보고서)·적용사례 카드·진단 지시문의 공간유형이 이 파일 하나를 씁니다.
+   AURI 자료로 바꿀 때 사업명·항목 번호가 어긋나면 카드가 조용히 비므로 여기서 잡습니다. */
+const SR_PATH = path.join(ROOT, 'assets/space-risk.json');
+let srCount = 0;
+if (!existsSync(SR_PATH)) {
+  warnings.push('[연계표] assets/space-risk.json 이 없습니다 — 2차 현장보고서·공간유형 표가 비게 됩니다');
+} else {
+  const sr = JSON.parse(readFileSync(SR_PATH, 'utf8'));
+  const std = existsSync(path.join(ROOT, 'assets/palette-std.json')) ? JSON.parse(readFileSync(path.join(ROOT, 'assets/palette-std.json'), 'utf8')) : { programs: [] };
+  const normN = (s) => String(s || '').replace(/[\s·()（）〔〕[\]'"]/g, '');
+  const names = new Set(palette.programs.map((p) => normN(p.name)).concat(std.programs.map((p) => normN(p.name))));
+  const itemField = new Map();
+  CATEGORIES.forEach((c) => c.items.forEach((i) => itemField.set(i.id, c.key)));
+  const rfIds = new Set();
+  const covered = new Set();
+  (sr.riskFactors || []).forEach((rf) => {
+    srCount++;
+    if (rfIds.has(rf.id)) errors.push(`[연계표] 위험요인 id '${rf.id}' 가 두 번 있음`);
+    rfIds.add(rf.id);
+    (rf.items || []).forEach((id) => {
+      if (!itemField.has(id)) errors.push(`[연계표] ${rf.id} 의 항목 '${id}' 가 checklist.js 에 없음`);
+      else if (itemField.get(id) !== rf.field) errors.push(`[연계표] ${rf.id}(${rf.field}) 의 항목 '${id}' 는 ${itemField.get(id)} 분야`);
+      covered.add(id);
+    });
+    (rf.projects || []).concat(rf.companions || []).forEach((p) => {
+      if (!names.has(normN(p.name))) errors.push(`[연계표] ${rf.id} 의 사업 '${p.name}' 이 팔레트(289종·표준 210종)에 없음`);
+    });
+  });
+  itemField.forEach((f, id) => { if (!covered.has(id)) warnings.push(`[연계표] 체크리스트 '${id}' 가 어느 위험요인에도 없음 — 2차 현장보고서 카드에 안 나옴`); });
+  /* 공간유형 13종 — palette.js SPACE_GROUPS · 표준 팔레트 spaceType 과 글자 그대로 같아야 합니다 */
+  const groups = vm.runInContext('AuriPalette.SPACE_GROUPS', sandbox) || [];
+  const fromPalette = new Set(groups.flatMap((g) => g.types));
+  const fromStd = new Set(std.programs.map((p) => p.spaceType).filter(Boolean));
+  const fromSr = new Set((sr.spaceTypes || []).map((t) => t.name));
+  fromPalette.forEach((t) => { if (!fromSr.has(t)) errors.push(`[연계표] 공간유형 '${t}' (palette.js) 가 space-risk.json 에 없음`); });
+  fromSr.forEach((t) => { if (!fromPalette.has(t)) errors.push(`[연계표] 공간유형 '${t}' 가 palette.js SPACE_GROUPS 에 없음`); });
+  fromStd.forEach((t) => { if (!fromSr.has(t)) warnings.push(`[연계표] 표준 팔레트 공간유형 '${t}' 가 space-risk.json 에 없음`); });
+  (sr.spaceTypes || []).forEach((t) => (t.risks || []).forEach((id) => { if (!rfIds.has(id)) errors.push(`[연계표] 공간유형 '${t.name}' 의 위험요인 '${id}' 가 없음`); }));
+}
+
 /* ── 요약 ───────────────────────────────────────────────────────── */
 const priced = palette.programs.filter((p) => p.amount && p.amount.won).length;
 console.log(`\n체크리스트 항목 ${CATEGORIES.reduce((s, c) => s + c.items.length, 0)}개`);
 console.log(`팔레트 사업 ${palette.programs.length}종 (연결표가 쓰는 것 ${used.size}종 · 단가 있는 것 ${priced}종)`);
 console.log(`연결이 약하다고 적어 둔 항목 ${Object.keys(RX_WEAK).length}개`);
+console.log(`공간유형·위험요인 연계표 위험요인 ${srCount}개 (assets/space-risk.json)`);
 
 console.log(`\n=== 경고 ${warnings.length}건 ===`);
 warnings.forEach((w) => console.log(' - ' + w));

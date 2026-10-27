@@ -343,8 +343,9 @@ let _national = null;     // 41개 지자체 합계 — 사전진단서 2.1 의 
 
 function renderResults() {
   document.getElementById('resultList').innerHTML = _results.map(function (r) {
-    const why = (r.observed && r.observed.length)
-      ? `<div class="result-why">${r.observed.join(' · ')}</div>` : '';
+    /* 판독 요약(위치 + 현황 + 위험요인 한 문장, 2026-10-27)이 있으면 먼저, 그 아래 근거 */
+    const why = (r.summary ? `<div class="result-why" style="color:var(--k)">${auriEsc(r.summary)}</div>` : '') +
+      ((r.observed && r.observed.length) ? `<div class="result-why">${r.observed.map(auriEsc).join(' · ')}</div>` : '');
     return `
       <div class="result-item ${r.level.key}">
         <div class="result-row">

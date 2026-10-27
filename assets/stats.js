@@ -238,8 +238,9 @@ const AuriStats = (function () {
 
     if (places.length) {
       const sum2 = topSum(places, 2);
+      /* 장소가 두 가지뿐이면 합이 늘 100% 라 "두 유형이 약 100%" 는 군말입니다 — 세 가지 이상일 때만 (2026-10-27) */
       parts.push(`${where} 발생 장소는 ${topText(places, 2)}` +
-                 (sum2 !== null ? `로 두 유형이 전체의 약 <b>${pctText(sum2)}</b>를 차지` : ''));
+                 (sum2 !== null && places.length > 2 && sum2 < 99.95 ? `로 두 유형이 전체의 약 <b>${pctText(sum2)}</b>를 차지` : ''));
     }
 
     /* 사고유형(type)은 분야마다 성격이 다릅니다.

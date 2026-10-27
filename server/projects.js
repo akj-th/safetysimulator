@@ -32,6 +32,8 @@ export const SAVE_KEYS = [
   'auri_revision_log', 'auri_rx_overrides', 'auri_prescriptions',
   'auri_region_stats', 'auri_after_image', 'auri_doc_notes', 'auri_site_photos',
   'auri_after_tags', 'auri_doc_html',   // 개선 이미지 번호 태그 범례 (2026-10-20) — assets/projects.js 와 같은 목록
+  'auri_gen_custom',                    // 4단계 직접 입력 사업 (2026-10-27)
+  'auri_narratives',                    // 2차 현장보고서 서술형 초안 (2026-10-27)
 ];
 
 const MAX_BYTES = 25 * 1024 * 1024;   // 한 건 25MB — 서버가 받는 요청 한도(30MB) 안쪽

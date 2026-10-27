@@ -46,6 +46,12 @@
   .rx-cat{font-size:var(--fs-cap); color:var(--g2); font-weight:700; letter-spacing:.12em; margin-left:9px}
   .rx-basis{font-size:var(--fs-cap); color:var(--g2); margin-top:6px; font-family:var(--mono)}
 
+  /* 그릴 사업 고르기 (2026-10-27) */
+  .gen-mode{border-top:1px solid var(--g1); margin-top:12px; padding-top:12px}
+  .gen-mode .lab{font-size:var(--fs-cap); font-weight:700; letter-spacing:.12em; color:var(--g3); margin-bottom:8px}
+  .gen-mode textarea{width:100%; margin-top:10px; font:inherit; font-size:var(--fs-body); padding:10px 12px; border:1px solid var(--g1); border-radius:0; resize:vertical}
+  .gen-mode .hint{font-size:var(--fs-cap); color:var(--g2); line-height:var(--lh-tight); margin:6px 0 0}
+
   /* 쓸 수 없는 생성 모델 안내 — 목록에 없는 이유를 적습니다 */
   .model-note{
     font-size:var(--fs-cap); color:var(--g2); line-height:var(--lh-body);
@@ -99,6 +105,22 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
       <span id="nonVisualText"></span>
     </p>
+    <!-- ★ 이미지에 그릴 사업 고르기 (2026-10-27, AURI 정호경 요청 5)
+         처방 목록 = 규칙 엔진이 고른 환경 개선(E) 사업 (기본)
+         직접 입력 = 연구원이 적은 사업만 그리고 그 밖의 시설은 넣지 않도록 지시. 처방 목록·문서의 사업 목록은 바뀌지 않습니다 -->
+    <div class="gen-mode">
+      <div class="lab">이미지에 반영할 사업</div>
+      <div class="opt-row">
+        <label class="opt"><input type="radio" name="genMode" value="rx" checked onchange="onGenMode()">
+          <span><span class="t">처방 목록의 환경 개선(E) 사업</span><span class="s">위 목록에서 거리 사진에 그릴 수 있는 사업을 넣습니다.</span></span></label>
+        <label class="opt"><input type="radio" name="genMode" value="custom" onchange="onGenMode()">
+          <span><span class="t">직접 입력한 사업만</span><span class="s">적은 사업만 그리고, 그 밖의 시설은 추가하지 않도록 지시합니다.</span></span></label>
+      </div>
+      <textarea id="customItems" rows="4" hidden oninput="saveGenMode()"
+        placeholder="한 줄에 하나씩 적습니다.&#10;예) 안전시설 정비&#10;비상벨 위치 안내표시 설치&#10;LED 조명 설치"></textarea>
+      <p class="hint" id="customHint" hidden>한 줄이 사업 하나입니다. "정비·보수·교체"처럼 이미 있는 시설을 손보는 사업은 사진 속 그 시설을 고치는 쪽으로 그리게 지시합니다.
+        생성 모델이 지시를 완벽히 따르지 않을 수 있으니 결과를 확인하고, 다른 시설이 더해졌으면 "고칠 점 적어서 다시 만들기"로 빼 달라고 적어 주세요.</p>
+    </div>
     <div class="panel-foot">
       <button class="btn ghost sm" id="rxAddBtn" style="display:none" onclick="AuriRx.add()">＋ 항목 추가</button>
       <!-- 목록은 서버(/api/models)에서 받아 채웁니다. 서버에 키가 없는
@@ -237,14 +259,49 @@ function toggleTweak() {
   if (opening) document.getElementById('tweakNote').focus();
 }
 
+/* ── 그릴 사업 고르기 (2026-10-27, AURI 정호경 요청 5) ───────────────────
+   auri_gen_custom = { mode: 'rx' | 'custom', items: ['안전시설 정비', …] } — 프로젝트 저장에 함께 실립니다.
+   직접 입력이면 서버에 strict:true 를 보내 "적은 것만, 그 밖은 추가 금지" 지시를 붙입니다. */
+function genMode() {
+  const el = document.querySelector('input[name=genMode]:checked');
+  return el ? el.value : 'rx';
+}
+function customList() {
+  return document.getElementById('customItems').value.split('\n')
+    .map(function (s) { return s.replace(/^[\s\-–·•\d.)]+/, '').trim(); }).filter(Boolean).slice(0, 8);
+}
+function saveGenMode() {
+  try { sessionStorage.setItem('auri_gen_custom', JSON.stringify({ mode: genMode(), items: customList() })); } catch (e) { /* 공간 부족 — 저장만 빠짐 */ }
+  showNonVisualNote(AuriRx.current());
+}
+function onGenMode() {
+  const custom = genMode() === 'custom';
+  document.getElementById('customItems').hidden = !custom;
+  document.getElementById('customHint').hidden = !custom;
+  if (custom) document.getElementById('customItems').focus();
+  saveGenMode();
+}
+function loadGenMode() {
+  let g = null;
+  try { g = JSON.parse(sessionStorage.getItem('auri_gen_custom') || 'null'); } catch (e) { g = null; }
+  if (!g) return;
+  document.getElementById('customItems').value = (g.items || []).join('\n');
+  const r = document.querySelector(`input[name=genMode][value="${g.mode === 'custom' ? 'custom' : 'rx'}"]`);
+  if (r) r.checked = true;
+  document.getElementById('customItems').hidden = g.mode !== 'custom';
+  document.getElementById('customHint').hidden = g.mode !== 'custom';
+}
+
 /* useNote 가 true 면 "고칠 점" 칸의 내용을 함께 보냅니다. */
 async function generateAfter(useNote) {
   if (_generating) return;
 
   const inputRaw = sessionStorage.getItem('auri_input_image');
   const items = JSON.parse(sessionStorage.getItem('auri_prescriptions') || '[]');
+  const custom = genMode() === 'custom';
   if (!inputRaw) { alert('원본 이미지가 없습니다. 진단 단계에서 사진을 먼저 확정해 주세요.'); return; }
-  if (!items.length) { alert('반영할 사업이 없습니다.'); return; }
+  if (custom && !customList().length) { alert('그릴 사업을 한 줄에 하나씩 적어 주세요.'); return; }
+  if (!custom && !items.length) { alert('반영할 사업이 없습니다.'); return; }
 
   const note = useNote ? document.getElementById('tweakNote').value.trim() : '';
   if (useNote && !note) {
@@ -259,7 +316,8 @@ async function generateAfter(useNote) {
   const fromGenerated = baseChoice === 'last' && !!_lastGenerated;
   /* 인적 개입(안부확인·상담·교육)은 거리 사진에 나타나지 않으므로 이미지 생성에서 뺍니다.
      이 순서가 번호 태그의 번호입니다. */
-  const visualNames = items.filter(function (it) { return auriRxIsVisual(it); }).map(function (it) { return it.name; });
+  const visualNames = custom ? customList()
+    : items.filter(function (it) { return auriRxIsVisual(it); }).map(function (it) { return it.name; });
   const tagsOn = !!document.getElementById('tagsOn').checked;
   const baseImage = fromGenerated ? _lastGenerated : JSON.parse(inputRaw).dataUrl;
 
@@ -295,6 +353,7 @@ async function generateAfter(useNote) {
       note: note,
       fromGenerated: fromGenerated,
       tags: tagsOn,
+      strict: custom,          // 직접 입력 — 적은 사업만, 그 밖은 추가 금지 (2026-10-27)
     });
 
     /* 번호 태그 범례 — 서버에 보낸 시설 순서가 곧 번호입니다 */
@@ -348,6 +407,15 @@ function showNonVisualNote(items) {
   const drawable = countVisual(items);
   const box = document.getElementById('nonVisualNote');
   const btn = document.getElementById('genBtn');
+
+  /* 직접 입력이면 처방 목록과 무관하게 적은 줄 수로 버튼을 정합니다 */
+  if (genMode() === 'custom') {
+    const n = customList().length;
+    btn.textContent = n ? `입력한 ${n}개 사업으로 이미지 생성` : '그릴 사업을 적어 주세요';
+    btn.disabled = !n || _generating;
+    box.style.display = 'none';
+    return;
+  }
 
   if (drawable === 0) {
     btn.textContent = items.length ? '그릴 항목이 없습니다' : '개선 이미지 생성';
@@ -433,11 +501,12 @@ window.addEventListener('load', async function () {
     },
   });
   AuriRx.render(items);
+  loadGenMode();             // 직접 입력 사업이 저장돼 있으면 되살립니다 (2026-10-27)
   showNonVisualNote(items);
 
   if (items.length === 0) {
-    list.innerHTML = '<div class="empty">반영할 사업이 없습니다.<br>종합 리포트를 먼저 열어 처방을 생성하거나, 수정을 눌러 직접 추가하세요.</div>';
-    document.getElementById('genBtn').disabled = true;
+    list.innerHTML = '<div class="empty">반영할 사업이 없습니다.<br>종합 리포트를 먼저 열어 처방을 생성하거나, 수정을 눌러 직접 추가하세요.<br>아래 "직접 입력한 사업만"을 골라 그릴 사업을 적을 수도 있습니다.</div>';
+    if (genMode() !== 'custom') document.getElementById('genBtn').disabled = true;
   }
 
   loadModelList();

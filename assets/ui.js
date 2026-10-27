@@ -31,6 +31,11 @@ function auriLevel(score) {
   };
 }
 
+/* 화면에 넣을 바깥 글(AI 응답·주소·사람이 쓴 글)의 < & " 를 바꿉니다 — 글이 HTML 로 해석되지 않게 */
+function auriEsc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 /* 9단계 값(1~9) → 점수. 슬라이더로 보정할 때 각 단계의 대표 점수로 되돌립니다. */
 function auriStepToScore(step) {
   const s = Math.max(1, Math.min(9, Math.round(Number(step) || 1)));

@@ -60,7 +60,8 @@ const CHECK_GROUP_BY_ITEM = {
 
   /* 범죄 */
   'CRM-1': 'facility', // 가로등
-  'CRM-2': 'facility', // CCTV·비상벨
+  'CRM-2': 'facility', // 방범 CCTV
+  'CRM-7': 'facility', // 안전비상벨·위치 안내표지 (2026-10-27 CRM-2 에서 분리)
   'CRM-3': 'space',    // 담장·수목이 막는 시야
   'CRM-4': 'space',    // 은폐 가능한 공간
   'CRM-5': 'space',    // 창문 방향(자연 감시)

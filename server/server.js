@@ -220,6 +220,80 @@ function focusFor(location) {
   }
   return bestKm <= FOCUS_MAX_KM ? best : null;
 }
+/* ── 공간유형 13종 (2026-10-27, AURI 정호경 요청 2·4) ─────────────────────
+   assets/space-risk.json 한 곳에서 읽습니다(화면의 적용사례 카드·서술형 사업과 같은 파일).
+   AURI 표준사업가이드(안) 4쪽의 13개 세부 공간유형이며, 정의·단서는 AKJ 임시 작성입니다.
+   AI 는 사진에 보이는 용도·기능으로 이 중 하나를 고르기만 합니다(처방에는 쓰지 않음 — 카드의 분류·서술용).
+   "지역관리·네트워크형"(photo:false)은 사진으로 고를 수 있는 공간이 아니라 사업 운영 유형이라 뺍니다. */
+let _spaceRisk = null;
+function spaceRisk() {
+  if (_spaceRisk) return _spaceRisk;
+  try {
+    const j = JSON.parse(readFileSync(path.join(SITE_ROOT, 'assets/space-risk.json'), 'utf8'));
+    const types = (j.spaceTypes || []).filter(function (t) { return t.photo !== false; });
+    _spaceRisk = { types: types, risks: j.riskFactors || [] };
+  } catch (e) {
+    console.warn('[공간유형] assets/space-risk.json 을 읽지 못했습니다 —', e.message);
+    _spaceRisk = { types: [], risks: [] };
+  }
+  return _spaceRisk;
+}
+function spaceTypeNames() {
+  const names = spaceRisk().types.map(function (t) { return t.name; });
+  return names.length ? names : ['주거생활형'];
+}
+function spaceBlock() {
+  const types = spaceRisk().types;
+  if (!types.length) return '';
+  return `
+## 공간유형 (space_type)
+사진에 보이는 공간의 **용도·기능**으로 아래 세부 공간유형 중 가장 가까운 것을 primary 로 고르세요.
+두 번째 성격이 뚜렷하면 secondary 로, 아니면 secondary 는 "없음" 으로 하세요.
+reason 에는 사진의 어떤 요소(간판 업종, 건물 용도, 도로 형태 등)로 판단했는지 한 문장으로 적으세요.
+${types.map(function (t) { return `- ${t.name} (${t.group}): ${t.def} — 단서: ${t.cues}`; }).join('\n')}
+`;
+}
+
+/* ── 위치 정보 (2026-10-27, AURI 정호경 요청 3 "진단 결과 구체화") ─────────────
+   판독 요약을 "○○길 일대 … 우려" 꼴로 쓰려면 도로명·건물명이 필요한데 사진만으로는 알 수 없습니다.
+   1단계 지도에서 고른 자리의 주소·도로명·건물명을 넘기되, **문장의 위치 표현에만** 쓰게 합니다.
+   점수·항목 답은 여전히 사진에 보이는 것만으로 정합니다. */
+function locationBlock(loc) {
+  const l = loc || {};
+  const lines = [];
+  if (l.roadAddr || l.addr) lines.push(`- 주소: ${l.roadAddr || l.addr}${l.jibunAddr && l.jibunAddr !== l.roadAddr ? ` (지번 ${l.jibunAddr})` : ''}`);
+  if (l.road) lines.push(`- 도로명: ${l.road}`);
+  if (l.bldg) lines.push(`- 가장 가까운 건물: ${l.bldg}`);
+  if (l.dong) lines.push(`- 동: ${l.dong}`);
+  if (!lines.length) return `
+## 위치 정보
+진단 지점의 주소 정보가 없습니다. 판독 요약의 위치는 사진에 보이는 공간 요소(예: "주거지 골목 교차부",
+"상가 앞 보도")로만 쓰고, 도로명·시설명은 사진 속 표지판에 글자가 보일 때만 쓰세요.
+`;
+  return `
+## 위치 정보 — 판독 요약의 "어디"를 쓰는 데만 사용 (판단 근거 아님)
+${lines.join('\n')}
+- 이 정보는 summary 의 위치 표현에만 씁니다. 점수와 항목 답은 사진에 보이는 것만으로 정합니다.
+- **사진에 도로명판(파란 바탕 흰 글씨 "○○길")이 보이면 그 도로명을 먼저 쓰세요.** 위 주소의 도로명과 다르면
+  사진이 진단 지점 주변에서 찍힌 것이므로 사진 속 도로명을 쓰되${l.road ? ` "${l.road} 인근"을 덧붙일 수 있습니다` : ''}.
+  출처를 괄호로 적지 마세요(예: "(사진 속 도로명판)" 같은 표기 금지 — 문서에 그대로 실리는 문장입니다).
+- 위 정보와 사진 어디에도 없는 도로명·건물명·시설명은 절대 지어내지 마세요.
+`;
+}
+
+const SUMMARY_GUIDE = `
+## 분야별 판독 요약 (summary) — 위치 + 현황 + 위험요인을 한 문장으로
+각 분야마다 summary 에 사전진단서에 그대로 옮겨 쓸 문장을 **한 문장**으로 쓰세요.
+- 꼴: "<위치> 일대에 <사진에서 확인된 현황>(으)로 인한 <위험요인> 우려"
+  예) "시장4길 공설시장 주차장 출입부 일대에 방범 CCTV 미설치 및 가로등 간격 과다로 인한 야간 시야 확보 미흡 등 감시 사각지대 발생 우려"
+- <위치>: 위치 정보의 도로명·건물명 + 사진에 보이는 공간 요소(주차장 출입부, 골목 교차부, 상가 앞 보도, 교량 진입부 등).
+- <현황>: 문제로 답한 항목의 근거를 묶어 구체적으로(무엇이·어디에·얼마나). "노후"·"고장"처럼 상태를 말할 때는
+  사진에 그 흔적(녹·파손·탈락 등)이 보일 때만 쓰세요.
+- <위험요인>: 그 현황 때문에 생길 수 있는 위험을 명사형으로(감시 사각지대 발생, 보행자 차도 유입, 소방차 진입 지연, 추락 등).
+- 문제로 답한 항목이 없으면 "<위치> 일대 사진상 뚜렷한 위험요인 미확인" 으로 쓰세요.
+- 항목 답(findings)과 어긋나는 내용을 쓰지 마세요. 요약은 항목 답을 문장으로 묶은 것이어야 합니다.
+`;
+
 function focusBlock(focus) {
   if (!focus || !focus.keys.length) return '';
   return `
@@ -236,7 +310,7 @@ function focusBlock(focus) {
 `;
 }
 
-function buildPrompt(focus) {
+function buildPrompt(focus, location) {
   return `당신은 도시 공간의 안전 취약성을 진단하는 전문가입니다.
 제시된 거리 이미지 한 장을 보고, 아래 7대 사회재난 분야별 체크리스트의
 **모든 항목에 하나씩 답한 뒤**, 그 답을 근거로 분야별 취약성 점수를 매겨 주세요.
@@ -245,15 +319,18 @@ function buildPrompt(focus) {
 - **사진에 실제로 보이는 것만으로 판단하세요.** 이 진단 결과는 국비 신청의 근거
   문서가 되므로, 추측이 섞이면 안 됩니다.
 - 지역 통계, 일반적인 경향, 사진 밖의 정보로 판단하지 마세요.
-${focusBlock(focus)}
+  (아래 '위치 정보'는 판독 요약의 위치를 적는 데만 쓰는 예외입니다.)
+${focusBlock(focus)}${locationBlock(location)}
 ## 항목별로 답하는 방법
 각 분야의 findings 에 **그 분야의 모든 항목 번호를 하나도 빠짐없이** 넣으세요.
 항목마다 이렇게 답합니다.
 
 - item   : 항목 번호 (예: "CRM-1")
 - answer : "yes" = 질문에 해당함 / "no" = 해당하지 않음 / "unknown" = 사진으로 확인 불가
-- note   : 그렇게 판단한 근거를 사진에서 본 그대로 짧게
-           (예: "가로등 미설치", "우측 담장 높이 2m로 시야 차단", "화면에 안 나옴")
+- note   : 그렇게 판단한 근거를 사진에서 본 그대로, **어디에 · 무엇이 · 어떤 상태인지** 구체적으로
+           (예: "좌측 담장 높이 약 2m로 골목 안쪽 시야 차단", "전신주 부착 가로등 1기 외 조명 미확인",
+                "교차부 모서리 4곳 어디에도 비상벨·위치 안내표지 없음", "화면에 안 나옴")
+${SUMMARY_GUIDE}${spaceBlock()}
 
 **확인할 수 없으면 반드시 "unknown" 으로 답하세요.** 짐작해서 yes/no 를 고르면
 없는 시설물이 처방되거나 필요한 시설물이 빠집니다. 모른다고 답하는 것이
@@ -283,13 +360,13 @@ ${checklistText(focus)}
    핵심: 지적한 사람은 현장과 이미지를 직접 확인한 전문가이므로,
    AI의 이전 판독보다 그 지적을 우선합니다. AI가 자기 판단을 고집하면
    이 기능 자체가 무의미해집니다. */
-function buildRevisePrompt(previous, note, focus) {
+function buildRevisePrompt(previous, note, focus, location) {
   const prevText = CATEGORIES.map(function (cat) {
     const p = previous[cat.key] || {};
     const lines = (p.findings || []).map(function (f) {
       return `    ${f.id} ${f.answer}${f.note ? ' — ' + f.note : ''}`;
     }).join('\n');
-    return `[${cat.label}] ${p.score}점\n${lines || '    (항목 판독 없음)'}`;
+    return `[${cat.label}] ${p.score}점${p.summary ? `\n    요약: ${p.summary}` : ''}\n${lines || '    (항목 판독 없음)'}`;
   }).join('\n');
 
   return `앞서 당신이 이 거리 이미지를 판독한 결과에 대해, 현장을 아는 연구원이
@@ -312,7 +389,9 @@ ${note}
 - 여전히 사진에 보이는 것만으로 판단합니다. 지적 내용을 넘어서는 추측은 하지 마세요.
 - findings 에는 **모든 항목**을 다시 넣되, 지적이 닿는 항목만 고쳐서 적으세요.
   개선 시설물이 이 항목 답으로 정해지므로, 잘못 본 항목을 고치면 처방도 바뀝니다.
-
+- summary 도 고친 항목 답에 맞게 다시 쓰세요. 지적과 무관한 분야의 summary 는 그대로 두세요.
+- space_type 은 지적이 공간의 용도에 관한 것일 때만 바꾸세요.
+${locationBlock(location)}${SUMMARY_GUIDE}${spaceBlock()}
 ## 점수 기준 (0~100) — 점수가 높을수록 위험합니다
 ${SCORING_GUIDE}
 
@@ -351,8 +430,9 @@ function categorySchema(cat) {
         },
       },
       confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+      summary: { type: 'string', description: '위치 + 현황 + 위험요인 한 문장 (예: "○○길 일대에 … 미설치로 인한 … 우려")' },
     },
-    required: ['score', 'findings', 'confidence'],
+    required: ['score', 'findings', 'confidence', 'summary'],
     additionalProperties: false,
   };
 }
@@ -373,8 +453,19 @@ const RESULT_SCHEMA = {
       required: CATEGORIES.map(function (c) { return c.key; }),
       additionalProperties: false,
     },
+    /* 사진의 공간유형 (2026-10-27) — 적용사례 카드·서술형 사업의 분류용. 처방에는 쓰지 않습니다 */
+    space_type: {
+      type: 'object',
+      properties: {
+        primary: { type: 'string', enum: spaceTypeNames() },
+        secondary: { type: 'string', enum: spaceTypeNames().concat(['없음']) },
+        reason: { type: 'string', description: '사진의 어떤 요소로 판단했는지 한 문장' },
+      },
+      required: ['primary', 'secondary', 'reason'],
+      additionalProperties: false,
+    },
   },
-  required: ['image_quality', 'categories'],
+  required: ['image_quality', 'categories', 'space_type'],
   additionalProperties: false,
 };
 
@@ -556,6 +647,149 @@ async function handleOpinion(req, res) {
   });
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   서술형 맞춤형 사업 초안 (2026-10-27, AURI 정호경 요청 4 — 영천시 2차 사전진단서 예시안 형식)
+
+   [공간유형] ➤ 위험요인 카드마다
+     1. 현황 및 공간적 취약요인 상세 (○ (소제목) 설명)   2. 사업목적
+     3. 개선 및 맞춤형 사업 적용 방안 (필수 개별사업 (E)/(A)/(H) 설명 → 효과 · 복합 맞춤형 사업 점·선·면)
+
+   ★ 무엇을 AI 에게 맡기고 무엇을 맡기지 않는가
+     · 어떤 사업을 넣을지는 **이미 정해져서 옵니다** — 처방 규칙 엔진(rules.js) + 연계표(assets/space-risk.json).
+       measures[].name 을 스키마 enum 으로 묶어 목록 밖 사업을 쓸 수 없게 합니다.
+     · AI 는 정해진 사업을 위험요인과 엮어 **문장으로 쓰기만** 합니다.
+     · 위험요인–사업의 인과관계(연계표)는 지금 AKJ 임시 작성본입니다. AURI 자료가 오면 그 파일만 바뀝니다.
+       회신 메일(10/27)에 적은 대로, 그 자료가 있어야 서술의 정확도가 올라갑니다.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* 문체 예시 — AURI 영천시 2차 사전진단서 예시안(정호경, 2026-10-23) 카드 한 장에서 옮김 */
+const NARRATIVE_EXAMPLE = `[공간유형 1] 상업·유흥 밀집형 ➤ 위험요인 ② 감시체계 부족
+1. 현황 및 공간적 취약요인 상세
+○ (출입부 감시 공백) 시장 입구(시장4길 52)와 공설시장 주차장 입구(시장4길 30)에 방범용 CCTV가 미설치되어, 시장 출입 인원·차량에 대한 감시 공백 발생
+○ (범죄 억제력 부족) 출입부에 감시 안내표지판도 부재해 감시 인지에 따른 범죄 억제 효과가 낮고, 사건 발생 시 사후 추적·증거 확보 곤란
+2. 사업목적
+○ 시장·주차장 출입부의 감시 공백을 해소해 범죄 억제력을 높이고, CCTV와 순찰을 연계한 출입부 상시 감시체계 구축
+3. 개선 및 맞춤형 사업 적용 방안
+○ (필수 개별사업)
+(E) 시장·주차장 입구 방범용 CCTV 및 촬영 안내표지판 설치: 시장 입구와 공설시장 주차장 입구의 감시 공백을 해소하고 감시 인지 효과 강화
+(A) 출입부 거점 경찰·자율방범대 순찰동선 지정: 시장 입구·주차장 입구를 거점으로 CCTV 감시와 인적 순찰 연계
+→ 출입부 상시 감시와 순찰을 연계해 범죄 억제력을 높이고, 사건 발생 시 신속한 사후 추적 기반 확보
+○ (복합 맞춤형 사업) 영천공설시장 안심 보행길 조성사업(범죄·교통사고 복합)
+§ (점 단위) 시장·주차장 출입부 및 주요 교차부의 방범·긴급신고·교통안전시설 집중 개선
+§ (선 단위) 시장4길·시장2길의 조명·보행동선·시야 확보를 통한 연속적인 안심 보행길 조성
+§ (면 단위) 시장 상권·주차장·주변 생활권을 연계한 주민·상인·경찰 협력형 통합 안전관리체계 구축`;
+
+function narrativeSchema(rfIds, names) {
+  const str = { type: 'string' };
+  return {
+    type: 'object', additionalProperties: false, required: ['cards', 'combo', 'checks'],
+    properties: {
+      cards: {
+        type: 'array',
+        items: {
+          type: 'object', additionalProperties: false, required: ['rf', 'status', 'purpose', 'measures', 'effect'],
+          properties: {
+            rf: { type: 'string', enum: rfIds },
+            status: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['head', 'text'],
+              properties: { head: str, text: str } } },
+            purpose: str,
+            measures: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['name', 'text'],
+              properties: { name: { type: 'string', enum: names }, text: str } } },
+            effect: str,
+          },
+        },
+      },
+      combo: { type: 'object', additionalProperties: false, required: ['name', 'fields', 'point', 'line', 'area'],
+        properties: { name: str, fields: str, point: str, line: str, area: str } },
+      checks: { type: 'array', items: str },
+    },
+  };
+}
+
+function buildNarrativePrompt(ctx) {
+  const loc = ctx.location || {};
+  const cardText = (ctx.cards || []).map(function (c, i) {
+    return `── 카드 ${i + 1} (rf: ${c.rf}) ──
+공간유형: ${c.space || '미정'}${c.spaceDef ? ` — ${c.spaceDef}` : ''}
+안전 유형(분야): ${c.field}
+위험요인: ${c.name}
+위험요인–사업 연결 논리(연계표): ${c.logic || '(없음)'}
+사진 판독 요약: ${c.summary || '(없음)'}
+사진 판독 문제 항목:
+${(c.findings || []).map(function (f) { return `  - ${f.id} ${f.ask} → ${f.note || '(근거 없음)'}`; }).join('\n') || '  (없음)'}
+연계 사고 데이터(119 출동 통계): ${c.stats || '(없음)'}
+사업 후보 (이 순서대로 measures 에 모두 쓰십시오):
+${(c.measures || []).map(function (m) { return `  - [${m.hea || '-'}] ${m.name} (개입 단위 ${m.unit || '-'}, ${m.kind}) — 연결 근거: ${m.why || '-'}${m.overview ? ` / 사업 개요: ${m.overview}` : ''}`; }).join('\n')}`;
+  }).join('\n\n');
+
+  return `당신은 지역 안전진단 2차 사전진단서(현장보고서)를 쓰는 실무 연구원입니다.
+아래 자료로 카드마다 서술형 초안을 쓰고, 이 지점 전체를 묶는 복합 맞춤형 사업 하나를 쓰십시오.
+
+── 진단 지점 ──
+지자체: ${ctx.region || '-'}
+주소: ${loc.roadAddr || loc.addr || '-'}${loc.jibunAddr ? ` (지번 ${loc.jibunAddr})` : ''}
+도로명: ${loc.road || '-'} / 가까운 건물: ${loc.bldg || '-'} / 동: ${loc.dong || '-'}
+같은 지점에서 주의 이상으로 판독된 분야: ${(ctx.fields || []).join(', ') || '-'}
+처방 목록 전체(규칙 엔진이 고른 사업): ${(ctx.allProjects || []).join(', ') || '-'}
+
+── 카드 자료 ──
+${cardText}
+
+── 문체 예시 (AURI 영천시 예시안 카드, 문장 길이·종결 방식만 참고. 내용·지명·시설은 옮기지 말 것) ──
+${NARRATIVE_EXAMPLE}
+
+── 반드시 지킬 것 ──
+1. 사업은 이미 정해졌습니다. measures 에는 카드의 '사업 후보'를 **그 순서대로 빠짐없이** 쓰고, 목록에 없는 사업을 만들지 마십시오.
+   각 text 는 "무엇을 어디에 하는가 + 이 위험요인을 어떻게 줄이는가"를 한두 문장으로 씁니다(연결 근거를 이 지점 상황에 맞게 풀어 쓰기).
+2. status 는 1~2개. head 는 괄호 안에 들어갈 짧은 소제목(예: 신고 수단 부족), text 는 현황 설명입니다.
+   **사진 판독 문제 항목과 요약에 있는 사실만** 단정해서 쓰고, 사진으로 확인되지 않은 상황(야간 조도, 영업 시간, 고장 여부 등)은
+   "~ 우려", "~ 가능성" 으로 구분해 쓰십시오.
+3. 위치는 위 주소·도로명·건물명과 사진 판독 근거에 나온 표현만 쓰십시오. 새로운 도로명·건물명·업소명을 지어내지 마십시오.
+4. 숫자는 '연계 사고 데이터'에 있는 것만 쓰십시오. 개수·길이·금액(○개소, ○m, ○억)은 쓰지 말고 "현장 실측 후 확정"으로 두십시오.
+5. purpose 는 한 문장. effect 는 필수 개별사업을 함께 했을 때의 효과 한 문장(화살표 → 는 화면이 붙이므로 쓰지 말 것).
+6. combo 는 이 지점 전체에 하나입니다.
+   name: "<장소·생활권> 안심 <무엇> 조성사업" 꼴. fields: 함께 다루는 분야(예: "범죄·교통사고 복합" — 위 분야 목록에 있는 것만).
+   point/line/area: 각각 "<제목> – <설명>" 꼴 한 덩어리. 점 단위 = 지점 시설 집중 개선, 선 단위 = 구간 연속 정비,
+   면 단위 = 생활권 통합 관리·운영(주민·상인·경찰 등 협력). 사업 이름은 처방 목록·사업 후보에 있는 것만 언급하십시오.
+7. checks 에는 사진으로 확인할 수 없어 현장에서 확인해야 할 사항 3~5개를 짧게 쓰십시오.
+8. 문체는 행정 문서 개조식 명사형 종결(~ 부재, ~ 우려, ~ 확보, ~ 구축). 카드마다 rf 값을 그대로 돌려주십시오.`;
+}
+
+async function callNarrativeAI(promptText, schema) {
+  /* claude-opus-5-5 — 서술 초안은 새로 만든 호출이라 현재 기본 모델을 씁니다(진단·의견 초안은 claude-opus-5 그대로).
+     안전 분류기가 거절하면 서버 쪽 대체 모델로 다시 돌리도록 fallbacks:'default' 를 켭니다. */
+  const response = await anthropic.beta.messages.create({
+    model: 'claude-opus-5-5',
+    max_tokens: 16000,
+    betas: ['server-side-fallback-2026-07-01'],
+    fallbacks: 'default',
+    output_config: { effort: 'high', format: { type: 'json_schema', schema: schema } },
+    messages: [{ role: 'user', content: [{ type: 'text', text: promptText }] }],
+  });
+  if (response.stop_reason === 'refusal') throw new Error('AI가 작성을 거부했습니다.');
+  if (response.stop_reason === 'max_tokens') throw new Error('초안이 너무 길어 중간에 끊겼습니다. 카드 수를 줄여 다시 시도해 주세요.');
+  const block = response.content.find(function (b) { return b.type === 'text'; });
+  if (!block) throw new Error('AI 응답에서 초안을 찾지 못했습니다.');
+  console.log(`  · 사용 토큰: 입력 ${response.usage.input_tokens}, 출력 ${response.usage.output_tokens} · 모델 ${response.model}`);
+  return { out: JSON.parse(block.text), model: response.model };
+}
+
+async function handleNarrative(req, res) {
+  if (!(await guardApi(req, res))) return;
+  checkQuota(req);
+  const body = await readJsonBody(req);
+  const cards = Array.isArray(body.cards) ? body.cards.slice(0, 8) : [];
+  if (!cards.length) return sendJson(res, 400, { error: '초안을 쓸 위험요인 카드가 없습니다.' });
+  const rfIds = cards.map(function (c) { return String(c.rf || ''); }).filter(Boolean);
+  const names = [];
+  cards.forEach(function (c) { (c.measures || []).forEach(function (m) { if (m.name && !names.includes(m.name)) names.push(String(m.name)); }); });
+  if (!names.length) return sendJson(res, 400, { error: '카드에 사업 후보가 없습니다.' });
+
+  console.log(`[서술형 초안] 카드 ${cards.length}장 · 사업 후보 ${names.length}종 · ${(body.location && (body.location.road || body.location.addr)) || ''}`);
+  const { out, model } = await callNarrativeAI(buildNarrativePrompt(body), narrativeSchema(rfIds, names));
+  sendJson(res, 200, Object.assign({ model: model, at: new Date().toISOString() }, out));
+}
+
 /* ── 진단 요청 처리 ──────────────────────────────────────────────────── */
 /* ════════════════════════════════════════════════════════════════════
    개선 후 이미지 생성 (4단계 시각화)
@@ -592,7 +826,7 @@ const IMAGE_MODELS = [
   { id: 'gpt-image-2.5-sunburst',  provider: 'openai', label: 'GPT Image 2.5 Sunburst (편집 정밀)' },
   { id: 'gpt-image-2.5-flare',     provider: 'openai', label: 'GPT Image 2.5 Flare (빠름)' },
   { id: 'gpt-image-2',             provider: 'openai', label: 'GPT Image 2' },
-  { id: 'gpt-image-1',             provider: 'openai', label: 'GPT Image 1 (10/23 종료 예정)' },
+  /* gpt-image-1 은 OpenAI 가 2026-10-23 에 종료해 2026-10-27 에 뺐습니다 */
 ];
 
 function providerKey(provider) {
@@ -612,9 +846,31 @@ function usableImageModels() {
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || IMAGE_MODELS[0].id;
 
-function buildGeneratePrompt(facilities, note, fromGenerated, tags) {
+function buildGeneratePrompt(facilities, note, fromGenerated, tags, strict) {
   /* 번호 태그를 켜면 목록에 번호를 붙여 모델이 그 번호를 그리게 합니다 */
   const list = facilities.map(function (f, i) { return tags ? `${i + 1}. ${f}` : `- ${f}`; }).join('\n');
+  /* ★ 직접 입력 (2026-10-27, AURI 정호경 요청 5) — 연구원이 적은 사업만 그리고 그 밖은 추가하지 않게 합니다.
+     처방 목록 모드에도 "목록 밖 시설 금지" 한 줄(ONLY_THESE)은 들어갑니다 — 처방은 규칙 엔진이 정하고
+     이미지 모델은 그리기만 한다는 원칙(CLAUDE.md 6절)과 같은 말입니다. */
+  const onlyThese = `
+- Add exactly the ${facilities.length} item(s) listed — nothing else. Do not add any other facility,
+  sign, road marking, pole, light, camera, fence, bollard, mirror, bench or planter, even if it would
+  make the street safer.`;
+  const strictBlock = strict ? `
+
+USER-SPECIFIED ITEMS — a researcher chose exactly these items for this site:
+- The items are written in Korean. Render each one as a physical change in the photo.
+- If an item is maintenance or repair of something already in the photo ("정비", "보수", "교체",
+  "도색"), improve that existing object in place (repair, clean, repaint or replace the damaged part)
+  instead of adding a new object of another kind.
+- If an item is a sign or guide marking ("안내표시", "안내표지", "유도표시"), draw a small standard
+  Korean public sign or road-surface marking with simple pictograms; keep any lettering short and do
+  not invent place names or phone numbers.
+- A sign that points to another facility (e.g. "비상벨 위치 안내표시" = a sign showing where the
+  emergency bell is) is ONLY the sign. Do not also draw the facility it points to (the bell box,
+  camera, extinguisher …) unless that facility is itself one of the listed items.
+- If an item cannot be shown without changing the rest of the scene, leave it out rather than
+  altering the background.` : '';
   /* ★ 번호 태그 (2026-10-20 실무회의) — "어떤 사업이 적용됐는지" 글 태그는 모델이 안정적으로 못 그립니다.
      번호 원만 이미지 안에 두고 설명은 이미지 밖 범례로 뺍니다(채택안). 사람이 지시선을 그리는 중간 단계는 넣지 않습니다. */
   const tagBlock = tags ? `
@@ -685,7 +941,7 @@ PRESERVE THE ORIGINAL — this is the most important requirement:
 - If you cannot add a facility without changing the rest of the scene, leave it out.
 
 FACILITIES TO ADD
-${list}
+${list}${onlyThese}${strictBlock}
 
 KEEP THE FACILITIES IDENTIFIABLE — reviewers need to find the change by comparing the
 two photos. Within the "preserve the original" limits above:
@@ -722,12 +978,13 @@ The scene is a Korean urban street.`;
 /* 어느 제공사냐에 따라 호출 방식이 다릅니다.
    지시문(buildGeneratePrompt)과 돌려주는 모양은 양쪽이 똑같으므로,
    화면과 나머지 코드는 어느 모델인지 알 필요가 없습니다. */
-async function callImageAI(mediaType, base64Data, facilities, model, note, fromGenerated, tags) {
+async function callImageAI(mediaType, base64Data, facilities, model, note, fromGenerated, tags, strict) {
   const def = imageModelById(model);
+  const prompt = buildGeneratePrompt(facilities, note, fromGenerated, tags, strict);
   if (def && def.provider === 'openai') {
-    return callOpenAIImage(mediaType, base64Data, facilities, model, note, fromGenerated, tags);
+    return callOpenAIImage(mediaType, base64Data, prompt, model);
   }
-  return callGeminiImage(mediaType, base64Data, facilities, model, note, fromGenerated, tags);
+  return callGeminiImage(mediaType, base64Data, prompt, model);
 }
 
 /* ── OpenAI (GPT Image) ───────────────────────────────────────────────
@@ -736,13 +993,13 @@ async function callImageAI(mediaType, base64Data, facilities, model, note, fromG
 
    input_fidelity: 'high' — 원본을 최대한 유지하라는 지시입니다.
    이 앱의 판단 기준이 "원본 보존"이라 반드시 켭니다. */
-async function callOpenAIImage(mediaType, base64Data, facilities, model, note, fromGenerated, tags) {
+async function callOpenAIImage(mediaType, base64Data, prompt, model) {
   const ext = mediaType === 'image/jpeg' ? 'jpg' : mediaType === 'image/webp' ? 'webp' : 'png';
   const blob = new Blob([Buffer.from(base64Data, 'base64')], { type: mediaType });
 
   const form = new FormData();
   form.append('model', model);
-  form.append('prompt', buildGeneratePrompt(facilities, note, fromGenerated, tags));
+  form.append('prompt', prompt);
   form.append('image', blob, `input.${ext}`);
   form.append('n', '1');
   form.append('size', 'auto');            // 원본 비율에 맞춰 알아서
@@ -790,7 +1047,7 @@ async function listOpenAIImageModels() {
 }
 
 /* ── Google (Gemini) ────────────────────────────────────────────────── */
-async function callGeminiImage(mediaType, base64Data, facilities, model, note, fromGenerated, tags) {
+async function callGeminiImage(mediaType, base64Data, prompt, model) {
   const url = `${GEMINI_BASE}/models/${model}:generateContent?key=${GEMINI_KEY}`;
   const res = await fetch(url, {
     method: 'POST',
@@ -799,7 +1056,7 @@ async function callGeminiImage(mediaType, base64Data, facilities, model, note, f
       contents: [{
         parts: [
           { inline_data: { mime_type: mediaType, data: base64Data } },
-          { text: buildGeneratePrompt(facilities, note, fromGenerated, tags) },
+          { text: prompt },
         ],
       }],
       generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
@@ -876,11 +1133,16 @@ async function handleGenerate(req, res) {
   const fromGenerated = !!body.fromGenerated;
   /* ★ 번호 태그 (2026-10-20 실무회의) — 시설마다 작은 번호 원만 이미지에, 설명은 화면·문서의 범례로 */
   const tags = !!body.tags;
+  /* ★ 직접 입력 (2026-10-27) — 연구원이 적은 사업만. 한 줄 120자 · 8개까지 */
+  const strict = !!body.strict;
+  if (strict) {
+    facilities.splice(0, facilities.length, ...facilities.map(function (f) { return String(f).slice(0, 120); }).slice(0, 8));
+  }
 
   const [, mediaType, base64Data] = match;
-  console.log(`[이미지 생성] ${def.provider} ${model} / 시설물 ${facilities.length}종: ${facilities.join(', ')}`);
+  console.log(`[이미지 생성] ${def.provider} ${model} / ${strict ? '직접 입력 ' : ''}시설물 ${facilities.length}종: ${facilities.join(', ')}`);
 
-  const out = await callImageAI(mediaType, base64Data, facilities, model, note, fromGenerated, tags);
+  const out = await callImageAI(mediaType, base64Data, facilities, model, note, fromGenerated, tags, strict);
   console.log(`  · 생성 완료 (${Math.round(out.dataUrl.length / 1024)}KB)`);
   sendJson(res, 200, Object.assign({ model: model }, out));
 }
@@ -907,10 +1169,11 @@ async function handleDiagnose(req, res, isRevise) {
       return sendJson(res, 400, { error: '어디가 잘못되었는지 알려 주셔야 다시 판독할 수 있습니다.' });
     }
     console.log(`[재판독 요청] 지적: ${String(body.note).slice(0, 80)}`);
-    promptText = buildRevisePrompt(body.previous, body.note, focus);
+    promptText = buildRevisePrompt(body.previous, body.note, focus, body.location);
   } else {
-    console.log(`[진단 요청] ${mediaType}, ${Math.round(base64Data.length / 1024)}KB · 중점 분야 ${focus ? focus.label + ' ' + focus.labels.join('·') : '없음(지자체 미확인)'}`);
-    promptText = buildPrompt(focus);
+    console.log(`[진단 요청] ${mediaType}, ${Math.round(base64Data.length / 1024)}KB · 중점 분야 ${focus ? focus.label + ' ' + focus.labels.join('·') : '없음(지자체 미확인)'}` +
+                ` · 위치 ${(body.location && (body.location.road || body.location.addr)) || '없음'}`);
+    promptText = buildPrompt(focus, body.location);
   }
 
   /* 진단 실행 기록 — 누가 · 언제 · 어느 지점 (8/25 협의 "접근통제").
@@ -939,8 +1202,13 @@ async function handleDiagnose(req, res, isRevise) {
         .filter(function (f) { return f.answer === 'unknown'; })
         .map(function (f) { return f.ask; }),
       confidence: r.confidence,
+      /* 위치 + 현황 + 위험요인 한 문장 (2026-10-27, AURI 요청 3) — 사전진단서·서술형 사업에 그대로 옮겨 씁니다 */
+      summary: String(r.summary || '').trim(),
     };
   }
+  const st = raw.space_type || {};
+  const space = st.primary ? { primary: st.primary, secondary: st.secondary && st.secondary !== '없음' ? st.secondary : '',
+                               reason: String(st.reason || '').trim() } : null;
 
   console.log(
     '  · 결과: ' +
@@ -961,8 +1229,9 @@ async function handleDiagnose(req, res, isRevise) {
     })
     .filter(Boolean);
   if (skipped.length) console.log(`  · 답하지 않은 항목(확인 불가로 처리): ${skipped.join(', ')}`);
+  if (space) console.log(`  · 공간유형: ${space.primary}${space.secondary ? ' + ' + space.secondary : ''} — ${space.reason.slice(0, 60)}`);
   sendJson(res, 200, {
-    imageQuality: raw.image_quality, categories: categories,
+    imageQuality: raw.image_quality, categories: categories, space: space,
     focus: focus ? { region: focus.region, label: focus.label, keys: focus.keys, labels: focus.labels } : null,
   });
 }
@@ -1276,6 +1545,8 @@ const server = http.createServer(async function (req, res) {
       await handleGenerate(req, res);         // 개선 후 이미지 생성
     } else if (req.method === 'POST' && req.url === '/api/opinion') {
       await handleOpinion(req, res);          // 진단서 서술 문단 초안
+    } else if (req.method === 'POST' && req.url === '/api/narrative') {
+      await handleNarrative(req, res);        // 서술형 맞춤형 사업 초안 (2026-10-27)
     } else if (req.method === 'GET' && req.url === '/api/models') {
       /* 화면의 모델 선택 상자가 이 목록으로 채워집니다.
          키가 없는 제공사의 모델은 애초에 내려보내지 않습니다.
