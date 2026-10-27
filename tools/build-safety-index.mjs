@@ -26,6 +26,18 @@ const YEARS = ['2025', '2024'];   // 엑셀에 있는 연도. 2021~2023 은 아�
 /* ★ 5개년 등급 (2026-10-21 담당자) — AURI 사전분석 보고서 전체본(남해·부천·사천·영천)의 "<X시 안전분야별 년도별 안전등급>" 표
    (data/stats/auri-reports/<지역>.json 의 blocks, hwpx 원문). 약식본 지자체는 그 표가 없어 엑셀의 2025·2024 만 있습니다 */
 const AURI_DIR = path.join(ROOT, 'data/stats/auri-reports');
+/* ★ 중점관리분야 직접 지정 (2026-10-27, 10/26 회의 "3개로 고정하지 않음") — tools/config/focus-override.json.
+   AURI 가 41개 지자체 중점관리분야(안)를 확정해 보내면 거기에 적습니다. 적힌 지자체만 규칙 대신 그 목록을 씁니다(개수 제한 없음). */
+const OVERRIDE_FILE = path.join(ROOT, 'tools/config/focus-override.json');
+const OVERRIDE = fs.existsSync(OVERRIDE_FILE) ? (JSON.parse(fs.readFileSync(OVERRIDE_FILE, 'utf8')).regions || {}) : {};
+function overrideFor(slug) {
+  const list = OVERRIDE[slug];
+  if (!Array.isArray(list) || !list.length) return null;
+  const keys = list.map((x) => (LABEL[x] ? x : KO2KEY[String(x).trim()])).filter(Boolean);
+  const bad = list.filter((x) => !LABEL[x] && !KO2KEY[String(x).trim()]);
+  if (bad.length) console.warn('⚠ focus-override', slug, '— 모르는 분야:', bad.join(', '));
+  return keys.length ? [...new Set(keys)] : null;
+}
 function auriYearGrades(slug) {
   const f = path.join(AURI_DIR, slug + '.json');
   if (!fs.existsSync(f)) return null;
@@ -86,9 +98,10 @@ for (const r of rows.slice(4)) {
   weights.industrial = INDUSTRIAL_W;
   /* 하위 등급 분야 순위 — 자살 제외하고 2025 ↓, 2024 ↓, 분야 순 */
   const ranked = FIELDS.filter(f => f !== 'suicide').sort((a, b) => (g25[b] - g25[a]) || (g24[b] - g24[a]) || (FIELDS.indexOf(a) - FIELDS.indexOf(b)));
-  const focusByIndex = ['suicide', ...ranked.slice(0, 2)];
+  const forced = overrideFor(slug);
+  const focusByIndex = forced || ['suicide', ...ranked.slice(0, 2)];
   const lowGrades = FIELDS.filter(f => grade(f) >= 4);
-  const same = kangwon.length === 3 && focusByIndex.every(f => kangwon.includes(f));
+  const same = kangwon.length === focusByIndex.length && focusByIndex.every(f => kangwon.includes(f));
   out.regions[slug] = {
     label: regions.find(x => x.region === slug).label,
     grades,                       // 연도 → 분야 → 등급 (2021~2023 은 AURI 보고서 전체본에만)
@@ -96,7 +109,8 @@ for (const r of rows.slice(4)) {
     weights,
     score1,                       // 연도 평균 등급 ÷ 5 — 복합위험지수의 분야 가중
     ranked,                       // 자살 뺀 5개 분야, 나쁜 등급부터
-    focusByIndex,                 // 자살 + 하위 2개 = 지수 기준 중점 3분야
+    focusByIndex,                 // 자살 + 하위 2개 = 지수 기준 중점 분야 (focus-override.json 에 적힌 지자체는 그 목록 — 개수 제한 없음)
+    focusSource: forced ? 'override' : 'index',
     lowGrades,                    // 4·5등급인 분야
     kangwonFocus: kangwon,        // 강원대 공간분석 기반 확정 3분야
     matchesKangwon: same,

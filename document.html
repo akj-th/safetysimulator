@@ -508,7 +508,7 @@ function auriCh1Fallback() {
   if (c && c.bullets.length) {
     const isFocus = (b) => _focus.some((f) => f.label === b.tag);
     body = `
-    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : 사고 빈도와 정책적 시급성을 종합 분석하여 <b>${esc(focusLine)}</b> 3개 분야 선정</p>
+    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : 사고 빈도와 정책적 시급성을 종합 분석하여 <b>${esc(focusLine)}</b> ${_focus.length}개 분야 선정</p>
     ${c.bullets.filter(isFocus).map(auriBullet).join('')}
     <p class="bullet" style="margin-top:14px"><b>□ 복합위험지구</b></p>
     ${c.bullets.filter((b) => !isFocus(b)).map(auriBullet).join('')}
@@ -529,7 +529,7 @@ function auriCh1Fallback() {
     });
     const areaHa = _data.surveyArea && _data.surveyArea.areaHa;
     body = `
-    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : 지역안전지수 하위 등급 기준 <b>${esc(focusLine)}</b> 3개 분야(자살 포함)</p>
+    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : 지역안전지수 하위 등급 기준 <b>${esc(focusLine)}</b> ${_focus.length}개 분야(자살 포함)</p>
     ${rows.map((r) => `<p class="bullet"><span class="tag">(${esc(r.f.label)})</span> 3개년 구급출동 ${r.total.toLocaleString()}건${r.ratio ? `, 41개 지자체 평균의 ${r.ratio}배` : ''}${r.inside != null ? `, 복합위험지구 안 ${r.inside.toLocaleString()}건` : ''}</p>`).join('')}
     <p class="bullet" style="margin-top:14px"><b>□ 복합위험지구</b></p>
     <p class="bullet"><span class="tag">(대상지)</span> ${esc(_data.label)} 조사지 약 ${areaHa ? (areaHa / 100).toFixed(2) + '㎢' : '-'}${_picked.dong ? ` (진단 지점: ${esc(_picked.dong)})` : ''}</p>
@@ -1048,7 +1048,7 @@ function hotspotCards() {
   <section class="chapter">
     <h2 class="h-chapter">별첨 5. 주요 거점별 진단 카드 <span class="h-sub">밀도 높은 중심지 기준</span></h2>
     <p class="note-under" style="margin-bottom:10px">* 복합위험지구 밖 지점도 활용할 수 있도록, 119 출동 밀도가 몰린 주요 거점마다 행정동 · 취약 요인(H/E/A) · 맞춤형 사업 · 개선 전/후 예시를 정리합니다.
-      거점 = 중점 3분야 밀도의 상위 지점 · 취약 요인 = 동별 HEA(지역안전지수 가중) · 사업 = 분야별 표준 사업 목록.</p>`;
+      거점 = 중점 분야 밀도의 상위 지점 · 취약 요인 = 동별 HEA(지역안전지수 가중) · 사업 = 분야별 표준 사업 목록.</p>`;
   if (!list.length) return head + '<p class="bullet">이 지자체는 주요 거점 자료가 없습니다.</p></section>';
   const beforeNow = (() => { const b = sessionStorage.getItem('auri_input_image'); return b ? (JSON.parse(b).dataUrl || null) : null; })();
   const label = (k) => AuriSafetyIndex.LABEL[k] || k;

@@ -587,7 +587,7 @@ async function rebuildHotspots() {
 
 function buildHotspotRow(host) {
   _hotRow = makeLayerRow('주요 거점', '#1F2A33', '밀도 상위 지점 · 누르면 진단 지점으로');
-  _hotRow.title = '중점 3분야 밀도(강원대 커널밀도, 지자체 p99 기준)가 함께 높은 지점을 반경 400m 안 최대값으로 뽑은 것.\n'
+  _hotRow.title = '중점 분야 밀도(강원대 커널밀도, 지자체 p99 기준)가 함께 높은 지점을 반경 400m 안 최대값으로 뽑은 것.\n'
                 + '조사지(복합위험지구) 밖도 포함합니다. 거점을 누르면 그 자리가 선택됩니다.';
   _hotRow.addEventListener('click', toggleHotspots);
   host.appendChild(_hotRow);
@@ -1005,7 +1005,8 @@ function renderHeaTable() {
     }).join('');
   }
   body.innerHTML = '<div class="hea-table-wrap"><table class="hea-table dense">' + head + '<tbody>' + trs + '</tbody></table></div>'
-    + '<p class="hea-foot">* H = 피해집단 편중, E = 물적환경 회귀분석 기여(노후·도로·시설밀도), A = 반복 발생·야간 비중·장소 편중<br>'
+    + '<p class="hea-foot">* HEA 진단 = 평균보다 사고가 많이 나는 인적(H)·환경(E)·대응(A) 특성을 취약으로 보고, 그 취약점에 맞춰 사업을 설계하는 방식<br>'
+    + '* H = 피해집단 편중, E = 물적환경 회귀분석 기여(노후·도로·시설밀도), A = 반복 발생·야간 비중·장소 편중<br>'
     + '* "-" = 산출 자료 없음: H·A 는 해당 동의 분야 출동 10건 미만(표본 부족) · E_1 노후·E_2 도로는 기초자료(노후건축물·도로폭) 미확보로 전 지자체 비어 있음 · E_3 시설은 강원대 회귀분석이 있는 7개 지자체만<br>'
     + '* HEA 지수 = 각 지표의 평균 점수<br>'
     + '* 관리등급 = HEA 지수 75 이상 중점관리 · 50 관리 · 25 관찰 · 그 외 안전<br>'
@@ -1256,8 +1257,31 @@ function showLocalRisk(lat, lng) {
 
 function startDiagnosis() {
   if (!picked) { alert('먼저 지도에서 위치를 선택해 주세요.'); return; }
+  /* ★ 2026-10-27 — 다른 지점으로 새 진단을 시작하면 앞 지점의 사진·판독·처방·개선 이미지·문서 글이 이 탭에 남아
+     새 진단과 섞였습니다(문서에 앞 지점 사진이 실리는 등). 30m 넘게 옮겼고 앞 자료가 있으면 지울지 묻습니다.
+     취소하면 예전처럼 그대로 이어 갑니다(같은 지점을 조금 옮겨 다시 고를 때). */
+  try {
+    const prev = JSON.parse(sessionStorage.getItem('auri_picked_location') || 'null');
+    const keys = (window.AuriProjects && AuriProjects.SAVE_KEYS) || [];
+    const hasWork = keys.some(function (k) { return k !== 'auri_picked_location' && sessionStorage.getItem(k); });
+    const moved = prev && prev.lat != null ? haversineM(Number(prev.lat), Number(prev.lng), Number(picked.lat), Number(picked.lng)) : 0;
+    if (prev && hasWork && moved > 30 &&
+        confirm(`앞서 다른 지점(${prev.addr || '주소 미상'})에서 진행한 진단 자료가 이 탭에 남아 있습니다.\n` +
+                `새 지점으로 시작하면서 앞 자료(사진·판독·처방·개선 이미지·문서 글)를 지울까요?\n\n` +
+                `취소를 누르면 지우지 않고 그대로 이어 갑니다. 저장해 둔 프로젝트는 지워지지 않습니다.`)) {
+      keys.forEach(function (k) { sessionStorage.removeItem(k); });
+      sessionStorage.removeItem('auri_project');       // 열려 있던 프로젝트와의 연결도 끊음 (덮어쓰기 방지)
+    }
+  } catch (e) { /* 확인 실패 — 예전처럼 이어 감 */ }
   sessionStorage.setItem('auri_picked_location', JSON.stringify(picked));
   window.location.href = 'diagnosis.html';
+}
+/* 두 위경도 사이 거리(m) */
+function haversineM(lat1, lng1, lat2, lng2) {
+  const R = 6371000, rad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * rad, dLng = (lng2 - lng1) * rad;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
 }
 </script>
 </body>

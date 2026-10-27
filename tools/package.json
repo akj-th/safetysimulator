@@ -23,7 +23,9 @@
     "batch-generate": "node batch-generate.mjs",
     "auri-reports": "node build-auri-reports.mjs",
     "overlay": "node overview-map/svg-to-overlay.mjs",
-    "space-risk-export": "node export-space-risk.mjs"
+    "space-risk-export": "node export-space-risk.mjs",
+    "focus": "node build-safety-index.mjs && node apply-focus-index.mjs",
+    "focus-all": "node build-safety-index.mjs && node apply-focus-index.mjs && node --max-old-space-size=8192 build-dong-hea.mjs && node build-field-survey.mjs && node build-hotspots.mjs"
   },
   "dependencies": {
     "proj4": "^2.21.0"

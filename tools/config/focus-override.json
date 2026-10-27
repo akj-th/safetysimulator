@@ -1,0 +1,6 @@
+{
+  "title": "지자체별 중점관리분야 직접 지정 (AURI 41개 지자체 중점관리분야(안) 반영 자리)",
+  "how": "regions 에 지자체 열쇠(예: yeongcheon)와 분야 목록을 적으면 '자살 + 지역안전지수 하위 2개' 규칙 대신 그 목록을 씁니다. 분야는 열쇠(suicide·traffic·fire·crime·life·infection·industrial) 또는 한글(자살·교통사고·화재·범죄·생활안전·감염병·산업재해). 개수 제한 없음(10/26 회의: 3개 고정 아님). 바꾼 뒤 순서: node tools/build-safety-index.mjs → node tools/apply-focus-index.mjs → npm run dong-hea → node tools/build-field-survey.mjs → npm run hotspots (tools/ 에서)",
+  "source": "",
+  "regions": {}
+}

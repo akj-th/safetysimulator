@@ -1,6 +1,6 @@
 {
  "source": "지역별 안전유형 3개 추출_강원대.xlsx (수정본 시트 · 강원대)",
- "generatedAt": "2026-10-22",
+ "generatedAt": "2026-10-27",
  "years": [
   "2025",
   "2024"
@@ -64,6 +64,7 @@
     "fire",
     "traffic"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -132,6 +133,7 @@
     "traffic",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "life",
@@ -198,6 +200,7 @@
     "crime",
     "traffic"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "crime",
     "suicide"
@@ -290,6 +293,7 @@
     "crime",
     "infection"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "crime"
    ],
@@ -354,6 +358,7 @@
     "infection",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "fire",
     "life",
@@ -448,6 +453,7 @@
     "traffic",
     "fire"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -515,6 +521,7 @@
     "traffic",
     "fire"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -609,6 +616,7 @@
     "infection",
     "traffic"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -675,6 +683,7 @@
     "traffic",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "life"
@@ -740,6 +749,7 @@
     "infection",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "life",
@@ -833,6 +843,7 @@
     "traffic",
     "fire"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -901,6 +912,7 @@
     "infection",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "life",
@@ -968,6 +980,7 @@
     "traffic",
     "fire"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -1036,6 +1049,7 @@
     "infection",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "life",
     "suicide",
@@ -1102,6 +1116,7 @@
     "crime",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "crime",
     "life",
@@ -1169,6 +1184,7 @@
     "crime",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "fire",
     "crime",
@@ -1237,6 +1253,7 @@
     "fire",
     "infection"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -1304,6 +1321,7 @@
     "traffic",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "life",
@@ -1371,6 +1389,7 @@
     "infection",
     "crime"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "crime",
     "suicide",
@@ -1437,6 +1456,7 @@
     "traffic",
     "crime"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "crime"
@@ -1502,6 +1522,7 @@
     "fire",
     "traffic"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -1568,6 +1589,7 @@
     "fire",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "fire",
     "life"
@@ -1633,6 +1655,7 @@
     "infection",
     "traffic"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "suicide",
     "infection"
@@ -1698,6 +1721,7 @@
     "traffic",
     "infection"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "infection"
@@ -1763,6 +1787,7 @@
     "life",
     "traffic"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "crime",
@@ -1831,6 +1856,7 @@
     "infection",
     "traffic"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "suicide",
@@ -1897,6 +1923,7 @@
     "crime",
     "fire"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "crime",
     "suicide"
@@ -1962,6 +1989,7 @@
     "infection",
     "traffic"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -2030,6 +2058,7 @@
     "fire",
     "infection"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -2096,6 +2125,7 @@
     "infection",
     "fire"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "fire",
     "suicide",
@@ -2162,6 +2192,7 @@
     "fire",
     "traffic"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -2228,6 +2259,7 @@
     "traffic",
     "fire"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -2296,6 +2328,7 @@
     "life",
     "fire"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "fire",
     "life"
@@ -2361,6 +2394,7 @@
     "traffic",
     "fire"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -2429,6 +2463,7 @@
     "traffic",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "life",
@@ -2495,6 +2530,7 @@
     "crime",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "crime",
     "life",
@@ -2561,6 +2597,7 @@
     "traffic",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "life",
@@ -2628,6 +2665,7 @@
     "traffic",
     "life"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "life",
@@ -2695,6 +2733,7 @@
     "infection",
     "traffic"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "fire",
@@ -2762,6 +2801,7 @@
     "life",
     "traffic"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "life",
@@ -2828,6 +2868,7 @@
     "life",
     "infection"
    ],
+   "focusSource": "index",
    "lowGrades": [
     "traffic",
     "life",

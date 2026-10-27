@@ -550,7 +550,7 @@ async function renderSafetyIndexLine(region, dongName, picked) {
     if (!el) { el = document.createElement('p'); el.id = 'siLine'; el.className = 'note'; host.appendChild(el); }
     el.innerHTML = `<b>지역안전지수</b> ${ys[0]} 등급 — ` +
       AuriSafetyIndex.FIELDS.filter((f) => f !== 'industrial').map((f) => { const g = si.grades[ys[0]][f]; return `${L[f]} <b style="color:${AuriSafetyIndex.gradeColor(g)}">${g == null ? '-' : g}</b>`; }).join(' · ') +
-      `<br>지역안전지수 기준 중점 3분야 <b>${si.focusByIndex.map((f) => L[f]).join('·')}</b>` +
+      `<br>지역안전지수 기준 중점 분야 <b>${si.focusByIndex.map((f) => L[f]).join('·')}</b>` +
       (d && d.totalPct != null ? ` · ${dongName} 가중 종합 <b>${d.totalPct}</b>(취약 ${d.weak.join('·')}, 지자체 안 상대 순위)` : '');
   } catch (e) { /* 표시용 — 실패해도 리포트는 그대로 */ }
 }

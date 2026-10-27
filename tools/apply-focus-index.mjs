@@ -34,7 +34,9 @@ export function applyFocusIndex({ quiet = false } = {}) {
     if (!d.focusTypesKangwon) d.focusTypesKangwon = d.focusTypes;
     if (!r.focusTypesKangwon) r.focusTypesKangwon = r.focusTypes;
     d.focusTypes = s.focusByIndex.map((k) => { const c = d.categories && d.categories[k]; return { key: k, label: LABEL[k] || k, sample: c && c.count ? { n: c.count.inside, pct: c.count.share } : null }; });
-    d.focusSource = '지역안전지수 하위 등급 기준(자살 고정 + 하위 2분야) — data/stats/safety-index.json';
+    d.focusSource = s.focusSource === 'override'
+      ? '직접 지정(tools/config/focus-override.json — AURI 중점관리분야) — data/stats/safety-index.json'
+      : '지역안전지수 하위 등급 기준(자살 고정 + 하위 2분야) — data/stats/safety-index.json';
     r.focusTypes = d.focusTypes.map((t) => t.label);
     fs.writeFileSync(regPath, JSON.stringify(d, null, 1));
     changed++;
@@ -43,7 +45,7 @@ export function applyFocusIndex({ quiet = false } = {}) {
   }
   idx.focusSource = '지역안전지수 하위 등급 기준 (tools/apply-focus-index.mjs)';
   fs.writeFileSync(idxPath, JSON.stringify(idx, null, 1));
-  if (!quiet) console.log(`→ 중점 3분야를 지역안전지수 기준으로 ${changed}곳 갱신`);
+  if (!quiet) console.log(`→ 중점 분야를 지역안전지수 기준(또는 직접 지정)으로 ${changed}곳 갱신`);
   return changed;
 }
 
