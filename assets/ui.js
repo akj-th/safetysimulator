@@ -153,7 +153,7 @@ const AURI_ICON_EDIT =
    ── 로고 바꾸기 ───────────────────────────────────────────────────
    발표 주관 기관에 따라 아래 한 줄만 바꾸면 5개 화면에 모두 반영됩니다.
 
-     AURI 주관    'assets/logo_auri.svg'   가로형 6.46 : 1
+     AURI 주관    'assets/logo-auri.svg'   가로형 6.46 : 1
      ATELIER KJ   'assets/logo.svg'        정사각  1 : 1
 
    ⚠ 두 로고는 가로세로비가 크게 달라서, 파일을 바꿀 때는
@@ -162,7 +162,7 @@ const AURI_ICON_EDIT =
      정사각 로고보다 높게 잡습니다. (현재 32px / 정사각일 때는 22px)
 
    지정한 파일을 못 찾으면 같은 이름의 .png → 글자 로고 순으로 대체됩니다. */
-const AURI_BRAND_LOGO = 'assets/logo_auri.svg';
+const AURI_BRAND_LOGO = 'assets/logo-auri.svg';
 const AURI_BRAND_TEXT = '건축공간연구원 AURI';
 const AURI_BRAND_SUB = '안전사업지구 진단 시뮬레이터';
 

@@ -100,7 +100,7 @@
 | `rx-editor.js` | 처방 목록 표시·편집(리포트·시각화 공용) |
 | `doc-edit.js` · `doc-map.js` · `site-photo.js` · `hwpx-export.js` | 문서 빈칸·AI 초안 · 문서 지도(브이월드) · 현장 사진(EXIF) · 한글 내려받기 |
 | `auth.js` · `projects.js` | 계정 줄 · 프로젝트 저장 창/열기(`SAVE_KEYS`, 열 때 `cleanValue` 로 이미지 칸 확인) |
-| `logo_auri.svg` · `logo.svg` | AURI 로고(지금) · ATELIER KJ 로고 |
+| `logo-auri.svg` · `logo.svg` | AURI 로고(지금) · ATELIER KJ 로고 |
 
 ### 서버 (`server/`)
 | 파일 | 역할 |
