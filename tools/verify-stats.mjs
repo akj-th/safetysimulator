@@ -141,7 +141,9 @@ for (const entry of index.regions) {
   if (dongSum !== d.totals.region) fail(`${entry.region}: 읍면동 합계 ${dongSum} ≠ 총계 ${d.totals.region}`);
 
   if (!d.surveyArea) fail(`${entry.region}: 조사지 경계가 없습니다`);
-  if (!d.focusTypes || d.focusTypes.length !== 3) fail(`${entry.region}: 확정 안전유형이 3개가 아닙니다`);
+  /* 중점분야 — 지수 기준이면 3개(자살 + 하위 2), tools/config/focus-override.json 으로 정한 곳은 개수 제한 없음 (2026-10-27) */
+  const want3 = !String(d.focusSource || '').includes('직접 지정');
+  if (!d.focusTypes || !d.focusTypes.length || (want3 && d.focusTypes.length !== 3)) fail(`${entry.region}: 중점분야가 ${want3 ? '3개가' : '1개 이상이'} 아닙니다 (${(d.focusTypes || []).length}개)`);
   else for (const t of d.focusTypes) if (!t.key) fail(`${entry.region}: 안전유형 "${t.label}" 을 분야 key 로 바꾸지 못했습니다`);
 
   /* 격자 집계와 통계의 총건수가 같아야 합니다 */
@@ -162,6 +164,37 @@ for (const entry of index.regions) {
   if (bad.length) { lowRegions++; low += bad.length; console.log(`  ${d.shortLabel.padEnd(10)} ${bad.join(' · ')}`); }
 }
 console.log(`\n  중점분야 중 표본 부족: ${lowRegions}개 지자체 / ${low}개 분야`);
+
+/* ── ⑤ 파일 사이 일치 (2026-10-27 점검) ─────────────────────────────
+   중점분야를 바꾸면(지수·직접 지정) 통계 → 동별 HEA → 현장평가 → 거점 순으로 다시 만들어야 합니다(npm run focus-all).
+   한 단계라도 빠지면 화면마다 다른 분야를 말하게 되므로 여기서 잡습니다. */
+console.log('\n\n⑤ 파일 사이 일치 — 지수 기준 분야 = 통계 = 동별 HEA = 거점 · 현장평가 = 동 이름\n');
+const readJ = (p) => (fs.existsSync(path.join(ROOT, p)) ? JSON.parse(fs.readFileSync(path.join(ROOT, p), 'utf8')) : null);
+const si = readJ('data/stats/safety-index.json'), survey = readJ('data/stats/field-survey.json'), hot = readJ('data/stats/hotspots.json');
+const setOf = (a) => [...new Set(a)].sort().join(',');
+let crossChecked = 0;
+for (const entry of index.regions) {
+  const slug = entry.region, d = load(slug);
+  const stat = setOf((d.focusTypes || []).map((t) => t.key));
+  const idx = setOf((entry.focusTypes || []).map((t) => (typeof t === 'string' ? t : t.label)).filter(Boolean));   // index.json 은 한글 이름
+  const fromSi = si && si.regions[slug] ? setOf(si.regions[slug].focusByIndex) : null;
+  const dong = readJ(`data/dong/${slug}.json`);
+  const hea = dong ? setOf((dong.heaCategories || []).map((c) => c.key)) : null;
+  const hp = hot && hot.regions && hot.regions[slug] && hot.regions[slug][0] ? setOf(Object.keys(hot.regions[slug][0].parts || {})) : null;
+  if (fromSi && stat !== fromSi) fail(`${slug}: 통계 중점분야 ${stat} ≠ 지역안전지수 ${fromSi} — npm run focus 다시`);
+  const statLabels = setOf((d.focusTypes || []).map((t) => t.label));
+  if (idx && statLabels !== idx) fail(`${slug}: index.json 중점분야 ${idx} ≠ 통계 ${statLabels}`);
+  if (hea && hea !== stat) fail(`${slug}: 동별 HEA 분야 ${hea} ≠ 중점분야 ${stat} — npm run dong-hea 다시`);
+  if (hp && hp !== stat) fail(`${slug}: 거점 분야 ${hp} ≠ 중점분야 ${stat} — npm run hotspots 다시 (거점 글자가 바뀌니 DB 거점 보정 정리)`);
+  if (dong && survey) {
+    const sv = survey.regions[slug] || {};
+    const names = dong.dongs.map((x) => x.name);
+    const miss = names.filter((n) => sv[n] == null), extra = Object.keys(sv).filter((n) => !names.includes(n));
+    if (miss.length || extra.length) fail(`${slug}: 현장평가 동 이름이 동별 HEA 와 다름 (없음 ${miss.join('·') || '-'} / 남음 ${extra.join('·') || '-'}) — node tools/build-field-survey.mjs 다시`);
+  }
+  crossChecked++;
+}
+console.log(`  지자체 ${crossChecked}곳 점검`);
 
 /* ── 마무리 ────────────────────────────────────────────────────── */
 

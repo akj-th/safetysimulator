@@ -31,11 +31,16 @@ if (!existsSync(PALETTE_PATH)) {
 const palette = JSON.parse(readFileSync(PALETTE_PATH, 'utf8'));
 
 /* rules.js·palette.js 는 브라우저 전역 스크립트라 vm 샌드박스에 올립니다.
-   팔레트는 fetch 대신 파일에서 읽은 값을 그대로 심어 줍니다. */
+   fetch 는 **요청한 주소의 실제 파일**을 돌려줍니다 (2026-10-27 점검 — 전에는 어떤 주소든 palette.json 을 돌려줘서
+   palette-std.json 병합(표준 팔레트 154종 추가 · HEA 16종 덮어쓰기)이 점검 중에는 일어나지 않았습니다). */
 const sandbox = {
   sessionStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
   console,
-  fetch: async () => ({ ok: true, json: async () => palette }),
+  fetch: async (u) => {
+    const p = path.join(ROOT, String(u).split('?')[0]);
+    if (!existsSync(p)) return { ok: false, status: 404, json: async () => null };
+    return { ok: true, json: async () => JSON.parse(readFileSync(p, 'utf8')) };
+  },
 };
 vm.createContext(sandbox);
 vm.runInContext(readFileSync(path.join(ROOT, 'assets/palette.js'), 'utf8'), sandbox);
@@ -213,7 +218,7 @@ if (!existsSync(SR_PATH)) {
 /* ── 요약 ───────────────────────────────────────────────────────── */
 const priced = palette.programs.filter((p) => p.amount && p.amount.won).length;
 console.log(`\n체크리스트 항목 ${CATEGORIES.reduce((s, c) => s + c.items.length, 0)}개`);
-console.log(`팔레트 사업 ${palette.programs.length}종 (연결표가 쓰는 것 ${used.size}종 · 단가 있는 것 ${priced}종)`);
+console.log(`팔레트 사업 ${palette.programs.length}종 + 표준 팔레트 병합 뒤 ${vm.runInContext('AuriPalette.count', sandbox)}종 (연결표가 쓰는 것 ${used.size}종 · 단가 있는 것 ${priced}종)`);
 console.log(`연결이 약하다고 적어 둔 항목 ${Object.keys(RX_WEAK).length}개`);
 console.log(`공간유형·위험요인 연계표 위험요인 ${srCount}개 (assets/space-risk.json)`);
 

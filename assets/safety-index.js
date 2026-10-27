@@ -153,7 +153,9 @@ const AuriSafetyIndex = (function () {
   /** 가중 HEA · 119 밀도 (데이터 두 열) — 표·복합지수·현장평가 산출 도구가 함께 씁니다 */
   function baseScores(weighted, si, dong) {
     const w = (si && si.weights) || weighted.weights;
-    const focus = (si && si.focusByIndex) || FIELDS.slice(0, 3);
+    /* 지수 자료가 없으면 동별 HEA 파일의 분야로 (예전에는 교통·화재·범죄로 조용히 대신했음 — 2026-10-27 점검) */
+    const fromDong = dong && Array.isArray(dong.heaCategories) ? dong.heaCategories.map((c) => c.key) : [];
+    const focus = (si && si.focusByIndex) || (fromDong.length ? fromDong : FIELDS.slice(0, 3));
     const F = {}; if (dong) focus.forEach((k) => { F[k] = fieldIndexMap(dong, k); });
     const dongs = weighted.dongs.map((d) => Object.assign({}, d));
     dongs.forEach((d) => {
