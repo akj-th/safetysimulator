@@ -239,8 +239,7 @@ function spaceRisk() {
   return _spaceRisk;
 }
 function spaceTypeNames() {
-  const names = spaceRisk().types.map(function (t) { return t.name; });
-  return names.length ? names : ['주거생활형'];
+  return spaceRisk().types.map(function (t) { return t.name; });
 }
 function spaceBlock() {
   const types = spaceRisk().types;
@@ -363,7 +362,7 @@ ${checklistText(focus)}
 function buildRevisePrompt(previous, note, focus, location) {
   const prevText = CATEGORIES.map(function (cat) {
     const p = previous[cat.key] || {};
-    const lines = (p.findings || []).map(function (f) {
+    const lines = (Array.isArray(p.findings) ? p.findings : []).filter(Boolean).map(function (f) {
       return `    ${f.id} ${f.answer}${f.note ? ' — ' + f.note : ''}`;
     }).join('\n');
     return `[${cat.label}] ${p.score}점${p.summary ? `\n    요약: ${p.summary}` : ''}\n${lines || '    (항목 판독 없음)'}`;
@@ -468,6 +467,12 @@ const RESULT_SCHEMA = {
   required: ['image_quality', 'categories', 'space_type'],
   additionalProperties: false,
 };
+/* 공간유형 목록(assets/space-risk.json)을 못 읽었으면 칸을 아예 뺍니다 — 전에는 '주거생활형' 하나로 채워져
+   모든 사진이 설명 없이 주거생활형이 됐습니다(2026-10-27 점검) */
+if (!spaceTypeNames().length) {
+  delete RESULT_SCHEMA.properties.space_type;
+  RESULT_SCHEMA.required = RESULT_SCHEMA.required.filter(function (k) { return k !== 'space_type'; });
+}
 
 /* ── AI의 항목별 답을 화면이 쓸 모양으로 옮깁니다 ──────────────────────
    체크리스트(어느 답이 문제인가)는 서버만 알고 있으므로, "문제 있음"
@@ -515,6 +520,11 @@ async function callAI(mediaType, base64Data, promptText) {
   if (response.stop_reason === 'refusal') {
     throw new Error('AI가 이 이미지에 대한 판독을 거부했습니다.');
   }
+  /* 답이 한도(max_tokens)에서 잘리면 JSON 이 반쯤 끊겨 읽을 수 없습니다 — 영어 오류 대신 다시 시도 안내.
+     (2026-10-27 실측: 진단 한 번 출력 약 4,200 토큰이라 16,000 한도에는 여유가 있습니다) */
+  if (response.stop_reason === 'max_tokens') {
+    throw new Error('AI 판독 결과가 너무 길어 중간에 끊겼습니다. 다시 시도해 주세요.');
+  }
 
   const textBlock = response.content.find(function (b) { return b.type === 'text'; });
   if (!textBlock) throw new Error('AI 응답에서 판독 결과를 찾지 못했습니다.');
@@ -522,7 +532,13 @@ async function callAI(mediaType, base64Data, promptText) {
   console.log(
     `  · 사용 토큰: 입력 ${response.usage.input_tokens}, 출력 ${response.usage.output_tokens}`
   );
-  return JSON.parse(textBlock.text);
+  return parseAiJson(textBlock.text);
+}
+
+/* AI 가 돌려준 JSON 읽기 — 스키마로 형식을 강제하므로 실패할 일은 드물지만, 실패하면 알아듣는 말로 */
+function parseAiJson(text) {
+  try { return JSON.parse(text); }
+  catch (e) { throw new Error('AI 응답을 읽지 못했습니다. 다시 시도해 주세요.'); }
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -623,18 +639,19 @@ async function callOpinionAI(promptText) {
     messages: [{ role: 'user', content: [{ type: 'text', text: promptText }] }],
   });
   if (response.stop_reason === 'refusal') throw new Error('AI가 작성을 거부했습니다.');
+  if (response.stop_reason === 'max_tokens') throw new Error('AI 문단이 너무 길어 중간에 끊겼습니다. 다시 시도해 주세요.');
   const block = response.content.find(function (b) { return b.type === 'text'; });
   if (!block) throw new Error('AI 응답에서 문단을 찾지 못했습니다.');
   console.log(`  · 사용 토큰: 입력 ${response.usage.input_tokens}, 출력 ${response.usage.output_tokens}`);
-  return JSON.parse(block.text);
+  return parseAiJson(block.text);
 }
 
 async function handleOpinion(req, res) {
   if (!(await guardApi(req, res))) return;
-  checkQuota(req);
 
   const body = await readJsonBody(req);
   if (!body.section) return sendJson(res, 400, { error: '어느 자리에 쓸 문단인지 알려 주세요.' });
+  checkQuota(req);   // 요청이 제대로 갖춰진 뒤에 셉니다 — 형식이 틀려 400 으로 끝나는 요청이 상한을 쓰지 않게
 
   console.log(`[의견 생성] ${String(body.section).slice(0, 60)}`);
   const out = await callOpinionAI(buildOpinionPrompt(body.section, body.context || '(제공된 자료 없음)'));
@@ -771,22 +788,58 @@ async function callNarrativeAI(promptText, schema) {
   const block = response.content.find(function (b) { return b.type === 'text'; });
   if (!block) throw new Error('AI 응답에서 초안을 찾지 못했습니다.');
   console.log(`  · 사용 토큰: 입력 ${response.usage.input_tokens}, 출력 ${response.usage.output_tokens} · 모델 ${response.model}`);
-  return { out: JSON.parse(block.text), model: response.model };
+  return { out: parseAiJson(block.text), model: response.model };
 }
+
+/* 카드는 화면(document.html siteCards)과 같이 9장까지 — 분야 3개 × 위험요인 3개 */
+const NARRATIVE_MAX_CARDS = 9;
 
 async function handleNarrative(req, res) {
   if (!(await guardApi(req, res))) return;
-  checkQuota(req);
   const body = await readJsonBody(req);
-  const cards = Array.isArray(body.cards) ? body.cards.slice(0, 8) : [];
+  /* ★ 지시문과 스키마가 **같은 카드**를 봐야 합니다 (2026-10-27 점검). 전에는 스키마만 8장으로 잘라
+     9번째 카드의 rf 가 목록에 없었고, 모델이 다른 카드의 rf 로 적으면 화면에서 앞 카드 문장을 덮어썼습니다. */
+  const seen = new Set();
+  const cards = (Array.isArray(body.cards) ? body.cards : [])
+    .filter(function (c) {
+      if (!c || typeof c !== 'object' || !c.rf || seen.has(String(c.rf))) return false;
+      seen.add(String(c.rf)); return true;
+    })
+    .slice(0, NARRATIVE_MAX_CARDS)
+    .map(function (c) {
+      return Object.assign({}, c, {
+        rf: String(c.rf),
+        findings: Array.isArray(c.findings) ? c.findings.filter(Boolean) : [],
+        measures: (Array.isArray(c.measures) ? c.measures : []).filter(function (m) { return m && m.name; }),
+      });
+    });
   if (!cards.length) return sendJson(res, 400, { error: '초안을 쓸 위험요인 카드가 없습니다.' });
-  const rfIds = cards.map(function (c) { return String(c.rf || ''); }).filter(Boolean);
+  const rfIds = cards.map(function (c) { return c.rf; });
   const names = [];
-  cards.forEach(function (c) { (c.measures || []).forEach(function (m) { if (m.name && !names.includes(m.name)) names.push(String(m.name)); }); });
+  cards.forEach(function (c) { c.measures.forEach(function (m) { if (!names.includes(String(m.name))) names.push(String(m.name)); }); });
   if (!names.length) return sendJson(res, 400, { error: '카드에 사업 후보가 없습니다.' });
+  checkQuota(req);
 
+  const ctx = Object.assign({}, body, {
+    cards: cards,
+    fields: Array.isArray(body.fields) ? body.fields : [],
+    allProjects: Array.isArray(body.allProjects) ? body.allProjects : [],
+  });
   console.log(`[서술형 초안] 카드 ${cards.length}장 · 사업 후보 ${names.length}종 · ${(body.location && (body.location.road || body.location.addr)) || ''}`);
-  const { out, model } = await callNarrativeAI(buildNarrativePrompt(body), narrativeSchema(rfIds, names));
+  const { out, model } = await callNarrativeAI(buildNarrativePrompt(ctx), narrativeSchema(rfIds, names));
+
+  /* 돌려받은 카드 확인 — rf 는 카드마다 한 번, 사업은 **그 카드의** 후보만 남깁니다
+     (스키마의 사업 목록은 모든 카드를 합친 것이라 다른 카드의 사업을 써도 통과하기 때문) */
+  const byRf = new Map(cards.map(function (c) { return [c.rf, c]; }));
+  const used = new Set();
+  out.cards = (out.cards || []).filter(function (c) {
+    if (!byRf.has(c.rf) || used.has(c.rf)) return false;
+    used.add(c.rf);
+    const mine = byRf.get(c.rf).measures.map(function (m) { return String(m.name); });
+    c.measures = (c.measures || []).filter(function (m) { return mine.includes(m.name); });
+    return true;
+  });
+  if (out.cards.length < cards.length) console.log(`  · 돌려받은 카드 ${out.cards.length}/${cards.length}장 — 빠진 카드는 화면에서 연계표 문장으로 보입니다`);
   sendJson(res, 200, Object.assign({ model: model, at: new Date().toISOString() }, out));
 }
 
@@ -1112,14 +1165,14 @@ async function handleGenerate(req, res) {
     });
   }
   if (!(await guardApi(req, res))) return;
-  checkQuota(req);
 
   const body = await readJsonBody(req);
-  const match = /^data:(image\/[a-zA-Z+]+);base64,(.+)$/s.exec(body.imageDataUrl || '');
+  const match = /^data:(image\/[a-zA-Z+]+);base64,(.+)$/s.exec(String(body.imageDataUrl || ''));
   if (!match) return sendJson(res, 400, { error: '원본 이미지가 없습니다.' });
 
-  const facilities = (body.facilities || []).filter(Boolean);
+  const facilities = (Array.isArray(body.facilities) ? body.facilities : []).filter(Boolean).map(String);
   if (!facilities.length) return sendJson(res, 400, { error: '반영할 시설물이 없습니다.' });
+  checkQuota(req);   // 요청이 갖춰진 뒤에 셉니다
 
   /* 화면에서 고른 모델. 목록에 없거나 그 제공사 키가 없으면
      쓸 수 있는 모델 중 첫 번째로 대신합니다. */
@@ -1150,12 +1203,11 @@ async function handleGenerate(req, res) {
 async function handleDiagnose(req, res, isRevise) {
   const gate = await guardApi(req, res);
   if (!gate) return;
-  checkQuota(req);
 
   const body = await readJsonBody(req);
 
   // 브라우저가 보낸 "data:image/png;base64,AAAA..." 를 두 조각으로 나눕니다
-  const match = /^data:(image\/[a-zA-Z+]+);base64,(.+)$/s.exec(body.imageDataUrl || '');
+  const match = /^data:(image\/[a-zA-Z+]+);base64,(.+)$/s.exec(String(body.imageDataUrl || ''));
   if (!match) {
     return sendJson(res, 400, { error: '이미지가 없거나 형식이 올바르지 않습니다.' });
   }
@@ -1165,7 +1217,7 @@ async function handleDiagnose(req, res, isRevise) {
   const focus = focusFor(body.location);
   let promptText;
   if (isRevise) {
-    if (!body.note || !body.previous) {
+    if (!body.note || !body.previous || typeof body.previous !== 'object') {
       return sendJson(res, 400, { error: '어디가 잘못되었는지 알려 주셔야 다시 판독할 수 있습니다.' });
     }
     console.log(`[재판독 요청] 지적: ${String(body.note).slice(0, 80)}`);
@@ -1175,6 +1227,7 @@ async function handleDiagnose(req, res, isRevise) {
                 ` · 위치 ${(body.location && (body.location.road || body.location.addr)) || '없음'}`);
     promptText = buildPrompt(focus, body.location);
   }
+  checkQuota(req);   // 요청이 갖춰진 뒤에 셉니다 — 형식이 틀려 400 으로 끝나는 요청이 상한을 쓰지 않게
 
   /* 진단 실행 기록 — 누가 · 언제 · 어느 지점 (8/25 협의 "접근통제").
      요청이 제대로 갖춰진 뒤, AI 를 부르기 **직전**에 남깁니다.
@@ -1207,7 +1260,8 @@ async function handleDiagnose(req, res, isRevise) {
     };
   }
   const st = raw.space_type || {};
-  const space = st.primary ? { primary: st.primary, secondary: st.secondary && st.secondary !== '없음' ? st.secondary : '',
+  /* 판독할 수 없는 사진이면 공간유형도 두지 않습니다 — 스키마가 필수라 억지로 하나를 고르기 때문 */
+  const space = st.primary && raw.image_quality !== 'unusable' ? { primary: st.primary, secondary: st.secondary && st.secondary !== '없음' ? st.secondary : '',
                                reason: String(st.reason || '').trim() } : null;
 
   console.log(
@@ -1258,22 +1312,34 @@ function sendJson(res, status, obj) {
   res.end(payload);
 }
 
-function readJsonBody(req) {
+function readJsonBody(req, maxBytes) {
+  const limit = maxBytes || 30 * 1024 * 1024;   // 이미지 30MB 제한 (로그인·가입은 64KB)
+  const bad = function (message, status) { return Object.assign(new Error(message), { status: status }); };
   return new Promise(function (resolve, reject) {
+    /* JSON 으로 보낸 것만 받습니다 (2026-10-27). 다른 사이트의 폼(text/plain)으로 몰래 로그인·저장을 시키는
+       공격(CSRF)을 막기 위해서입니다. 이 앱의 화면과 tools/ 는 모두 application/json 으로 보냅니다. */
+    if (!/^application\/json\b/i.test(String(req.headers['content-type'] || ''))) {
+      req.resume();
+      return reject(bad('요청 형식이 올바르지 않습니다 (JSON 이 아님).', 415));
+    }
     let size = 0;
     const chunks = [];
     req.on('data', function (chunk) {
       size += chunk.length;
-      if (size > 30 * 1024 * 1024) {          // 이미지 30MB 제한
-        reject(new Error('이미지가 너무 큽니다 (30MB 초과).'));
+      if (size > limit) {
+        reject(bad(limit < 1024 * 1024 ? '요청이 너무 큽니다.' : '이미지가 너무 큽니다 (30MB 초과).', 413));
         req.destroy();
         return;
       }
       chunks.push(chunk);
     });
     req.on('end', function () {
-      try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); }
-      catch { reject(new Error('요청 형식이 올바르지 않습니다.')); }
+      let v;
+      try { v = JSON.parse(Buffer.concat(chunks).toString('utf8')); }
+      catch { return reject(bad('요청 형식이 올바르지 않습니다.', 400)); }
+      /* null·배열·숫자가 오면 뒤에서 body.○○ 를 읽다 500 이 나므로 여기서 400 으로 */
+      if (!v || typeof v !== 'object' || Array.isArray(v)) return reject(bad('요청 형식이 올바르지 않습니다.', 400));
+      resolve(v);
     });
     req.on('error', reject);
   });
@@ -1391,12 +1457,12 @@ async function handleAuthApi(req, res, pathname) {
   if (!auth.authReady()) return sendJson(res, 503, { error: '로그인 설정이 끝나지 않았습니다. 관리자에게 문의해 주세요.' });
 
   if (req.method === 'POST' && pathname === '/api/auth/login') {
-    const r = await auth.login(req, res, await readJsonBody(req));
+    const r = await auth.login(req, res, await readJsonBody(req, 64 * 1024));
     const { status, ...body } = r;
     return sendJson(res, status, body);
   }
   if (req.method === 'POST' && pathname === '/api/auth/signup') {
-    const { status, ...body } = await auth.signup(await readJsonBody(req));
+    const { status, ...body } = await auth.signup(req, await readJsonBody(req, 64 * 1024));
     return sendJson(res, status, body);
   }
   if (req.method === 'POST' && pathname === '/api/auth/logout') {
@@ -1440,8 +1506,11 @@ function sendCsv(res, filename, rows) {
   const kst = (v) => (v instanceof Date || /^\d{4}-\d{2}-\d{2}T/.test(String(v)))
     ? new Date(v).toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' }) : v;
   const cell = (v) => {
-    const s = v == null ? '' : String(kst(v));
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    let s = v == null ? '' : String(kst(v));
+    /* = + - @ 로 시작하면 엑셀이 수식으로 실행합니다. 로그인 실패 아이디는 누구나 적어 넣을 수 있는 글이라
+       (예: =HYPERLINK(…)) 앞에 ' 를 붙여 글자로만 보이게 합니다 (2026-10-27 점검) */
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
   const cols = rows.length ? Object.keys(rows[0]) : [];
   const text = '﻿' + [cols.join(','), ...rows.map((r) => cols.map((c) => cell(r[c])).join(','))].join('\r\n');

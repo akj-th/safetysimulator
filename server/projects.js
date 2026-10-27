@@ -131,7 +131,8 @@ function summaryOf(d) {
   return `위험 ${danger} · 주의 ${caution} · 안전 ${safe}`;
 }
 
-const idOf = (v) => (Number.isInteger(Number(v)) && Number(v) > 0 ? Number(v) : null);
+/* DB 의 id 는 integer(최대 2,147,483,647) — 그보다 큰 번호는 pg 오류(500)가 되므로 "없음"으로 */
+const idOf = (v) => { const n = Number(v); return Number.isInteger(n) && n > 0 && n <= 2147483647 ? n : null; };
 
 /* ── 목록 ────────────────────────────────────────────────────────────
    scope=mine  내 것만 (누구나)

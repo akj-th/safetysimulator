@@ -45,6 +45,12 @@ const DUMMY_HASH = bcrypt.hashSync(crypto.randomBytes(16).toString('hex'), BCRYP
 const FAIL_LIMIT = 10;                // 이 횟수만큼 틀리면
 const FAIL_WINDOW_MS = 15 * 60000;    // 15분 동안 그 IP 의 로그인을 막음
 const _fails = new Map();
+/* 가입 신청은 로그인 없이 열려 있어, 한 IP 에서 1시간에 5건까지만 받고 승인 대기는 200건에서 멈춥니다 (2026-10-27 점검).
+   bcrypt 해시가 요청마다 돌아 몰리면 서버가 느려지고, 승인 대기 목록이 스팸으로 차기 때문입니다. */
+const SIGNUP_LIMIT = 5;
+const SIGNUP_WINDOW_MS = 60 * 60000;
+const PENDING_MAX = 200;
+const _signups = new Map();
 
 let _pool = null;
 let _ready = false;
@@ -245,7 +251,13 @@ export async function currentUser(req, opts) {
 }
 
 /* ── 가입 신청 ───────────────────────────────────────────────────── */
-export async function signup(body) {
+export async function signup(req, body) {
+  const ip = clientIp(req);
+  const now = Date.now();
+  const recent = (_signups.get(ip) || []).filter((t) => now - t < SIGNUP_WINDOW_MS);
+  if (recent.length >= SIGNUP_LIMIT) {
+    return { status: 429, error: '가입 신청이 너무 많습니다. 1시간 뒤에 다시 시도해 주세요.' };
+  }
   const username = String(body.username || '').trim();
   const password = String(body.password || '');
   const name = String(body.name || '').trim().slice(0, 50);
@@ -260,6 +272,11 @@ export async function signup(body) {
   if (!name) return { status: 400, error: '이름을 적어 주세요.' };
   if (!org) return { status: 400, error: '소속을 적어 주세요.' };
 
+  const pend = await _pool.query("SELECT COUNT(*)::int AS n FROM users WHERE status = 'pending'");
+  if (pend.rows[0] && pend.rows[0].n >= PENDING_MAX) {
+    return { status: 503, error: '승인 대기 중인 신청이 많아 지금은 받을 수 없습니다. 관리자에게 문의해 주세요.' };
+  }
+  recent.push(now); _signups.set(ip, recent);
   const hash = await bcrypt.hash(password, BCRYPT_COST);
   try {
     await _pool.query(
@@ -399,7 +416,9 @@ const ACTIONS = {
 export async function decideUser(admin, id, action) {
   const rule = ACTIONS[action];
   if (!rule) return { status: 400, error: '알 수 없는 작업입니다.' };
-  const { rows } = await _pool.query('SELECT id, username, role, status FROM users WHERE id = $1', [Number(id)]);
+  const uid = Number(id);
+  if (!Number.isInteger(uid) || uid <= 0 || uid > 2147483647) return { status: 404, error: '계정을 찾지 못했습니다.' };
+  const { rows } = await _pool.query('SELECT id, username, role, status FROM users WHERE id = $1', [uid]);
   const u = rows[0];
   if (!u) return { status: 404, error: '계정을 찾지 못했습니다.' };
   /* 관리자 계정은 화면에서 끌 수 없습니다 — 환경변수로만 관리 (실수로 모두 잠기는 것 방지) */

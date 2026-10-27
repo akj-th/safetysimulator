@@ -126,10 +126,15 @@ $('tabs').addEventListener('click', (e) => {
 });
 
 /* 로그인 뒤 돌아갈 곳 — 우리 사이트 안의 주소만 받습니다.
-   `//다른사이트` 같은 값으로 밖으로 내보내는 것을 막습니다. */
+   `//다른사이트` 같은 값으로 밖으로 내보내는 것을 막습니다.
+   `/\다른사이트` 도 브라우저는 다른 사이트로 읽으므로 역슬래시를 거부하고, 마지막에 출처가 같은지 한 번 더 봅니다 (2026-10-27) */
 function nextUrl() {
   const n = new URLSearchParams(location.search).get('next') || '';
-  return /^\/(?!\/)[^\s]*$/.test(n) && !n.startsWith('/login.html') ? n : 'index.html';
+  if (!/^\/(?!\/)[^\s\\]*$/.test(n) || n.startsWith('/login.html')) return 'index.html';
+  try {
+    const u = new URL(n, location.origin);
+    return u.origin === location.origin ? u.pathname + u.search + u.hash : 'index.html';
+  } catch (e) { return 'index.html'; }
 }
 
 async function post(url, body) {
