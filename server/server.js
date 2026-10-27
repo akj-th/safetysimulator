@@ -976,6 +976,7 @@ const MIME = {
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
+  '.hwpx': 'application/hwp+zip',
   '.svg': 'image/svg+xml',
 };
 
@@ -1031,6 +1032,8 @@ const ALLOW_DIRS = [
   { dir: 'data/heatmap', ext: ['.png', '.json'] },
   /* 맞춤형 사업 종합도 오버레이 (tools/overview-map/svg-to-overlay.mjs) — 사업지 구역·번호·시설 위경도와 사업 글 */
   { dir: 'data/overview', ext: ['.json', '.jpg'] },   // .jpg = 종합도 축소판 (사전진단서 [그림])
+  /* 한글(hwpx) 내려받기 틀 — AURI 사전분석 보고서 원본(그림만 축소). tools/build-hwpx-templates.mjs (2026-10-27) */
+  { dir: 'data/hwpx', ext: ['.hwpx', '.json'] },
 ];
 const ALLOW_ROOT_EXT = ['.html'];
 

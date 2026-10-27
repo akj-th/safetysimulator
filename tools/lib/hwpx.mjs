@@ -133,3 +133,28 @@ export function hwpxDoc(file) {
   return { blocks, images };
 }
 export function hwpxBlocks(file) { return hwpxDoc(file).blocks; }
+
+/* ── zip 쓰기 (2026-10-27, hwpx 내보내기 틀 만들기) ─────────────────────
+   entries: [{ name, data:Buffer, store? }]. hwpx 규칙대로 mimetype 은 맨 앞 · 무압축이어야 합니다. */
+const CRC_TABLE = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+export function crc32(buf) { let c = 0xffffffff; for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
+export function writeZip(entries) {
+  const order = [...entries].sort((a, b) => (a.name === 'mimetype' ? -1 : b.name === 'mimetype' ? 1 : 0));
+  const locals = [], centrals = []; let off = 0;
+  for (const e of order) {
+    const raw = Buffer.isBuffer(e.data) ? e.data : Buffer.from(e.data);
+    const store = e.store || e.name === 'mimetype' || /\.(jpe?g|png)$/i.test(e.name);
+    const body = store ? raw : zlib.deflateRawSync(raw, { level: 9 });
+    const name = Buffer.from(e.name, 'utf8'), crc = crc32(raw);
+    const lh = Buffer.alloc(30); lh.writeUInt32LE(0x04034b50, 0); lh.writeUInt16LE(20, 4); lh.writeUInt16LE(0x0800, 6); lh.writeUInt16LE(store ? 0 : 8, 8);
+    lh.writeUInt32LE(crc, 14); lh.writeUInt32LE(body.length, 18); lh.writeUInt32LE(raw.length, 22); lh.writeUInt16LE(name.length, 26);
+    locals.push(lh, name, body);
+    const ch = Buffer.alloc(46); ch.writeUInt32LE(0x02014b50, 0); ch.writeUInt16LE(20, 4); ch.writeUInt16LE(20, 6); ch.writeUInt16LE(0x0800, 8); ch.writeUInt16LE(store ? 0 : 8, 10);
+    ch.writeUInt32LE(crc, 16); ch.writeUInt32LE(body.length, 20); ch.writeUInt32LE(raw.length, 24); ch.writeUInt16LE(name.length, 28); ch.writeUInt32LE(off, 42);
+    centrals.push(ch, name);
+    off += 30 + name.length + body.length;
+  }
+  const cd = Buffer.concat(centrals);
+  const end = Buffer.alloc(22); end.writeUInt32LE(0x06054b50, 0); end.writeUInt16LE(order.length, 8); end.writeUInt16LE(order.length, 10); end.writeUInt32LE(cd.length, 12); end.writeUInt32LE(off, 16);
+  return Buffer.concat([...locals, cd, end]);
+}

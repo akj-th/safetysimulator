@@ -286,6 +286,9 @@ table.guide .bullet{margin:0 0 3px; padding-left:16px; text-align:left} table.gu
     </div>
     <!-- Word 내보내기는 뺐습니다(2026-10-21): 글·표·그림만 넘어가고 배열·여백·레이아웃이 안 넘어가 쓸 수 없음. 대신 아래 "수정" 모드 -->
     <button class="btn ghost" id="printBtn" onclick="window.print()">인쇄 / PDF 저장</button>
+    <!-- 한글(hwpx) 내려받기 (2026-10-27): AURI 원본 hwpx 를 틀로 두고 정해진 자리에만 끼워 넣음 — assets/hwpx-export.js.
+         사전진단서 탭에서, 틀(data/hwpx/<지역>.hwpx)이 있는 지자체에만 보입니다 -->
+    <button class="btn ghost" id="hwpxBtn" onclick="exportHwpx()" hidden title="AURI 사전분석 보고서 원본(한글)에 진단 지점 처방 행과 개선 전/후 그림을 넣어 내려받습니다">한글(hwpx) 내려받기</button>
   </div>
 
   <!-- ★ 순서: 현장용 리포트 → 사전진단서 (2026-09-14 AURI 회의)
@@ -333,6 +336,7 @@ table.guide .bullet{margin:0 0 3px; padding-left:16px; text-align:left} table.gu
 <script src="assets/physical.js"></script>
 <script src="assets/dong-hea.js"></script>
 <script src="assets/safety-index.js"></script>
+<script src="assets/hwpx-export.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════════
    문서 만들기
@@ -1524,6 +1528,87 @@ function showDoc(which) {
     : '현장에서 볼 것만 담았습니다. 확인사항은 <b>네모 칸에 체크</b>하며 쓰도록 만들었습니다.';
   AuriDocEdit.refresh();
   if (typeof setEditUi === 'function') setEditUi();
+  const hb = document.getElementById('hwpxBtn'); if (hb) hb.hidden = !(a && _hwpxIndex && _data && _hwpxIndex[_data.region]);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   한글(hwpx) 내려받기 (2026-10-27) — 사전진단서 탭
+   AURI 원본 hwpx(data/hwpx/<지역>.hwpx) 를 틀로 두고 세 가지만 끼워 넣습니다(assets/hwpx-export.js):
+     ① 2장 분야별 사업(안) 표 끝 "진단 지점(시뮬레이터)" 행 — 화면의 분홍 행과 같은 내용
+     ② 2장 끝 "진단 지점 개선 전/후" 그림 + 번호 태그 범례 + 면책 문구
+     ③ 원본에 적어 둔 {{지자체}} {{진단지점}} {{행정동}} {{날짜}} 자리표시 글자
+   나머지(1장·2장 AURI 글·표·그림·붙임)는 원본 그대로라 레이아웃이 바뀌지 않습니다.
+   ⚠ 화면의 "수정" 모드에서 고친 글과 별첨 1~5 는 들어가지 않습니다(원본 양식에 자리가 없음).
+   ════════════════════════════════════════════════════════════════════ */
+let _hwpxIndex = null;
+async function loadHwpxIndex() {
+  try { const r = await fetch('data/hwpx/index.json'); _hwpxIndex = r.ok ? await r.json() : null; } catch (e) { _hwpxIndex = null; }
+}
+/** dataUrl → JPEG 바이트 + 픽셀 크기 (긴 변 1600px) */
+function hwpxJpeg(dataUrl) {
+  return new Promise((resolve) => {
+    if (!dataUrl) return resolve(null);
+    const im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight));
+      const w = Math.round(im.naturalWidth * k), h = Math.round(im.naturalHeight * k);
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(im, 0, 0, w, h);
+      c.toBlob((b) => b ? b.arrayBuffer().then((ab) => resolve({ bytes: new Uint8Array(ab), w, h })) : resolve(null), 'image/jpeg', 0.88);
+    };
+    im.onerror = () => resolve(null);
+    im.src = dataUrl;
+  });
+}
+async function exportHwpx() {
+  const btn = document.getElementById('hwpxBtn');
+  const ent = _hwpxIndex && _hwpxIndex[_data.region];
+  if (!ent) { alert('이 지자체는 AURI 원본 한글 파일(틀)이 없습니다.'); return; }
+  const label = btn.textContent; btn.disabled = true; btn.textContent = '만드는 중…';
+  try {
+    const tr = await fetch(ent.file);
+    if (!tr.ok) throw new Error('틀 파일을 받지 못했습니다 (' + tr.status + ')');
+    const tpl = new Uint8Array(await tr.arrayBuffer());
+    /* ① 분야별 진단 지점 행 — auriCh2() 의 sim-row 와 같은 기준 */
+    const fieldRows = ch2Fields().map((f) => {
+      const mine = _items.filter((it) => it.field === f.key || it.category === f.label);
+      if (!mine.length) return null;
+      const r = _results.find((x) => x.key === f.key);
+      return {
+        key: f.key, label: f.label, place: _picked.addr || '',
+        risk: r && r.observed && r.observed.length ? r.observed.join(' · ') : (r ? '사진 판독 ' + r.level.label + ' 판정(' + r.score + '점)' : ''),
+        measures: mine.map((it) => ({ hea: it.hea || '', text: it.name, note: it.trigger ? ('근거: ' + it.trigger.id + ' ' + (it.trigger.note || '')).trim() : '' })),
+      };
+    }).filter(Boolean);
+    /* ② 개선 전/후 — 화면과 같은 순서: 현장 사진이 있으면 그것, 없으면 진단 입력 사진 */
+    const photos = AuriSitePhoto.all();
+    let beforeUrl = photos[0] ? photos[0].dataUrl : null;
+    if (!beforeUrl) { try { const bi = JSON.parse(sessionStorage.getItem('auri_input_image') || 'null'); beforeUrl = bi && bi.dataUrl; } catch (e) { beforeUrl = null; } }
+    const afterUrl = sessionStorage.getItem('auri_after_image');
+    const [bImg, aImg] = await Promise.all([hwpxJpeg(beforeUrl), hwpxJpeg(afterUrl)]);
+    const items = [];
+    if (bImg) items.push(Object.assign(bImg, { caption: ('[그림] 진단 지점 개선 전 — ' + (_picked.addr || '')).trim() }));
+    if (aImg) items.push(Object.assign(aImg, { caption: '[그림] 진단 지점 맞춤형 사업 예시 (시뮬레이터 생성)' }));
+    let tags = null; try { tags = JSON.parse(sessionStorage.getItem('auri_after_tags') || 'null'); } catch (e) { tags = null; }
+    const notes = [];
+    if (aImg && tags && tags.length) notes.push('※ 그림 속 번호: ' + tags.map((t) => t.n + ' ' + t.name).join(' · '));
+    if (aImg) notes.push('※ ' + AURI_AI_DISCLAIMER);
+    const d = new Date(); const ymd = d.getFullYear() + '.' + (d.getMonth() + 1) + '.' + d.getDate() + '.';
+    const out = await AuriHwpx.build(tpl, {
+      tokens: { 지자체: _data.label, 진단지점: _picked.addr || '', 행정동: _picked.dong || '', 날짜: ymd },
+      fieldRows,
+      figures: { heading: '○ 진단 지점 개선 전/후 (시뮬레이터)', items, notes },
+    });
+    const blob = new Blob([out.bytes], { type: 'application/hwp+zip' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = _data.shortLabel + '_사전분석보고서_진단지점' + (_picked.dong ? '_' + _picked.dong : '') + '.hwpx';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    if (out.report.missing.length) alert('한글 파일을 만들었습니다. 다만 아래 자리는 원본에서 찾지 못해 넣지 못했습니다:\n- ' + out.report.missing.join('\n- '));
+  } catch (e) {
+    console.error(e); alert('한글 파일을 만들지 못했습니다: ' + e.message);
+  } finally { btn.disabled = false; btn.textContent = label; }
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -1776,6 +1861,7 @@ window.addEventListener('load', async function () {
   _incidents = await loadIncidents(_data.region);   // 지도에 찍을 119 출동 지점
   _dongHea = await AuriDongHea.load(_data.region);  // 3.3 읍면동별 HEA 지표
   _auri = await loadAuriReport(_data.region);       // AURI 사전분석 보고서 (있는 지자체만)
+  await loadHwpxIndex();                            // 한글(hwpx) 내려받기 틀 목록 (2026-10-27)
   await loadHotspotCards(_data.region);             // 붙임 5 거점 카드 — 거점 + 공유 프로젝트 + 지역안전지수 가중 (2026-10-20)
   try { const rt = await fetch('data/stats/region-types.json'); const j = rt.ok ? await rt.json() : null; _regionType = j && j.regions ? j.regions.find((r) => r.region === _data.region) || null : null; } catch (e) { _regionType = null; }   // 지자체 유형화 1차안 (10/14)
   try { const hr = await fetch('data/heatmap/index.json'); _heat = hr.ok ? await hr.json() : null; } catch (e) { _heat = null; }

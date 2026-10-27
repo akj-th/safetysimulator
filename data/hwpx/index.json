@@ -1,0 +1,236 @@
+{
+ "bucheon": {
+  "file": "data/hwpx/bucheon.hwpx",
+  "source": "1008 부천시 사전분석 보고서.hwpx",
+  "sourceDate": "2026-10-08",
+  "bytes": 3477680
+ },
+ "andong": {
+  "file": "data/hwpx/andong.hwpx",
+  "source": "1014 안동시 사전진단 보고서.hwpx",
+  "sourceDate": "2026-10-14",
+  "bytes": 70070
+ },
+ "bukgu": {
+  "file": "data/hwpx/bukgu.hwpx",
+  "source": "광주북구_사전분석_보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 67702
+ },
+ "cheongsong": {
+  "file": "data/hwpx/cheongsong.hwpx",
+  "source": "1015 청송군 사전진단 보고서.hwpx",
+  "sourceDate": "2026-10-15",
+  "bytes": 67974
+ },
+ "dangjin": {
+  "file": "data/hwpx/dangjin.hwpx",
+  "source": "당진시_사전분석보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 74999
+ },
+ "danyang": {
+  "file": "data/hwpx/danyang.hwpx",
+  "source": "단양군_사전분석보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 80338
+ },
+ "donggu": {
+  "file": "data/hwpx/donggu.hwpx",
+  "source": "1020 부산동구 사전진단보고서.hwpx",
+  "sourceDate": "2026-10-20",
+  "bytes": 83873
+ },
+ "gangjin": {
+  "file": "data/hwpx/gangjin.hwpx",
+  "source": "1012 강진군 사전분석보고서.hwpx",
+  "sourceDate": "2026-10-12",
+  "bytes": 63714
+ },
+ "geumcheon": {
+  "file": "data/hwpx/geumcheon.hwpx",
+  "source": "1008 금천구 사전분석 보고서.hwpx",
+  "sourceDate": "2026-10-08",
+  "bytes": 70431
+ },
+ "gjunggu": {
+  "file": "data/hwpx/gjunggu.hwpx",
+  "source": "대구중구_사전분석보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 83111
+ },
+ "goheung": {
+  "file": "data/hwpx/goheung.hwpx",
+  "source": "1012 고흥군 사전진단 보고서.hwpx",
+  "sourceDate": "2026-10-12",
+  "bytes": 68171
+ },
+ "gongju": {
+  "file": "data/hwpx/gongju.hwpx",
+  "source": "공주시_사전분석_보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 72525
+ },
+ "gwanak": {
+  "file": "data/hwpx/gwanak.hwpx",
+  "source": "1019 서울 관악구 사전진단보고서.hwpx",
+  "sourceDate": "2026-10-19",
+  "bytes": 82808
+ },
+ "hamyang": {
+  "file": "data/hwpx/hamyang.hwpx",
+  "source": "함양군_사전분석_보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 65017
+ },
+ "hongcheon": {
+  "file": "data/hwpx/hongcheon.hwpx",
+  "source": "1008 홍천군 사전진단서.hwpx",
+  "sourceDate": "2026-10-08",
+  "bytes": 63942
+ },
+ "jangheung": {
+  "file": "data/hwpx/jangheung.hwpx",
+  "source": "장흥군_사전분석_보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 77681
+ },
+ "jangsu": {
+  "file": "data/hwpx/jangsu.hwpx",
+  "source": "장수군 사전진단보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 67175
+ },
+ "jecheon": {
+  "file": "data/hwpx/jecheon.hwpx",
+  "source": "제천시 사전진단보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 89197
+ },
+ "jeju": {
+  "file": "data/hwpx/jeju.hwpx",
+  "source": "제주시 사전진단보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 89483
+ },
+ "jeongeup": {
+  "file": "data/hwpx/jeongeup.hwpx",
+  "source": "정읍시_사전분석보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 90909
+ },
+ "jeongseon": {
+  "file": "data/hwpx/jeongseon.hwpx",
+  "source": "1019 정선군 사전진단보고서.hwpx",
+  "sourceDate": "2026-10-19",
+  "bytes": 86067
+ },
+ "jinan": {
+  "file": "data/hwpx/jinan.hwpx",
+  "source": "진안군 사전분석 보고서(산재 수정 반영).hwpx",
+  "sourceDate": null,
+  "bytes": 60720
+ },
+ "jindo": {
+  "file": "data/hwpx/jindo.hwpx",
+  "source": "진도군 사전분석 보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 69006
+ },
+ "jjunggu": {
+  "file": "data/hwpx/jjunggu.hwpx",
+  "source": "대전 중구 사전진단보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 93175
+ },
+ "michuhol": {
+  "file": "data/hwpx/michuhol.hwpx",
+  "source": "1012 미추홀구 사전진단 보고서.hwpx",
+  "sourceDate": "2026-10-12",
+  "bytes": 58376
+ },
+ "mokpo": {
+  "file": "data/hwpx/mokpo.hwpx",
+  "source": "1008 목포시 사전진단 보고서.hwpx",
+  "sourceDate": "2026-10-08",
+  "bytes": 68378
+ },
+ "naju": {
+  "file": "data/hwpx/naju.hwpx",
+  "source": "나주시_사전분석보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 68736
+ },
+ "namhae": {
+  "file": "data/hwpx/namhae.hwpx",
+  "source": "1008 남해군 사전분석 보고서.hwpx",
+  "sourceDate": "2026-10-08",
+  "bytes": 1591334
+ },
+ "ongjin": {
+  "file": "data/hwpx/ongjin.hwpx",
+  "source": "1012 옹진군 사전진단 보고서.hwpx",
+  "sourceDate": "2026-10-12",
+  "bytes": 64298
+ },
+ "pocheon": {
+  "file": "data/hwpx/pocheon.hwpx",
+  "source": "1008 포천시 사전진단 보고서.hwpx",
+  "sourceDate": "2026-10-08",
+  "bytes": 64201
+ },
+ "sacheon": {
+  "file": "data/hwpx/sacheon.hwpx",
+  "source": "1008 사천시 사전분석 보고서.hwpx",
+  "sourceDate": "2026-10-08",
+  "bytes": 2211884
+ },
+ "sasanggu": {
+  "file": "data/hwpx/sasanggu.hwpx",
+  "source": "부산 사상구 사전진단보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 81514
+ },
+ "sejong": {
+  "file": "data/hwpx/sejong.hwpx",
+  "source": "세종시_사전분석보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 87389
+ },
+ "seocheon": {
+  "file": "data/hwpx/seocheon.hwpx",
+  "source": "1013 서천군 사전진단 보고서.hwpx",
+  "sourceDate": "2026-10-13",
+  "bytes": 62623
+ },
+ "taebaek": {
+  "file": "data/hwpx/taebaek.hwpx",
+  "source": "태백시 사전진단보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 90671
+ },
+ "ujunggu": {
+  "file": "data/hwpx/ujunggu.hwpx",
+  "source": "울산중구_사전분석보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 71290
+ },
+ "yeongcheon": {
+  "file": "data/hwpx/yeongcheon.hwpx",
+  "source": "1008 영천시 사전분석 보고서.hwpx",
+  "sourceDate": "2026-10-08",
+  "bytes": 2114719
+ },
+ "yeongdogu": {
+  "file": "data/hwpx/yeongdogu.hwpx",
+  "source": "부산 영도구 사전진단보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 75122
+ },
+ "yeongju": {
+  "file": "data/hwpx/yeongju.hwpx",
+  "source": "1014 영주시 사전진단 보고서.hwpx",
+  "sourceDate": "2026-10-14",
+  "bytes": 61301
+ }
+}
