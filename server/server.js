@@ -1325,18 +1325,18 @@ function readJsonBody(req, maxBytes) {
       req.resume();
       return reject(bad('요청 형식이 올바르지 않습니다 (JSON 이 아님).', 415));
     }
-    let size = 0;
+    let size = 0, tooBig = false;
     const chunks = [];
     req.on('data', function (chunk) {
       size += chunk.length;
-      if (size > limit) {
-        reject(bad(limit < 1024 * 1024 ? '요청이 너무 큽니다.' : '이미지가 너무 큽니다 (30MB 초과).', 413));
-        req.destroy();
-        return;
-      }
+      /* 한도를 넘으면 나머지는 버리며 끝까지 받고 413 을 돌려줍니다 — 바로 끊으면 응답이 닿지 않아 화면이 "서버 연결 실패"로
+         보고(그러면 진단 화면은 임시 점수를 씁니다) 왜 실패했는지 알 수 없었습니다 (2026-10-27 점검). 한도의 4배를 넘으면 그때 끊음 */
+      if (tooBig) { if (size > limit * 4) req.destroy(); return; }
+      if (size > limit) { tooBig = true; chunks.length = 0; return; }
       chunks.push(chunk);
     });
     req.on('end', function () {
+      if (tooBig) return reject(bad(limit < 1024 * 1024 ? '요청이 너무 큽니다.' : '이미지가 너무 큽니다 (30MB 초과).', 413));
       let v;
       try { v = JSON.parse(Buffer.concat(chunks).toString('utf8')); }
       catch { return reject(bad('요청 형식이 올바르지 않습니다.', 400)); }
