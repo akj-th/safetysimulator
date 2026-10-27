@@ -134,6 +134,11 @@ AI 모델: 진단·재판독·의견 초안 `claude-opus-5`(adaptive thinking) �
 | `docs/` | 회의록·받은 자료·작업 노트·보낸 자료(실명·내부 논의). 이름 규칙 `YYYYMMDD_출처_내용` · 안내 `docs/README.md`. ⚠ `docs/사전진단 보고서 및 지도 작업본(AURI)/` 은 **이름·구조를 바꾸지 말 것**(도구가 이 경로를 씀) |
 | `output/` | 종합도 SVG(위성영상 포함, 4MB+) · AURI 원본 그림. 안내: `output/README.md` |
 
+### 이름 규칙
+- 코드·자료 파일: 영문 소문자 + 하이픈(`palette-std.json`, `build-dong-hea.mjs`). 지자체 열쇠(`geumcheon`, `jjunggu` …)는 DB·파일 이름이 쓰므로 **그대로**.
+- `docs/` 파일: `YYYYMMDD_출처_내용.확장자`(예: `20261026_행안부_합동회의록.pdf`) — 자세히 `docs/README.md`. `notes/` 는 `NN_주제.md`.
+- `data/raw/` 폴더: `내용_MMDD`(수신일) — 도구가 경로로 쓰므로 이미 있는 폴더 이름은 바꾸지 않음.
+
 ### 도구 (`tools/`) — 안내: [tools/README.md](tools/README.md)
 `build-*.mjs`(자료 만들기) · `verify-*.mjs` · `compare-kangwon*.mjs`(점검) · `lib/`(CSV·SHP·TIF·xlsx·hwpx 읽기) · `overview-map/`(종합도) · `config/`(중점분야 직접 지정) · `legacy/`(옛 SHP 변환기 — `--force` 없이는 안 돎 · 카카오 캡처 시험 페이지).
 
