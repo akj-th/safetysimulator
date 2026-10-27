@@ -275,7 +275,8 @@ const AuriDongHea = (function () {
     /* ★ 2026-10-23 (이은석 박사 "지표 항목은 사고 유형에 따라 바뀌어야"): opts.field 가 있으면 그 분야의 H·E·A 로 채웁니다.
        H 연령·성별 = 그 분야 환자의 편중 집단 · E 노후·도로·시설 = 그 분야 회귀분석 기여(동 사이 순위) · A = 그 분야 반복·야간·장소 */
     const field = opts.field || null;
-    const rankOf = (vals) => { const xs = vals.filter((v) => v != null).sort((a, b) => a - b); return (v) => { if (v == null || xs.length < 3) return null; let lo = 0, hi = 0; for (const x of xs) { if (x < v) lo++; if (x <= v) hi++; } return Math.round(((lo + hi) / 2) / xs.length * 100); }; };
+    /* safety-index.js pctRank 와 같은 식 — 지도 아래 "분야 판정 표"와 이 표의 같은 E 지표가 같은 값이 되게 (2026-10-27 점검: 1~99 대 0~100 으로 1점씩 달랐음) */
+    const rankOf = (vals) => { const xs = vals.filter((v) => v != null).sort((a, b) => a - b); return (v) => { if (v == null || xs.length < 3) return null; let below = 0, eq = 0; for (const x of xs) { if (x < v) below++; else if (x === v) eq++; } return Math.round(100 * (below + (eq - 1) / 2) / Math.max(1, xs.length - 1)); }; };
     const catOf = (d) => field && d.byCat ? d.byCat[field] : null;
     const egv = (d, g) => { const c = catOf(d); return c && c.E && c.E.groups && c.E.groups[g] != null ? c.E.groups[g] : null; };
     const eRank = field ? { old: rankOf(data.dongs.map((d) => egv(d, 'old'))), road: rankOf(data.dongs.map((d) => egv(d, 'road'))), facility: rankOf(data.dongs.map((d) => egv(d, 'facility'))) } : null;
