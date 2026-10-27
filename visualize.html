@@ -268,10 +268,15 @@ function genMode() {
 }
 function customList() {
   return document.getElementById('customItems').value.split('\n')
-    .map(function (s) { return s.replace(/^[\s\-–·•\d.)]+/, '').trim(); }).filter(Boolean).slice(0, 8);
+    /* 목록 표시(- · • 1. 2))만 뗍니다 — 사업 이름 앞 숫자(119 화재대피안심콜 · 1인 가구 · 3D)는 남김 (2026-10-27 점검) */
+    .map(function (s) { return s.replace(/^\s*(?:[-–·•]+|\d+[.)])\s*/, '').trim(); }).filter(Boolean).slice(0, 8);
 }
 function saveGenMode() {
-  try { sessionStorage.setItem('auri_gen_custom', JSON.stringify({ mode: genMode(), items: customList() })); } catch (e) { /* 공간 부족 — 저장만 빠짐 */ }
+  /* 원문(raw)을 따로 남깁니다 — 다시 열 때 정리된 목록으로 입력칸을 덮어 9번째 줄부터 사라지던 것 (2026-10-27 점검) */
+  let prev = null; try { prev = JSON.parse(sessionStorage.getItem('auri_gen_custom') || 'null'); } catch (e) { prev = null; }
+  const g = { mode: genMode(), items: customList(), raw: document.getElementById('customItems').value };
+  if (prev && prev.lastImage) g.lastImage = prev.lastImage;   // 지금 개선 후 이미지가 어떤 방식으로 만들어졌는지 (문서 표기용)
+  try { sessionStorage.setItem('auri_gen_custom', JSON.stringify(g)); } catch (e) { /* 공간 부족 — 저장만 빠짐 */ }
   showNonVisualNote(AuriRx.current());
 }
 function onGenMode() {
@@ -285,7 +290,7 @@ function loadGenMode() {
   let g = null;
   try { g = JSON.parse(sessionStorage.getItem('auri_gen_custom') || 'null'); } catch (e) { g = null; }
   if (!g) return;
-  document.getElementById('customItems').value = (g.items || []).join('\n');
+  document.getElementById('customItems').value = g.raw != null ? g.raw : (g.items || []).join('\n');
   const r = document.querySelector(`input[name=genMode][value="${g.mode === 'custom' ? 'custom' : 'rx'}"]`);
   if (r) r.checked = true;
   document.getElementById('customItems').hidden = g.mode !== 'custom';
@@ -301,6 +306,10 @@ async function generateAfter(useNote) {
   const custom = genMode() === 'custom';
   if (!inputRaw) { alert('원본 이미지가 없습니다. 진단 단계에서 사진을 먼저 확정해 주세요.'); return; }
   if (custom && !customList().length) { alert('그릴 사업을 한 줄에 하나씩 적어 주세요.'); return; }
+  if (custom) {
+    const lines = document.getElementById('customItems').value.split('\n').filter(function (s) { return s.trim(); }).length;
+    if (lines > 8 && !confirm('직접 입력은 8개까지만 그림에 반영됩니다(지금 ' + lines + '줄). 앞의 8개로 만들까요?')) return;
+  }
   if (!custom && !items.length) { alert('반영할 사업이 없습니다.'); return; }
 
   const note = useNote ? document.getElementById('tweakNote').value.trim() : '';
@@ -357,8 +366,10 @@ async function generateAfter(useNote) {
     });
 
     /* 번호 태그 범례 — 서버에 보낸 시설 순서가 곧 번호입니다 */
-    if (tagsOn) sessionStorage.setItem('auri_after_tags', JSON.stringify(visualNames.map(function (n, i) { return { n: i + 1, name: n }; })));
-    else sessionStorage.removeItem('auri_after_tags');
+    try {
+      if (tagsOn) sessionStorage.setItem('auri_after_tags', JSON.stringify(visualNames.map(function (n, i) { return { n: i + 1, name: n }; })));
+      else sessionStorage.removeItem('auri_after_tags');
+    } catch (e) { /* 저장 공간 부족 — 범례만 저장되지 않음. 생성은 성공으로 둡니다 (2026-10-27 점검) */ }
     renderTagLegend();
 
     _lastGenerated = data.dataUrl;
@@ -380,6 +391,12 @@ async function generateAfter(useNote) {
       try { sessionStorage.setItem('auri_after_image', await shrinkDataUrl(data.dataUrl, 1100, 0.78)); }
       catch (e2) { alert('개선 후 이미지가 너무 커서 진단서·프로젝트 저장에 넣지 못했습니다. 현장 사진을 줄이거나 지우고 다시 만들어 주세요.'); }
     }
+    /* 이 그림을 어떤 사업으로 그렸는지 남깁니다 — 직접 입력이면 문서 캡션에 "직접 입력한 사업" 으로 적히게 (2026-10-27 점검, 감사 추적) */
+    try {
+      const g = JSON.parse(sessionStorage.getItem('auri_gen_custom') || 'null') || { mode: genMode(), items: customList() };
+      g.lastImage = { mode: custom ? 'custom' : 'rx', items: visualNames.slice(), model: data.model || '', at: new Date().toISOString() };
+      sessionStorage.setItem('auri_gen_custom', JSON.stringify(g));
+    } catch (e) { /* 공간 부족 — 표기만 빠짐 */ }
   } catch (err) {
     document.getElementById('afterMsg').textContent = '만들지 못했습니다';
     document.getElementById('afterSub').textContent = err.message;

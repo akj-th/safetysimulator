@@ -358,7 +358,9 @@ function renderResults(results) {
       </div>`;
   }).join('');
 
-  sessionStorage.setItem('auri_diagnosis_results', JSON.stringify(results));
+  /* 브라우저 저장 공간이 차면 저장만 실패시키고 알립니다 — 전에는 예외가 나서 받은 판독이 임시 점수로 바뀔 수 있었습니다 (2026-10-27 점검) */
+  try { sessionStorage.setItem('auri_diagnosis_results', JSON.stringify(results)); }
+  catch (e) { alert('브라우저 저장 공간이 부족해 판독 결과를 저장하지 못했습니다. 화면에는 보이지만 다음 단계로 넘어가면 사라집니다 — 4단계 이미지나 현장 사진을 줄여 주세요.'); }
   document.getElementById('resultFoot').style.display = 'flex';
   showEditButtons(false);
   auriRenderSteps();   // 다음 단계 잠금 해제
@@ -603,6 +605,7 @@ async function sendRevise() {
   try {
     const data = await auriCallServer('/api/revise', {
       imageDataUrl: inputImage.dataUrl, previous: previous, note: note, location: pickedForLog(),
+      previousSpace: inputImage.space || null,   // 지적이 공간 용도에 관한 것이 아니면 그대로 두라고 지시문에 넣습니다 (2026-10-27 점검)
     });
 
     const results = toResults(data).map(function (r) {

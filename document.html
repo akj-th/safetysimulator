@@ -604,7 +604,7 @@ function auriCh2() {
       ${(beforeUrl || after || mineP.length) ? `
       <div class="ba-stack">
         ${mineP[0] ? `<figure><img src="${esc(mineP[0].dataUrl)}" alt="현장 사진"><figcaption>현장 사진 — ${esc(AuriSitePhoto.caption(mineP[0]))}</figcaption></figure>` : (beforeUrl ? `<figure><img src="${esc(beforeUrl)}" alt="개선 전"><figcaption>개선 전 (진단 지점)</figcaption></figure>` : '')}
-        ${after ? `<figure><img src="${esc(after)}" alt="개선 후"><figcaption>[그림 ${figEx}] ${af && af.figures[1] ? esc(af.figures[1]) : '맞춤형 사업 예시'} <span class="h-sub">시뮬레이터 생성</span></figcaption></figure>${afterTagLegend()}<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>` : ''}
+        ${after ? `<figure><img src="${esc(after)}" alt="개선 후"><figcaption>[그림 ${figEx}] ${af && af.figures[1] ? esc(af.figures[1]) : '맞춤형 사업 예시'} <span class="h-sub">시뮬레이터 생성${afterHow()}</span></figcaption></figure>${afterTagLegend()}<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>` : ''}
       </div>` : ''}
       ${af && af.checks.length ? `<p class="bullet" style="margin-top:12px"><b>○ 사전 체크 및 현장 확인사항</b></p><ul class="auri-checks">${af.checks.map((t) => `<li>▸ ${esc(t)}</li>`).join('')}</ul>` : ''}`;
   }).join('');
@@ -1175,7 +1175,7 @@ function fieldReport() {
       <figure>
         ${after ? `<img src="${esc(after)}" alt="개선 후">`
           : '<div class="slot">개선 후 이미지 없음 — 4단계에서 생성하십시오</div>'}
-        <figcaption>개선 후 (사업 반영)</figcaption>
+        <figcaption>개선 후 (사업 반영${afterHow()})</figcaption>
       </figure>
       <!-- 면책 문구는 개선 전/후 두 장 아래에 **항상** 붙습니다 — 이미지가 아직 없어도,
            인쇄해도 (2026-09-14). 문구는 assets/ui.js 의 AURI_AI_DISCLAIMER 한 곳. -->
@@ -1483,6 +1483,17 @@ function cleanSavedHtml(html) {
   });
   return t.innerHTML;
 }
+/* 개선 후 이미지를 무엇으로 그렸는가 — 4단계 "직접 입력한 사업만" 으로 그렸으면 캡션에 적습니다(처방 목록과 다를 수 있으므로, 2026-10-27 점검) */
+function afterHow() {
+  try { const g = JSON.parse(sessionStorage.getItem('auri_gen_custom') || 'null'); return g && g.lastImage && g.lastImage.mode === 'custom' ? ' · 직접 입력한 사업만 반영' : ''; }
+  catch (e) { return ''; }
+}
+/* 지금의 개선 전(진단 사진)·개선 후 이미지 — 수정본의 자리 열쇠(data-imgslot)를 채울 때 씁니다 */
+function currentSlotImages() {
+  let before = null;
+  try { const im = JSON.parse(sessionStorage.getItem('auri_input_image') || 'null'); before = im && im.dataUrl ? im.dataUrl : null; } catch (e) { before = null; }
+  return { before, after: sessionStorage.getItem('auri_after_image') || null };
+}
 /* 사진 id 는 onclick="…('id')" 안에 들어가므로 글자·숫자·_- 만 */
 const pidOf = (id) => String(id == null ? '' : id).replace(/[^\w-]/g, '');
 
@@ -1494,6 +1505,8 @@ function applySavedDoc(which) {
   if (!saved) return false;
   el.innerHTML = cleanSavedHtml(saved);
   el.querySelectorAll('img[data-imgkey]').forEach((img) => { const v = _imgReg[img.dataset.imgkey]; if (v) img.setAttribute('src', v); });
+  const slotNow = currentSlotImages();
+  el.querySelectorAll('img[data-imgslot]').forEach((img) => { const v = slotNow[img.dataset.imgslot]; if (v) img.setAttribute('src', v); });
   return true;
 }
 function setEditUi() {
@@ -1510,6 +1523,8 @@ function setEditUi() {
 }
 function toggleEdit() {
   if (_editing) return saveEdit();
+  /* AI 초안을 받는 중에는 들어가지 않습니다 — 답이 오면 문서를 다시 그리기 때문 (2026-10-27 점검) */
+  if (_narBusy) { alert('AI 초안을 받는 중입니다. 끝난 뒤 수정해 주세요.'); return; }
   const el = docEl(currentTab());
   _editing = true;
   el.contentEditable = 'true';
@@ -1525,7 +1540,15 @@ function saveEdit() {
   /* 입력칸(textarea)의 지금 값을 HTML 에도 반영 — innerHTML 은 처음 값만 들고 있어서 */
   el.querySelectorAll('textarea').forEach((t) => { t.textContent = t.value; });
   const clone = el.cloneNode(true);
-  clone.querySelectorAll('img').forEach((img) => { const v = img.getAttribute('src') || ''; if (v.startsWith('data:')) { _imgReg[imgKey(v)] = v; img.dataset.imgkey = imgKey(v); img.removeAttribute('src'); } });
+  const slotNow = currentSlotImages();
+  clone.querySelectorAll('img').forEach((img) => {
+    const v = img.getAttribute('src') || '';
+    if (!v.startsWith('data:')) return;
+    _imgReg[imgKey(v)] = v; img.dataset.imgkey = imgKey(v); img.removeAttribute('src');
+    /* 지금의 개선 전/후 이미지는 자리(after·before)로도 적어 둡니다 (2026-10-27 점검 — 다시 만든 그림이 수정본에서 빈칸이던 것) */
+    if (slotNow.after && v === slotNow.after) img.dataset.imgslot = 'after';
+    else if (slotNow.before && v === slotNow.before) img.dataset.imgslot = 'before';
+  });
   const all = loadDocHtml();
   all[which] = clone.innerHTML;
   try { saveDocHtml(all); } catch (e) { alert('수정 내용이 너무 커서 브라우저에 저장하지 못했습니다. 화면에는 남아 있지만 다시 열면 사라집니다.'); }
@@ -1552,6 +1575,7 @@ function resetEdit() {
 
 function showDoc(which) {
   if (!DOC_TABS.includes(which)) which = 'b';
+  if (_editing && which !== currentTab()) return;   // 수정 중에는 탭을 옮기지 않습니다(저장 대상이 바뀌지 않게)
   const a = which === 'a', c = which === 'c', d = which === 'd';
   DOC_TABS.forEach((k) => { docEl(k).hidden = k !== which; document.getElementById('tab' + k.toUpperCase()).classList.toggle('on', k === which); });
   document.getElementById('printFoot').textContent =
@@ -1625,7 +1649,7 @@ async function exportHwpx() {
     const [bImg, aImg] = await Promise.all([hwpxJpeg(beforeUrl), hwpxJpeg(afterUrl)]);
     const items = [];
     if (bImg) items.push(Object.assign(bImg, { caption: ('[그림] 진단 지점 개선 전 — ' + (_picked.addr || '')).trim() }));
-    if (aImg) items.push(Object.assign(aImg, { caption: '[그림] 진단 지점 맞춤형 사업 예시 (시뮬레이터 생성)' }));
+    if (aImg) items.push(Object.assign(aImg, { caption: '[그림] 진단 지점 맞춤형 사업 예시 (시뮬레이터 생성' + afterHow() + ')' }));
     let tags = null; try { tags = JSON.parse(sessionStorage.getItem('auri_after_tags') || 'null'); } catch (e) { tags = null; }
     const notes = [];
     if (aImg && tags && tags.length) notes.push('※ 그림 속 번호: ' + tags.map((t) => t.n + ' ' + t.name).join(' · '));
@@ -1734,7 +1758,7 @@ function moisReport() {
 
     <h3 class="h-section">5. 사업 적용 예시(안)</h3>
     <div class="ba-stack">
-      <figure>${after ? `<img src="${esc(after)}" alt="사진 2 (After)">` : '<div class="slot">사진 2 (After) — 4단계에서 생성하십시오</div>'}<figcaption>사진 2 (After) — 사업 반영 예시</figcaption></figure>
+      <figure>${after ? `<img src="${esc(after)}" alt="사진 2 (After)">` : '<div class="slot">사진 2 (After) — 4단계에서 생성하십시오</div>'}<figcaption>사진 2 (After) — 사업 반영 예시${afterHow()}</figcaption></figure>
       ${afterTagLegend()}
       <div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>
     </div>
@@ -1849,7 +1873,7 @@ function guideCard() {
     ${spaceTable}
     <p class="guide-bar" style="margin-top:14px">해법·적용 | H/E/A → PALETTE → IMPLEMENT</p>
     <div class="guide-grid">
-      <figure>${after ? `<img src="${esc(after)}" alt="개선 후 사진">` : '<div class="slot">개선 후 사진 — 4단계에서 생성</div>'}<figcaption>개선 후 사진 (사업 반영 예시)</figcaption>${afterTagLegend()}<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div></figure>
+      <figure>${after ? `<img src="${esc(after)}" alt="개선 후 사진">` : '<div class="slot">개선 후 사진 — 4단계에서 생성</div>'}<figcaption>개선 후 사진 (사업 반영 예시${afterHow()})</figcaption>${afterTagLegend()}<div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div></figure>
       <table class="guide"><tbody>
         <tr><th rowspan="3" class="ax">H<br>E<br>A</th><th class="ax">인적</th><td>${human ? `<p class="bullet">${human.text}</p>` : ''}${AuriDocEdit.render('guide-human', '', '보호대상·이용자 특성을 적습니다.', ctx)}</td></tr>
         <tr><th class="ax">환경</th><td>${envHtml}${AuriDocEdit.render('guide-env', '', '현장에서 실측·확인할 물리 환경 항목을 적습니다.', ctx)}</td></tr>
@@ -1886,8 +1910,9 @@ function guideCard() {
 const NAR_KEY = 'auri_narratives';
 const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨'];   // 카드는 9장까지 (siteCards · 서버 NARRATIVE_MAX_CARDS)
 let _narBusy = false;
+let _narMem = null;   // 브라우저 저장 공간이 차서 못 남긴 AI 초안 — 화면에는 계속 보이게 (2026-10-27 점검: 유료 결과를 버리던 것)
 
-function narLoad() { try { return JSON.parse(sessionStorage.getItem(NAR_KEY) || 'null'); } catch (e) { return null; } }
+function narLoad() { try { return JSON.parse(sessionStorage.getItem(NAR_KEY) || 'null') || _narMem; } catch (e) { return _narMem; } }
 function stripTags(s) { return String(s || '').replace(/<[^>]+>/g, ''); }
 
 /* 사진의 공간유형 — 진단 때 AI 가 13종 중에서 고른 것. 없으면 AURI 보고서 그 분야 첫 공간유형 → 처방 사업의 표준 팔레트 공간유형 */
@@ -1912,12 +1937,19 @@ function narFields() {
   if (n && Array.isArray(n.fields)) return n.fields;
   return narCandidates().filter((r) => r.focus || r.score >= 67).map((r) => r.key);
 }
-function narToggleField(key, on) {
+function narToggleField(key, on, box) {
+  /* 수정 중이거나 수정본이 저장돼 있으면 문서를 다시 그리지 않습니다 — 쓰던 글이 사라지거나, 바꿔도 화면에 안 보이기 때문 (2026-10-27 점검) */
+  if (_editing || loadDocHtml().d) {
+    if (box) box.checked = !on;
+    alert(_editing ? '수정 중에는 분야를 바꿀 수 없습니다. 저장하거나 취소한 뒤 바꿔 주세요.'
+                   : '2차 현장보고서에 저장한 수정본이 있어 분야를 바꿔도 화면에 보이지 않습니다. 오른쪽 위 "원래대로"로 수정본을 지운 뒤 바꿔 주세요.');
+    return;
+  }
   const n = narLoad() || {};
   const f = new Set(narFields());
   if (on) f.add(key); else f.delete(key);
   n.fields = narCandidates().map((r) => r.key).filter((k) => f.has(k));
-  try { sessionStorage.setItem(NAR_KEY, JSON.stringify(n)); } catch (e) { /* 공간 부족 */ }
+  try { sessionStorage.setItem(NAR_KEY, JSON.stringify(n)); _narMem = null; } catch (e) { _narMem = n; }
   renderAll(); showDoc('d');
 }
 
@@ -1948,9 +1980,14 @@ function cardSig(c) { return c.rf + ':' + c.measures.map((m) => m.name).join('|'
 
 async function generateNarrative() {
   if (_narBusy) return;
+  /* 수정 중에는 만들지 않습니다 — 답이 오면 문서를 다시 그려 쓰던 글이 사라지기 때문 (2026-10-27 점검) */
+  if (_editing) { alert('수정 중에는 초안을 만들 수 없습니다. 저장하거나 취소한 뒤 다시 눌러 주세요.'); return; }
   const cards = siteCards();
-  if (!cards.length) { alert('사진 판독에서 문제로 확인된 항목이 없어 위험요인 카드를 만들 수 없습니다.'); return; }
+  if (!cards.length) { alert(narFields().length ? '사진 판독에서 문제로 확인된 항목이 없어 위험요인 카드를 만들 수 없습니다.' : '카드에 넣을 분야를 하나 이상 골라 주세요.'); return; }
   if (!cards.some((c) => c.measures.length)) { alert('카드에 넣을 사업 후보가 없습니다. 3단계 리포트에서 처방을 먼저 확인해 주세요.'); return; }
+  /* 수정본이 저장돼 있으면 새 초안이 가려집니다 — 만들기 전에 묻고, 성공하면 수정본을 지웁니다 */
+  const dropSaved = !!loadDocHtml().d;
+  if (dropSaved && !confirm('2차 현장보고서에 저장한 수정본이 있습니다. 새 초안을 만들면 수정본을 지우고 새 초안으로 바꿉니다. 계속할까요?')) return;
   _narBusy = true;
   const btn = document.getElementById('narBtn'); if (btn) { btn.disabled = true; btn.textContent = 'AI 초안 작성 중… (1분 정도)'; }
   try {
@@ -1964,7 +2001,11 @@ async function generateNarrative() {
     });
     const byRf = {};
     (data.cards || []).forEach((c) => { const src = cards.find((x) => x.rf === c.rf); if (src && !byRf[c.rf]) byRf[c.rf] = Object.assign({ sig: cardSig(src) }, c); });
-    sessionStorage.setItem(NAR_KEY, JSON.stringify({ fields: narFields(), comboFields: narFields().join(','), at: data.at, model: data.model, cards: byRf, combo: data.combo || null, checks: data.checks || [] }));
+    const nar = { fields: narFields(), comboFields: narFields().join(','), at: data.at, model: data.model, cards: byRf, combo: data.combo || null, checks: data.checks || [] };
+    /* 저장 공간이 차도 받은 초안은 버리지 않습니다 — 화면에는 보이고, 페이지를 닫으면 사라진다고 알림 */
+    try { sessionStorage.setItem(NAR_KEY, JSON.stringify(nar)); _narMem = null; }
+    catch (e) { _narMem = nar; alert('브라우저 저장 공간이 부족해 초안을 저장하지 못했습니다. 화면에는 보이지만 페이지를 닫으면 사라집니다 — 현장 사진을 줄이면 저장됩니다.'); }
+    if (dropSaved) { const all = loadDocHtml(); delete all.d; saveDocHtml(all); }
   } catch (e) {
     alert('서술형 초안을 만들지 못했습니다.\n' + e.message);
   } finally {
@@ -1994,7 +2035,7 @@ function siteReport() {
       ? (!stale ? `AI 초안 · ${esc(String(nar.at || '').slice(0, 10))} · ${esc(nar.model || '')} — 고칠 곳은 오른쪽 위 <b>✎ 수정</b>으로 바로 고칩니다.`
                : '<b style="color:var(--main)">분야 선택·처방·판독이 바뀐 카드가 있습니다.</b> 그 카드는 연계표 문장으로 보입니다 — 다시 만들어 주세요.')
       : '아직 AI 초안이 없습니다. 지금은 연계표의 연결 근거 문장으로 채워져 있습니다.'}</span>
-    <div class="nar-fields"><span class="lab">카드에 넣을 분야</span>${narCandidates().map((r) => `<label><input type="checkbox" ${narFields().includes(r.key) ? 'checked' : ''} onchange="narToggleField('${r.key}', this.checked)"> ${esc(r.name)} ${r.score}점${r.focus ? ' <span class="mark-focus">중점</span>' : ''}</label>`).join('')}</div>
+    <div class="nar-fields"><span class="lab">카드에 넣을 분야</span>${narCandidates().map((r) => `<label><input type="checkbox" ${narFields().includes(r.key) ? 'checked' : ''} onchange="narToggleField('${r.key}', this.checked, this)"> ${esc(r.name)} ${r.score}점${r.focus ? ' <span class="mark-focus">중점</span>' : ''}</label>`).join('')}</div>
     <p class="d2">사업 선정은 처방 규칙(3단계)이 하고, AI 는 정해진 사업을 위험요인과 엮어 문장으로만 씁니다.
       위험요인–사업 연계표는 <b>AKJ 임시 작성본</b>입니다(${esc(AuriSpaceRisk.version || '')}) — AURI 인과관계 자료를 받으면 교체합니다.
       <span class="k-tag">처방</span> 규칙 엔진이 고른 사업 · <span class="k-tag ref">연계표</span>·<span class="k-tag ref">연계 검토</span> 처방 목록 밖, 검토용 후보</p>
@@ -2049,7 +2090,7 @@ function siteReport() {
     <p class="bullet">- <span class="h-sub">(사업별 단가 확정 전 — 개소·구간은 현장 실측 후 산정)</span></p>${budgets}
     <h3 class="h-section">5. 사업 적용 예시(안)</h3>
     <div class="ba-stack">
-      <figure>${after ? `<img src="${esc(after)}" alt="사진 2 (After)">` : '<div class="slot">사진 2 (After) — 4단계에서 생성</div>'}<figcaption>사진 2 (After)</figcaption></figure>
+      <figure>${after ? `<img src="${esc(after)}" alt="사진 2 (After)">` : '<div class="slot">사진 2 (After) — 4단계에서 생성</div>'}<figcaption>사진 2 (After)${afterHow()}</figcaption></figure>
       ${afterTagLegend()}
       <div class="ba-disclaimer">${esc(AURI_AI_DISCLAIMER)}</div>
     </div>

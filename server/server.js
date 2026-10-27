@@ -359,14 +359,17 @@ ${checklistText(focus)}
    핵심: 지적한 사람은 현장과 이미지를 직접 확인한 전문가이므로,
    AI의 이전 판독보다 그 지적을 우선합니다. AI가 자기 판단을 고집하면
    이 기능 자체가 무의미해집니다. */
-function buildRevisePrompt(previous, note, focus, location) {
+function buildRevisePrompt(previous, note, focus, location, previousSpace) {
+  /* 이전 공간유형 — 이것을 보내지 않으면 AI 가 재판독 때마다 새로 골라 공간유형이 아무 표시 없이 바뀌었습니다 (2026-10-27 점검) */
+  const ps = previousSpace && typeof previousSpace === 'object' && spaceTypeNames().includes(String(previousSpace.primary || '')) ? previousSpace : null;
+  const spaceText = ps ? `\n[공간유형] ${ps.primary}${ps.secondary ? ' + ' + String(ps.secondary).slice(0, 30) : ''}${ps.reason ? ' — ' + String(ps.reason).slice(0, 200) : ''}` : '';
   const prevText = CATEGORIES.map(function (cat) {
     const p = previous[cat.key] || {};
     const lines = (Array.isArray(p.findings) ? p.findings : []).filter(Boolean).map(function (f) {
       return `    ${f.id} ${f.answer}${f.note ? ' — ' + f.note : ''}`;
     }).join('\n');
     return `[${cat.label}] ${p.score}점${p.summary ? `\n    요약: ${p.summary}` : ''}\n${lines || '    (항목 판독 없음)'}`;
-  }).join('\n');
+  }).join('\n') + spaceText;
 
   return `앞서 당신이 이 거리 이미지를 판독한 결과에 대해, 현장을 아는 연구원이
 잘못된 부분을 지적했습니다. 지적을 반영해 판독 결과를 다시 작성하세요.
@@ -389,7 +392,7 @@ ${note}
 - findings 에는 **모든 항목**을 다시 넣되, 지적이 닿는 항목만 고쳐서 적으세요.
   개선 시설물이 이 항목 답으로 정해지므로, 잘못 본 항목을 고치면 처방도 바뀝니다.
 - summary 도 고친 항목 답에 맞게 다시 쓰세요. 지적과 무관한 분야의 summary 는 그대로 두세요.
-- space_type 은 지적이 공간의 용도에 관한 것일 때만 바꾸세요.
+- space_type 은 지적이 공간의 용도에 관한 것일 때만 바꾸고, 그렇지 않으면 이전 판독 결과의 [공간유형]을 그대로 돌려주세요.
 ${locationBlock(location)}${SUMMARY_GUIDE}${spaceBlock()}
 ## 점수 기준 (0~100) — 점수가 높을수록 위험합니다
 ${SCORING_GUIDE}
@@ -1221,7 +1224,7 @@ async function handleDiagnose(req, res, isRevise) {
       return sendJson(res, 400, { error: '어디가 잘못되었는지 알려 주셔야 다시 판독할 수 있습니다.' });
     }
     console.log(`[재판독 요청] 지적: ${String(body.note).slice(0, 80)}`);
-    promptText = buildRevisePrompt(body.previous, body.note, focus, body.location);
+    promptText = buildRevisePrompt(body.previous, body.note, focus, body.location, body.previousSpace);
   } else {
     console.log(`[진단 요청] ${mediaType}, ${Math.round(base64Data.length / 1024)}KB · 중점 분야 ${focus ? focus.label + ' ' + focus.labels.join('·') : '없음(지자체 미확인)'}` +
                 ` · 위치 ${(body.location && (body.location.road || body.location.addr)) || '없음'}`);
