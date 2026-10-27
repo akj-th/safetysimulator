@@ -1862,7 +1862,7 @@ function guideCard() {
    저장: auri_narratives { sig, at, model, cards:{rf:{…}}, combo, checks } — 사업 후보가 바뀌면 sig 가 달라져 "다시 생성" 안내
    ════════════════════════════════════════════════════════════════════ */
 const NAR_KEY = 'auri_narratives';
-const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
+const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨'];   // 카드는 9장까지 (siteCards · 서버 NARRATIVE_MAX_CARDS)
 let _narBusy = false;
 
 function narLoad() { try { return JSON.parse(sessionStorage.getItem(NAR_KEY) || 'null'); } catch (e) { return null; } }
@@ -1941,7 +1941,7 @@ async function generateNarrative() {
       cards: cards.filter((c) => c.measures.length),
     });
     const byRf = {};
-    (data.cards || []).forEach((c) => { const src = cards.find((x) => x.rf === c.rf); if (src) byRf[c.rf] = Object.assign({ sig: cardSig(src) }, c); });
+    (data.cards || []).forEach((c) => { const src = cards.find((x) => x.rf === c.rf); if (src && !byRf[c.rf]) byRf[c.rf] = Object.assign({ sig: cardSig(src) }, c); });
     sessionStorage.setItem(NAR_KEY, JSON.stringify({ fields: narFields(), comboFields: narFields().join(','), at: data.at, model: data.model, cards: byRf, combo: data.combo || null, checks: data.checks || [] }));
   } catch (e) {
     alert('서술형 초안을 만들지 못했습니다.\n' + e.message);

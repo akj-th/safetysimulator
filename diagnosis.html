@@ -447,7 +447,7 @@ function buildDummyResults(picked) {
   const rand = seededRandom(hashSeed(`${picked.lat},${picked.lng}`));
   return CATEGORIES.map(function (cat) {
     const score = Math.round(rand() * 100);
-    return { key: cat.key, name: cat.label, score: score, level: auriLevel(score) };
+    return { key: cat.key, name: cat.label, score: score, level: auriLevel(score), dummy: true };   // dummy — AI 판독이 아님을 다음 단계까지 표시
   });
 }
 function seededRandom(seed) {
@@ -545,10 +545,23 @@ async function runDiagnosis() {
       showCaptureError('이 사진은 거리 이미지로 판독하기 어렵습니다. 다른 각도로 다시 캡처해 주세요.');
     }
   } catch (err) {
-    /* 서버가 없어도 흐름이 끊기지 않도록 임시 점수로 되돌립니다 */
+    /* 서버에 아예 닿지 못했을 때만(offline) 흐름이 끊기지 않도록 임시 점수를 씁니다.
+       ★ 2026-10-27 점검: 전에는 로그인 만료(401)·사용 상한(429)·서버 오류 때도 임시 점수가 저장돼,
+         이미 받은 AI 판독이 난수로 덮이고 다시 로그인하면 "이전 진단 결과"로 보였습니다(감사 추적이 깨짐).
+         이제 AI 판독이 있으면 그대로 두고, 오류만 알립니다. */
+    const hasAi = Array.isArray(_results) && _results.some(function (r) { return r.findings && !r.dummy; });
     const raw = sessionStorage.getItem('auri_picked_location');
-    if (raw) renderResults(buildDummyResults(JSON.parse(raw)));
-    setTag('임시 점수', true);
+    if (err.offline && !hasAi && raw) {
+      renderResults(buildDummyResults(JSON.parse(raw)));
+      setTag('임시 점수', true);
+    } else if (_results) {
+      renderResults(_results);
+      const wasDummy = _results.some(function (r) { return r.dummy; });
+      setTag(wasDummy ? '임시 점수' : '이전 진단 결과', wasDummy);
+    } else {
+      document.getElementById('resultList').innerHTML = '<div class="empty">판독하지 못했습니다. 아래 안내를 확인해 주세요.</div>';
+      setTag('판독 실패', true);
+    }
     showServerError(err);
   } finally {
     _busy = false;
@@ -693,8 +706,9 @@ window.addEventListener('load', function () {
   /* 이전 진단 결과가 있으면 그대로 보여 줍니다 */
   const savedResults = sessionStorage.getItem('auri_diagnosis_results');
   if (savedResults) {
-    renderResults(JSON.parse(savedResults));
-    setTag('이전 진단 결과');
+    const prev = JSON.parse(savedResults);
+    renderResults(prev);
+    setTag(prev.some(function (r) { return r.dummy; }) ? '임시 점수' : '이전 진단 결과', prev.some(function (r) { return r.dummy; }));
   }
 
   if (typeof naver === 'undefined' || !naver.maps) return;

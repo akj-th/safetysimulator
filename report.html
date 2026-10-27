@@ -342,7 +342,10 @@ let _national = null;     // 41개 지자체 합계 — 사전진단서 2.1 의 
 /* ── 항목별 점수 ────────────────────────────────────────────────── */
 
 function renderResults() {
-  document.getElementById('resultList').innerHTML = _results.map(function (r) {
+  /* 임시 점수(서버 없이 만든 난수 점수)면 처방·문서에 쓰기 전에 알 수 있게 (2026-10-27) */
+  const dummyNote = _results.some(function (r) { return r.dummy; })
+    ? '<div class="empty" style="color:var(--main)">임시 점수입니다 — 진단 서버에 연결되지 않아 AI 판독 없이 만든 점수라 처방·문서의 근거로 쓸 수 없습니다. 2단계에서 다시 판독해 주세요.</div>' : '';
+  document.getElementById('resultList').innerHTML = dummyNote + _results.map(function (r) {
     /* 판독 요약(위치 + 현황 + 위험요인 한 문장, 2026-10-27)이 있으면 먼저, 그 아래 근거 */
     const why = (r.summary ? `<div class="result-why" style="color:var(--k)">${auriEsc(r.summary)}</div>` : '') +
       ((r.observed && r.observed.length) ? `<div class="result-why">${r.observed.map(auriEsc).join(' · ')}</div>` : '');

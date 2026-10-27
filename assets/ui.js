@@ -77,7 +77,8 @@ async function auriCallServer(path, payload, retried) {
   try {
     res = await fetch(path, { method: 'POST', headers: headers, body: JSON.stringify(payload) });
   } catch (e) {
-    throw Object.assign(new Error('서버에 연결하지 못했습니다. 인터넷 연결이나 서버 상태를 확인해 주세요.'), { shown: true });
+    /* offline — 서버에 아예 닿지 못함. 진단 화면은 이때만 임시 점수를 씁니다(2026-10-27). 만료·상한·서버 오류는 offline 이 아님 */
+    throw Object.assign(new Error('서버에 연결하지 못했습니다. 인터넷 연결이나 서버 상태를 확인해 주세요.'), { shown: true, offline: true });
   }
 
   /* JSON이 아니면 원인을 상태 코드로 구분합니다.
@@ -88,7 +89,7 @@ async function auriCallServer(path, payload, retried) {
       throw Object.assign(new Error(
         '이 페이지는 진단 서버가 아닌 곳에서 열렸습니다' +
         (location.protocol === 'file:' ? ' (파일 직접 열기)' : ` (${location.origin})`) +
-        '. 진단 서버가 실행 중인 주소로 접속해 주세요.'), { shown: true });
+        '. 진단 서버가 실행 중인 주소로 접속해 주세요.'), { shown: true, offline: true });
     }
     throw Object.assign(new Error(
       `서버가 응답을 마치지 못했습니다 (HTTP ${res.status}). ` +
