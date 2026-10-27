@@ -1839,13 +1839,18 @@ function guideCard() {
   const typeList = [];
   photoTypes.concat(spaces).forEach((s) => { if (s && !typeList.includes(s)) typeList.push(s); });
   const diagGroups = AuriSpaceRisk.groupFindings(_results.slice().sort((a, b) => (focusKeys.has(b.key) - focusKeys.has(a.key)) || b.score - a.score));
+  const shownGroups = diagGroups.slice(0, 4);   // 사진 공간유형 행에 싣는 위험요인 묶음
   const spaceRows = typeList.slice(0, 4).map((s) => {
     const st = AuriSpaceRisk.spaceType(s);
     const risks = [];
-    if (_auri) _auri.fields.forEach((af) => (af.groups || []).forEach((g) => { if (String(g.spaceType || '').replace(/\s/g, '') === s.replace(/\s/g, '')) (g.issues || []).forEach((is) => { if (is.title) risks.push(`<p class="bullet">[${esc((AuriSafetyIndex.LABEL && AuriSafetyIndex.LABEL[af.key]) || af.cat || af.key || '')}] ${esc(is.title)} <span class="h-sub">AURI 보고서</span></p>`); }); }));
-    if (photoTypes[0] === s) diagGroups.slice(0, 4).forEach((g) => risks.push(`<p class="bullet">[${esc(g.fieldName)}] ${esc(g.rf.name)} — ${esc(g.result.summary || g.findings.map((f) => f.note || f.ask).join(', '))} <span class="h-sub">사진 판독</span></p>`));
+    const seenIssue = new Set();   // AURI 보고서에 같은 위험요인 제목이 두 묶음에 있으면 한 번만 (2026-10-27)
+    if (_auri) _auri.fields.forEach((af) => (af.groups || []).forEach((g) => { if (String(g.spaceType || '').replace(/\s/g, '') === s.replace(/\s/g, '')) (g.issues || []).forEach((is) => { const ik = af.key + '|' + is.title; if (is.title && !seenIssue.has(ik)) { seenIssue.add(ik); risks.push(`<p class="bullet">[${esc((AuriSafetyIndex.LABEL && AuriSafetyIndex.LABEL[af.key]) || af.cat || af.key || '')}] ${esc(is.title)} <span class="h-sub">AURI 보고서</span></p>`); } }); }));
+    /* 같은 분야의 위험요인이 여럿이면 분야 요약은 첫 줄에만, 나머지는 그 위험요인을 부른 판독 근거로 (같은 요약이 3~4번 되풀이되던 것, 2026-10-27 점검) */
+    const sumSeen = new Set();
+    if (photoTypes[0] === s) shownGroups.forEach((g) => { const useSum = g.result.summary && !sumSeen.has(g.field); if (useSum) sumSeen.add(g.field); risks.push(`<p class="bullet">[${esc(g.fieldName)}] ${esc(g.rf.name)} — ${esc(useSum ? g.result.summary : g.findings.map((f) => f.note || f.ask).join(', '))} <span class="h-sub">사진 판독</span></p>`); });
     if (!risks.length && st) (st.risks || []).slice(0, 3).map((id) => AuriSpaceRisk.riskFactor(id)).filter(Boolean).forEach((rf) => risks.push(`<p class="bullet">[${esc((AuriSafetyIndex.LABEL && AuriSafetyIndex.LABEL[rf.field]) || rf.field)}] ${esc(rf.name)} <span class="h-sub">유형 대표 위험요인</span></p>`));
-    const rx = _items.filter((it) => { const sp = AuriPalette.std(it.name); if (sp && sp.spaceType === s) return true; return photoTypes[0] === s && it.trigger && diagGroups.some((g) => (g.rf.items || []).includes(it.trigger.id)); });
+    /* 처방은 이 행에 보이는 위험요인 묶음(최대 4)에 연결된 것만 — 전체 묶음으로 고르면 다른 공간의 사업이 섞였음 */
+    const rx = _items.filter((it) => { const sp = AuriPalette.std(it.name); if (sp && sp.spaceType === s) return true; return photoTypes[0] === s && it.trigger && shownGroups.some((g) => (g.rf.items || []).includes(it.trigger.id)); });
     return `<tr><th>${esc(s)}${st ? `<br><span class="h-sub">${esc(st.group)}</span>` : ''}</th>
       <td>${st ? `<p class="bullet" style="color:var(--g3)">${esc(st.def)}</p>` : ''}${risks.join('') || '<p class="bullet">-</p>'}</td>
       <td>${rx.length ? rx.map((it) => { const sp = AuriPalette.std(it.name); return `<p class="bullet"><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span> ${sp ? `${esc(sp.cat)} ${String(sp.no).padStart(2, '0')} ` : ''}「${esc(it.name)}」</p>`; }).join('') : '<p class="bullet">-</p>'}</td></tr>`;
