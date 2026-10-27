@@ -6,6 +6,7 @@
      · 코어 = 복합위험지구(조사지) 안 출동이 많은 행정동 (현장조사로 확정된 사고 군집)
      · 사고 군집에 인접하고 시가지가 이어지는 동일수록 위험이 번진다(깨진 유리창) → 코어와의 거리에 따라 감쇠
      · 코어: 85~100 (지구 안 출동 많은 순) · 인접(코어 중심에서 가까울수록): 30~70 · 멀리: 10~30, 거기에 자기 HEA·밀도를 조금 반영
+       (첫 점수. 아래 "등급 분포 유지"에서 비코어도 화면 등급 구간에 맞춰 올리거나 내리므로 최종값은 70 을 넘을 수 있습니다 — 코어 최저 원점수 −1 이 천장)
      · 그래도 3위 안에 못 들면 코어 점수를 5 씩 올리고(최대 100), 그래도 안 되면 앞서는 비코어 동 점수를 5 씩 내립니다(최소 10)
    실행: node tools/build-field-survey.mjs   (build-dong-hea · build-safety-index 뒤)
    ════════════════════════════════════════════════════════════════════ */
@@ -73,15 +74,16 @@ for (const f of fs.readdirSync(path.join(ROOT, 'data/dong')).filter((x) => x.end
     const c2 = check(); const rows = c2.dongs.filter((d) => d.compositePct != null).slice().sort((a, b) => b.composite - a.composite);
     const coreMin = Math.min(...c2.dongs.filter((d) => cores.includes(d.name)).map((d) => d.composite));
     const ceiling = coreMin - 1; if (ceiling < 67 && !bandWarn) bandWarn = ` ⚠ 코어 최저 ${coreMin.toFixed(0)} — 상위 등급 천장 ${ceiling.toFixed(0)}`;
-    const N = rows.length; let moved = 0;
-    rows.forEach((d, i) => {
+    let moved = 0;
+    rows.forEach((d) => {
       if (cores.includes(d.name)) return;
-      const q = i / N;
-      let [lo, hi] = q < 1 / 3 ? [67, 100] : q < 2 / 3 ? [34, 66.4] : [0, 33.4];   // 상위·중위·하위 3분위 (화면 색 band 와 같은 67/34)
+      /* 구간은 화면이 색을 칠하는 순위(compositeBand — safety-index.js pctRank)를 그대로 씁니다 (2026-10-27 점검).
+         전에는 여기서 i/N 으로 따로 나눠, 원점수 34~40 인데 '하위' 색인 동이 24곳 생겼습니다 */
+      let [lo, hi] = d.compositeBand === 'high' ? [67, 100] : d.compositeBand === 'mid' ? [34, 66] : [0, 33];   // 끝에 반올림 여유 (화면은 정수로 반올림)
       hi = Math.min(hi, ceiling); lo = Math.min(lo, hi);
       const raw = d.composite; if (raw >= lo && raw <= hi) return;
-      const want = raw < lo ? Math.min(lo + 1, hi) : hi;
-      const sNew = clamp(score[d.name] + (want - raw) / 0.5, 5, 100);
+      const want = raw < lo ? Math.min(lo + 0.6, hi) : hi - 0.4;
+      const sNew = clamp(score[d.name] + (want - raw) / SI.COMPOSITE_W.survey, 5, 100);   // 평가 비중(0.5)은 safety-index.js 한 곳
       if (sNew !== score[d.name]) { score[d.name] = sNew; moved++; }
     });
     bandMoved += moved; if (!moved) break;

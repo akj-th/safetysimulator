@@ -133,7 +133,7 @@ const AuriSafetyIndex = (function () {
   }
 
   /* ── 복합위험지수 v4 (2026-10-22, 이은석 박사·담당자 합의) ─────────────────────────────
-       세 변수의 가중합 → 지자체 안 백분위. 상위 3개 동 = 복합위험지구 후보.
+       세 변수의 가중합 → 지자체 안 백분위. 상위 동(복합위험지구 동 수만큼, 최대 3곳) = 복합위험지구.
          가중 HEA        = 중점 3분야 HEA 지수(fieldIndexMap, 표와 같은 값)의 지역안전지수 가중 평균      ← 데이터 그대로
          119 밀도        = 7개 분야 출동 건수 × 지역안전지수 가중치를 지자체 최대값 대비 0~100            ← 데이터 그대로
          현장조사단 평가  = data/stats/field-survey.json (tools/build-field-survey.mjs) — 현장조사단 종합평가 지수.
@@ -185,18 +185,20 @@ const AuriSafetyIndex = (function () {
     });
     /* ★ 2026-10-22 담당자: 백분위가 아니라 가중 합 원점수(0~100)를 그대로 보여 줍니다. 백분위는 동 수에 맞춰 0~100 을 등간격으로
        깔아 버려서 HEA 14·밀도 6·평가 13 인 동도 0 으로 찍혔습니다(당진 대호지면). 원점수는 표의 세 열을 비중대로 더하면 검산이 되고
-       순위는 같아 복합위험지구 상위 3곳도 그대로입니다. 이름은 다른 화면이 쓰고 있어 compositePct 그대로 둡니다. */
+       순위는 같아 복합위험지구 상위 동도 그대로입니다. 이름은 다른 화면이 쓰고 있어 compositePct 그대로 둡니다. */
     dongs.forEach((d) => { d.compositePct = d.composite == null ? null : Math.round(d.composite); d.candidate = false; });
     /* 색·등급(상위/중위/하위)은 원점수가 아니라 지자체 안 순위 3분위 — 점수가 낮은 지자체에서도 분포가 유지되게 (compositeBand) */
     const rk = pctRank(dongs.map((d) => d.composite));
     dongs.forEach((d) => { const r = rk(d.composite); d.compositeRank = r; d.compositeBand = r == null ? 'none' : r >= 67 ? 'high' : r >= 34 ? 'mid' : 'low'; });
     const targets = dongs.filter((d) => d.inside > 0).sort((a, b) => b.inside - a.inside).slice(0, 3).map((d) => d.name);
     const ranked = dongs.filter((d) => d.compositePct != null).sort((a, b) => b.compositePct - a.compositePct || (b.surveyPct || 0) - (a.surveyPct || 0) || (b.heaW || 0) - (a.heaW || 0));
-    const candidates = ranked.slice(0, 3);
+    /* 복합위험지구로 표시하는 동은 AURI 복합위험지구(조사지)에 드는 동 수만큼(최대 3곳) — 전에는 늘 3곳이라
+       지구 동이 1~2곳인 18개 지자체에서 지구 밖 동이 68점 동점 처리로 "해당"이 됐습니다 (2026-10-27 점검) */
+    const candidates = ranked.slice(0, targets.length ? Math.min(3, targets.length) : 3);
     candidates.forEach((d) => { d.candidate = true; });
     const hit = targets.filter((t) => candidates.some((d) => d.name === t));
     return { dongs, candidates, targets, hit, focus, weights: COMPOSITE_W, hasSurvey: Object.keys(sv).length > 0,
-      note: targets.length ? `복합위험지구(AURI) 해당 동 ${targets.length}곳 중 상위 3위 안 ${hit.length}곳` : '복합위험지구 해당 동 없음' };
+      note: targets.length ? `복합위험지구(AURI) 해당 동 ${targets.length}곳 중 상위 ${candidates.length}위 안 ${hit.length}곳` : '복합위험지구 해당 동 없음' };
   }
 
   function band(score) {

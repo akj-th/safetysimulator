@@ -59,6 +59,7 @@
     "infection",
     "crime"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "fire",
@@ -128,6 +129,7 @@
     "infection",
     "fire"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -195,6 +197,7 @@
     "life",
     "fire"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "crime",
@@ -288,6 +291,7 @@
     "life",
     "traffic"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "crime",
@@ -353,6 +357,7 @@
     "crime",
     "traffic"
    ],
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
     "infection",
@@ -448,6 +453,7 @@
     "crime",
     "life"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -516,6 +522,7 @@
     "infection",
     "crime"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -611,6 +618,7 @@
     "crime",
     "life"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "infection",
@@ -678,6 +686,7 @@
     "crime",
     "fire"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -744,6 +753,7 @@
     "crime",
     "fire"
    ],
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
     "infection",
@@ -838,6 +848,7 @@
     "infection",
     "crime"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -907,6 +918,7 @@
     "crime",
     "fire"
    ],
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
     "infection",
@@ -975,6 +987,7 @@
     "infection",
     "crime"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -1044,6 +1057,7 @@
     "traffic",
     "crime"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "infection",
@@ -1111,6 +1125,7 @@
     "traffic",
     "fire"
    ],
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
     "crime",
@@ -1179,6 +1194,7 @@
     "infection",
     "traffic"
    ],
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
     "crime",
@@ -1248,6 +1264,7 @@
     "traffic",
     "life"
    ],
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
     "fire",
@@ -1316,6 +1333,7 @@
     "fire",
     "crime"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -1384,6 +1402,7 @@
     "life",
     "fire"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "infection",
@@ -1451,6 +1470,7 @@
     "fire",
     "infection"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -1517,6 +1537,7 @@
     "life",
     "infection"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "fire",
@@ -1584,6 +1605,7 @@
     "infection",
     "crime"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "fire",
@@ -1650,6 +1672,7 @@
     "fire",
     "crime"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "infection",
@@ -1716,6 +1739,7 @@
     "life",
     "crime"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -1782,6 +1806,7 @@
     "crime",
     "fire"
    ],
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
     "life",
@@ -1851,6 +1876,7 @@
     "crime",
     "fire"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "infection",
@@ -1918,6 +1944,7 @@
     "infection",
     "traffic"
    ],
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
     "crime",
@@ -1984,6 +2011,7 @@
     "life",
     "crime"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "infection",
@@ -2053,6 +2081,7 @@
     "life",
     "crime"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "fire",
@@ -2120,6 +2149,7 @@
     "crime",
     "life"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "infection",
@@ -2187,6 +2217,7 @@
     "crime",
     "life"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "fire",
@@ -2254,6 +2285,7 @@
     "infection",
     "crime"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -2323,6 +2355,7 @@
     "infection",
     "crime"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "life",
@@ -2389,6 +2422,7 @@
     "life",
     "crime"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -2458,6 +2492,7 @@
     "infection",
     "crime"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -2525,6 +2560,7 @@
     "fire",
     "infection"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "crime",
@@ -2592,6 +2628,7 @@
     "fire",
     "crime"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -2660,6 +2697,7 @@
     "fire",
     "crime"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "traffic",
@@ -2728,6 +2766,7 @@
     "crime",
     "life"
    ],
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "infection",
@@ -2796,6 +2835,7 @@
     "fire",
     "crime"
    ],
+   "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "life",
@@ -2863,6 +2903,7 @@
     "fire",
     "crime"
    ],
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
     "life",

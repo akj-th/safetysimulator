@@ -818,12 +818,14 @@ function buildRmapSeg() {
     seg.appendChild(b);
   };
   /* 상위 1·2·3 = 지역안전지수 하위 등급 분야(자살 포함) → 그다음 복합위험지구 후보 (2026-10-21 담당자) */
-  si.focusByIndex.forEach(function (k, i) {
+  let lowRank = 0;
+  si.focusByIndex.forEach(function (k) {
+    const why = k === 'suicide' ? '자살은 항상 포함' : si.focusSource === 'override' ? '중점관리분야' : '하위 ' + (++lowRank) + '위';
     /* HEA 점수가 없는 분야(표본 부족)도 버튼은 두고, 지도는 119 출동 건수 기준으로 칠합니다 */
     const hasHea = _si.weighted.fields.some(function (f) { return f.key === k; });
-    btn(k, AuriSafetyIndex.LABEL[k], colorOf(k), AuriSafetyIndex.LABEL[k] + ' — 지역안전지수 ' + (si.grades[AuriSafetyIndex.years()[0]] || {})[k] + '등급 (하위 ' + (i + 1) + '위)' + (hasHea ? '' : ' · 동별 HEA 표본 부족 → 119 출동 건수 기준'));   // 버튼에는 분야 이름만 (2026-10-21)
+    btn(k, AuriSafetyIndex.LABEL[k], colorOf(k), AuriSafetyIndex.LABEL[k] + ' — 지역안전지수 ' + (si.grades[AuriSafetyIndex.years()[0]] || {})[k] + '등급 (' + why + ')' + (hasHea ? '' : ' · 동별 HEA 표본 부족 → 119 출동 건수 기준'));   // 버튼에는 분야 이름만 (2026-10-21)
   });
-  btn('composite', '복합위험지구', '#D83D64', '가중 HEA 0.25 + 119 밀도 0.25 + 현장평가 0.5 → 상위 3개 동');
+  btn('composite', '복합위험지구', '#D83D64', '가중 HEA 0.25 + 119 밀도 0.25 + 현장평가 0.5 → 상위 동 (복합위험지구 동 수만큼, 최대 3곳)');
   note.innerHTML = _si.composite && _si.composite.candidates.length ? '복합위험지구 — <b>' + _si.composite.candidates.map(function (d) { return d.name; }).join(' · ') + '</b>' : '';
 }
 

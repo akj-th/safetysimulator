@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-22",
+  "generatedAt": "2026-10-27",
   "dongUnit": "행정동",
   "regions": [
     {
@@ -69,8 +69,8 @@
     {
       "region": "geumcheon",
       "label": "서울특별시 금천구",
-      "dongs": 16,
-      "scored": 13,
+      "dongs": 10,
+      "scored": 10,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -197,8 +197,8 @@
     {
       "region": "michuhol",
       "label": "인천광역시 미추홀구",
-      "dongs": 23,
-      "scored": 22,
+      "dongs": 21,
+      "scored": 21,
       "eStatus": "no-regression",
       "boundary": "ok"
     },
@@ -301,7 +301,7 @@
     {
       "region": "ujunggu",
       "label": "울산광역시 중구",
-      "dongs": 13,
+      "dongs": 12,
       "scored": 12,
       "eStatus": "no-regression",
       "boundary": "ok"

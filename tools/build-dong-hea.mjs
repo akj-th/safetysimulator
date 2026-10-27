@@ -106,11 +106,19 @@ const H_MIN_GROUP_POP = 100;
 const POPULATION_REQUIRE_CLEAN_LINK = true;
 /** 출동자료 기간(2023~2025) — 인구 1천 명당 연간 출동 표기용 */
 const INCIDENT_YEARS = 3;
-/** 행정동 이름 → 법정동 이름 후보. 앞에서부터 시도해 경계 파일에 있는 첫 이름을 씁니다 */
-const POPULATION_LINK_RULES = [
+/** 주민등록 행정동 이름 → 경계의 동 이름 후보. 앞에서부터 시도해 경계 파일에 있는 첫 이름을 씁니다.
+ *  ★ 2026-10-27 점검: 동 단위를 행정동으로 바꾼(10/21) 뒤에도 법정동 합치기 규칙만 남아 있어,
+ *    주민등록의 "독산제1동"·"숭의1.3동"이 행정동 경계의 "독산1동"·"숭의1·3동"에 붙지 못했고 출장소 줄도 빠져
+ *    11곳(미추홀 포함)의 H 가 인구 기준 → 출동 구성비 기준으로 조용히 내려가 있었습니다. */
+const POPULATION_LINK_RULES = DONG_UNIT.label === '행정동' ? [
   (n) => n,
-  (n) => n.replace(/제?\d[\d.,·]*동$/, '동'),              // 심곡1동 · 돈암제1동 · 숭의1.3동 → ○○동
-  (n) => n.replace(/제?\d[\d.,·]*동$/, '동').replace(/본동$/, '동'), // 고강본동 → 고강동
+  (n) => n.replace(/제(\d)/g, '$1'),                                    // 독산제1동 → 독산1동
+  (n) => n.replace(/제(\d)/g, '$1').replace(/(\d)[.,](\d)/g, '$1·$2'),   // 숭의1.3동 → 숭의1·3동
+  (n) => n.replace(/^(.+?[읍면])\S*출장소$/, '$1'),                      // 도양읍소록출장소 → 도양읍 (출장소 인구는 상위 읍면에)
+] : [
+  (n) => n,
+  (n) => n.replace(/제?\d[\d.,·]*동$/, '동'),              // (법정동) 심곡1동 · 돈암제1동 · 숭의1.3동 → ○○동
+  (n) => n.replace(/제?\d[\d.,·]*동$/, '동').replace(/본동$/, '동'), // (법정동) 고강본동 → 고강동
 ];
 
 /* ── 임시 기준 (H) ── 확정 기준 오면 교체 ─────────────────────────── */
@@ -352,15 +360,23 @@ function linkPopulation(boundary) {
     const total = Object.values(row.pop).reduce((a, b) => a + b, 0);
     adminTotal++; popTotal += total;
     add(region, row.pop);
-    const hit = POPULATION_LINK_RULES.map((f) => f(row.name)).find((n) => names.has(n));
-    if (!hit) { unmatched.push({ name: row.name, pop: total }); continue; }
+    let hit = POPULATION_LINK_RULES.map((f) => f(row.name)).find((n) => names.has(n));
+    /* 출장소 줄은 이름 앞부분이 같은 읍·면에 붙입니다 — 삼랑진임천출장소 → 삼랑진읍 (2026-10-27) */
+    if (!hit && /출장소$/.test(row.name)) {
+      hit = [...names].filter((b) => b.length > 2 && row.name.startsWith(b.replace(/[읍면동]$/, ''))).sort((a, b) => b.length - a.length)[0];
+    }
+    if (!hit) { unmatched.push({ name: row.name, pop: total, office: /출장소$/.test(row.name) }); continue; }
     adminMatched++; popMatched += total;
     add((byDong[hit] ||= {}), row.pop);
     (links[hit] ||= []).push(row.name);
   }
   if (!adminTotal) return null;
   const dongsWithPop = Object.keys(byDong).length;
-  const clean = adminMatched === adminTotal && dongsWithPop === names.size;
+  /* 행정동 단위에서는 "한 행정동이 여러 법정동에 걸쳐 인구가 부풀려지는" 문제가 없으므로,
+     못 붙인 줄이 **출장소뿐이고 인구 1% 미만**이면 깨끗한 것으로 봅니다 (사천 신수출장소 209명, 2026-10-27) */
+  const smallOffices = DONG_UNIT.label === '행정동' && unmatched.length && unmatched.every((u) => u.office)
+    && unmatched.reduce((a, u) => a + u.pop, 0) / popTotal < 0.01;
+  const clean = (adminMatched === adminTotal || smallOffices) && dongsWithPop === names.size;
   return {
     region, byDong, links, unmatched,
     summary: { adminTotal, adminMatched, dongsWithPop, dongsTotal: names.size, popShare: r1(popMatched / popTotal * 100), clean },
@@ -504,10 +520,8 @@ for (const cat of CATEGORY_ORDER) {
     if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue;
     const slug = slugFor(r[C.sido], r[C.sgg], lng, lat);
     if (!slug || (onlyRegion && slug !== onlyRegion)) continue;
-    const s = (store[slug] ||= { dongs: {}, region: {}, pts: [], recs: [], inside: {} });
+    const s = (store[slug] ||= { dongs: {}, region: {}, recs: [], inside: {} });
     const xy = toGrid.forward([lng, lat]);
-    /* 경계 묶음을 고를 표본 — 50건에 1건꼴로 좌표를 남깁니다 (결과 파일에는 쓰지 않음) */
-    if (s.pts.length < 2000 && (used % 50 === 0 || s.pts.length < 40)) s.pts.push(xy);
 
     const ageRaw = parseInt(r[C.age], 10);
     const age = Number.isInteger(ageRaw) && ageRaw >= 0 && ageRaw < 130 ? ageRaw : null;
@@ -532,7 +546,10 @@ function loadSurvey(slug) { const shp = path.join(SURVEY_DIR, `${slug}_OverlapUn
 console.log('\n동 경계를 읽습니다…');
 console.log(`  시군구 묶음 ${boundaryGroups().length}개 (${DONG_UNIT.label}, ${DONG_UNIT.source || 'shp'})`);
 for (const [slug, s] of Object.entries(store)) {
-  s.boundary = loadBoundary(slug, s.pts);
+  /* ★ 시군구 묶음은 출동 좌표 **전부**로 고릅니다 (2026-10-27 점검) — 예전 표본("처음 40건 + 50건에 1건")은
+     경도 순으로 정렬된 CSV 에서 서쪽 끝만 담아, 이웃 시군구(금천←광명 · 미추홀←제물포구 · 울산 중구←울주군)가
+     5% 문턱을 넘어 동 목록·인구(울주군 21.8만 명이 울산 중구 분모에)에 섞였습니다 */
+  s.boundary = loadBoundary(slug, s.recs.map((rec) => [rec.x, rec.y]));
   const zones = s.boundary ? Object.entries(s.boundary.byName).map(([name, shapes]) => ({ name, shapes, bbox: bboxOf(shapes) })) : [];
   let last = null;
   const assign = (x, y) => {

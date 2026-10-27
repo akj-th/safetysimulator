@@ -402,7 +402,7 @@ console.log(`  지자체 ${Object.keys(focus).length}개`);
 
 /* ★ 읍면동 = 행정동 (2026-10-21 담당자) — AURI 보고서·동별 HEA 와 같은 단위.
    원자료의 긴급_12 는 법정동이라 쓰지 않고, 좌표를 행정동 경계(data/raw/admin_boundary_hjd, build-dong-hea 와 같은 자료)에 넣어 정합니다.
-   경계 묶음은 지자체마다 출동 좌표 표본(50건에 1건)이 떨어지는 시군구로 고릅니다(광주·전남은 통합으로 코드가 바뀌어 이름으로 못 맞춤). */
+   경계 묶음은 지자체마다 출동 좌표(전부, 2026-10-27)의 5% 이상이 떨어지는 시군구로 고릅니다(광주·전남은 통합으로 코드가 바뀌어 이름으로 못 맞춤). */
 const DONG_UNIT = '행정동';
 const HJD_DIR = path.join(ROOT, 'data/raw/admin_boundary_hjd');
 const hjdAssign = {};
@@ -413,14 +413,15 @@ const hjdAssign = {};
   for (const category of CATEGORY_ORDER) {
     let csv; try { csv = openIncidents(fs, ROOT, category); } catch (e) { continue; }
     const cx = csv.col('X'), cy = csv.col('Y'), cs = csv.col('긴급구'), cg = csv.col('긴급_1');
-    let i = 0;
     for (const r of csv.rows) {
       const lng = parseFloat(r[cx]), lat = parseFloat(r[cy]);
       if (!isFinite(lng) || !isFinite(lat)) continue;
       const slug = slugFor(r[cs], r[cg], lng, lat);
       if (!slug) continue;
-      const arr = (samples[slug] ||= []);
-      if (arr.length < 2000 && (i++ % 50 === 0 || arr.length < 40)) arr.push(toGrid.forward([lng, lat]));
+      /* ★ 표본이 아니라 전부 (2026-10-27 점검). CSV 가 지자체 안에서 경도(X) 오름차순이라 "처음 40건 + 50건에 1건"
+         표본은 가장 서쪽 지점으로 채워져, 서쪽 이웃 시군구가 5% 문턱을 넘었습니다
+         (금천 표본 28.6% → 광명 행정동 6곳이 딸려옴, 실제 2.9%). 좌표 13.8만 개라 전부 써도 몇 초입니다 */
+      (samples[slug] ||= []).push(toGrid.forward([lng, lat]));
     }
   }
   for (const [slug, pts] of Object.entries(samples)) {
@@ -532,7 +533,7 @@ for (const category of CATEGORY_ORDER) {
 
     /* 반복 발생 지점 — 지번주소가 같으면 같은 장소로 봅니다.
        주소는 묶는 열쇠로만 쓰고 결과물에는 개소 수와 읍면동만 남깁니다. */
-    const addr = String(r[C.addr] || '').replace(/s+/g, ' ').trim();
+    const addr = String(r[C.addr] || '').replace(/\s+/g, ' ').trim();   // 2026-10-27 오타 수정(공백 \s+ 를 글자 s+ 로 적었던 것) — 지금 자료에서는 차이 0건
     const dongName = (hjdAssign[slug] ? hjdAssign[slug](gx, gy) : null) || '(미상)';   // 행정동 (경계 배정)
     if (addr) {
       if (!s.spot[cat]) s.spot[cat] = new Map();
