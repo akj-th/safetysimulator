@@ -19,6 +19,7 @@
 | `stats/field-survey.json` | 현장조사단 평가(복합위험지수의 0.5) | `build-field-survey.mjs` |
 | `stats/hotspots.json` | 주요 거점 A~J | `build-hotspots.mjs` |
 | `stats/region-types.json` | 지자체 유형(도심/도농복합/농촌) 1차 | `classify-regions.mjs` |
+| `stats/region-bounds.json` | 41개 지자체 바깥 경계(단순화) — 지점이 어느 지자체인지 판정(`assets/region-bounds.js`, 화면·서버 공용) | `build-region-bounds.mjs` |
 | `stats/auri-reports/` | AURI 사전분석 보고서 39곳 글·표 + `img/` 그림(1400px) | `build-auri-reports.mjs` · `shrink-images.mjs` |
 | `dong/<지역>.json` | 동별(행정동) HEA 취약도 · 경계선 · 근거 | `build-dong-hea.mjs` |
 | `heatmap/` | 분야별 커널밀도 PNG(중점분야) — 사전진단서 분야별 지도 | `build-heatmap.mjs --focus` |

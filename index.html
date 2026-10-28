@@ -299,6 +299,7 @@
 <script src="assets/risk-weights.js"></script>
 <script src="assets/dong-hea.js"></script>
 <script src="assets/safety-index.js"></script>
+<script src="assets/region-bounds.js"></script>
 <script>
 let _map, _pano, _marker;
 let picked = null;                 // { lat, lng, addr }
@@ -329,8 +330,19 @@ let _incidentLayers = {};
 let _compositeField = null;   // 종합 위험지수 (assets/risk-weights.js)
 let _catLabels = {};          // 분야 key → 화면에 쓰는 이름
 
-/* 선택한 지점에서 가장 가까운 지역 자료를 고릅니다.
-   41개 지역을 한꺼번에 올리면 지도가 무거우므로 한 지역씩만 불러옵니다. */
+/* 선택한 지점이 든 지자체의 자료를 고릅니다.
+   41개 지역을 한꺼번에 올리면 지도가 무거우므로 한 지역씩만 불러옵니다.
+   ★ 지자체 경계로 판정합니다 (assets/region-bounds.js, 2026-10-28) — 리포트·문서·서버와 같은 판정.
+     예전의 "가장 가까운 중심점"은 옹진군 조사지(영흥도)를 미추홀구로 고르는 등 섬·경계 근처에서 틀렸습니다.
+     41곳 밖으로 지도를 옮기면 가장 가까운 경계의 지자체를 올립니다(지도 보기용). */
+async function regionFor(lat, lng) {
+  if (!_incidentIndex) return null;
+  const hit = typeof AuriRegion !== 'undefined' ? await AuriRegion.near(lat, lng) : undefined;
+  const r = hit && _incidentIndex.regions.find(function (x) { return x.region === hit.region; });
+  return r || nearestRegion(lat, lng);
+}
+
+/* 경계 파일을 못 받았을 때만 쓰는 예전 방식 — 가장 가까운 중심점(출동 지점 평균) */
 function nearestRegion(lat, lng) {
   if (!_incidentIndex) return null;
   let best = null, bestDist = Infinity;
@@ -346,13 +358,14 @@ async function loadIncidents(lat, lng) {
   const tag = document.getElementById('layerRegion');
 
   try {
+    if (typeof AuriRegion !== 'undefined') AuriRegion.load();   // 경계 파일을 미리 받기 시작 (아래 목록과 동시에)
     if (!_incidentIndex) {
       const res = await fetch('data/incidents/index.json');
       if (!res.ok) throw new Error('목록을 불러오지 못했습니다');
       _incidentIndex = await res.json();
     }
 
-    const region = nearestRegion(lat, lng);
+    const region = await regionFor(lat, lng);
     if (!region) throw new Error('가까운 지역 자료가 없습니다');
     if (_loadedRegion === region.region) return;      // 이미 올라와 있음
 
@@ -1244,9 +1257,13 @@ async function startDiagnosis() {
   if (!picked) { alert('먼저 지도에서 위치를 선택해 주세요.'); return; }
   /* 주소 조회를 최대 3초 기다립니다 (못 받으면 좌표로 진행) */
   if (_geoPending) await Promise.race([_geoPending, new Promise(function (r) { setTimeout(r, 3000); })]);
-  /* 동 이름은 리포트·문서와 같은 행정동으로 (네이버 역지오코딩은 법정동을 줌 — 진단 지시문의 위치 표현에도 쓰임, 2026-10-27 점검) */
+  /* 동 이름은 리포트·문서와 같은 행정동으로 (네이버 역지오코딩은 법정동을 줌 — 진단 지시문의 위치 표현에도 쓰임, 2026-10-27 점검)
+     ★ 지점이 지금 올라온 지자체 **안**일 때만 (2026-10-28). 41곳 밖 지점(예: 서초구)에 이웃 지자체(관악) 동 이름이
+       붙던 것 — 동 경계 밖이면 "가장 가까운 동"을 고르기 때문. 밖이면 네이버가 준 실제 동 이름을 그대로 둡니다. */
   try {
-    const hj = _hea && _hea.data ? AuriSafetyIndex.dongAt(_hea.data, Number(picked.lat), Number(picked.lng)) : null;
+    const hit = typeof AuriRegion !== 'undefined' ? await AuriRegion.at(picked.lat, picked.lng) : undefined;
+    const inLoaded = hit === undefined || (hit && hit.region === _loadedRegion);
+    const hj = inLoaded && _hea && _hea.data ? AuriSafetyIndex.dongAt(_hea.data, Number(picked.lat), Number(picked.lng)) : null;
     if (hj && hj.name) picked.dong = hj.name;
   } catch (e) { /* 동 경계 없음 — 그대로 */ }
   /* ★ 2026-10-27 — 다른 지점으로 새 진단을 시작하면 앞 지점의 사진·판독·처방·개선 이미지·문서 글이 이 탭에 남아

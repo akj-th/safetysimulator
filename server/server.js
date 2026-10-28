@@ -23,6 +23,7 @@ import { CATEGORIES, SCORING_GUIDE } from './checklist.js';
 import { legalBlock, PENDING } from './legal.js';
 import * as auth from './auth.js';
 import * as projects from './projects.js';
+import { regionAt } from './region.js';
 
 const PORT = process.env.PORT || 8787;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -177,9 +178,10 @@ function checklistText(focus) {
    그 분야 항목을 우선·상세히 보게 합니다.
    ★ 나머지 4개 분야는 없애지 않습니다 — 9/7 회의: "사진에서 문제가 확인된 분야는
      중점 분야가 아니어도 개선사업이 나와야 한다". 판독 항목·점수·처방 모두 그대로입니다.
-   지자체는 **주소의 지자체 이름**으로 찾습니다. 주소가 아예 없을 때만 좌표에서 가장 가까운
-   지자체 중심(FOCUS_MAX_KM 안)으로 찾습니다 — 주소가 있는데 41곳에 없으면(예: 서울 중구) 대상
-   지자체가 아닌 것이므로 이웃 지자체의 중점 분야를 빌려 오지 않습니다.
+   지자체는 ★ **좌표가 든 지자체 경계**로 찾습니다 (server/region.js — 화면과 같은 판정, 2026-10-28).
+   41곳 밖이면 대상 지자체가 아닌 것이므로 이웃 지자체의 중점 분야를 빌려 오지 않습니다.
+   좌표가 없거나 경계 파일을 못 읽었을 때만 예전 규칙 — 주소의 지자체 이름, 주소도 없으면 좌표에서 가장 가까운
+   지자체 중심(FOCUS_MAX_KM 안).
    못 찾으면 중점 분야 없이 7개 분야를 같은 깊이로 봅니다(지금까지와 같은 판독). */
 const FOCUS_MAX_KM = 10;     // 좌표로 찾을 때 지자체 중심에서 이보다 멀면 "그 지자체"로 보지 않음
 let _regionIndex = null;
@@ -204,6 +206,8 @@ function focusFor(location) {
   const loc = location || {};
   const list = regionIndex();
   if (!list.length) return null;
+  const hit = regionAt(SITE_ROOT, loc.lat, loc.lng);
+  if (hit !== undefined) return hit ? list.find(function (r) { return r.region === hit.region; }) || null : null;
   const addr = String(loc.addr || '').replace(/\s+/g, ' ');
   /* 긴 이름부터 — "중구"가 엉뚱한 곳에 먼저 붙지 않게 (auth.js regionOf 와 같은 방식) */
   const byAddr = addr && list.slice().sort(function (a, b) { return b.label.length - a.label.length; })

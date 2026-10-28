@@ -12,6 +12,7 @@
 | `build-safety-index.mjs` | `focus` | 강원대 등급 엑셀(수정본) + AURI 5개년 표 → `data/stats/safety-index.json`(등급·가중치·중점분야·`tieBreak`) |
 | `apply-focus-index.mjs` | `focus` | 중점분야(지수 기준 또는 `config/focus-override.json`)를 `data/stats/` 에 적용 |
 | `build-dong-hea.mjs` | `dong-hea` | 출동 + 행정동 경계 + 인구 + TIF + 회귀분석 → `data/dong/`(동별 H·E·A). 지자체 하나만: `node build-dong-hea.mjs <지역>` |
+| `build-region-bounds.mjs` | `region-bounds` | 행정동 경계(vuski) + 동별 HEA 의 시군구 코드 → `data/stats/region-bounds.json`(지자체 바깥 경계 — 지점이 어느 지자체인지 판정). dong-hea 뒤 |
 | `build-field-survey.mjs` | — | 현장조사단 평가 → `data/stats/field-survey.json` (AURI 복합위험지구 동이 상위에 오게, 41곳 일치 확인) |
 | `build-hotspots.mjs` | `hotspots` | 중점분야 커널밀도 TIF → `data/stats/hotspots.json`(거점 A~J). ⚠ 다시 뽑으면 글자가 바뀌어 DB 거점 보정을 정리해야 함 |
 | `build-heatmap.mjs` | `heatmap` | 커널밀도 TIF → `data/heatmap/` PNG (`-- --focus` 면 중점분야만) |
@@ -31,7 +32,7 @@
 
 | 파일 | npm | 무엇 |
 |---|---|---|
-| `verify-stats.mjs` | `verify` | AURI·강원대 값 295건 대조 + ⑤ 파일 사이 일치(중점분야 · 현장평가 동 이름) |
+| `verify-stats.mjs` | `verify` | AURI·강원대 값 295건 대조 + ⑤ 파일 사이 일치(중점분야 · 현장평가 동 이름) + ⑥ 지점 → 지자체 판정(41곳 조사지·거점이 제 지자체로) |
 | `verify-rules.mjs` | `verify-rules` | 체크리스트 ↔ 연결표 ↔ 팔레트(병합 443종) ↔ 현장 확인 범주 ↔ 공간유형 연계표 |
 | `compare-kangwon.mjs` | `compare-kangwon` | 강원대 연령·성별 산출값 ↔ 우리 계산 |
 | `compare-kangwon-type.mjs` | `compare-kangwon-type` | 강원대 A_type 분류 ↔ 0904 사고유형 표 (시트 정렬 오류 자동 점검) |

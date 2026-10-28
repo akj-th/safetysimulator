@@ -34,6 +34,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
+import { regionAt } from './region.js';
 
 export const SESSION_MINUTES = Number(process.env.SESSION_MINUTES || 30);
 const COOKIE = 'auri_sid';
@@ -361,10 +362,12 @@ export async function logout(req, res) {
 
 /* ── 진단 실행 기록 ──────────────────────────────────────────────────
    누가 · 언제 · 어느 좌표 · 어느 지자체를 진단했는지.
-   지자체 이름은 화면이 보낸 주소를 41개 지자체 이름표와 맞대어 찾습니다
-   (좌표만으로는 경계 판정이 필요해 주소를 씁니다). 못 찾으면 비워 둡니다. */
+   지자체 이름은 ★ 좌표가 든 지자체 경계로 찾습니다 (server/region.js — 화면과 같은 판정, 2026-10-28).
+   좌표가 없거나 경계 파일을 못 읽었을 때만 주소를 41개 지자체 이름표와 맞댑니다. 못 찾으면 비워 둡니다. */
 let _regionLabels = null;
-export function regionOf(addr, siteRoot) {
+export function regionOf(addr, siteRoot, lat, lng) {
+  const hit = regionAt(siteRoot, lat, lng);
+  if (hit !== undefined) return hit ? hit.label : null;
   if (!addr) return null;
   if (!_regionLabels) {
     try {
@@ -388,7 +391,7 @@ export async function logDiagnosis(req, user, kind, location, siteRoot) {
       `INSERT INTO diagnosis_log (user_id, username, kind, lat, lng, region, addr, ip)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [user ? user.id : null, user ? user.username : null, kind, lat, lng,
-       regionOf(addr, siteRoot), addr, clientIp(req)]);
+       regionOf(addr, siteRoot, lat, lng), addr, clientIp(req)]);
   } catch (e) {
     /* 기록 실패로 진단 자체가 막히면 안 됩니다. 서버 로그에만 남깁니다 */
     console.error('[기록] 진단 이력 저장 실패 —', e.message);

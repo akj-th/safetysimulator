@@ -55,6 +55,7 @@
 | 중점관리분야 | **지역안전지수 하위 등급** — 자살 고정 + 2025 하위 2(동률이면 2024 → 분야 순서, `tieBreak`). 지자체별 직접 지정(개수 제한 없음)은 `tools/config/focus-override.json` | 10/22 · 10/27 · notes/04 |
 | 예외 | 사전진단서 2장은 **AURI 보고서 원문 분야**(강원대 확정 3분야, `focusTypesKangwon`). 종합도도 강원대 분야 | 10/22 · notes/06·09 |
 | 동 단위 | **행정동** — vuski 경계, 출동 좌표로 배정. 시군구 묶음은 출동 좌표 **전부**의 5% 이상이 떨어지는 곳 | 10/21 · 10/27 · notes/04 |
+| 지점 → 지자체 | **지자체 경계 안**인지로 판정(`assets/region-bounds.js`, 화면·서버 공용). 41곳 밖이면 리포트·문서·AI 중점 분야에 이웃 지자체를 빌려 오지 않음. 지자체 중심점(`index.json` lat·lng)은 예비용 | 10/28 · notes/04 |
 | HEA·복합위험지수 | **지자체 안 상대값만**(전국 절대값 병행 안 함) | 10/21 |
 | 복합위험지수 | **v4** = 가중 HEA 0.25 + 119 밀도 0.25 + 현장조사단 평가 0.5, 원점수 0~100. 색은 순위 3분위. 표시 동 = AURI 지구 동 수(최대 3) | 10/22 · 10/27 · notes/04 |
 | 종합 위험도 | 사진 판독 10 : 주변 이력 90 (`RISK_BLEND_PHOTO`). 처방에는 안 씀(표기용) | 9/16 · notes/04 |
@@ -95,6 +96,7 @@
 | `field-check.js` | 현장 확인사항 4범주(항목 43개 전부 배정) |
 | `risk-weights.js` | 분야 가중치·종합 위험지수·`RISK_BLEND_PHOTO` |
 | `safety-index.js` | 지역안전지수 등급표 · 가중 HEA · 복합위험지수(`COMPOSITE_W`) · `dongAt` |
+| `region-bounds.js` | **지점 → 41개 지자체 판정**(`AuriRegion.near`·`at`) — 화면 4곳과 서버(`server/region.js`)가 함께 씀 |
 | `dong-hea.js` | 동별 HEA 불러오기·표(`renderTable`)·색 |
 | `physical.json` · `physical.js` | 강원대 물적환경 회귀분석(7곳만, 자동 생성) |
 | `rx-editor.js` | 처방 목록 표시·편집(리포트·시각화 공용) |
@@ -109,6 +111,7 @@
 | `checklist.js` | **7대 분야 체크리스트 43항목** — 이 프로젝트에서 가장 중요한 파일. 질문은 예/아니오로 답할 수 있어야 함(`risk: 'yes'\|'no'`) |
 | `legal.js` | AI 가 인용할 수 있는 근거(대조 마친 `verified: true` 만 지시문에) |
 | `auth.js` · `projects.js` | 계정·세션·기록 · 프로젝트·거점 보정(PostgreSQL) |
+| `region.js` | 지점 → 지자체(`regionAt`) — `assets/region-bounds.js` 를 `require` 해 화면과 같은 판정. AI 판독 중점 분야·진단 기록·프로젝트 지자체 |
 
 AI 모델: 진단·재판독·의견 초안 `claude-opus-5`(adaptive thinking) · 서술형 `claude-opus-5-5`(fallbacks default). 이미지 `gemini-3-pro-image` · `gpt-image-2.5-sunburst`(기본) · `gpt-image-2.5-flare` · `gpt-image-2`.
 
@@ -121,6 +124,7 @@ AI 모델: 진단·재판독·의견 초안 `claude-opus-5`(adaptive thinking) �
 | `stats/field-survey.json` | 현장조사단 평가(복합위험지수 0.5) | `build-field-survey.mjs` |
 | `stats/hotspots.json` | 주요 거점 A~J | `build-hotspots.mjs` |
 | `stats/region-types.json` | 지자체 유형(도심/도농복합/농촌) | `classify-regions.mjs` |
+| `stats/region-bounds.json` | 41개 지자체 바깥 경계(지점 판정용, 235KB) | `build-region-bounds.mjs` |
 | `stats/auri-reports/` | AURI 사전분석 보고서 39곳 글·표·그림 | `build-auri-reports.mjs` · `shrink-images.mjs` |
 | `dong/` | 동별 HEA(행정동) | `build-dong-hea.mjs` |
 | `heatmap/` | 분야별 커널밀도 PNG(중점 분야) | `build-heatmap.mjs --focus` |
@@ -147,10 +151,11 @@ AI 모델: 진단·재판독·의견 초안 `claude-opus-5`(adaptive thinking) �
 | 명령 | 하는 일 | 언제 |
 |---|---|---|
 | `npm run build` | 119 CSV → `data/incidents/` + `data/stats/` (끝에 중점분야 적용) | 새 119 자료 |
-| `npm run verify` | AURI 값 295건 대조 + **⑤ 파일 사이 일치**(지수 = 통계 = 동별 HEA = 거점 분야, 현장평가 = 동 이름) | build 뒤 · 자료를 다시 만든 뒤 |
+| `npm run verify` | AURI 값 295건 대조 + **⑤ 파일 사이 일치**(지수 = 통계 = 동별 HEA = 거점 분야, 현장평가 = 동 이름) + **⑥ 지점 → 지자체**(41곳 조사지·거점이 제 지자체로) | build 뒤 · 자료를 다시 만든 뒤 |
 | `npm run focus` | 지역안전지수 → 중점분야 적용 | 등급·`focus-override.json` 이 바뀌면 |
 | `npm run focus-all` | focus + 동별 HEA + 현장평가 + 거점 | **중점분야가 바뀌면 이것**(그다음 `npm run heatmap -- --focus`) |
 | `npm run dong-hea` | 동별 HEA → `data/dong/` (지자체 하나만: `node build-dong-hea.mjs <지역>`) | build 뒤 · 경계·인구·TIF 가 바뀌면 |
+| `npm run region-bounds` | 지자체 경계 → `data/stats/region-bounds.json` (지점 판정용) | dong-hea 뒤 · 행정동 경계 판이 바뀌면 (verify ⑥ 이 잡음) |
 | `node build-field-survey.mjs` | 현장조사단 평가 → AURI 지구 동이 상위에 오는지 확인(41곳 일치가 정상) | dong-hea 뒤 |
 | `npm run palette` · `node build-palette-std.mjs` | 팔레트 289종 · 표준 팔레트 210종 | 새 팔레트 |
 | `npm run verify-rules` | 체크리스트 ↔ 연결표 ↔ 팔레트(병합 443종) ↔ 연계표 정합 | **checklist.js · rules.js · space-risk.json 을 고친 뒤 항상** |
@@ -165,6 +170,7 @@ AI 모델: 진단·재판독·의견 초안 `claude-opus-5`(adaptive thinking) �
 - **번호로 맞물린 세 파일**: `server/checklist.js`(항목 번호·질문·문제 답) ↔ `assets/rules.js` `byItem`(항목 → 사업) ↔ `assets/field-check.js`(항목 → 현장 확인 범주) ↔ `assets/space-risk.json`(항목 → 위험요인). 하나만 고치면 처방에서 조용히 빠집니다 → `npm run verify-rules`.
 - **저장 칸 목록 `SAVE_KEYS` 는 두 곳**: `server/projects.js` · `assets/projects.js`. 새 `auri_*` 칸을 만들면 둘 다(안 넣으면 프로젝트 저장에서 조용히 빠짐). 지금 14개 — 10/20~27 추가: `auri_after_tags`(번호 태그) · `auri_doc_html`(수정본) · `auri_gen_custom`(직접 입력·`lastImage`) · `auri_narratives`(서술형).
 - **서버 화이트리스트 `ALLOW_DIRS`**(server.js): 앱에 새 폴더·확장자가 필요하면 한 줄. `data/raw/`·`server/` 는 403.
+- **지점 → 지자체는 `assets/region-bounds.js` 한 곳** — 1단계 지도·진단 안내·리포트·문서와 서버(AI 판독 중점 분야·진단 기록·프로젝트)가 같은 코드·같은 경계를 씁니다. 지자체 중심점 거리로 고르지 말 것(옹진 섬·함양·경계 근처가 틀렸던 방식, 10/28). 새 화면에서 지자체를 찾을 때도 이것으로.
 - **규칙 엔진은 3단계에서 한 번만** — 4·5단계는 `auri_prescriptions` 를 그대로 받습니다. 연구원 보정은 `auri_rx_overrides` 에 따로(덮어쓰지 않음).
 - **처방은 항목 답(`findings`)으로 정해집니다** — 연구원이 판독 근거 글(`observed`)을 고쳐도 처방은 안 바뀝니다. 처방을 바꾸려면 재판독(`/api/revise`).
 - `RX_RULES[분야].fallback` 은 항목 판독이 없을 때(임시 점수·옛 세션)만 쓰는 예비 목록 — 지우지 말 것. 자살은 E 만으로 채우지 않습니다(`RX_REQUIRE_HEA`, 처방 1종인 '주의' 제외).
@@ -210,8 +216,8 @@ AI 모델: 진단·재판독·의견 초안 `claude-opus-5`(adaptive thinking) �
 
 ## 12. 남은 일 (AKJ)
 
-1. **렌더 Manual Deploy** — 10/23 피드백 · 10/27 한글 내려받기 · 정호경 요청 5건 · 10/27 밤 점검 수정이 모두 배포 대기. 배포 뒤 정호경 연구원 후속 보고(초안·시험 자료: `docs/04_발신자료/20261028_AKJ_정호경_후속보고/`).
-2. 이은석 박사님 회신(10/23 피드백 반영 결과).
+1. **렌더 Manual Deploy** — 10/23 피드백 · 10/27 한글 내려받기 · 정호경 요청 5건 · 10/27 밤 점검 수정 · **10/28 지점 → 지자체 판정(옹진·함양)** 이 모두 배포 대기. 배포 뒤 정호경 연구원 후속 보고(초안·시험 자료: `docs/04_발신자료/20261028_AKJ_정호경_후속보고/`).
+2. 이은석 박사님 회신 — 10/23 피드백 반영 결과 + **10/28 "옹진군이 미추홀구로 표출" 수정 결과**(배포 뒤).
 3. 렌더에서 확인할 것: 로그인 후 진단 1회 · 프로젝트 저장/열기 · 관리자 거점 드래그 → 다른 계정 말풍선(DB 환경에서 아직 안 돌려 봄) · 렌더 DB 만료(30일) 여부.
 4. **지자체 유형화 2차 기준 결정** — AI 대조(10/27): 41곳 중 28곳 같음, 다른 13곳은 모두 동 + 읍·면이 섞인 시를 규칙이 밀도로 농촌형으로 본 것. 제안: "동 + 읍·면이면 도농복합형"(`docs/03_작업노트/20261027_AKJ_지자체유형화_AI대조.md`). 결정 전까지 화면은 1차안.
 5. 10/06 판 사업팔레트 엑셀(`data/raw/analysis_1006/`) 반영 여부 결정 — 10/21 표준 팔레트가 최신이라 지금은 반영 안 함(notes/90 10/27 밤).

@@ -34,9 +34,13 @@ const AuriStats = (function () {
 
   /* ── 불러오기 ─────────────────────────────────────────────────── */
 
-  /** 선택한 지점에서 가장 가까운 지자체의 통계를 불러옵니다 */
+  /** 선택한 지점이 든 지자체의 통계를 불러옵니다.
+      ★ 지자체 경계로 판정합니다 (assets/region-bounds.js, 2026-10-28) — 1단계 지도·서버와 같은 판정.
+        예전의 "가장 가까운 중심점"은 옹진군 조사지를 미추홀구로, 함양군 조사지를 장수군으로 골랐습니다.
+        41개 대상 지자체 밖이면 null — 이웃 지자체 통계를 빌려 오지 않습니다. */
   async function load(lat, lng) {
     try {
+      if (typeof AuriRegion !== 'undefined') AuriRegion.load();   // 경계 파일을 미리 받기 시작 (아래 목록과 동시에)
       if (!_index) {
         const res = await fetch('data/stats/index.json');
         if (!res.ok) return null;
@@ -44,10 +48,17 @@ const AuriStats = (function () {
         if (_index.minSample) MIN_SAMPLE = _index.minSample;
       }
 
-      let best = null, bestD = Infinity;
-      for (const r of _index.regions) {
-        const d = (r.lat - lat) ** 2 + ((r.lng - lng) * 0.8) ** 2;   // 위도 보정 대략
-        if (d < bestD) { bestD = d; best = r; }
+      let best = null;
+      const hit = typeof AuriRegion !== 'undefined' ? await AuriRegion.at(lat, lng) : undefined;
+      if (hit !== undefined) {
+        best = hit ? _index.regions.find((r) => r.region === hit.region) || null : null;
+      } else {
+        /* 경계 파일을 못 받았을 때만 예전 방식 — 가장 가까운 중심점 */
+        let bestD = Infinity;
+        for (const r of _index.regions) {
+          const d = (r.lat - lat) ** 2 + ((r.lng - lng) * 0.8) ** 2;   // 위도 보정 대략
+          if (d < bestD) { bestD = d; best = r; }
+        }
       }
       if (!best) return null;
 

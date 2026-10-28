@@ -8,6 +8,7 @@
     "palette": "node build-palette.mjs",
     "physical": "node build-physical.mjs",
     "dong-hea": "node --max-old-space-size=8192 build-dong-hea.mjs",
+    "region-bounds": "node --max-old-space-size=4096 build-region-bounds.mjs",
     "compare-kangwon": "node compare-kangwon.mjs",
     "compare-kangwon-type": "node compare-kangwon-type.mjs",
     "heatmap": "node --max-old-space-size=4096 build-heatmap.mjs",

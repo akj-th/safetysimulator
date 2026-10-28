@@ -21,6 +21,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { readXlsx } from './lib/xlsx.mjs';
 import { slugForXlsx, CATEGORY_BY_KOREAN, CATEGORY_LABEL } from './lib/regions.mjs';
 
@@ -195,6 +196,53 @@ for (const entry of index.regions) {
   crossChecked++;
 }
 console.log(`  지자체 ${crossChecked}곳 점검`);
+
+/* ── ⑥ 지점 → 지자체 판정 (2026-10-28, 이은석 박사 "옹진군이 미추홀구 정보로 표출") ─────────
+   화면·서버는 data/stats/region-bounds.json 의 지자체 경계로 지점을 판정합니다(assets/region-bounds.js).
+   예전 "가장 가까운 중심점"은 옹진 조사지를 미추홀로, 함양 조사지를 (리포트에서) 장수로 골랐습니다.
+   41곳 모두 조사지 안 지점·주요 거점이 제 지자체로 나와야 하고, 경계 파일의 시군구 코드가 동별 HEA 와 같아야 합니다
+   (동별 HEA 를 다시 만들어 시군구가 바뀌었으면 npm run region-bounds 다시). */
+console.log('\n\n⑥ 지점 → 지자체 판정 — 조사지 안 지점·주요 거점이 제 지자체 경계 안인가\n');
+const AuriRegion = createRequire(import.meta.url)(path.join(ROOT, 'assets/region-bounds.js'));
+const bounds = readJ('data/stats/region-bounds.json');
+const inSurvey = (lat, lng, geom) => {
+  let c = 0;
+  for (const ring of geom.coordinates) for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+    if (((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) c++;
+  }
+  return c % 2 === 1;
+};
+if (!bounds) fail('data/stats/region-bounds.json 없음 — npm run region-bounds --prefix tools');
+else {
+  let pts = 0;
+  for (const entry of index.regions) {
+    const slug = entry.region, d = load(slug), b = bounds.regions[slug];
+    if (!b) { fail(`${slug}: 경계 파일에 없음 — npm run region-bounds`); continue; }
+    const dong = readJ(`data/dong/${slug}.json`);
+    const codes = dong && dong.boundary ? setOf((dong.boundary.sggCodes || []).map(String)) : null;
+    if (codes && codes !== setOf(b.sggCodes)) fail(`${slug}: 경계 파일 시군구 ${setOf(b.sggCodes)} ≠ 동별 HEA ${codes} — npm run region-bounds 다시`);
+    const test = [];
+    const g = d.surveyArea && d.surveyArea.geometry;
+    if (g) {
+      /* 조사지 범위를 5×5 로 나눈 점 중 조사지 안에 드는 것 */
+      let s = Infinity, n = -Infinity, w = Infinity, e = -Infinity;
+      for (const ring of g.coordinates) for (const [x, y] of ring) { if (y < s) s = y; if (y > n) n = y; if (x < w) w = x; if (x > e) e = x; }
+      for (let i = 1; i <= 5; i++) for (let j = 1; j <= 5; j++) {
+        const lat = s + (n - s) * i / 6, lng = w + (e - w) * j / 6;
+        if (inSurvey(lat, lng, g)) test.push(['조사지', lat, lng]);
+      }
+    }
+    for (const h of (hot && hot.regions && hot.regions[slug]) || []) test.push([`거점 ${String.fromCharCode(64 + h.rank)}`, h.lat, h.lng]);
+    for (const [what, lat, lng] of test) {
+      const hit = AuriRegion.pick(bounds, lat, lng);
+      pts++;
+      if (!hit || hit.region !== slug) fail(`${slug}: ${what} (${lat.toFixed(5)}, ${lng.toFixed(5)}) 이 ${hit ? hit.label : '41곳 밖'} 으로 판정`);
+    }
+    checked++;
+  }
+  console.log(`  지자체 ${index.regions.length}곳 · 지점 ${pts}개 점검 (경계 ${bounds.generatedAt})`);
+}
 
 /* ── 마무리 ────────────────────────────────────────────────────── */
 

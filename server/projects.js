@@ -200,7 +200,7 @@ export async function saveProject(user, body, siteRoot) {
   const addr = picked.addr ? String(picked.addr).slice(0, 200) : null;
   const lat = Number.isFinite(Number(picked.lat)) ? Number(picked.lat) : null;
   const lng = Number.isFinite(Number(picked.lng)) ? Number(picked.lng) : null;
-  const region = auth.regionOf(addr, siteRoot);
+  const region = auth.regionOf(addr, siteRoot, lat, lng);
   /* 주요 거점에서 시작한 진단이면 어느 거점인지 남깁니다. 관리자가 저장한 거점 프로젝트는 모두에게 열립니다(공유). */
   const hs = picked.hotspot && picked.hotspot.region && picked.hotspot.tag
     ? { region: String(picked.hotspot.region).slice(0, 40), tag: String(picked.hotspot.tag).slice(0, 8) } : null;

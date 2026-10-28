@@ -343,6 +343,7 @@ table.guide .bullet{margin:0 0 3px; padding-left:16px; text-align:left} table.gu
 <script src="assets/risk-weights.js"></script>
 <script src="assets/palette.js"></script>
 <script src="assets/space-risk.js"></script>
+<script src="assets/region-bounds.js"></script>
 <script src="assets/stats.js"></script>
 <script src="assets/rules.js"></script>
 <script src="assets/field-check.js"></script>
@@ -2201,7 +2202,7 @@ window.addEventListener('load', async function () {
   _national = await AuriStats.loadNational();
   if (!_stats) {
     document.getElementById('docB').innerHTML =
-      '<div class="doc-empty">이 지점의 지자체 통계를 불러오지 못했습니다.</div>';
+      '<div class="doc-empty">이 지점의 지자체 통계를 불러오지 못했습니다.<br>41개 대상 지자체 밖의 지점이면 통계가 없습니다 — 1단계에서 위치를 다시 확인해 주세요.</div>';
     return;
   }
   _data = _stats.data;

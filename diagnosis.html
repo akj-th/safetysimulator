@@ -175,6 +175,7 @@
 <script src="assets/ui.js"></script>
 <script src="assets/auth.js"></script>
 <script src="assets/projects.js"></script>
+<script src="assets/region-bounds.js"></script>
 <script>
 let _pano = null;
 let _panoPov = null;
@@ -639,8 +640,9 @@ async function sendRevise() {
   }
 }
 /* ── 중점 3분야 안내 (2026-09-16) ─────────────────────────────────
-   서버의 focusFor() 와 같은 규칙으로 지자체를 찾습니다 — 주소에 41곳 이름이 있으면 그것,
-   주소가 없을 때만 좌표에서 FOCUS_MAX_KM 안 가장 가까운 지자체. 규칙을 바꾸면 server.js 도 함께.
+   서버의 focusFor() 와 같은 규칙으로 지자체를 찾습니다 — ★ 좌표가 든 지자체 경계(assets/region-bounds.js, 2026-10-28),
+   41곳 밖이면 안내 없음. 경계 파일을 못 받았을 때만 예전 규칙(주소에 41곳 이름 → 없으면 좌표에서 FOCUS_MAX_KM 안 가장 가까운 중심점).
+   규칙을 바꾸면 server.js 도 함께.
    분야별 한 줄은 server/checklist.js 의 항목을 요약한 것입니다 — 체크리스트를 크게 고치면 여기도 맞추세요. */
 const FOCUS_MAX_KM = 10;
 const FOCUS_HINT = {
@@ -661,9 +663,11 @@ async function showFocus(picked) {
     const keyOf = {};
     for (const k in idx.categories) keyOf[idx.categories[k]] = k;
     const addr = String(picked.addr || '').replace(/\s+/g, ' ');
-    let region = addr ? idx.regions.slice().sort(function (a, b) { return b.label.length - a.label.length; })
-      .find(function (r) { return addr.includes(r.label); }) : null;
-    if (!region && !addr) {
+    const hit = typeof AuriRegion !== 'undefined' ? await AuriRegion.at(picked.lat, picked.lng) : undefined;
+    let region = hit !== undefined ? (hit ? idx.regions.find(function (r) { return r.region === hit.region; }) || null : null)
+      : addr ? idx.regions.slice().sort(function (a, b) { return b.label.length - a.label.length; })
+        .find(function (r) { return addr.includes(r.label); }) : null;
+    if (hit === undefined && !region && !addr) {
       let bestKm = Infinity;
       idx.regions.forEach(function (r) {
         const dy = (r.lat - picked.lat) * 111.32, dx = (r.lng - picked.lng) * 111.32 * Math.cos(picked.lat * Math.PI / 180);

@@ -325,6 +325,7 @@
 <script src="assets/auth.js"></script>
 <script src="assets/projects.js"></script>
 <script src="assets/risk-weights.js"></script>
+<script src="assets/region-bounds.js"></script>
 <script src="assets/stats.js"></script>
 <script src="assets/field-check.js"></script>
 <script src="assets/palette.js"></script>
@@ -857,6 +858,9 @@ window.addEventListener('load', async function () {
       focusTypes: _stats.data.focusTypes,
       replaced: _stats.data.replaced || null,
     }));
+  } else {
+    /* 41개 대상 지자체 밖(또는 통계 파일 없음) — 앞 지점의 지자체 정보가 남아 저장 창 제목 등에 섞이지 않게 (2026-10-28) */
+    sessionStorage.removeItem('auri_region_stats');
   }
 });
 </script>
