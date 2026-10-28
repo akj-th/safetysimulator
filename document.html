@@ -507,7 +507,7 @@ function auriCh1Fallback() {
   const focusLine = _focus.map((f) => f.label).join('·');
   let body = '';
   if (c && c.bullets.length) {
-    /* AURI 1장 글머리는 그 보고서가 다룬 분야(강원대 확정 3분야) 기준 — 지금 중점관리분야(10/28 AURI 최종)와 다를 수 있어
+    /* AURI 1장 글머리는 그 보고서가 다룬 분야(강원대 확정 3분야) 기준 — 지금 중점관리분야(지수 기준 또는 AURI 지정)와 다를 수 있어
        2장과 같은 분야(ch2Fields)로 가릅니다. _focus 로 가르면 보고서 분야의 글머리가 "복합위험지구" 아래로 섞입니다 */
     const rf = ch2Fields();
     const isFocus = (b) => rf.some((f) => f.label === b.tag);

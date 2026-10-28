@@ -37,7 +37,7 @@ for (const r of regions) {
   const layers = focus.map(k => loadRaster(ROOT, k, r.region, { topQuantile: DEFAULTS.topQuantile })).filter(Boolean);
   if (!layers.length) { console.log(`${r.region}: TIF 없음`); out.regions[r.region] = []; continue; }
   const ex = layers.map(L => L.extent); const bbox = [Math.max(...ex.map(e => e[0])), Math.max(...ex.map(e => e[1])), Math.min(...ex.map(e => e[2])), Math.min(...ex.map(e => e[3]))];
-  /* ★ 2026-10-28 AURI 중점관리분야(지자체마다 3~6개): 점수는 중점 분야 전체의 평균이라 분야가 N개면 같은 자리도 3/N 로 낮아집니다.
+  /* ★ 2026-10-28 AURI 중점관리분야(지자체마다 3~6개 — 10/28 송부본 기준): 점수는 중점 분야 전체의 평균이라 분야가 N개면 같은 자리도 3/N 로 낮아집니다.
      문턱(minScore)은 중점 3분야 때 맞춘 값이므로 같은 비율로 낮춰 "겹친 분야 밀도의 합" 기준을 분야 수와 상관없이 같게 둡니다
      (안 하면 6개 분야인 대구 중구 5→3곳·부산 동구 4→3곳). 순위는 그대로 점수 순 — 더 많은 중점 분야가 겹치는 자리가 위로 */
   const spots = findHotspots(layers, bbox, { ...OPT, minScore: OPT.minScore * Math.min(1, BASE_FIELDS / layers.length) });

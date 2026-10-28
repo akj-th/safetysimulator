@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const LABEL = { traffic: '교통사고', fire: '화재', crime: '범죄', life: '생활안전', suicide: '자살', infection: '감염병', industrial: '산업재해' };
-/* 직접 지정 출처 (2026-10-28: AURI 41곳 중점관리분야 최종) — focusSource 글에 씁니다. '직접 지정' 글자는 verify-stats 가 개수 검사를 풀 때 봅니다 */
+/* 직접 지정 출처 (focus-override.json 의 source — AURI 중점관리분야, 2026-10-28~) — focusSource 글에 씁니다. '직접 지정' 글자는 verify-stats 가 개수 검사를 풀 때 봅니다 */
 const OVR_FILE = path.join(ROOT, 'tools/config/focus-override.json');
 const OVR_SOURCE = fs.existsSync(OVR_FILE) ? (JSON.parse(fs.readFileSync(OVR_FILE, 'utf8')).source || '') : '';
 

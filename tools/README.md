@@ -54,5 +54,5 @@ pptx 판: `pptx-extract.mjs` → `run-pptx-region.mjs` → `refit-norot.mjs` →
 
 ## 설정 · 옛 도구
 
-- `config/focus-override.json` — 지자체별 중점분야 직접 지정(개수 제한 없음). **2026-10-28 부터 41곳 모두 AURI 중점관리분야(최종, 표 1-3 그대로 — 지자체 한 줄에 `필수·A·B·C`)**. 적히지 않은 지자체만 지역안전지수 기준(자살 + 하위 2). 고친 뒤 `npm run focus-all` → `npm run heatmap -- --focus` → `npm run verify`.
+- `config/focus-override.json` — 지자체별 중점분야 직접 지정(개수 제한 없음). AURI 중점관리분야 최종본이 오면 표 1-3 그대로(지자체 한 줄에 `필수·A·B·C`, `source` 에 출처). 적히지 않은 지자체는 지역안전지수 기준(자살 + 하위 2) — **지금은 비어 있음**(10/28 송부본은 수정 예정이라 뺌, 목록은 `git show 11f3c82:tools/config/focus-override.json`). 고친 뒤 `npm run focus-all` → `npm run heatmap -- --focus` → `npm run verify`.
 - `legacy/` — 쓰지 않는 옛 도구. `convert-gis.js`(옛 SHP 변환기 — 지금 `data/incidents/` 를 덮어쓰므로 `--force` 없이는 안 돎) · `kakao-capture-test.html`(카카오 로드뷰 캡처 불가 확인용) · `ui.css`(그 페이지의 옛 디자인).

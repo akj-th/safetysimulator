@@ -27,7 +27,8 @@ const YEARS = ['2025', '2024'];   // 엑셀에 있는 연도. 2021~2023 은 아�
    (data/stats/auri-reports/<지역>.json 의 blocks, hwpx 원문). 약식본 지자체는 그 표가 없어 엑셀의 2025·2024 만 있습니다 */
 const AURI_DIR = path.join(ROOT, 'data/stats/auri-reports');
 /* ★ 중점관리분야 직접 지정 (2026-10-27, 10/26 회의 "3개로 고정하지 않음") — tools/config/focus-override.json.
-   적힌 지자체만 규칙 대신 그 목록을 씁니다(개수 제한 없음). 2026-10-28 AURI 41곳 중점관리분야(최종, 표 1-3)를 전부 적음.
+   적힌 지자체만 규칙 대신 그 목록을 씁니다(개수 제한 없음). AURI 중점관리분야 최종본이 오면 41곳 모두 표 1-3 그대로
+   (2026-10-28 송부본을 넣었다가 주무관 회의에서 다시 수정 예정이라 같은 날 뺌 — 목록은 커밋 11f3c82).
    꼴 둘 — 분야 목록 [...] 또는 AURI 표 1-3 그대로 { 필수:[...], A:[...], B:[...], C:[...] } (순서 = 필수 → A → B → C).
    표 꼴이면 분야마다 유형(A 장기 지속 취약 · B 최근 반복 취약 · C 최근 급격 악화)을 focusType 에 남깁니다 */
 const OVERRIDE_FILE = path.join(ROOT, 'tools/config/focus-override.json');
@@ -130,7 +131,7 @@ for (const r of rows.slice(4)) {
     score1,                       // 연도 평균 등급 ÷ 5 — v3(10/21) 복합위험지수가 쓰던 값. v4(10/22)부터는 화면에서 안 씀(남겨 둠)
     ranked,                       // 자살 뺀 5개 분야, 나쁜 등급부터
     tieBreak,                     // 하위 2위와 3위를 가른 것 — '2025' 등급 · '2024' 등급(2025 동률) · 'order' 분야 순서(둘 다 동률)
-    focusByIndex,                 // 중점 분야 — focus-override.json 에 적힌 지자체는 그 목록(2026-10-28 부터 41곳 모두 AURI 중점관리분야), 없으면 자살 + 하위 2개. 이름은 예전 그대로
+    focusByIndex,                 // 중점 분야 — focus-override.json 에 적힌 지자체는 그 목록(AURI 중점관리분야), 없으면 자살 + 하위 2개. 이름은 예전 그대로
     focusSource: forced ? 'override' : 'index',
     ...(forced && forced.types ? { focusType: forced.types } : {}),   // 분야 → 필수·A·B·C (AURI 표 1-3)
     lowGrades,                    // 4·5등급인 분야

@@ -173,8 +173,8 @@ function checklistText(focus) {
 }
 
 /* ── 지자체 중점 분야 (2026-09-16, 9/15 행안부 국장 보고 요청) ────────────
-   지자체별 중점 분야(data/stats/index.json 의 focusTypes — 2026-10-28 부터 AURI 중점관리분야 최종(지자체마다 3~6개,
-   tools/config/focus-override.json), 10/22~27 은 지역안전지수 하위 등급 기준, 강원대 원본은 focusTypesKangwon)를
+   지자체별 중점 분야(data/stats/index.json 의 focusTypes — 지역안전지수 하위 등급 기준(10/22~), tools/config/focus-override.json 에
+   AURI 중점관리분야가 적히면 그 목록(지자체마다 3~6개일 수 있음 — 10/28 송부본은 수정 예정이라 뺌), 강원대 원본은 focusTypesKangwon)를
    판독 지시문에 넣어 그 분야 항목을 우선·상세히 보게 합니다.
    ★ 나머지 분야는 없애지 않습니다 — 9/7 회의: "사진에서 문제가 확인된 분야는
      중점 분야가 아니어도 개선사업이 나와야 한다". 판독 항목·점수·처방 모두 그대로입니다.
