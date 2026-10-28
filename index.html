@@ -154,6 +154,10 @@
   .map-ctl .hea-seg{margin-left:0}
   .map-ctl .hea-seg button b{font-weight:800; margin-right:4px}
   .map-ctl .hea-seg button .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:1px}
+  /* 행정동별 위험도 버튼은 중점관리분야 수만큼 늘어납니다(2026-10-28 AURI 지정 3~6개 + 복합위험지구).
+     좁으면 "교통사/고"처럼 글자를 끊지 않고 버튼째 다음 줄로 — 줄마다 버튼이 폭을 나눠 채움 */
+  #rmapSeg{flex-wrap:wrap}
+  #rmapSeg button{white-space:nowrap; flex:1 0 auto}
   .si-table th.focus{font-weight:800}
   .rmap-note{font-size:var(--fs-cap); color:var(--g2); margin:8px 0 0; line-height:1.6}
 
@@ -236,7 +240,7 @@
     <div class="panel">
       <div class="panel-head"><h2>지도</h2><span class="tag">119 구급출동 밀도</span></div>
       <!-- 오른쪽 패널의 조작 줄과 높이를 맞추는 자리 (2026-10-21 담당자: 소제목과 지도가 가로로 정렬) -->
-      <div class="map-ctl"><span class="hint">지역안전지수 하위 등급 분야의 3개년 출동 지점. 분야는 위 레이어에서 바꿀 수 있습니다.</span></div>
+      <div class="map-ctl"><span class="hint">중점관리분야의 3개년 출동 지점. 분야는 위 레이어에서 바꿀 수 있습니다.</span></div>
       <div id="map">
         <div class="map-fallback" id="mapFallback" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 20l-6-3V4l6 3m0 13l6-3m-6 3V7m6 10l6 3V7l-6-3m0 13V4m0 3L9 4"/></svg>
@@ -784,7 +788,7 @@ async function applySafetyIndex(region) {
     document.getElementById('siBody').innerHTML = AuriSafetyIndex.renderTable(si);
   }
 
-  /* ③ 좌측 119 레이어 — 하위 등급 분야(지수 기준 중점 3분야)만 켭니다. 나머지는 끈 채로 두되 누르면 켤 수 있습니다 */
+  /* ③ 좌측 119 레이어 — 중점관리분야(2026-10-28 부터 AURI 선정, 지자체마다 3~6개)만 켭니다. 나머지는 끈 채로 두되 누르면 켤 수 있습니다 */
   if (si) {
     const on = new Set(si.focusByIndex);
     document.querySelectorAll('#layerChips .layer-row').forEach(function (row) {
@@ -797,6 +801,7 @@ async function applySafetyIndex(region) {
 
   /* ② 우측 지도 — 버튼: 종합 · 복합위험지구 후보 · 하위 등급 분야 */
   buildRmapSeg();
+  alignMapCtl();
   /* 처음 보이는 것은 지수 기준 상위 1 분야 (2026-10-21) */
   const first = _si.weighted && si ? si.focusByIndex[0] : null;   // 상위 1 = 자살(고정)
   setRmapMode(first || (_si.weighted ? 'composite' : ''));
@@ -814,6 +819,18 @@ async function applySafetyIndex(region) {
   }
 }
 
+/* 두 지도의 윗선 맞춤 (2026-10-21 담당자: 소제목과 지도가 가로로 정렬) — 중점관리분야가 많아(10/28 AURI 지정 3~6개)
+   오른쪽 버튼이 두 줄이 되면 왼쪽 조작 줄도 같은 높이로 */
+function alignMapCtl() {
+  const seg = document.getElementById('rmapSeg'), map = document.getElementById('map');
+  if (!seg || !map) return;
+  const right = seg.parentNode, left = map.previousElementSibling;
+  if (!left || !left.classList.contains('map-ctl')) return;
+  left.style.minHeight = '';
+  if (right.offsetHeight > left.offsetHeight) left.style.minHeight = right.offsetHeight + 'px';
+}
+window.addEventListener('resize', alignMapCtl);
+
 function buildRmapSeg() {
   const seg = document.getElementById('rmapSeg');
   const note = document.getElementById('rmapNote');
@@ -830,10 +847,12 @@ function buildRmapSeg() {
     b.addEventListener('click', function () { setRmapMode(mode); });
     seg.appendChild(b);
   };
-  /* 상위 1·2·3 = 지역안전지수 하위 등급 분야(자살 포함) → 그다음 복합위험지구 후보 (2026-10-21 담당자) */
+  /* 중점관리분야(자살 → A → B → C 순) → 그다음 복합위험지구 후보 (2026-10-21 담당자 · 10/28 AURI 중점관리분야).
+     버튼 설명의 근거 = AURI 유형(focusType: A 장기 지속 취약 · B 최근 반복 취약 · C 최근 급격 악화). 직접 지정이 없으면 하위 순위 */
+  const TYPE_WHY = { A: 'A 장기 지속 취약', B: 'B 최근 반복 취약', C: 'C 최근 급격 악화' };
   let lowRank = 0;
   si.focusByIndex.forEach(function (k) {
-    const why = k === 'suicide' ? '자살은 항상 포함' : si.focusSource === 'override' ? '중점관리분야' : '하위 ' + (++lowRank) + '위';
+    const why = k === 'suicide' ? '자살은 항상 포함' : si.focusSource === 'override' ? (TYPE_WHY[(si.focusType || {})[k]] || '중점관리분야') : '하위 ' + (++lowRank) + '위';
     /* HEA 점수가 없는 분야(표본 부족)도 버튼은 두고, 지도는 119 출동 건수 기준으로 칠합니다 */
     const hasHea = _si.weighted.fields.some(function (f) { return f.key === k; });
     btn(k, AuriSafetyIndex.LABEL[k], colorOf(k), AuriSafetyIndex.LABEL[k] + ' — 지역안전지수 ' + (si.grades[AuriSafetyIndex.years()[0]] || {})[k] + '등급 (' + why + ')' + (hasHea ? '' : ' · 동별 HEA 표본 부족 → 119 출동 건수 기준'));   // 버튼에는 분야 이름만 (2026-10-21)

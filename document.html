@@ -507,9 +507,12 @@ function auriCh1Fallback() {
   const focusLine = _focus.map((f) => f.label).join('·');
   let body = '';
   if (c && c.bullets.length) {
-    const isFocus = (b) => _focus.some((f) => f.label === b.tag);
+    /* AURI 1장 글머리는 그 보고서가 다룬 분야(강원대 확정 3분야) 기준 — 지금 중점관리분야(10/28 AURI 최종)와 다를 수 있어
+       2장과 같은 분야(ch2Fields)로 가릅니다. _focus 로 가르면 보고서 분야의 글머리가 "복합위험지구" 아래로 섞입니다 */
+    const rf = ch2Fields();
+    const isFocus = (b) => rf.some((f) => f.label === b.tag);
     body = `
-    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : 사고 빈도와 정책적 시급성을 종합 분석하여 <b>${esc(focusLine)}</b> ${_focus.length}개 분야 선정</p>
+    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : 사고 빈도와 정책적 시급성을 종합 분석하여 <b>${esc(rf.map((f) => f.label).join('·'))}</b> ${rf.length}개 분야 선정</p>
     ${c.bullets.filter(isFocus).map(auriBullet).join('')}
     <p class="bullet" style="margin-top:14px"><b>□ 복합위험지구</b></p>
     ${c.bullets.filter((b) => !isFocus(b)).map(auriBullet).join('')}
@@ -530,7 +533,7 @@ function auriCh1Fallback() {
     });
     const areaHa = _data.surveyArea && _data.surveyArea.areaHa;
     body = `
-    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : 지역안전지수 하위 등급 기준 <b>${esc(focusLine)}</b> ${_focus.length}개 분야(자살 포함)</p>
+    <p class="bullet" style="margin-top:0"><b>□ 중점관리분야</b> : ${/직접 지정/.test(_data.focusSource || '') ? '최근 5개년 지역안전지수 하위등급과 사고·인명피해 통계 검증으로 선정한' : '지역안전지수 하위 등급 기준'} <b>${esc(focusLine)}</b> ${_focus.length}개 분야(자살 포함)</p>
     ${rows.map((r) => `<p class="bullet"><span class="tag">(${esc(r.f.label)})</span> 3개년 구급출동 ${r.total.toLocaleString()}건${r.ratio ? `, 41개 지자체 평균의 ${r.ratio}배` : ''}${r.inside != null ? `, 복합위험지구 안 ${r.inside.toLocaleString()}건` : ''}</p>`).join('')}
     <p class="bullet" style="margin-top:14px"><b>□ 복합위험지구</b></p>
     <p class="bullet"><span class="tag">(대상지)</span> ${esc(_data.label)} 조사지 약 ${areaHa ? (areaHa / 100).toFixed(2) + '㎢' : '-'}${_picked.dong ? ` (진단 지점: ${esc(_picked.dong)})` : ''}</p>

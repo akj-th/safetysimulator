@@ -18,6 +18,12 @@ data/raw/
 #      먹지 않습니다. 그래서 docs/* 로 적습니다.)
 docs/*
 !docs/.gitkeep
+
+# ★ 받은 자료를 잠깐 넣어 두는 곳 (2026-10-28~) — 담당자가 메일·카톡으로 받은 파일을 여기 넣으면
+#   Claude 가 docs/(문서) · data/raw/(원본 자료) 로 옮겨 정리합니다. 들어오는 것이 docs/ 와 같은
+#   AURI·행안부 내부 자료라서 같은 이유로 커밋을 막습니다. 폴더만 .gitkeep 으로 남깁니다.
+incoming/*
+!incoming/.gitkeep
 *.shp
 *.shx
 *.dbf

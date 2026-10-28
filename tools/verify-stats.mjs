@@ -169,7 +169,7 @@ console.log(`\n  중점분야 중 표본 부족: ${lowRegions}개 지자체 / ${
 /* ── ⑤ 파일 사이 일치 (2026-10-27 점검) ─────────────────────────────
    중점분야를 바꾸면(지수·직접 지정) 통계 → 동별 HEA → 현장평가 → 거점 순으로 다시 만들어야 합니다(npm run focus-all).
    한 단계라도 빠지면 화면마다 다른 분야를 말하게 되므로 여기서 잡습니다. */
-console.log('\n\n⑤ 파일 사이 일치 — 지수 기준 분야 = 통계 = 동별 HEA = 거점 · 현장평가 = 동 이름\n');
+console.log('\n\n⑤ 파일 사이 일치 — 중점 분야(safety-index · AURI 지정 또는 지수 기준) = 통계 = 동별 HEA = 거점 · 현장평가 = 동 이름\n');
 const readJ = (p) => (fs.existsSync(path.join(ROOT, p)) ? JSON.parse(fs.readFileSync(path.join(ROOT, p), 'utf8')) : null);
 const si = readJ('data/stats/safety-index.json'), survey = readJ('data/stats/field-survey.json'), hot = readJ('data/stats/hotspots.json');
 const setOf = (a) => [...new Set(a)].sort().join(',');

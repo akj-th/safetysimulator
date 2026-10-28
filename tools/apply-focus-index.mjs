@@ -17,6 +17,9 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const LABEL = { traffic: '교통사고', fire: '화재', crime: '범죄', life: '생활안전', suicide: '자살', infection: '감염병', industrial: '산업재해' };
+/* 직접 지정 출처 (2026-10-28: AURI 41곳 중점관리분야 최종) — focusSource 글에 씁니다. '직접 지정' 글자는 verify-stats 가 개수 검사를 풀 때 봅니다 */
+const OVR_FILE = path.join(ROOT, 'tools/config/focus-override.json');
+const OVR_SOURCE = fs.existsSync(OVR_FILE) ? (JSON.parse(fs.readFileSync(OVR_FILE, 'utf8')).source || '') : '';
 
 export function applyFocusIndex({ quiet = false } = {}) {
   const siPath = path.join(ROOT, 'data/stats/safety-index.json');
@@ -35,7 +38,7 @@ export function applyFocusIndex({ quiet = false } = {}) {
     if (!r.focusTypesKangwon) r.focusTypesKangwon = r.focusTypes;
     d.focusTypes = s.focusByIndex.map((k) => { const c = d.categories && d.categories[k]; return { key: k, label: LABEL[k] || k, sample: c && c.count ? { n: c.count.inside, pct: c.count.share } : null }; });
     d.focusSource = s.focusSource === 'override'
-      ? '직접 지정(tools/config/focus-override.json — AURI 중점관리분야) — data/stats/safety-index.json'
+      ? `직접 지정(${OVR_SOURCE || 'AURI 중점관리분야'} — tools/config/focus-override.json) — data/stats/safety-index.json`
       : '지역안전지수 하위 등급 기준(자살 고정 + 하위 2분야) — data/stats/safety-index.json';
     r.focusTypes = d.focusTypes.map((t) => t.label);
     fs.writeFileSync(regPath, JSON.stringify(d, null, 1));
@@ -43,7 +46,10 @@ export function applyFocusIndex({ quiet = false } = {}) {
     const kw = (d.focusTypesKangwon || []).map((t) => t.label).join('·'), nw = r.focusTypes.join('·');
     if (!quiet) console.log(`  ${r.region.padEnd(11)} ${nw.padEnd(16)}${kw !== nw ? ' (강원대 ' + kw + ')' : ''}`);
   }
-  idx.focusSource = '지역안전지수 하위 등급 기준 (tools/apply-focus-index.mjs)';
+  const nOvr = idx.regions.filter((r) => si.regions[r.region] && si.regions[r.region].focusSource === 'override').length;
+  idx.focusSource = nOvr === idx.regions.length ? `직접 지정 — ${OVR_SOURCE || 'tools/config/focus-override.json'} (tools/apply-focus-index.mjs)`
+    : nOvr ? `직접 지정 ${nOvr}곳 + 지역안전지수 하위 등급 기준 ${idx.regions.length - nOvr}곳 (tools/apply-focus-index.mjs)`
+    : '지역안전지수 하위 등급 기준 (tools/apply-focus-index.mjs)';
   fs.writeFileSync(idxPath, JSON.stringify(idx, null, 1));
   if (!quiet) console.log(`→ 중점 분야를 지역안전지수 기준(또는 직접 지정)으로 ${changed}곳 갱신`);
   return changed;

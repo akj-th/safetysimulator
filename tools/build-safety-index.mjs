@@ -27,16 +27,24 @@ const YEARS = ['2025', '2024'];   // 엑셀에 있는 연도. 2021~2023 은 아�
    (data/stats/auri-reports/<지역>.json 의 blocks, hwpx 원문). 약식본 지자체는 그 표가 없어 엑셀의 2025·2024 만 있습니다 */
 const AURI_DIR = path.join(ROOT, 'data/stats/auri-reports');
 /* ★ 중점관리분야 직접 지정 (2026-10-27, 10/26 회의 "3개로 고정하지 않음") — tools/config/focus-override.json.
-   AURI 가 41개 지자체 중점관리분야(안)를 확정해 보내면 거기에 적습니다. 적힌 지자체만 규칙 대신 그 목록을 씁니다(개수 제한 없음). */
+   적힌 지자체만 규칙 대신 그 목록을 씁니다(개수 제한 없음). 2026-10-28 AURI 41곳 중점관리분야(최종, 표 1-3)를 전부 적음.
+   꼴 둘 — 분야 목록 [...] 또는 AURI 표 1-3 그대로 { 필수:[...], A:[...], B:[...], C:[...] } (순서 = 필수 → A → B → C).
+   표 꼴이면 분야마다 유형(A 장기 지속 취약 · B 최근 반복 취약 · C 최근 급격 악화)을 focusType 에 남깁니다 */
 const OVERRIDE_FILE = path.join(ROOT, 'tools/config/focus-override.json');
-const OVERRIDE = fs.existsSync(OVERRIDE_FILE) ? (JSON.parse(fs.readFileSync(OVERRIDE_FILE, 'utf8')).regions || {}) : {};
+const OVERRIDE_CFG = fs.existsSync(OVERRIDE_FILE) ? JSON.parse(fs.readFileSync(OVERRIDE_FILE, 'utf8')) : {};
+const OVERRIDE = OVERRIDE_CFG.regions || {};
+const TYPE_KEYS = ['필수', 'A', 'B', 'C'];
 function overrideFor(slug) {
-  const list = OVERRIDE[slug];
-  if (!Array.isArray(list) || !list.length) return null;
-  const keys = list.map((x) => (LABEL[x] ? x : KO2KEY[String(x).trim()])).filter(Boolean);
-  const bad = list.filter((x) => !LABEL[x] && !KO2KEY[String(x).trim()]);
+  const v = OVERRIDE[slug];
+  const pairs = Array.isArray(v) ? v.map((x) => [x, null])
+    : v && typeof v === 'object' ? TYPE_KEYS.flatMap((t) => (Array.isArray(v[t]) ? v[t] : []).map((x) => [x, t])) : [];
+  if (!pairs.length) return null;
+  const keyOf = (x) => (LABEL[x] ? x : KO2KEY[String(x).trim()]);
+  const bad = pairs.filter(([x]) => !keyOf(x)).map(([x]) => x);
   if (bad.length) console.warn('⚠ focus-override', slug, '— 모르는 분야:', bad.join(', '));
-  return keys.length ? [...new Set(keys)] : null;
+  const keys = [], types = {};
+  for (const [x, t] of pairs) { const k = keyOf(x); if (!k || keys.includes(k)) continue; keys.push(k); if (t) types[k] = t; }
+  return keys.length ? { keys, types: Object.keys(types).length ? types : null } : null;
 }
 function auriYearGrades(slug) {
   const f = path.join(AURI_DIR, slug + '.json');
@@ -79,6 +87,8 @@ const sheet = Object.values(wb).find(s => s.name === '수정본' && isGradeSheet
 const rows = (sheet.rows || sheet);
 const out = { source: path.basename(SRC) + ' (수정본 시트 · 강원대)', generatedAt: new Date().toISOString().slice(0, 10), years: YEARS,
   rule: { weight: 'w = 등급 ÷ 5 (5등급 → 1.0). 자살은 모든 지자체 1.0 고정. 산업재해는 지수에 없어 ' + INDUSTRIAL_W + '. 정렬은 2025 등급, 동률이면 2024 (2026-10-20 실무회의)', industrialW: INDUSTRIAL_W },
+  /* 중점 분야를 직접 지정했으면 그 출처와 기준(AURI 표 1-1) — 화면이 근거를 보일 때 씁니다 */
+  focus: OVERRIDE_CFG.source ? { source: OVERRIDE_CFG.source, criteria: OVERRIDE_CFG.criteria || null } : null,
   regions: {} };
 let matched = 0;
 for (const r of rows.slice(4)) {
@@ -109,7 +119,7 @@ for (const r of rows.slice(4)) {
   const [inLast, outFirst] = [ranked[1], ranked[2]];
   const tieBreak = gv(g25, inLast) !== gv(g25, outFirst) ? '2025' : gv(g24, inLast) !== gv(g24, outFirst) ? '2024' : 'order';
   const forced = overrideFor(slug);
-  const focusByIndex = forced || ['suicide', ...ranked.slice(0, 2)];
+  const focusByIndex = forced ? forced.keys : ['suicide', ...ranked.slice(0, 2)];
   const lowGrades = FIELDS.filter(f => grade(f) >= 4);
   const same = kangwon.length === focusByIndex.length && focusByIndex.every(f => kangwon.includes(f));
   out.regions[slug] = {
@@ -120,8 +130,9 @@ for (const r of rows.slice(4)) {
     score1,                       // 연도 평균 등급 ÷ 5 — v3(10/21) 복합위험지수가 쓰던 값. v4(10/22)부터는 화면에서 안 씀(남겨 둠)
     ranked,                       // 자살 뺀 5개 분야, 나쁜 등급부터
     tieBreak,                     // 하위 2위와 3위를 가른 것 — '2025' 등급 · '2024' 등급(2025 동률) · 'order' 분야 순서(둘 다 동률)
-    focusByIndex,                 // 자살 + 하위 2개 = 지수 기준 중점 분야 (focus-override.json 에 적힌 지자체는 그 목록 — 개수 제한 없음)
+    focusByIndex,                 // 중점 분야 — focus-override.json 에 적힌 지자체는 그 목록(2026-10-28 부터 41곳 모두 AURI 중점관리분야), 없으면 자살 + 하위 2개. 이름은 예전 그대로
     focusSource: forced ? 'override' : 'index',
+    ...(forced && forced.types ? { focusType: forced.types } : {}),   // 분야 → 필수·A·B·C (AURI 표 1-3)
     lowGrades,                    // 4·5등급인 분야
     kangwonFocus: kangwon,        // 강원대 공간분석 기반 확정 3분야
     matchesKangwon: same,
@@ -131,7 +142,9 @@ for (const r of rows.slice(4)) {
 fs.writeFileSync(OUT, JSON.stringify(out, null, 1));
 const n = Object.keys(out.regions).length, agree = Object.values(out.regions).filter(r => r.matchesKangwon).length;
 const tb = (k) => Object.entries(out.regions).filter(([, r]) => r.tieBreak === k && r.focusSource === 'index').map(([sl]) => sl);
-console.log(`하위 2·3위를 가른 것 — 2025 등급 ${tb('2025').length}곳 · 2025 동률→2024 ${tb('2024').length}곳(${tb('2024').join(',')}) · 둘 다 동률→분야 순서 ${tb('order').length}곳(${tb('order').join(',')})`);
+const nForced = Object.values(out.regions).filter((r) => r.focusSource === 'override').length;
+console.log(`중점 분야 — 직접 지정 ${nForced}곳${OVERRIDE_CFG.source ? ' (' + OVERRIDE_CFG.source + ')' : ''} · 지수 규칙(자살 + 하위 2) ${n - nForced}곳`);
+if (n - nForced) console.log(`하위 2·3위를 가른 것 — 2025 등급 ${tb('2025').length}곳 · 2025 동률→2024 ${tb('2024').length}곳(${tb('2024').join(',')}) · 둘 다 동률→분야 순서 ${tb('order').length}곳(${tb('order').join(',')})`);
 console.log(`지역안전지수 → ${path.relative(ROOT, OUT)} · 지자체 ${n}곳 (엑셀 ${matched}) · 지수 기준 3분야 = 강원대 확정 3분야 인 곳 ${agree}곳`);
 console.log('5개년 등급이 있는 곳:', Object.values(out.regions).filter(r => r.years.length > 2).map(r => r.label + '(' + r.years.join('·') + ')').join(', ') || '없음');
-for (const [s, r] of Object.entries(out.regions)) console.log(`  ${s.padEnd(11)} 2025 ${FIELDS.map(f => r.grades[2025][f]).join('')} → 지수 ${r.focusByIndex.map(f => LABEL[f]).join('·')} | 강원대 ${r.kangwonFocus.map(f => LABEL[f]).join('·')} ${r.matchesKangwon ? '✓' : ''}`);
+for (const [s, r] of Object.entries(out.regions)) console.log(`  ${s.padEnd(11)} 2025 ${FIELDS.map(f => r.grades[2025][f]).join('')} → 중점 ${r.focusByIndex.map(f => LABEL[f] + (r.focusType && /^[ABC]$/.test(r.focusType[f]) ? '(' + r.focusType[f] + ')' : '')).join('·')} | 강원대 ${r.kangwonFocus.map(f => LABEL[f]).join('·')} ${r.matchesKangwon ? '✓' : ''}`);

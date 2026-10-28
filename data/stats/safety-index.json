@@ -1,6 +1,6 @@
 {
  "source": "지역별 안전유형 3개 추출_강원대.xlsx (수정본 시트 · 강원대)",
- "generatedAt": "2026-10-27",
+ "generatedAt": "2026-10-28",
  "years": [
   "2025",
   "2024"
@@ -8,6 +8,16 @@
  "rule": {
   "weight": "w = 등급 ÷ 5 (5등급 → 1.0). 자살은 모든 지자체 1.0 고정. 산업재해는 지수에 없어 0.6. 정렬은 2025 등급, 동률이면 2024 (2026-10-20 실무회의)",
   "industrialW": 0.6
+ },
+ "focus": {
+  "source": "AURI 「중점관리분야 선정기준 및 도출결과」(2026-10-28 최종) 표 1-3",
+  "criteria": {
+   "필수": "자살 — 국가 차원 자살예방 필요성, 41개 지자체 공통",
+   "A": "장기 지속 취약 — 5년 연속 5등급",
+   "B": "최근 반복 취약 — A 외에, 2025년 4~5등급 또는 2021~2025년 4~5등급이 연속 2회 이상",
+   "C": "최근 급격 악화 — A·B 외에, 최근 2년(2024 → 2025) 2단계 이상 하락",
+   "검증": "최근 3개년 사고·사망 통계(발생률·피해 규모·변화 추세)를 동종 지자체와 비교해 최종 선정"
+  }
  },
  "regions": {
   "taebaek": {
@@ -62,10 +72,19 @@
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
+    "traffic",
     "fire",
-    "traffic"
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -135,7 +154,12 @@
     "traffic",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "life": "B"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -200,10 +224,15 @@
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
-    "crime",
-    "traffic"
+    "fire",
+    "crime"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "fire": "B",
+    "crime": "B"
+   },
    "lowGrades": [
     "crime",
     "suicide"
@@ -213,7 +242,7 @@
     "traffic",
     "suicide"
    ],
-   "matchesKangwon": true
+   "matchesKangwon": false
   },
   "bucheon": {
    "label": "경기도 부천시",
@@ -297,7 +326,12 @@
     "crime",
     "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "crime": "A",
+    "infection": "B"
+   },
    "lowGrades": [
     "crime"
    ],
@@ -360,10 +394,19 @@
    "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "life"
+    "traffic",
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "fire",
     "life",
@@ -457,9 +500,16 @@
    "focusByIndex": [
     "suicide",
     "traffic",
-    "fire"
+    "fire",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -526,9 +576,18 @@
    "focusByIndex": [
     "suicide",
     "traffic",
-    "fire"
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -621,10 +680,19 @@
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "traffic"
+    "traffic",
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -692,7 +760,12 @@
     "traffic",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "life": "B"
+   },
    "lowGrades": [
     "traffic",
     "life"
@@ -756,10 +829,17 @@
    "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "life"
+    "traffic",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -852,9 +932,18 @@
    "focusByIndex": [
     "suicide",
     "traffic",
-    "fire"
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "A",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -921,10 +1010,17 @@
    "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "life"
+    "traffic",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -991,9 +1087,18 @@
    "focusByIndex": [
     "suicide",
     "traffic",
-    "fire"
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -1060,10 +1165,15 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "life"
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "life",
     "suicide",
@@ -1129,9 +1239,20 @@
    "focusByIndex": [
     "suicide",
     "crime",
-    "life"
+    "traffic",
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "crime": "A",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "crime",
     "life",
@@ -1198,9 +1319,16 @@
    "focusByIndex": [
     "suicide",
     "crime",
-    "life"
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "crime": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "fire",
     "crime",
@@ -1267,10 +1395,21 @@
    "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
+    "traffic",
     "fire",
+    "crime",
+    "life",
     "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "crime": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -1337,9 +1476,16 @@
    "focusByIndex": [
     "suicide",
     "traffic",
-    "life"
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -1405,10 +1551,19 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "crime"
+    "fire",
+    "crime",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "fire": "B",
+    "crime": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "crime",
     "suicide",
@@ -1474,9 +1629,16 @@
    "focusByIndex": [
     "suicide",
     "traffic",
+    "fire",
     "crime"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "crime": "B"
+   },
    "lowGrades": [
     "traffic",
     "crime"
@@ -1540,10 +1702,17 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
+    "traffic",
     "fire",
-    "traffic"
+    "crime"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "crime": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -1608,10 +1777,17 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
+    "traffic",
     "fire",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B"
+   },
    "lowGrades": [
     "fire",
     "life"
@@ -1675,10 +1851,15 @@
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "traffic"
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "suicide",
     "infection"
@@ -1743,9 +1924,16 @@
    "focusByIndex": [
     "suicide",
     "traffic",
+    "life",
     "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "infection"
@@ -1809,10 +1997,19 @@
    "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
+    "traffic",
+    "crime",
     "life",
-    "traffic"
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "crime": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "crime",
@@ -1879,10 +2076,15 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "traffic"
+    "traffic",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "suicide",
@@ -1950,7 +2152,12 @@
     "crime",
     "fire"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "crime": "A",
+    "fire": "B"
+   },
    "lowGrades": [
     "crime",
     "suicide"
@@ -2014,10 +2221,19 @@
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "traffic"
+    "traffic",
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2084,10 +2300,17 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
+    "traffic",
     "fire",
     "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2152,10 +2375,17 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "fire"
+    "traffic",
+    "fire",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "fire",
     "suicide",
@@ -2220,10 +2450,17 @@
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
+    "traffic",
     "fire",
-    "traffic"
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2289,9 +2526,18 @@
    "focusByIndex": [
     "suicide",
     "traffic",
-    "fire"
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2358,10 +2604,19 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
+    "traffic",
+    "fire",
     "life",
-    "fire"
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "C"
+   },
    "lowGrades": [
     "fire",
     "life"
@@ -2426,9 +2681,18 @@
    "focusByIndex": [
     "suicide",
     "traffic",
-    "fire"
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2498,7 +2762,12 @@
     "traffic",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "life": "B"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -2566,7 +2835,12 @@
     "crime",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "crime": "A",
+    "life": "A"
+   },
    "lowGrades": [
     "crime",
     "life",
@@ -2631,10 +2905,19 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
+    "life",
     "traffic",
-    "life"
+    "fire",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "life": "A",
+    "traffic": "B",
+    "fire": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -2701,9 +2984,16 @@
    "focusByIndex": [
     "suicide",
     "traffic",
-    "life"
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -2769,10 +3059,19 @@
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "traffic"
+    "traffic",
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2838,10 +3137,19 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
+    "traffic",
+    "fire",
     "life",
-    "traffic"
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -2906,10 +3214,19 @@
    "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
+    "traffic",
+    "fire",
     "life",
     "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "필수",
+    "traffic": "B",
+    "fire": "B",
+    "life": "B",
+    "infection": "B"
+   },
    "lowGrades": [
     "traffic",
     "life",

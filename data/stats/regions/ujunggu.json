@@ -15,19 +15,19 @@
    }
   },
   {
+   "key": "life",
+   "label": "생활안전",
+   "sample": {
+    "n": 16,
+    "pct": 17
+   }
+  },
+  {
    "key": "infection",
    "label": "감염병",
    "sample": {
     "n": 2,
     "pct": 13.3
-   }
-  },
-  {
-   "key": "traffic",
-   "label": "교통사고",
-   "sample": {
-    "n": 346,
-    "pct": 18.7
    }
   }
  ],
@@ -11487,5 +11487,5 @@
    "sample": null
   }
  ],
- "focusSource": "지역안전지수 하위 등급 기준(자살 고정 + 하위 2분야) — data/stats/safety-index.json"
+ "focusSource": "직접 지정(AURI 「중점관리분야 선정기준 및 도출결과」(2026-10-28 최종) 표 1-3 — tools/config/focus-override.json) — data/stats/safety-index.json"
 }
