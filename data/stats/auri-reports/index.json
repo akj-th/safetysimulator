@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-10-22",
+ "generatedAt": "2026-10-30",
  "regions": [
   {
    "region": "geumcheon",
@@ -266,6 +266,18 @@
    "measures": 47
   },
   {
+   "region": "namwon",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "traffic"
+   ],
+   "issues": 9,
+   "measures": 33
+  },
+  {
    "region": "danyang",
    "full": false,
    "sourceDate": null,
@@ -312,6 +324,18 @@
    ],
    "issues": 10,
    "measures": 43
+  },
+  {
+   "region": "miryang",
+   "full": false,
+   "sourceDate": null,
+   "fields": [
+    "crime",
+    "suicide",
+    "traffic"
+   ],
+   "issues": 9,
+   "measures": 32
   },
   {
    "region": "sasanggu",

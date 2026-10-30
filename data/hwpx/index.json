@@ -232,5 +232,17 @@
   "source": "1014 영주시 사전진단 보고서.hwpx",
   "sourceDate": "2026-10-14",
   "bytes": 61301
+ },
+ "miryang": {
+  "file": "data/hwpx/miryang.hwpx",
+  "source": "밀양시 사전진단보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 89861
+ },
+ "namwon": {
+  "file": "data/hwpx/namwon.hwpx",
+  "source": "남원시 사전진단보고서.hwpx",
+  "sourceDate": null,
+  "bytes": 90734
  }
 }
