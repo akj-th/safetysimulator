@@ -299,10 +299,13 @@ table.guide .bullet{margin:0 0 3px; padding-left:16px; text-align:left} table.gu
       <p class="sub">현장용 리포트로 현장에 나가기 전 확인할 것을 먼저 보고, 사전진단서는 AURI 양식 그대로 그다음에 정리합니다. 인쇄하면 지금 보고 있는 문서만 나옵니다.</p>
     </div>
     <!-- Word 내보내기는 뺐습니다(2026-10-21): 글·표·그림만 넘어가고 배열·여백·레이아웃이 안 넘어가 쓸 수 없음. 대신 아래 "수정" 모드 -->
-    <button class="btn ghost" id="printBtn" onclick="window.print()">인쇄 / PDF 저장</button>
-    <!-- 한글(hwpx) 내려받기 (2026-10-27): AURI 원본 hwpx 를 틀로 두고 정해진 자리에만 끼워 넣음 — assets/hwpx-export.js.
-         사전진단서 탭에서, 틀(data/hwpx/<지역>.hwpx)이 있는 지자체에만 보입니다 -->
-    <button class="btn ghost" id="hwpxBtn" onclick="exportHwpx()" hidden title="AURI 사전분석 보고서 원본(한글)에 진단 지점 처방 행과 개선 전/후 그림을 넣어 내려받습니다">한글(hwpx) 내려받기</button>
+    <!-- 내보내기 버튼 묶음 — 인쇄/PDF 와 한글(hwpx) 을 나란히 (2026-10-30 렌더 확인: 머리 줄이 양 끝 맞춤이라 둘이 떨어져 있었음) -->
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+      <button class="btn ghost" id="printBtn" onclick="window.print()">인쇄 / PDF 저장</button>
+      <!-- 한글(hwpx) 내려받기 (2026-10-27): AURI 원본 hwpx 를 틀로 두고 정해진 자리에만 끼워 넣음 — assets/hwpx-export.js.
+           사전진단서 탭에서, 틀(data/hwpx/<지역>.hwpx)이 있는 지자체에만 보입니다 -->
+      <button class="btn ghost" id="hwpxBtn" onclick="exportHwpx()" hidden title="AURI 사전분석 보고서 원본(한글)에 진단 지점 처방 행과 개선 전/후 그림을 넣어 내려받습니다">한글(HWPX)로 내려받기</button>
+    </div>
   </div>
 
   <!-- ★ 순서: 현장용 리포트 → 사전진단서 (2026-09-14 AURI 회의)
@@ -1528,6 +1531,7 @@ function applySavedDoc(which) {
   const freshText = el.textContent || '';
   el.innerHTML = cleanSavedHtml(saved);
   el.querySelectorAll('.doc-stale').forEach((n) => n.remove());   // 예전에 붙은 알림이 수정본에 저장돼 있었으면 지우고 새로 판단
+  AuriDocEdit.apply(el);   // 세부 유형·빈칸 글은 저장소(auri_doc_notes)가 기준 — 수정본을 저장한 뒤 고친 글이 옛 글로 덮이지 않게 (2026-10-30)
   el.querySelectorAll('img[data-imgkey]').forEach((img) => { const v = _imgReg[img.dataset.imgkey]; if (v) img.setAttribute('src', v); });
   const slotNow = currentSlotImages();
   el.querySelectorAll('img[data-imgslot]').forEach((img) => { const v = slotNow[img.dataset.imgslot]; if (v) img.setAttribute('src', v); });
@@ -1565,6 +1569,7 @@ function saveEdit() {
   el.classList.remove('editing');
   /* 입력칸(textarea)의 지금 값을 HTML 에도 반영 — innerHTML 은 처음 값만 들고 있어서 */
   el.querySelectorAll('textarea').forEach((t) => { t.textContent = t.value; });
+  AuriDocEdit.collect(el);   // 수정 모드에서 고친 세부 유형·빈칸 글도 저장소에 — 다시 열 때 apply 가 이 값으로 채움 (2026-10-30)
   const clone = el.cloneNode(true);
   clone.querySelectorAll('.doc-stale').forEach((n) => n.remove());   // "처방이 바뀌었습니다" 알림은 저장하지 않음(열 때마다 다시 판단)
   const slotNow = currentSlotImages();

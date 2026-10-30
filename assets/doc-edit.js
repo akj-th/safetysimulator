@@ -194,10 +194,39 @@ const AuriDocEdit = (function () {
     const safe = (s) => String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const text = saved && saved.text != null ? saved.text : (def || '');
-    return `<span class="doc-inline" id="in-${id}" contenteditable="true" spellcheck="false" data-hint="${safe(hint || '')}"
+    return `<span class="doc-inline" id="in-${id}" contenteditable="true" spellcheck="false" data-hint="${safe(hint || '')}" data-def="${safe(def || '')}"
       oninput="AuriDocEdit.onInline('${id}', this)">${safe(text)}</span>`;
   }
   function onInline(id, el) { set(id, el.textContent, false, null); }
 
-  return { render, ask, onEdit, refresh, get, set, inline, onInline };
+  /* ★ 수정본과 입력칸 글 맞추기 (2026-10-30 렌더 확인 "2차 현장보고서 세부 유형에 적은 글이 저장 안 됨").
+     탭에 수정본(document.html auri_doc_html)이 있으면 다시 열 때 그 HTML 이 통째로 들어와, 수정본을 저장한 **뒤** 고친
+     세부 유형·빈칸 글(이 저장소 auri_doc_notes 에는 남아 있음)이 수정본에 굳은 옛 글로 덮였습니다.
+       collect(root) — 수정본을 저장하기 직전: 화면의 입력칸 글을 이 저장소에 옮김(수정 모드에서 고친 글은 oninput 이 안 불릴 수 있어서)
+       apply(root)   — 수정본을 넣은 직후: 이 저장소의 글을 입력칸에 다시 채움(입력칸 글은 이 저장소가 기준) */
+  function collect(root) {
+    if (!root) return;
+    root.querySelectorAll('.doc-inline[id^="in-"]').forEach(function (el) {
+      const id = el.id.slice(3), prev = get(id), text = el.textContent;
+      if (!prev && text === (el.dataset.def || '')) return;   // 손대지 않은 기본 글은 옮기지 않음(기본 글이 굳지 않게)
+      if (!prev || prev.text !== text) set(id, text, false, null);
+    });
+    root.querySelectorAll('textarea.doc-fill-in[id^="in-"]').forEach(function (el) {
+      const id = el.id.slice(3), prev = get(id);
+      if (!prev || prev.text !== el.value) set(id, el.value, false, prev ? prev.basis : null);   // 사람이 고친 글 — AI 표시는 내림(onEdit 과 같음)
+    });
+  }
+  function apply(root) {
+    if (!root) return;
+    root.querySelectorAll('.doc-inline[id^="in-"]').forEach(function (el) {
+      const s = get(el.id.slice(3));
+      if (s && s.text != null) el.textContent = s.text;
+    });
+    root.querySelectorAll('textarea.doc-fill-in[id^="in-"]').forEach(function (el) {
+      const s = get(el.id.slice(3));
+      if (s && s.text != null) { el.value = s.text; el.textContent = s.text; }
+    });
+  }
+
+  return { render, ask, onEdit, refresh, get, set, inline, onInline, collect, apply };
 })();

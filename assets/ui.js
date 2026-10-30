@@ -7,12 +7,15 @@
 /* 5단계 정의.
    needs = 그 단계로 넘어가려면 앞 단계에서 만들어져 있어야 하는 데이터.
    없으면 그 단계는 잠깁니다(회색). */
+/* needs = 이 단계로 갈 수 있게 하는 칸 · has = 이 단계에서 만든 결과가 담기는 칸(있으면 "한 단계"로 진하게).
+   ★ 2026-10-30 렌더 확인: 저장한 프로젝트를 열면 3단계부터 열리는데, 4·5단계에 결과가 있어도 지금 단계보다 뒤라는 이유로 연한 회색이라
+   잠긴 것처럼 보였습니다(눌러 보면 저장된 그림·문서가 나옴) — 결과가 있으면 뒤 단계도 진하게 */
 const AURI_STEPS = [
-  { n: 1, name: '위치 선택', file: 'index.html',     needs: null },
-  { n: 2, name: '진단',      file: 'diagnosis.html', needs: 'auri_picked_location' },
-  { n: 3, name: '리포트',    file: 'report.html',    needs: 'auri_diagnosis_results' },
-  { n: 4, name: '시각화',    file: 'visualize.html', needs: 'auri_prescriptions' },
-  { n: 5, name: '진단서',    file: 'document.html',  needs: 'auri_prescriptions' },
+  { n: 1, name: '위치 선택', file: 'index.html',     needs: null,                     has: ['auri_picked_location'] },
+  { n: 2, name: '진단',      file: 'diagnosis.html', needs: 'auri_picked_location',   has: ['auri_diagnosis_results'] },
+  { n: 3, name: '리포트',    file: 'report.html',    needs: 'auri_diagnosis_results', has: ['auri_prescriptions'] },
+  { n: 4, name: '시각화',    file: 'visualize.html', needs: 'auri_prescriptions',     has: ['auri_after_image'] },
+  { n: 5, name: '진단서',    file: 'document.html',  needs: 'auri_prescriptions',     has: ['auri_doc_notes', 'auri_doc_html', 'auri_narratives'] },
 ];
 
 /* 점수(0~100) → 9단계 + 안전/주의/위험 3구간
@@ -52,10 +55,11 @@ function auriRenderSteps() {
 
   host.innerHTML = AURI_STEPS.map(function (s) {
     const ready = !s.needs || sessionStorage.getItem(s.needs);
+    const hasResult = (s.has || []).some(function (k) { return !!sessionStorage.getItem(k); });
     let cls = 'step';
     if (s.n === current) cls += ' is-current';
     else if (!ready) cls += ' is-locked';
-    else if (s.n < current) cls += ' is-done';
+    else if (s.n < current || hasResult) cls += ' is-done';
 
     /* 잠긴 단계는 이동할 수 없으므로 버튼이 아니라 그냥 표시만 합니다 */
     if (!ready && s.n !== current) {
