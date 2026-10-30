@@ -55,6 +55,8 @@
   font-size:var(--fs-body); padding-bottom:7px;
 }
 .note-under{font-size:var(--fs-cap); color:var(--g2); line-height:1.7; margin:6px 0 0}
+.doc-stale{margin:0 0 14px}
+.doc-stale b{color:var(--main)}
 
 
 /* ── 표지 ────────────────────────────────────────────────────────── */
@@ -328,6 +330,8 @@ table.guide .bullet{margin:0 0 3px; padding-left:16px; text-align:left} table.gu
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
     <span id="docNoteText"></span>
   </p>
+  <!-- 개선 후 이미지가 지금 처방과 다른 사업으로 그려졌을 때 (2026-10-30, rules.js auriAfterImageStale) — 화면에만 -->
+  <p class="note-under screen-only doc-stale" id="afterStaleDoc" hidden></p>
 
   <div class="doc" id="docB"></div>
   <div class="doc" id="docA" hidden></div>
@@ -1499,16 +1503,36 @@ function currentSlotImages() {
 /* 사진 id 는 onclick="…('id')" 안에 들어가므로 글자·숫자·_- 만 */
 const pidOf = (id) => String(id == null ? '' : id).replace(/[^\w-]/g, '');
 
+/* ★ 처방이 바뀐 수정본 알림 (2026-10-30 담당자 "예전 프로젝트 처방은 전부 다시 계산") — 처방은 열 때마다 3단계에서 새 규칙으로 다시 계산되지만,
+   수정본은 저장할 때의 문서 그대로라 옛 사업 목록이 남을 수 있습니다. 자동 생성본(지금 처방)과 수정본을 사업 이름으로 맞대어
+   "지금 처방에 있는데 수정본에 없는 사업" · "수정본에만 있는 사업(예전 처방)" 을 화면에만 알립니다(인쇄 안 됨). 수정본을 지우지는 않습니다 — 연구원이 쓴 글이 들어 있으므로 */
+function staleRxNote(freshText, savedText) {
+  const names = (_items || []).map((it) => String(it.name || '').trim()).filter(Boolean);
+  const missing = names.filter((n) => freshText.includes(n) && !savedText.includes(n));
+  const catalog = AuriPalette.ready() ? ['traffic', 'fire', 'crime', 'life', 'suicide', 'infection', 'industrial'].flatMap((f) => AuriPalette.byField(f).map((p) => p.name)) : [];
+  const extra = [...new Set(catalog)].filter((n) => n.length >= 4 && savedText.includes(n) && !freshText.includes(n) && !names.includes(n));
+  if (!missing.length && !extra.length) return '';
+  const list = (arr) => arr.slice(0, 6).map((n) => '「' + esc(n) + '」').join(' ') + (arr.length > 6 ? ` 외 ${arr.length - 6}종` : '');
+  return `<p class="note-under screen-only doc-stale"><b>처방이 바뀌었습니다</b> — 이 탭의 수정본은 지금 처방(규칙을 고친 뒤 다시 계산한 것)과 사업 목록이 다릅니다.`
+    + (missing.length ? ` 지금 처방에만 있는 사업: ${list(missing)}.` : '')
+    + (extra.length ? ` 수정본에만 있는 사업(예전 처방이거나 직접 넣은 것): ${list(extra)}.` : '')
+    + ` 오른쪽 위 <b>원래대로</b>를 누르면 지금 처방으로 다시 만들어집니다(이 탭에서 고친 글은 사라짐). 글을 살리려면 <b>✎ 수정</b>으로 사업 부분만 고쳐 주세요.</p>`;
+}
+
 /** 자동 생성한 뒤 호출 — 저장된 수정본이 있으면 그것으로 바꿔치기 */
 function applySavedDoc(which) {
   const el = docEl(which);
   registerImages(el);
   const saved = loadDocHtml()[which];
   if (!saved) return false;
+  const freshText = el.textContent || '';
   el.innerHTML = cleanSavedHtml(saved);
+  el.querySelectorAll('.doc-stale').forEach((n) => n.remove());   // 예전에 붙은 알림이 수정본에 저장돼 있었으면 지우고 새로 판단
   el.querySelectorAll('img[data-imgkey]').forEach((img) => { const v = _imgReg[img.dataset.imgkey]; if (v) img.setAttribute('src', v); });
   const slotNow = currentSlotImages();
   el.querySelectorAll('img[data-imgslot]').forEach((img) => { const v = slotNow[img.dataset.imgslot]; if (v) img.setAttribute('src', v); });
+  const note = staleRxNote(freshText, el.textContent || '');
+  if (note) el.insertAdjacentHTML('afterbegin', note);
   return true;
 }
 function setEditUi() {
@@ -1542,6 +1566,7 @@ function saveEdit() {
   /* 입력칸(textarea)의 지금 값을 HTML 에도 반영 — innerHTML 은 처음 값만 들고 있어서 */
   el.querySelectorAll('textarea').forEach((t) => { t.textContent = t.value; });
   const clone = el.cloneNode(true);
+  clone.querySelectorAll('.doc-stale').forEach((n) => n.remove());   // "처방이 바뀌었습니다" 알림은 저장하지 않음(열 때마다 다시 판단)
   const slotNow = currentSlotImages();
   clone.querySelectorAll('img').forEach((img) => {
     const v = img.getAttribute('src') || '';
@@ -1729,7 +1754,7 @@ function moisReport() {
             <th style="width:9%">위치</th><td style="width:30%">${esc(_picked.addr || '주소 미상')}${_picked.dong ? `<br><span class="h-sub">${esc(_data.shortLabel)} ${esc(_picked.dong)}</span>` : ''}</td>
             <th style="width:11%">세부 유형</th><td>${AuriDocEdit.inline('mois-sub', spaceDefault, '예: 전통시장 일대')}</td></tr>
         <tr><th>연계 사고<br>데이터</th><td colspan="5" style="color:#D83D64">${type ? type.text : (human ? human.text : '119 출동 통계 없음')}</td></tr>
-        ${regionType ? `<tr><th>지자체 유형</th><td colspan="5">${esc(regionType)} <span class="h-sub">— ${esc(_regionType.why || '')} (41개 지자체 유형화 1차안, 10/14 회의)</span></td></tr>` : ''}
+        ${regionType ? `<tr><th>지자체 유형</th><td colspan="5">${esc(regionType)} <span class="h-sub">— ${esc(_regionType.why || '')} (41개 지자체 유형화 2차 기준, 10/30)</span></td></tr>` : ''}
         ${linked.length ? `<tr><th>복합 분야</th><td colspan="5">${linked.map((r) => `${esc(r.name)} ${r.score}점(${r.level.label})${focusKeys.has(r.key) ? ' <span class="mark-focus">중점</span>' : ''}`).join(' · ')} <span class="h-sub">— 같은 지점에서 주의 이상으로 판독된 다른 분야 (복합 분야 진단)</span></td></tr>` : ''}
       </tbody>
     </table>
@@ -2174,7 +2199,8 @@ function renderAll() {
   document.getElementById('docB').innerHTML = fieldReport();
   document.getElementById('docC').innerHTML = guideCard();
   document.getElementById('docD').innerHTML = siteReport();
-  DOC_TABS.forEach(applySavedDoc);   // 수정 모드에서 저장한 것이 있으면 그것으로
+  DOC_TABS.forEach(applySavedDoc);   // 수정 모드에서 저장한 것이 있으면 그것으로 (처방이 바뀐 수정본이면 탭 맨 위에 알림)
+  { const box = document.getElementById('afterStaleDoc'); const html = auriAfterStaleHtml(auriAfterImageStale(_items)); box.innerHTML = html; box.hidden = !html; }
   AuriDocEdit.refresh();
   /* 지도는 타일을 받아야 해서 시간이 걸립니다. 문서를 먼저 띄우고 뒤따라 채웁니다.
      한 번 그린 것은 _mapCache 에 남아 다시 그리지 않습니다. */
@@ -2215,7 +2241,7 @@ window.addEventListener('load', async function () {
   _auri = await loadAuriReport(_data.region);       // AURI 사전분석 보고서 (있는 지자체만)
   await loadHwpxIndex();                            // 한글(hwpx) 내려받기 틀 목록 (2026-10-27)
   await loadHotspotCards(_data.region);             // 붙임 5 거점 카드 — 거점 + 공유 프로젝트 + 지역안전지수 가중 (2026-10-20)
-  try { const rt = await fetch('data/stats/region-types.json'); const j = rt.ok ? await rt.json() : null; _regionType = j && j.regions ? j.regions.find((r) => r.region === _data.region) || null : null; } catch (e) { _regionType = null; }   // 지자체 유형화 1차안 (10/14)
+  try { const rt = await fetch('data/stats/region-types.json'); const j = rt.ok ? await rt.json() : null; _regionType = j && j.regions ? j.regions.find((r) => r.region === _data.region) || null : null; } catch (e) { _regionType = null; }   // 지자체 유형화 2차 기준 (10/30)
   try { const hr = await fetch('data/heatmap/index.json'); _heat = hr.ok ? await hr.json() : null; } catch (e) { _heat = null; }
   document.title = `지자체 사전진단서 — ${_data.shortLabel}`;
 

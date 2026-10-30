@@ -16,9 +16,9 @@
 | `build-field-survey.mjs` | — | 현장조사단 평가 → `data/stats/field-survey.json` (AURI 복합위험지구 동이 상위에 오게, 41곳 일치 확인) |
 | `build-hotspots.mjs` | `hotspots` | 중점분야 커널밀도 TIF → `data/stats/hotspots.json`(거점 A~J). ⚠ 다시 뽑으면 글자가 바뀌어 DB 거점 보정을 정리해야 함 |
 | `build-heatmap.mjs` | `heatmap` | 커널밀도 TIF → `data/heatmap/` PNG (`-- --focus` 면 중점분야만) |
-| `classify-regions.mjs` | `classify` | 인구·면적 → `data/stats/region-types.json`(도심/도농복합/농촌 1차) |
+| `classify-regions.mjs` | `classify` | 인구·면적 → `data/stats/region-types.json`(도심/도농복합/농촌 — 2차 기준 10/30, AI 대조 칸은 남김) |
 | `classify-regions-ai.mjs` | — | 같은 지표로 AI 가 따로 분류 → region-types.json 의 `ai` 칸(유료 1회, `node --env-file=server/.env tools/classify-regions-ai.mjs`) |
-| `build-palette.mjs` | `palette` | AURI 사업 팔레트 엑셀(9/02) → `assets/palette.json`(289종) |
+| `build-palette.mjs` | `palette` | AURI 사업 팔레트 엑셀 10/06(바탕) + 9/02(10/06 에 없는 이름) → `assets/palette.json`(356종). 화면에서 10/21 표준이 기준으로 얹힘(510종) |
 | `build-palette-std.mjs` | — | 표준 맞춤형 사업팔레트 docx 7개(10/21) → `assets/palette-std.json`(210종) |
 | `build-physical.mjs` | `physical` | 강원대 물적환경 회귀분석 → `assets/physical.json`(7곳) |
 | `hwpx-to-text.mjs` | — | AURI 사전분석 보고서 hwpx → `_text/<이름>.txt` |

@@ -57,6 +57,7 @@
     font-size:var(--fs-cap); color:var(--g2); line-height:var(--lh-body);
     margin:10px 0 0; text-align:right;
   }
+.after-stale b{color:var(--main)}
 </style>
 </head>
 <body data-step="4">
@@ -154,6 +155,8 @@
       <div class="m" id="afterSub">30초 정도 걸립니다.</div>
     </div>
     <div class="ba-disclaimer" id="afterNote"></div>
+    <!-- 처방이 바뀌어 이 그림이 지금 처방과 다를 때 (2026-10-30, auriAfterImageStale) -->
+    <p class="note after-stale" id="afterStale" hidden></p>
     <!-- 번호 태그 범례 — 이미지 안의 ①②③ 가 무엇인지. 문서(document.html)에도 같은 범례가 실립니다 -->
     <div class="tag-legend" id="afterTags"></div>
     <!-- 고쳤으면 하는 점을 적어 다시 만드는 칸 -->
@@ -407,6 +410,7 @@ async function generateAfter(useNote) {
     document.getElementById('tweakToggle').textContent = '고칠 점 적어서 다시 만들기';
     /* 그릴 항목이 없으면 다시 잠깁니다 — 버튼 상태는 한 곳에서만 정합니다 */
     showNonVisualNote(AuriRx.current());
+    showAfterStale(AuriRx.current());   // 새로 그렸으면 알림이 사라짐
   }
 }
 /* 거리 사진에 그릴 수 있는 항목의 개수.
@@ -419,6 +423,15 @@ function countVisual(items) {
    목록에는 있는데 이미지에 안 보이면 오작동으로 오해하기 때문입니다.
    버튼 글자도 함께 바꿉니다 — 눌리지 않는 버튼만 덩그러니 있으면
    고장으로 보입니다. */
+/* 개선 후 이미지가 지금 처방과 다른 사업으로 그려졌으면 이미지 아래에 알림 (rules.js auriAfterImageStale) */
+function showAfterStale(items) {
+  const box = document.getElementById('afterStale');
+  if (!box) return;
+  const html = auriAfterStaleHtml(auriAfterImageStale(items));
+  box.innerHTML = html;
+  box.hidden = !html;
+}
+
 function showNonVisualNote(items) {
   const hidden = items.filter(function (it) { return !auriRxIsVisual(it); });
   const drawable = countVisual(items);
@@ -515,11 +528,13 @@ window.addEventListener('load', async function () {
     cancelBtnId: 'rxCancelBtn', addBtnId: 'rxAddBtn',
     onChange: function (next) {
       showNonVisualNote(next);   // 버튼 잠금·안내문을 함께 정합니다
+      showAfterStale(next);      // 사업을 고치면 그림과 달라질 수 있음
     },
   });
   AuriRx.render(items);
   loadGenMode();             // 직접 입력 사업이 저장돼 있으면 되살립니다 (2026-10-27)
   showNonVisualNote(items);
+  showAfterStale(items);     // 예전 처방으로 그린 그림이면 알림 (2026-10-30)
 
   if (items.length === 0) {
     list.innerHTML = '<div class="empty">반영할 사업이 없습니다.<br>종합 리포트를 먼저 열어 처방을 생성하거나, 수정을 눌러 직접 추가하세요.<br>아래 "직접 입력한 사업만"을 골라 그릴 사업을 적을 수도 있습니다.</div>';

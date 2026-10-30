@@ -431,6 +431,36 @@ function auriRxIsVisual(item) {
   return hea === 'E';
 }
 
+/* ★ 개선 후 이미지가 지금 처방과 다른 사업으로 그려졌는가 (2026-10-30 담당자 "예전 프로젝트 처방은 전부 다시 계산").
+   처방은 열 때마다 3단계에서 새 규칙으로 다시 계산되지만 그림은 유료 생성이라 저절로 다시 그리지 않습니다 — 알리기만 합니다.
+   그린 사업 = auri_gen_custom.lastImage.items (10/27~), 그 전 그림은 번호 태그 범례(auri_after_tags) 로 짐작. 둘 다 없으면 모름(null).
+   돌려주는 값: null(같음·모름·직접 입력으로 그림) 또는 { add: 지금 처방에만, gone: 그림에만 } */
+function auriAfterImageStale(items) {
+  if (!sessionStorage.getItem('auri_after_image')) return null;
+  let drawn = null;
+  try {
+    const g = JSON.parse(sessionStorage.getItem('auri_gen_custom') || 'null');
+    if (g && g.lastImage) { if (g.lastImage.mode !== 'rx') return null; drawn = (g.lastImage.items || []).slice(); }
+  } catch (e) { drawn = null; }
+  if (!drawn) {
+    try { const t = JSON.parse(sessionStorage.getItem('auri_after_tags') || 'null'); if (Array.isArray(t) && t.length) drawn = t.map(function (x) { return x.name; }); } catch (e) { drawn = null; }
+  }
+  if (!drawn) return null;
+  const now = (items || []).filter(function (it) { return auriRxIsVisual(it); }).map(function (it) { return it.name; });
+  const add = now.filter(function (n) { return drawn.indexOf(n) === -1; });
+  const gone = drawn.filter(function (n) { return now.indexOf(n) === -1; });
+  return add.length || gone.length ? { add: add, gone: gone } : null;
+}
+/* 위 결과를 한 줄 알림 HTML 로 (4단계·문서 화면 공용, 인쇄하지 않는 자리에만 넣을 것) */
+function auriAfterStaleHtml(st) {
+  if (!st) return '';
+  const q = function (arr) { return arr.slice(0, 6).map(function (n) { return '「' + auriEsc(n) + '」'; }).join(' ') + (arr.length > 6 ? ' 외 ' + (arr.length - 6) + '종' : ''); };
+  return '<b>처방이 바뀌었습니다</b> — 개선 후 이미지는 지금 처방과 다른 사업으로 그린 것입니다.'
+    + (st.add.length ? ' 지금 처방에만 있는 사업: ' + q(st.add) + '.' : '')
+    + (st.gone.length ? ' 그림에만 있는 사업(예전 처방): ' + q(st.gone) + '.' : '')
+    + ' 지금 처방으로 그리려면 4단계에서 <b>개선 이미지 생성</b>을 다시 눌러 주세요(유료 생성 1회).';
+}
+
 /* ── 팔레트에서 사업 찾기 ─────────────────────────────────────────── */
 
 /** 연결표의 이름 → 팔레트 사업. 없으면 null (verify-rules 가 잡습니다) */

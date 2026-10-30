@@ -1,6 +1,7 @@
 {
- "source": "7대유형_통합_HEA_성과증명_사업팔레트_0902.xlsx (AURI 제공)",
- "generatedAt": "2026-09-04",
+ "source": "7대유형_통합_HEA_성과증명_사업팔레트_10.06.xlsx (AURI 제공) + 10/06 에 없는 이름만 _0902.xlsx — 그 위에 10/21 표준 팔레트(palette-std.json)가 기준으로 얹힘(assets/palette.js)",
+ "order": "10/21 표준 → 10/06 → 9/02 (2026-10-30 담당자 결정)",
+ "generatedAt": "2026-10-30",
  "note": "⚠️ 확정본이 아닙니다. 생활안전·감염병은 H·A 사업이 부족해 AURI가 재정리할 예정입니다.",
  "hea": {
   "H": {
@@ -19,6 +20,23 @@
  "amountNote": "금액은 원문 문구를 그대로 싣고, 단위와 금액이 분명한 것만 단가(won)로 씁니다. 나머지는 \"산출 근거 필요\"로 표시하고 합계에서 뺍니다.",
  "programs": [
   {
+   "id": "P-CRM-JLYJ6D",
+   "field": "crime",
+   "name": "(민·관·경) 합동순찰 실시",
+   "hea": "A",
+   "effect": "",
+   "source": "https://www.yna.co.kr/view/AKR20240203031700061?utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 42,
+   "from": "1006"
+  },
+  {
    "id": "P-CRM-VBUDY7",
    "field": "crime",
    "name": "1인 가구 안심장비 지원사업",
@@ -32,7 +50,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 39
+   "row": 10,
+   "from": "1006"
   },
   {
    "id": "P-CRM-Z9HNF6",
@@ -48,7 +67,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 47
+   "row": 31,
+   "from": "1006"
   },
   {
    "id": "P-CRM-4T4RRO",
@@ -64,7 +84,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 37
+   "row": 2,
+   "from": "1006"
   },
   {
    "id": "P-CRM-1MIXTU",
@@ -80,7 +101,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 52
+   "row": 37,
+   "from": "1006"
   },
   {
    "id": "P-CRM-03CGD3",
@@ -96,7 +118,46 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 44
+   "row": 30,
+   "from": "1006"
+  },
+  {
+   "id": "P-CRM-8L2U54",
+   "field": "crime",
+   "name": "골목길·담장 정비 및 개방형 구조 개선",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 24,
+   "from": "1006",
+   "level": "component",
+   "parent": "범죄예방 도시환경디자인(CPTED)"
+  },
+  {
+   "id": "P-CRM-AJF74Y",
+   "field": "crime",
+   "name": "공·폐가 및 빈집 정비",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 26,
+   "from": "1006",
+   "level": "component",
+   "parent": "범죄예방 도시환경디자인(CPTED)"
   },
   {
    "id": "P-CRM-IUMOJL",
@@ -112,7 +173,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 64
+   "row": 47,
+   "from": "1006"
   },
   {
    "id": "P-CRM-V30WK5",
@@ -128,7 +190,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 46
+   "row": 9,
+   "from": "1006"
   },
   {
    "id": "P-CRM-JT67VZ",
@@ -144,7 +207,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 49
+   "row": 33,
+   "from": "1006"
   },
   {
    "id": "P-CRM-JFU75A",
@@ -160,7 +224,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 45
+   "row": 14,
+   "from": "1006"
   },
   {
    "id": "P-CRM-POTFJV",
@@ -176,7 +241,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 32
+   "row": 32,
+   "from": "0902"
   },
   {
    "id": "P-CRM-MR55AG",
@@ -192,7 +258,8 @@
     "reason": null
    },
    "group": "new",
-   "row": 63
+   "row": 46,
+   "from": "1006"
   },
   {
    "id": "P-CRM-OVR3LM",
@@ -208,7 +275,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 54
+   "row": 19,
+   "from": "1006"
   },
   {
    "id": "P-CRM-VRVYNM",
@@ -224,7 +292,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 62
+   "row": 13,
+   "from": "1006"
   },
   {
    "id": "P-CRM-U29GB0",
@@ -240,7 +309,27 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 56
+   "row": 40,
+   "from": "1006"
+  },
+  {
+   "id": "P-CRM-R07BJS",
+   "field": "crime",
+   "name": "범죄예방 도시환경디자인(CPTED)",
+   "hea": null,
+   "effect": "범죄예방 도시환경디자인 사업에 대한 안양시 인덕원 주민 만족도 조사 결과 95% 응답자 만족 서울특별시 중구 만족도 조사 결과, 응답자의 74%가 불안감이 감소했다고 답하며 체감 안전도 및 신뢰도 향상",
+   "source": "https://gits.gg.go.kr/web/newboard/3386.do?mode=view&idx=195117394 https://www.boannews.com/media/view.asp?idx=141247&kind= 유광흠, 조영진, 지혜란, & 손동필. (2017). 범죄예방 환경설계 (CPTED) 사업의 시행효과 분석 연구. 대한건축학회 논문집-계획계, 33(5), 13-20.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 20,
+   "from": "1006",
+   "level": "composite",
+   "heaMulti": "E/A"
   },
   {
    "id": "P-CRM-3W73UY",
@@ -256,7 +345,8 @@
     "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
    },
    "group": "existing",
-   "row": 19
+   "row": 19,
+   "from": "0902"
   },
   {
    "id": "P-CRM-GOGMSP",
@@ -272,7 +362,27 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 60
+   "row": 44,
+   "from": "1006"
+  },
+  {
+   "id": "P-CRM-BZR6XN",
+   "field": "crime",
+   "name": "보안등·가로등 설치 및 조도 개선",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 21,
+   "from": "1006",
+   "level": "component",
+   "parent": "범죄예방 도시환경디자인(CPTED)"
   },
   {
    "id": "P-CRM-9BJNL3",
@@ -288,7 +398,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 22
+   "row": 22,
+   "from": "0902"
   },
   {
    "id": "P-CRM-Q7XQVZ",
@@ -304,7 +415,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 58
+   "row": 18,
+   "from": "1006"
   },
   {
    "id": "P-CRM-KGPRB2",
@@ -320,7 +432,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 41
+   "row": 5,
+   "from": "1006"
   },
   {
    "id": "P-CRM-QF71ES",
@@ -336,7 +449,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 2
+   "row": 2,
+   "from": "0902"
   },
   {
    "id": "P-CRM-05XNXF",
@@ -351,8 +465,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 27
+   "group": "new",
+   "row": 17,
+   "from": "1006"
   },
   {
    "id": "P-CRM-6YW2ZX",
@@ -368,7 +483,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 35
+   "row": 8,
+   "from": "1006"
   },
   {
    "id": "P-CRM-DQR8C8",
@@ -384,7 +500,25 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 61
+   "row": 45,
+   "from": "1006"
+  },
+  {
+   "id": "P-CRM-MB00CL",
+   "field": "crime",
+   "name": "쏠라표지병 설치",
+   "hea": "H",
+   "effect": "쏠라표지병은 야간·우천 시 골목길의 시인성을 높여 보행자의 이동경로 인지를 지원하고 범죄 취약 사각지대를 개선",
+   "source": "https://www.police.go.kr/user/bbs/BD_selectBbs.do?q_bbsCode=1007&q_bbscttSn=20260306155747814&q_currPage=1&q_rowPerPage=12&q_sortName=&q_sortOrder=&q_tab=&utm https://go.seoul.co.kr/news/newsView.php?id=20250424500068&utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 29,
+   "from": "1006"
   },
   {
    "id": "P-CRM-DBK3A8",
@@ -400,7 +534,27 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 50
+   "row": 34,
+   "from": "1006"
+  },
+  {
+   "id": "P-CRM-SLYE29",
+   "field": "crime",
+   "name": "안심거울·반사경 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 25,
+   "from": "1006",
+   "level": "component",
+   "parent": "범죄예방 도시환경디자인(CPTED)"
   },
   {
    "id": "P-CRM-Z6Z7BH",
@@ -416,7 +570,25 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "new",
-   "row": 51
+   "row": 35,
+   "from": "1006"
+  },
+  {
+   "id": "P-CRM-F670HW",
+   "field": "crime",
+   "name": "안심비상벨·비상호출시설 설치",
+   "hea": "E",
+   "effect": "방범 비상벨 및 실시간 모니터링을 통해 ‘25년 상반기 범죄예방 101건, 비상벨 대응 1,659건 등 신속한 현장 대응 실적이 확인",
+   "source": "https://www.yonginilbo.co.kr/news/articleView.html?idxno=101355",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 36,
+   "from": "1006"
   },
   {
    "id": "P-CRM-VZY5L3",
@@ -432,7 +604,8 @@
     "reason": null
    },
    "group": "new",
-   "row": 48
+   "row": 32,
+   "from": "1006"
   },
   {
    "id": "P-CRM-I9WW0C",
@@ -448,7 +621,25 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 31
+   "row": 31,
+   "from": "0902"
+  },
+  {
+   "id": "P-CRM-0WTUK5",
+   "field": "crime",
+   "name": "여성 1인 점포 범죄예방 물품 지원",
+   "hea": "H",
+   "effect": "소상공인 안심벨 운영 결과 2024년 도입 이후 2,891건의 신고가 접수되고, 이 중 50건이 경찰 출동으로 이어져 위급상황 대응 및 현장 안전 확보 효과가 확인",
+   "source": "https://www.police.go.kr/user/bbs/BD_selectBbs.do?q_bbsCode=1125&q_bbscttSn=20260313171918442&utm https://mediahub.seoul.go.kr/archives/2019014?utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 11,
+   "from": "1006"
   },
   {
    "id": "P-CRM-07BHE5",
@@ -464,7 +655,8 @@
     "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
    },
    "group": "new",
-   "row": 36
+   "row": 3,
+   "from": "1006"
   },
   {
    "id": "P-CRM-460RPJ",
@@ -480,7 +672,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 43
+   "row": 7,
+   "from": "1006"
   },
   {
    "id": "P-CRM-SEHCNM",
@@ -496,7 +689,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 29
+   "row": 29,
+   "from": "0902"
   },
   {
    "id": "P-CRM-JGZDYT",
@@ -512,7 +706,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 57
+   "row": 41,
+   "from": "1006"
   },
   {
    "id": "P-CRM-MV3C4U",
@@ -528,7 +723,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 40
+   "row": 12,
+   "from": "1006"
   },
   {
    "id": "P-CRM-VIBI8R",
@@ -544,7 +740,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 53
+   "row": 38,
+   "from": "1006"
   },
   {
    "id": "P-CRM-OTHFX0",
@@ -559,8 +756,28 @@
     "unit": null,
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
-   "group": "existing",
-   "row": 20
+   "group": "new",
+   "row": 15,
+   "from": "1006"
+  },
+  {
+   "id": "P-CRM-4G1GF5",
+   "field": "crime",
+   "name": "지역 순찰·주민 자율방범 활동",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 28,
+   "from": "1006",
+   "level": "component",
+   "parent": "범죄예방 도시환경디자인(CPTED)"
   },
   {
    "id": "P-CRM-6W2VC6",
@@ -576,7 +793,25 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 38
+   "row": 4,
+   "from": "1006"
+  },
+  {
+   "id": "P-CRM-GD35NX",
+   "field": "crime",
+   "name": "탄력순찰 실시",
+   "hea": "A",
+   "effect": "폭력, 절도, 주취, 성범죄 반복 장소에 직접 적용할 수 있는 사업 제주 기준 주민 요청 받은 탄력 순찰 전후 신고24.9%, 5대 범죄 43.2% 감소",
+   "source": "https://www.yna.co.kr/view/AKR20210518146000056",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 43,
+   "from": "1006"
   },
   {
    "id": "P-CRM-NS7Z3C",
@@ -592,7 +827,8 @@
     "reason": null
    },
    "group": "new",
-   "row": 55
+   "row": 16,
+   "from": "1006"
   },
   {
    "id": "P-CRM-U9XNZ0",
@@ -608,7 +844,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 59
+   "row": 59,
+   "from": "0902"
   },
   {
    "id": "P-CRM-99YXCF",
@@ -624,7 +861,44 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 42
+   "row": 6,
+   "from": "1006"
+  },
+  {
+   "id": "P-CRM-ZE6RRM",
+   "field": "crime",
+   "name": "CCTV 설치 및 사각지대 개선",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 22,
+   "from": "1006",
+   "level": "component",
+   "parent": "범죄예방 도시환경디자인(CPTED)"
+  },
+  {
+   "id": "P-CRM-6E4HG2",
+   "field": "crime",
+   "name": "CCTV 안내표지판 설치",
+   "hea": "E",
+   "effect": "범죄행위를 위축시켜 범죄감소에 영향, 사업 전 72건→54건으로 감소 범죄 유형별로는 노상 42건->21건, 주간 29건->22건, 야간 43건->32건으로 변화",
+   "source": "오하늘, 손동필, & 강석진. (2023). 셉테드 사업 및 범죄예방 시설물의 효과 연구. 대한건축학회논문집, 39(8), 79-90.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 39,
+   "from": "1006"
   },
   {
    "id": "P-FIR-3S13L7",
@@ -640,7 +914,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 38
+   "row": 40,
+   "from": "1006"
   },
   {
    "id": "P-FIR-00UP4I",
@@ -656,7 +931,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 53
+   "row": 18,
+   "from": "1006"
   },
   {
    "id": "P-FIR-SB0I95",
@@ -672,7 +948,27 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 40
+   "row": 14,
+   "from": "1006"
+  },
+  {
+   "id": "P-FIR-59GJVM",
+   "field": "fire",
+   "name": "경찰·소방·주민 연계 긴급상황 전파체계 구축",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 11,
+   "from": "1006",
+   "level": "component",
+   "parent": "국가산단 화재폭발·가스유출 예방 강화"
   },
   {
    "id": "P-FIR-9F30SY",
@@ -688,7 +984,8 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "new",
-   "row": 57
+   "row": 17,
+   "from": "1006"
   },
   {
    "id": "P-FIR-BWA6WP",
@@ -704,7 +1001,8 @@
     "reason": null
    },
    "group": "new",
-   "row": 43
+   "row": 43,
+   "from": "1006"
   },
   {
    "id": "P-FIR-03BXI9",
@@ -720,7 +1018,8 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "existing",
-   "row": 28
+   "row": 28,
+   "from": "0902"
   },
   {
    "id": "P-FIR-3XVZGV",
@@ -736,13 +1035,14 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 66
+   "row": 30,
+   "from": "1006"
   },
   {
    "id": "P-FIR-2XM10Y",
    "field": "fire",
    "name": "국가산단 화재폭발·가스유출 예방 강화",
-   "hea": "A",
+   "hea": "E",
    "effect": "21년 21건 → '22년 13건(약 38% 감소)",
    "source": "https://www.sedaily.com/article/13790846",
    "amount": {
@@ -751,8 +1051,10 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 23
+   "group": "new",
+   "row": 8,
+   "from": "1006",
+   "level": "composite"
   },
   {
    "id": "P-FIR-NJ87PB",
@@ -768,7 +1070,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 54
+   "row": 45,
+   "from": "1006"
   },
   {
    "id": "P-FIR-VO7QMQ",
@@ -784,7 +1087,8 @@
     "reason": null
    },
    "group": "new",
-   "row": 51
+   "row": 15,
+   "from": "1006"
   },
   {
    "id": "P-FIR-3MI1TI",
@@ -800,7 +1104,8 @@
     "reason": null
    },
    "group": "new",
-   "row": 44
+   "row": 34,
+   "from": "1006"
   },
   {
    "id": "P-FIR-N3RLUE",
@@ -816,7 +1121,8 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "new",
-   "row": 42
+   "row": 41,
+   "from": "1006"
   },
   {
    "id": "P-FIR-6A1W94",
@@ -832,7 +1138,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 49
+   "row": 22,
+   "from": "1006"
   },
   {
    "id": "P-FIR-PQSLT0",
@@ -848,7 +1155,27 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 52
+   "row": 33,
+   "from": "1006"
+  },
+  {
+   "id": "P-FIR-INMY0H",
+   "field": "fire",
+   "name": "비상구 표지판 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 5,
+   "from": "1006",
+   "level": "component",
+   "parent": "소규모 사업장 및 공장 화재 예방사업"
   },
   {
    "id": "P-FIR-4QZBWS",
@@ -864,7 +1191,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 41
+   "row": 39,
+   "from": "1006"
   },
   {
    "id": "P-FIR-6VGB06",
@@ -880,7 +1208,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 17
+   "row": 17,
+   "from": "0902"
   },
   {
    "id": "P-FIR-57JKYL",
@@ -896,7 +1225,13 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 59
+   "row": 2,
+   "from": "1006",
+   "level": "composite",
+   "heaMulti": "H/E/A",
+   "from0902": [
+    "hea"
+   ]
   },
   {
    "id": "P-FIR-J7M3NA",
@@ -912,7 +1247,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 55
+   "row": 46,
+   "from": "1006"
   },
   {
    "id": "P-FIR-VV6QC9",
@@ -928,7 +1264,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 7
+   "row": 7,
+   "from": "0902"
   },
   {
    "id": "P-FIR-42LE7I",
@@ -944,7 +1281,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 56
+   "row": 47,
+   "from": "1006"
   },
   {
    "id": "P-FIR-NCK6II",
@@ -959,8 +1297,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 19
+   "group": "new",
+   "row": 44,
+   "from": "1006"
   },
   {
    "id": "P-FIR-E3VQQA",
@@ -976,7 +1315,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 64
+   "row": 29,
+   "from": "1006"
   },
   {
    "id": "P-FIR-MD1K9V",
@@ -992,7 +1332,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 65
+   "row": 25,
+   "from": "1006"
   },
   {
    "id": "P-FIR-DFTRVB",
@@ -1008,7 +1349,27 @@
     "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
    },
    "group": "new",
-   "row": 50
+   "row": 36,
+   "from": "1006"
+  },
+  {
+   "id": "P-FIR-1J8HKU",
+   "field": "fire",
+   "name": "업종별 화재안전매뉴얼 제작·보급",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 6,
+   "from": "1006",
+   "level": "component",
+   "parent": "소규모 사업장 및 공장 화재 예방사업"
   },
   {
    "id": "P-FIR-L7CIFT",
@@ -1024,7 +1385,8 @@
     "reason": "국비·지방비 분담이라 산출 방식 확인 필요"
    },
    "group": "new",
-   "row": 61
+   "row": 24,
+   "from": "1006"
   },
   {
    "id": "P-FIR-0U6PR5",
@@ -1040,7 +1402,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 60
+   "row": 26,
+   "from": "1006"
   },
   {
    "id": "P-FIR-O82LFA",
@@ -1056,7 +1419,8 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "new",
-   "row": 68
+   "row": 27,
+   "from": "1006"
   },
   {
    "id": "P-FIR-G0RCWO",
@@ -1072,7 +1436,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 46
+   "row": 20,
+   "from": "1006"
   },
   {
    "id": "P-FIR-AQVUDS",
@@ -1088,7 +1453,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 39
+   "row": 38,
+   "from": "1006"
   },
   {
    "id": "P-FIR-A37UX0",
@@ -1104,7 +1470,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 63
+   "row": 23,
+   "from": "1006"
   },
   {
    "id": "P-FIR-XLTF84",
@@ -1119,8 +1486,9 @@
     "unit": null,
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
-   "group": "existing",
-   "row": 11
+   "group": "new",
+   "row": 16,
+   "from": "1006"
   },
   {
    "id": "P-FIR-36FGC2",
@@ -1135,8 +1503,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 15
+   "group": "new",
+   "row": 32,
+   "from": "1006"
   },
   {
    "id": "P-FIR-915SCF",
@@ -1152,7 +1521,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 37
+   "row": 37,
+   "from": "1006"
   },
   {
    "id": "P-FIR-62XY1J",
@@ -1168,7 +1538,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 47
+   "row": 35,
+   "from": "1006"
   },
   {
    "id": "P-FIR-1XTK2L",
@@ -1184,7 +1555,27 @@
     "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
    },
    "group": "new",
-   "row": 36
+   "row": 13,
+   "from": "1006"
+  },
+  {
+   "id": "P-FIR-GIYWXT",
+   "field": "fire",
+   "name": "지능형 CCTV·열화상카메라 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 9,
+   "from": "1006",
+   "level": "component",
+   "parent": "국가산단 화재폭발·가스유출 예방 강화"
   },
   {
    "id": "P-FIR-CE3B0K",
@@ -1200,7 +1591,25 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 67
+   "row": 31,
+   "from": "1006"
+  },
+  {
+   "id": "P-FIR-6X1DCB",
+   "field": "fire",
+   "name": "피난·방화시설 불법행위 점검",
+   "hea": "A",
+   "effect": "소방시설 설치 및 관리에 관한 법률에 따라 비상구 폐쇄·훼손 여부, 피난계단·통로의 장애물 적치 여부, 소방시설 전원 차단 여부 점검 필요",
+   "source": "https://www.nfa.go.kr/nfa/news/pressrelease/press/?cntId=2409&mode=view&pageIdx=18&utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 49,
+   "from": "1006"
   },
   {
    "id": "P-FIR-DSSE93",
@@ -1216,7 +1625,25 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 12
+   "row": 12,
+   "from": "0902"
+  },
+  {
+   "id": "P-FIR-84VL5C",
+   "field": "fire",
+   "name": "피난유도선 설치",
+   "hea": "E",
+   "effect": "피난유도설비 설치에 따른 피난밀도별 피난시간 감소율은 연기투과율 7%인 경우 약 16~40% 정도 감소",
+   "source": "박용환, 김범규, 임채현. (2011). 건축물내 자체발광식 피난유도선 설치에 따른 피난성능 평가. 한국화재소방학회 논문지, 25(6), 120-126.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 42,
+   "from": "1006"
   },
   {
    "id": "P-FIR-LA2BD1",
@@ -1232,7 +1659,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 10
+   "row": 10,
+   "from": "0902"
   },
   {
    "id": "P-FIR-NOM21U",
@@ -1248,13 +1676,31 @@
     "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
    },
    "group": "existing",
-   "row": 5
+   "row": 5,
+   "from": "0902"
   },
   {
    "id": "P-FIR-OKK2ML",
    "field": "fire",
    "name": "화재 소방훈련 실시",
    "hea": "A",
+   "effect": "서울 세브란스병원 화재 시 훈련 절차에 따라 대응하여 피해 감소 단순 훈련 횟수 증감보다는 야간/정전/연기 발생 상황 반영, 재난 약자 포함, 방화문 폐쇄 및 피난통로 확보 확인 등의 실질적인 훈련 필요",
+   "source": "https://www.kfsi.or.kr/contents/webzine/202012/sub02-01.html",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 48,
+   "from": "1006"
+  },
+  {
+   "id": "P-FIR-M3WHKI",
+   "field": "fire",
+   "name": "화재·가스누출 등 이상상황 감지·경보체계 구축",
+   "hea": "E",
    "effect": "",
    "source": "",
    "amount": {
@@ -1264,7 +1710,10 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 62
+   "row": 10,
+   "from": "1006",
+   "level": "component",
+   "parent": "국가산단 화재폭발·가스유출 예방 강화"
   },
   {
    "id": "P-FIR-KGOVAL",
@@ -1280,7 +1729,46 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "new",
-   "row": 58
+   "row": 28,
+   "from": "1006"
+  },
+  {
+   "id": "P-FIR-IN0425",
+   "field": "fire",
+   "name": "화재예방 홍보·안전교육",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 7,
+   "from": "1006",
+   "level": "component",
+   "parent": "소규모 사업장 및 공장 화재 예방사업"
+  },
+  {
+   "id": "P-FIR-LC8WKD",
+   "field": "fire",
+   "name": "화재예방시설·물품 지원",
+   "hea": "H",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 3,
+   "from": "1006",
+   "level": "component",
+   "parent": "소규모 사업장 및 공장 화재 예방사업"
   },
   {
    "id": "P-FIR-JE7W1M",
@@ -1296,7 +1784,27 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 45
+   "row": 19,
+   "from": "1006"
+  },
+  {
+   "id": "P-FIR-KL1ELA",
+   "field": "fire",
+   "name": "IoT 기반 유해가스·환경오염 측정시스템 구축",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 12,
+   "from": "1006",
+   "level": "component",
+   "parent": "국가산단 화재폭발·가스유출 예방 강화"
   },
   {
    "id": "P-FIR-ZGWYZ9",
@@ -1312,7 +1820,8 @@
     "reason": null
    },
    "group": "existing",
-   "row": 20
+   "row": 20,
+   "from": "0902"
   },
   {
    "id": "P-FIR-ME22SU",
@@ -1328,7 +1837,8 @@
     "reason": null
    },
    "group": "new",
-   "row": 48
+   "row": 21,
+   "from": "1006"
   },
   {
    "id": "P-IND-MHOMN6",
@@ -1344,7 +1854,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 49
+   "row": 29,
+   "from": "1006"
   },
   {
    "id": "P-IND-AJGFDB",
@@ -1360,7 +1871,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 54
+   "row": 14,
+   "from": "1006"
   },
   {
    "id": "P-IND-VM2V5D",
@@ -1376,7 +1888,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 61
+   "row": 26,
+   "from": "1006"
   },
   {
    "id": "P-IND-84RWM1",
@@ -1392,7 +1905,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 18
+   "row": 18,
+   "from": "0902"
   },
   {
    "id": "P-IND-UI1BM3",
@@ -1408,7 +1922,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 55
+   "row": 15,
+   "from": "1006"
   },
   {
    "id": "P-IND-AG3E6G",
@@ -1424,7 +1939,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 33
+   "row": 2,
+   "from": "1006"
   },
   {
    "id": "P-IND-75SBUM",
@@ -1440,7 +1956,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 52
+   "row": 12,
+   "from": "1006"
   },
   {
    "id": "P-IND-XVWI4O",
@@ -1456,7 +1973,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 35
+   "row": 4,
+   "from": "1006"
   },
   {
    "id": "P-IND-RWR79T",
@@ -1472,7 +1990,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 46
+   "row": 10,
+   "from": "1006"
   },
   {
    "id": "P-IND-LMCEB3",
@@ -1488,7 +2007,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 10
+   "row": 10,
+   "from": "0902"
   },
   {
    "id": "P-IND-7COOGQ",
@@ -1504,7 +2024,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 48
+   "row": 25,
+   "from": "1006"
   },
   {
    "id": "P-IND-G7PEZI",
@@ -1520,7 +2041,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 41
+   "row": 24,
+   "from": "1006"
   },
   {
    "id": "P-IND-6E68Q8",
@@ -1536,7 +2058,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 45
+   "row": 27,
+   "from": "1006"
   },
   {
    "id": "P-IND-IJZU1W",
@@ -1552,7 +2075,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 38
+   "row": 5,
+   "from": "1006"
   },
   {
    "id": "P-IND-GZDO4P",
@@ -1568,7 +2092,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 56
+   "row": 16,
+   "from": "1006"
   },
   {
    "id": "P-IND-1IW88F",
@@ -1584,7 +2109,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 51
+   "row": 11,
+   "from": "1006"
   },
   {
    "id": "P-IND-MJPH5W",
@@ -1600,7 +2126,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 28
+   "row": 28,
+   "from": "0902"
   },
   {
    "id": "P-IND-9L3AFP",
@@ -1616,7 +2143,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 43
+   "row": 8,
+   "from": "1006"
   },
   {
    "id": "P-IND-32OTF2",
@@ -1632,7 +2160,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 44
+   "row": 9,
+   "from": "1006"
   },
   {
    "id": "P-IND-1QPP5M",
@@ -1648,7 +2177,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 42
+   "row": 7,
+   "from": "1006"
   },
   {
    "id": "P-IND-N14S6V",
@@ -1664,7 +2194,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 57
+   "row": 17,
+   "from": "1006"
   },
   {
    "id": "P-IND-WM3P6C",
@@ -1680,7 +2211,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 21
+   "row": 21,
+   "from": "0902"
   },
   {
    "id": "P-IND-DIDJG2",
@@ -1696,7 +2228,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 39
+   "row": 28,
+   "from": "1006"
   },
   {
    "id": "P-IND-KWRIW0",
@@ -1712,7 +2245,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 58
+   "row": 18,
+   "from": "1006"
   },
   {
    "id": "P-IND-M7SEED",
@@ -1728,7 +2262,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 53
+   "row": 13,
+   "from": "1006"
   },
   {
    "id": "P-IND-EL7YR1",
@@ -1744,7 +2279,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 36
+   "row": 20,
+   "from": "1006"
   },
   {
    "id": "P-IND-D0AIUF",
@@ -1760,7 +2296,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 62
+   "row": 19,
+   "from": "1006"
   },
   {
    "id": "P-IND-R6REVN",
@@ -1776,7 +2313,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 60
+   "row": 21,
+   "from": "1006"
   },
   {
    "id": "P-IND-XLEGZL",
@@ -1792,7 +2330,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 40
+   "row": 6,
+   "from": "1006"
   },
   {
    "id": "P-IND-0KO8GF",
@@ -1808,7 +2347,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 59
+   "row": 31,
+   "from": "1006"
   },
   {
    "id": "P-IND-T8RBGB",
@@ -1824,7 +2364,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 34
+   "row": 3,
+   "from": "1006"
   },
   {
    "id": "P-IND-M706P8",
@@ -1840,7 +2381,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 37
+   "row": 23,
+   "from": "1006"
   },
   {
    "id": "P-IND-RFM6PW",
@@ -1856,7 +2398,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "existing",
-   "row": 20
+   "row": 20,
+   "from": "0902"
   },
   {
    "id": "P-IND-PQFU93",
@@ -1872,7 +2415,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 50
+   "row": 30,
+   "from": "1006"
   },
   {
    "id": "P-IND-G697UR",
@@ -1888,7 +2432,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 47
+   "row": 22,
+   "from": "1006"
   },
   {
    "id": "P-INF-E94653",
@@ -1904,7 +2449,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 41
+   "row": 17,
+   "from": "1006"
   },
   {
    "id": "P-INF-RISIXJ",
@@ -1920,7 +2466,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 54
+   "row": 6,
+   "from": "1006"
   },
   {
    "id": "P-INF-UK19ZP",
@@ -1936,7 +2483,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 22
+   "row": 22,
+   "from": "0902"
   },
   {
    "id": "P-INF-KKWUP5",
@@ -1952,7 +2500,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 58
+   "row": 36,
+   "from": "1006"
   },
   {
    "id": "P-INF-LTRHVD",
@@ -1968,7 +2517,8 @@
     "reason": null
    },
    "group": "new",
-   "row": 46
+   "row": 3,
+   "from": "1006"
   },
   {
    "id": "P-INF-WXIZ6Q",
@@ -1984,7 +2534,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 51
+   "row": 4,
+   "from": "1006"
   },
   {
    "id": "P-INF-BQ2ZES",
@@ -1999,8 +2550,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 28
+   "group": "new",
+   "row": 12,
+   "from": "1006"
   },
   {
    "id": "P-INF-B90KTB",
@@ -2016,7 +2568,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 29
+   "row": 29,
+   "from": "0902"
   },
   {
    "id": "P-INF-BF75UP",
@@ -2032,7 +2585,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 36
+   "row": 15,
+   "from": "1006"
   },
   {
    "id": "P-INF-86BSLU",
@@ -2048,7 +2602,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 47
+   "row": 30,
+   "from": "1006"
   },
   {
    "id": "P-INF-8W5RW5",
@@ -2063,8 +2618,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 14
+   "group": "new",
+   "row": 21,
+   "from": "1006"
   },
   {
    "id": "P-INF-7I6ZIY",
@@ -2080,7 +2636,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 26
+   "row": 26,
+   "from": "0902"
   },
   {
    "id": "P-INF-PO4AMD",
@@ -2095,8 +2652,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 13
+   "group": "new",
+   "row": 22,
+   "from": "1006"
   },
   {
    "id": "P-INF-NONC9Y",
@@ -2112,7 +2670,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 55
+   "row": 7,
+   "from": "1006"
   },
   {
    "id": "P-INF-SR2E3E",
@@ -2128,7 +2687,25 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 53
+   "row": 5,
+   "from": "1006"
+  },
+  {
+   "id": "P-INF-RBNB0V",
+   "field": "infection",
+   "name": "스마트 손 소독기 설치",
+   "hea": null,
+   "effect": "",
+   "source": "https://www.gangnam.go.kr/board/article/4157/view.do?mid=id01_0501",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 35,
+   "from": "1006"
   },
   {
    "id": "P-INF-J9Q1TA",
@@ -2144,7 +2721,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 60
+   "row": 26,
+   "from": "1006"
   },
   {
    "id": "P-INF-2UWF2P",
@@ -2160,7 +2738,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 38
+   "row": 16,
+   "from": "1006"
   },
   {
    "id": "P-INF-RYI1KS",
@@ -2176,7 +2755,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 57
+   "row": 25,
+   "from": "1006"
   },
   {
    "id": "P-INF-M5NJJK",
@@ -2192,7 +2772,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 37
+   "row": 13,
+   "from": "1006"
   },
   {
    "id": "P-INF-CT7LVJ",
@@ -2208,7 +2789,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 56
+   "row": 24,
+   "from": "1006"
   },
   {
    "id": "P-INF-8Y04XR",
@@ -2224,7 +2806,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 49
+   "row": 32,
+   "from": "1006"
   },
   {
    "id": "P-INF-57LTQI",
@@ -2239,8 +2822,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 18
+   "group": "new",
+   "row": 8,
+   "from": "1006"
   },
   {
    "id": "P-INF-OYO48X",
@@ -2256,7 +2840,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 59
+   "row": 2,
+   "from": "1006"
   },
   {
    "id": "P-INF-8WZM4S",
@@ -2272,7 +2857,8 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "existing",
-   "row": 32
+   "row": 32,
+   "from": "0902"
   },
   {
    "id": "P-INF-RNDZ6J",
@@ -2288,7 +2874,8 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "new",
-   "row": 44
+   "row": 28,
+   "from": "1006"
   },
   {
    "id": "P-INF-6W4PZH",
@@ -2304,7 +2891,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "existing",
-   "row": 11
+   "row": 11,
+   "from": "0902"
   },
   {
    "id": "P-INF-KX815Y",
@@ -2320,7 +2908,8 @@
     "reason": null
    },
    "group": "existing",
-   "row": 5
+   "row": 5,
+   "from": "0902"
   },
   {
    "id": "P-INF-FTT509",
@@ -2336,7 +2925,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 42
+   "row": 18,
+   "from": "1006"
   },
   {
    "id": "P-INF-AEJYT0",
@@ -2352,7 +2942,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 50
+   "row": 33,
+   "from": "1006"
   },
   {
    "id": "P-INF-L7JQ0R",
@@ -2368,7 +2959,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 52
+   "row": 34,
+   "from": "1006"
   },
   {
    "id": "P-INF-0Z1N7L",
@@ -2384,13 +2976,14 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 48
+   "row": 31,
+   "from": "1006"
   },
   {
    "id": "P-INF-23NVAC",
    "field": "infection",
    "name": "쪽방촌 방역 및 소독",
-   "hea": "E",
+   "hea": "A",
    "effect": "모기 유충, 빈대, 진드기 등 확산 막기 위해 사전 방역 실시 주민 인터뷰 통해 만족도 높은 것으로 확인",
    "source": "https://www.donga.com/news/Society/article/all/20231109/122102123/1 https://www.ajunews.com/view/20231107112553024 https://www.fntimes.com/html/view.php?ud=20240328143759261b372994c95_18",
    "amount": {
@@ -2399,16 +2992,17 @@
     "unit": null,
     "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
    },
-   "group": "existing",
-   "row": 17
+   "group": "new",
+   "row": 38,
+   "from": "1006"
   },
   {
    "id": "P-INF-XIJD7N",
    "field": "infection",
    "name": "찾아가는 결핵검진",
    "hea": "H",
-   "effect": "찾아가는 결핵 검진, 보건소 등 전담인력 배치 등을 통해 결핵 발생율 '11년 이후 꾸준히 감소 특히 65세 이상 고령층 잠복결핵감염 검진 유도 및 잠복결핵감염 치료의료기관 연계 필요",
-   "source": "질병관리청.(2024).2024년도 성과관리 시행계획",
+   "effect": "찾아가는 결핵 검진, 보건소 등 전담인력 배치 등을 통해 결핵 발생율 '11년 이후 꾸준히 감소 ’20~’25년 115만 건 검진을 통해 결핵환자 881명 조기 발견 (10만 건당 76.5명, 국내 전체 환자율 대비 약 2.2배)",
+   "source": "질병관리청.(2024).2024년도 성과관리 시행계획 https://kdca.go.kr/kdca/2848/subview.do?enc=Zm5jdDF8QEB8JTJGYmJzJTJGa2RjYSUyRjQyJTJGMzA5Njc3JTJGYXJ0Y2xWaWV3LmRvJTNG&utm",
    "amount": {
     "text": "",
     "won": null,
@@ -2416,7 +3010,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 39
+   "row": 9,
+   "from": "1006"
   },
   {
    "id": "P-INF-9ZYAFN",
@@ -2432,7 +3027,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 35
+   "row": 14,
+   "from": "1006"
   },
   {
    "id": "P-INF-WX3UVZ",
@@ -2448,7 +3044,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 61
+   "row": 37,
+   "from": "1006"
   },
   {
    "id": "P-INF-NDBMC1",
@@ -2463,8 +3060,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 15
+   "group": "new",
+   "row": 20,
+   "from": "1006"
   },
   {
    "id": "P-INF-H8T6HM",
@@ -2480,7 +3078,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 27
+   "row": 27,
+   "from": "0902"
   },
   {
    "id": "P-INF-UHHN7G",
@@ -2496,7 +3095,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 21
+   "row": 21,
+   "from": "0902"
   },
   {
    "id": "P-INF-L11NSV",
@@ -2511,8 +3111,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 12
+   "group": "new",
+   "row": 23,
+   "from": "1006"
   },
   {
    "id": "P-INF-MAW4FS",
@@ -2528,7 +3129,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 45
+   "row": 29,
+   "from": "1006"
   },
   {
    "id": "P-INF-X5F9T9",
@@ -2544,7 +3146,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 43
+   "row": 19,
+   "from": "1006"
   },
   {
    "id": "P-INF-S5H8D2",
@@ -2559,8 +3162,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 23
+   "group": "new",
+   "row": 11,
+   "from": "1006"
   },
   {
    "id": "P-INF-J2BCI6",
@@ -2576,7 +3180,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 40
+   "row": 27,
+   "from": "1006"
   },
   {
    "id": "P-INF-185ZW8",
@@ -2591,8 +3196,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 24
+   "group": "new",
+   "row": 10,
+   "from": "1006"
   },
   {
    "id": "P-LIF-2WZAU8",
@@ -2608,7 +3214,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 40
+   "row": 3,
+   "from": "1006"
   },
   {
    "id": "P-LIF-U4DCCM",
@@ -2624,7 +3231,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 50
+   "row": 7,
+   "from": "1006"
   },
   {
    "id": "P-LIF-MJBXRU",
@@ -2640,7 +3248,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 57
+   "row": 12,
+   "from": "1006"
   },
   {
    "id": "P-LIF-EE2BZJ",
@@ -2656,7 +3265,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 23
+   "row": 23,
+   "from": "0902"
   },
   {
    "id": "P-LIF-SEE8FR",
@@ -2671,8 +3281,9 @@
     "unit": null,
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
-   "group": "existing",
-   "row": 29
+   "group": "new",
+   "row": 16,
+   "from": "1006"
   },
   {
    "id": "P-LIF-NCJU1O",
@@ -2688,7 +3299,8 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "new",
-   "row": 45
+   "row": 15,
+   "from": "1006"
   },
   {
    "id": "P-LIF-KUWN9O",
@@ -2703,8 +3315,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 19
+   "group": "new",
+   "row": 30,
+   "from": "1006"
   },
   {
    "id": "P-LIF-0UWU1B",
@@ -2719,8 +3332,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 21
+   "group": "new",
+   "row": 31,
+   "from": "1006"
   },
   {
    "id": "P-LIF-J4H8PP",
@@ -2736,7 +3350,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 49
+   "row": 23,
+   "from": "1006"
   },
   {
    "id": "P-LIF-LDLGD5",
@@ -2752,7 +3367,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 51
+   "row": 24,
+   "from": "1006"
   },
   {
    "id": "P-LIF-AZ9QZ4",
@@ -2768,7 +3384,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 52
+   "row": 21,
+   "from": "1006"
   },
   {
    "id": "P-LIF-H0H3AX",
@@ -2784,7 +3401,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 53
+   "row": 22,
+   "from": "1006"
   },
   {
    "id": "P-LIF-RFDS2K",
@@ -2800,7 +3418,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 54
+   "row": 25,
+   "from": "1006"
   },
   {
    "id": "P-LIF-7EF9PW",
@@ -2816,7 +3435,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 48
+   "row": 9,
+   "from": "1006"
   },
   {
    "id": "P-LIF-O8T2ZD",
@@ -2832,7 +3452,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 11
+   "row": 11,
+   "from": "0902"
   },
   {
    "id": "P-LIF-LNXNQF",
@@ -2848,7 +3469,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 55
+   "row": 17,
+   "from": "1006"
   },
   {
    "id": "P-LIF-30QS0I",
@@ -2864,7 +3486,8 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "new",
-   "row": 44
+   "row": 27,
+   "from": "1006"
   },
   {
    "id": "P-LIF-M8QGS9",
@@ -2880,7 +3503,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 56
+   "row": 28,
+   "from": "1006"
   },
   {
    "id": "P-LIF-NPK6MA",
@@ -2896,7 +3520,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 58
+   "row": 29,
+   "from": "1006"
   },
   {
    "id": "P-LIF-STMQZL",
@@ -2912,7 +3537,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 35
+   "row": 4,
+   "from": "1006"
   },
   {
    "id": "P-LIF-7V0L3C",
@@ -2928,7 +3554,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 4
+   "row": 4,
+   "from": "0902"
   },
   {
    "id": "P-LIF-B2B528",
@@ -2944,7 +3571,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 60
+   "row": 18,
+   "from": "1006"
   },
   {
    "id": "P-LIF-GWQUY5",
@@ -2960,7 +3588,8 @@
     "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
    },
    "group": "new",
-   "row": 42
+   "row": 14,
+   "from": "1006"
   },
   {
    "id": "P-LIF-EMOBK6",
@@ -2976,7 +3605,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 47
+   "row": 20,
+   "from": "1006"
   },
   {
    "id": "P-LIF-RKD3NO",
@@ -2992,7 +3622,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 39
+   "row": 10,
+   "from": "1006"
   },
   {
    "id": "P-LIF-CPOA3Q",
@@ -3008,7 +3639,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 34
+   "row": 2,
+   "from": "1006"
   },
   {
    "id": "P-LIF-CH04RS",
@@ -3024,7 +3656,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 18
+   "row": 18,
+   "from": "0902"
   },
   {
    "id": "P-LIF-POIVGI",
@@ -3040,7 +3673,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 38
+   "row": 6,
+   "from": "1006"
   },
   {
    "id": "P-LIF-64UC52",
@@ -3056,7 +3690,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 41
+   "row": 26,
+   "from": "1006"
   },
   {
    "id": "P-LIF-SS5DK4",
@@ -3072,7 +3707,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "existing",
-   "row": 28
+   "row": 28,
+   "from": "0902"
   },
   {
    "id": "P-LIF-GG2KGA",
@@ -3088,7 +3724,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 37
+   "row": 5,
+   "from": "1006"
   },
   {
    "id": "P-LIF-1MM76A",
@@ -3104,7 +3741,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 46
+   "row": 19,
+   "from": "1006"
   },
   {
    "id": "P-LIF-X7YO0Q",
@@ -3120,7 +3758,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 20
+   "row": 20,
+   "from": "0902"
   },
   {
    "id": "P-LIF-X1VRJO",
@@ -3136,7 +3775,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 14
+   "row": 14,
+   "from": "0902"
   },
   {
    "id": "P-LIF-3N3RCZ",
@@ -3152,7 +3792,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 36
+   "row": 8,
+   "from": "1006"
   },
   {
    "id": "P-LIF-XS2M2A",
@@ -3168,7 +3809,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 43
+   "row": 11,
+   "from": "1006"
   },
   {
    "id": "P-LIF-GXCUXG",
@@ -3184,7 +3826,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 59
+   "row": 13,
+   "from": "1006"
   },
   {
    "id": "P-LIF-TUHDKA",
@@ -3200,7 +3843,25 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 8
+   "row": 8,
+   "from": "0902"
+  },
+  {
+   "id": "P-SUI-E3TDPG",
+   "field": "suicide",
+   "name": "(교량 추락)위험구간 CCTV 설치",
+   "hea": "E",
+   "effect": "CCTV, 경보 등 등이 자살시도를 원천적으로 막는 데에는 한계가 있지만, 적극적인 위기 대응 및 조치 가능",
+   "source": "https://www.asiae.co.kr/article/2024031116095613852",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 37,
+   "from": "1006"
   },
   {
    "id": "P-SUI-GXOD0Y",
@@ -3216,7 +3877,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 11
+   "row": 11,
+   "from": "0902"
   },
   {
    "id": "P-SUI-QBEHST",
@@ -3232,7 +3894,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 47
+   "row": 15,
+   "from": "1006"
   },
   {
    "id": "P-SUI-5YKC9U",
@@ -3247,8 +3910,28 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 16
+   "group": "new",
+   "row": 24,
+   "from": "1006"
+  },
+  {
+   "id": "P-SUI-JGBAEG",
+   "field": "suicide",
+   "name": "고위험군 발굴·연계",
+   "hea": "H",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 3,
+   "from": "1006",
+   "level": "component",
+   "parent": "생명존중안심마을 운영"
   },
   {
    "id": "P-SUI-DRBRF7",
@@ -3264,7 +3947,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 12
+   "row": 12,
+   "from": "0902"
   },
   {
    "id": "P-SUI-OCFANB",
@@ -3280,7 +3964,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 56
+   "row": 43,
+   "from": "1006"
   },
   {
    "id": "P-SUI-D8528L",
@@ -3296,23 +3981,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "existing",
-   "row": 20
-  },
-  {
-   "id": "P-SUI-E3TDPG",
-   "field": "suicide",
-   "name": "교량 추락위험구간 CCTV 설치",
-   "hea": "E",
-   "effect": "CCTV, 경보 등 등이 자살시도를 원천적으로 막는 데에는 한계가 있지만, 적극적인 위기 대응 및 조치 가능",
-   "source": "https://www.asiae.co.kr/article/2024031116095613852",
-   "amount": {
-    "text": "",
-    "won": null,
-    "unit": null,
-    "reason": "금액 미기입"
-   },
-   "group": "new",
-   "row": 49
+   "row": 20,
+   "from": "0902"
   },
   {
    "id": "P-SUI-Z457XT",
@@ -3328,7 +3998,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 55
+   "row": 46,
+   "from": "1006"
   },
   {
    "id": "P-SUI-TD327H",
@@ -3344,7 +4015,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 5
+   "row": 5,
+   "from": "0902"
   },
   {
    "id": "P-SUI-K68DEB",
@@ -3360,7 +4032,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 65
+   "row": 30,
+   "from": "1006"
   },
   {
    "id": "P-SUI-UCGZT1",
@@ -3376,7 +4049,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 61
+   "row": 27,
+   "from": "1006"
   },
   {
    "id": "P-SUI-2V7TDS",
@@ -3392,7 +4066,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 53
+   "row": 41,
+   "from": "1006"
   },
   {
    "id": "P-SUI-6QEYKF",
@@ -3408,7 +4083,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 43
+   "row": 11,
+   "from": "1006"
   },
   {
    "id": "P-SUI-O88LFZ",
@@ -3424,7 +4100,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 37
+   "row": 9,
+   "from": "1006"
   },
   {
    "id": "P-SUI-1X0SKV",
@@ -3440,7 +4117,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 51
+   "row": 39,
+   "from": "1006"
   },
   {
    "id": "P-SUI-UR6WII",
@@ -3456,7 +4134,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 17
+   "row": 17,
+   "from": "0902"
   },
   {
    "id": "P-SUI-FJR6PP",
@@ -3472,7 +4151,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 45
+   "row": 13,
+   "from": "1006"
   },
   {
    "id": "P-SUI-NQ0DJV",
@@ -3488,7 +4168,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 64
+   "row": 17,
+   "from": "1006"
   },
   {
    "id": "P-SUI-5PWQ1L",
@@ -3504,7 +4185,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 46
+   "row": 14,
+   "from": "1006"
   },
   {
    "id": "P-SUI-E9R24Y",
@@ -3520,7 +4202,12 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 59
+   "row": 2,
+   "from": "1006",
+   "level": "composite",
+   "from0902": [
+    "hea"
+   ]
   },
   {
    "id": "P-SUI-7W8CM8",
@@ -3536,7 +4223,27 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 4
+   "row": 4,
+   "from": "0902"
+  },
+  {
+   "id": "P-SUI-H0XS63",
+   "field": "suicide",
+   "name": "생활 주변 안전전검",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 6,
+   "from": "1006",
+   "level": "component",
+   "parent": "생명존중안심마을 운영"
   },
   {
    "id": "P-SUI-424NLC",
@@ -3552,7 +4259,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 22
+   "row": 22,
+   "from": "0902"
   },
   {
    "id": "P-SUI-PE05OF",
@@ -3567,8 +4275,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 8
+   "group": "new",
+   "row": 32,
+   "from": "1006"
   },
   {
    "id": "P-SUI-B0RT4N",
@@ -3584,7 +4293,8 @@
     "reason": null
    },
    "group": "new",
-   "row": 48
+   "row": 36,
+   "from": "1006"
   },
   {
    "id": "P-SUI-PU3EY5",
@@ -3600,7 +4310,25 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 36
+   "row": 8,
+   "from": "1006"
+  },
+  {
+   "id": "P-SUI-YEYSZ1",
+   "field": "suicide",
+   "name": "위치표지판·구조지점 번호 설치 (국가지점번호판)",
+   "hea": "E",
+   "effect": "대전시는 국가지점번호판 2,105개를 설치해 운영 중이며, 2025년 산악구조 신고 28건 중 번호를 활용해 신고자 위치를 정확히 파악하고 인명구조",
+   "source": "https://view.asiae.co.kr/article/2026031810172464852",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 45,
+   "from": "1006"
   },
   {
    "id": "P-SUI-PX70QS",
@@ -3615,8 +4343,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 7
+   "group": "new",
+   "row": 31,
+   "from": "1006"
   },
   {
    "id": "P-SUI-F13CV2",
@@ -3632,7 +4361,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 62
+   "row": 28,
+   "from": "1006"
   },
   {
    "id": "P-SUI-BONOH9",
@@ -3648,7 +4378,27 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 52
+   "row": 40,
+   "from": "1006"
+  },
+  {
+   "id": "P-SUI-54K5JC",
+   "field": "suicide",
+   "name": "자살 위험 수단 차단",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 5,
+   "from": "1006",
+   "level": "component",
+   "parent": "생명존중안심마을 운영"
   },
   {
    "id": "P-SUI-CFV4FC",
@@ -3664,7 +4414,44 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 50
+   "row": 38,
+   "from": "1006"
+  },
+  {
+   "id": "P-SUI-LGTN2Q",
+   "field": "suicide",
+   "name": "자살예방 (LED) 안내판 설치",
+   "hea": "E",
+   "effect": "교량(신장계교) 자살예방 LED 안내판 설치와 생명존중안심마을 확대(5곳→7곳), 유관기관 연계 고위험군 대응체계 등을 운영한 결과, 2026년 충북 지자체 중 유일하게 보건복지부장관 표창을 받음",
+   "source": "https://www.inews365.com/news/article.html?no=935220",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 44,
+   "from": "1006"
+  },
+  {
+   "id": "P-SUI-3RUSEQ",
+   "field": "suicide",
+   "name": "자살예방 인식 개선 캠페인",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 4,
+   "from": "1006",
+   "level": "component",
+   "parent": "생명존중안심마을 운영"
   },
   {
    "id": "P-SUI-YAI8Y4",
@@ -3680,7 +4467,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 63
+   "row": 29,
+   "from": "1006"
   },
   {
    "id": "P-SUI-D0KBRU",
@@ -3696,7 +4484,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 40
+   "row": 21,
+   "from": "1006"
   },
   {
    "id": "P-SUI-G36E3K",
@@ -3712,7 +4501,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 39
+   "row": 20,
+   "from": "1006"
   },
   {
    "id": "P-SUI-7SAM2U",
@@ -3727,8 +4517,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 29
+   "group": "new",
+   "row": 34,
+   "from": "1006"
   },
   {
    "id": "P-SUI-69X6Q8",
@@ -3743,8 +4534,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 28
+   "group": "new",
+   "row": 18,
+   "from": "1006"
   },
   {
    "id": "P-SUI-Q2U138",
@@ -3759,8 +4551,9 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 9
+   "group": "new",
+   "row": 33,
+   "from": "1006"
   },
   {
    "id": "P-SUI-KKY42T",
@@ -3776,7 +4569,42 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 57
+   "row": 25,
+   "from": "1006"
+  },
+  {
+   "id": "P-SUI-LLFY6U",
+   "field": "suicide",
+   "name": "찾아가는 정신건강 서비스 (마을안심버스)",
+   "hea": "A",
+   "effect": "제천시는 2023년 도입 이후 2026년 9월까지 고위험군 680명을 발굴",
+   "source": "https://www.danbinews.com/news/articleView.html?idxno=33743",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 19,
+   "from": "1006"
+  },
+  {
+   "id": "P-SUI-A87CSZ",
+   "field": "suicide",
+   "name": "찾아가는 힐링프로그램",
+   "hea": "A",
+   "effect": "“이번 자조모임을 통해 마음의 안정과 함께 희망도 품게 됐다\"며 프로그램을 통해 마음 안정과 회복에 도움을 준다는 평가",
+   "source": "https://www.goesan.go.kr/www/selectBbsNttView.do?bbsNo=213&integrDeptCode=&key=136&nttNo=54457&pageIndex=9&searchCnd=all&searchCtgry=&searchKrwd=&utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 35,
+   "from": "1006"
   },
   {
    "id": "P-SUI-HL1A0B",
@@ -3792,7 +4620,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 54
+   "row": 42,
+   "from": "1006"
   },
   {
    "id": "P-SUI-3MVOVE",
@@ -3808,7 +4637,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 42
+   "row": 23,
+   "from": "1006"
   },
   {
    "id": "P-SUI-4EVBAH",
@@ -3824,7 +4654,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 41
+   "row": 22,
+   "from": "1006"
   },
   {
    "id": "P-SUI-XT9YIT",
@@ -3840,7 +4671,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 60
+   "row": 26,
+   "from": "1006"
   },
   {
    "id": "P-SUI-QP10RY",
@@ -3856,7 +4688,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 44
+   "row": 12,
+   "from": "1006"
   },
   {
    "id": "P-SUI-21HFGP",
@@ -3872,7 +4705,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 58
+   "row": 16,
+   "from": "1006"
   },
   {
    "id": "P-SUI-U3JVPL",
@@ -3888,7 +4722,27 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 38
+   "row": 10,
+   "from": "1006"
+  },
+  {
+   "id": "P-SUI-I2F5MK",
+   "field": "suicide",
+   "name": "현판 부착·선포식",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 7,
+   "from": "1006",
+   "level": "component",
+   "parent": "생명존중안심마을 운영"
   },
   {
    "id": "P-SUI-E1L36B",
@@ -3904,7 +4758,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 6
+   "row": 6,
+   "from": "0902"
   },
   {
    "id": "P-TRF-AEN5YX",
@@ -3920,7 +4775,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 59
+   "row": 61,
+   "from": "1006"
   },
   {
    "id": "P-TRF-VGOS0I",
@@ -3936,7 +4792,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 41
+   "row": 22,
+   "from": "1006"
   },
   {
    "id": "P-TRF-F6POMX",
@@ -3952,7 +4809,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 69
+   "row": 89,
+   "from": "1006"
   },
   {
    "id": "P-TRF-8SEJ40",
@@ -3968,7 +4826,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 38
+   "row": 46,
+   "from": "1006"
   },
   {
    "id": "P-TRF-0AW6PO",
@@ -3984,7 +4843,27 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 43
+   "row": 78,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-BIFSKR",
+   "field": "traffic",
+   "name": "고원식 교차로 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 13,
+   "from": "1006",
+   "level": "component",
+   "parent": "어린이 보호구역 개선사업"
   },
   {
    "id": "P-TRF-OUUGIG",
@@ -4000,7 +4879,80 @@
     "reason": null
    },
    "group": "new",
-   "row": 53
+   "row": 27,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-7YWZDL",
+   "field": "traffic",
+   "name": "과속단속 CCTV·무인교통단속장비 설치",
+   "hea": "A",
+   "effect": "구간과속단속장비가 설치된 29개소에서 연평균 사고는약 31%, EPDO는 약 67%, 인명피해 사고는 약 10% 감소 단속장비 설치 후 평균속도 약 4%, 제한속도 초과율은 약 57% 감소",
+   "source": "김다예 , 홍경식 (2026). 무인교통단속장비 적정 설치 대수 산정 연구. 치안정책연구, 40(1), 225 - 250.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 83,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-13NF74",
+   "field": "traffic",
+   "name": "과속단속 CCTV·무인교통단속장비 재배치 및 보완",
+   "hea": "E",
+   "effect": "신호위반 단속장비 설치 교차로에서 교통사고 사망자가 최대 50% 감소했고, 구간단속장비는 교통사고 42%, 인명피해사고 45%, 제한속도 초과비율 20% 감소",
+   "source": "https://www.koroad.or.kr/main/board/6/7692/board_view.do?bdNoticeYn=N&bdOpenYn=Y&cp=46&listType=list&utm https://www.yna.co.kr/view/AKR20260512055200053?utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 80,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-ILBK0T",
+   "field": "traffic",
+   "name": "과속방지턱 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 3,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통정온화"
+  },
+  {
+   "id": "P-TRF-GO2N0J",
+   "field": "traffic",
+   "name": "교차로 전방 신호기 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 73,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통사고 잦은 곳 개선사업"
   },
   {
    "id": "P-TRF-7RIKBG",
@@ -4016,7 +4968,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 17
+   "row": 17,
+   "from": "0902"
   },
   {
    "id": "P-TRF-KB0K1T",
@@ -4032,7 +4985,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 66
+   "row": 88,
+   "from": "1006"
   },
   {
    "id": "P-TRF-YTH6KD",
@@ -4048,7 +5002,71 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 50
+   "row": 62,
+   "from": "1006",
+   "level": "composite",
+   "heaMulti": "E/A",
+   "from0902": [
+    "hea",
+    "amount"
+   ]
+  },
+  {
+   "id": "P-TRF-FSEJ6W",
+   "field": "traffic",
+   "name": "교통정보 수집 CCTV 구축",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 43,
+   "from": "1006",
+   "level": "component",
+   "parent": "지능형 교통 체계(ITS) 구축 사업"
+  },
+  {
+   "id": "P-TRF-8Z67DS",
+   "field": "traffic",
+   "name": "교통정보 제공 시스템 구축",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 39,
+   "from": "1006",
+   "level": "component",
+   "parent": "지능형 교통 체계(ITS) 구축 사업"
+  },
+  {
+   "id": "P-TRF-I7586D",
+   "field": "traffic",
+   "name": "교통정보센터·통합관제센터 구축",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 40,
+   "from": "1006",
+   "level": "component",
+   "parent": "지능형 교통 체계(ITS) 구축 사업"
   },
   {
    "id": "P-TRF-TNSC58",
@@ -4064,7 +5082,32 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 48
+   "row": 2,
+   "from": "1006",
+   "level": "composite",
+   "heaMulti": "E/A",
+   "from0902": [
+    "hea"
+   ]
+  },
+  {
+   "id": "P-TRF-WOAJGK",
+   "field": "traffic",
+   "name": "노면표시·유도선 개선",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 68,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통사고 잦은 곳 개선사업"
   },
   {
    "id": "P-TRF-5L8OBY",
@@ -4080,7 +5123,8 @@
     "reason": null
    },
    "group": "existing",
-   "row": 14
+   "row": 14,
+   "from": "0902"
   },
   {
    "id": "P-TRF-RPZ0XD",
@@ -4096,7 +5140,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 72
+   "row": 91,
+   "from": "1006"
   },
   {
    "id": "P-TRF-1XSJ95",
@@ -4112,7 +5157,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 40
+   "row": 48,
+   "from": "1006"
   },
   {
    "id": "P-TRF-J362K8",
@@ -4128,7 +5174,65 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "new",
-   "row": 45
+   "row": 49,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-KWM3RB",
+   "field": "traffic",
+   "name": "도로전광표지(VMS) 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 38,
+   "from": "1006",
+   "level": "component",
+   "parent": "지능형 교통 체계(ITS) 구축 사업"
+  },
+  {
+   "id": "P-TRF-YUH424",
+   "field": "traffic",
+   "name": "돌발상황 감지 시스템",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 37,
+   "from": "1006",
+   "level": "component",
+   "parent": "지능형 교통 체계(ITS) 구축 사업"
+  },
+  {
+   "id": "P-TRF-36C88N",
+   "field": "traffic",
+   "name": "무단횡단방지 방호울타리 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 11,
+   "from": "1006",
+   "level": "component",
+   "parent": "어린이 보호구역 개선사업"
   },
   {
    "id": "P-TRF-TSEPVH",
@@ -4143,8 +5247,28 @@
     "unit": null,
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
-   "group": "existing",
-   "row": 35
+   "group": "new",
+   "row": 50,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-HVU710",
+   "field": "traffic",
+   "name": "미끄럼방지포장 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 72,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통사고 잦은 곳 개선사업"
   },
   {
    "id": "P-TRF-MFV99L",
@@ -4160,7 +5284,80 @@
     "reason": null
    },
    "group": "new",
-   "row": 46
+   "row": 24,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-3MNJSO",
+   "field": "traffic",
+   "name": "배달종사자 안전장비 지원",
+   "hea": "H",
+   "effect": "블랙박스, 헬멧, 보호대, 장갑, 안전화 등 이륜차용 안전용품 지원금 이륜차 충돌시험 결과 안전모 착용 시 머리 중상 가능성이 24% 이하로 나타난 반면, 미착용 시 최대 99%까지 증가했으며, 안전모 착용에 따른 사망 감소 효과는 약 37%로 분석",
+   "source": "https://www.seoul.co.kr/news/society/2012/06/28/20120628010020?utm",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 57,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-2Q34H6",
+   "field": "traffic",
+   "name": "보·차도 분리 및 보도 설치·정비",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 10,
+   "from": "1006",
+   "level": "component",
+   "parent": "어린이 보호구역 개선사업"
+  },
+  {
+   "id": "P-TRF-LXNOXT",
+   "field": "traffic",
+   "name": "보행신호 음성안내 보조장치 설치",
+   "hea": "E",
+   "effect": "인천시 25년 기준 7,443대의 음향신호기 운영, 시각장애인의 독립적 이동 지원 및 사고 위험 감소 기대",
+   "source": "https://www.incheon.go.kr/mayor_9/MA05010000/view?repSeq=DOM_0000000013761823&curPage=125&beginDt=&srchRepTitle=&srchRepContents=&endDt=&srchMainManagerDeptNm= https://www.incheon.go.kr/budget/BUD020212/view?bsnsYear=2023&bsnsNo=1795&curPage=36&findBsnsYear=2023&findPrgsStsCd=&findFldCd=",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 29,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-KDHI37",
+   "field": "traffic",
+   "name": "보행자 안전펜스 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 66,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통사고 잦은 곳 개선사업"
   },
   {
    "id": "P-TRF-HRK02R",
@@ -4176,7 +5373,82 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 51
+   "row": 26,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-GIQ6J4",
+   "field": "traffic",
+   "name": "볼라드 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 18,
+   "from": "1006",
+   "level": "component",
+   "parent": "어린이 보호구역 개선사업"
+  },
+  {
+   "id": "P-TRF-2OVGLV",
+   "field": "traffic",
+   "name": "불법주정차 관리·단속",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 69,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통사고 잦은 곳 개선사업"
+  },
+  {
+   "id": "P-TRF-QY518H",
+   "field": "traffic",
+   "name": "불법주정차 단속시스템 설치",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 9,
+   "from": "1006",
+   "level": "component",
+   "parent": "어린이 보호구역 개선사업"
+  },
+  {
+   "id": "P-TRF-UQVOOT",
+   "field": "traffic",
+   "name": "불법주정차 무인단속시스템 설치",
+   "hea": "A",
+   "effect": "서울시 어린이보호구역 내 무인단속 카메라 설치 전후 사고건수 77% 감소('18~'19년 31건 → '21~'22년 7건) 차량감속유도 및 주정차 단속을 위해서는 주정차위반단속장비 설치가 가장 효과적이나, 많이 설치한다고 교통사고 감소 X(2.75개/km 효과 임계점)",
+   "source": "https://www.newscj.com/news/articleView.html?idxno=3171029 빈미영, 김점산, 김준용, 양철수, & 손슬기. (2021). 어린이 교통안전대책 효과분석 및 발전방안 연구. 정책연구, 1-157.",
+   "amount": {
+    "text": "송파둘레길 신호위반 과속단속 카메라 사업 기준 약 2,800만원",
+    "won": null,
+    "unit": null,
+    "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
+   },
+   "group": "new",
+   "row": 82,
+   "from": "1006"
   },
   {
    "id": "P-TRF-L25ICH",
@@ -4192,7 +5464,8 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 60
+   "row": 60,
+   "from": "0902"
   },
   {
    "id": "P-TRF-FRHQ9Q",
@@ -4208,7 +5481,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 34
+   "row": 34,
+   "from": "0902"
   },
   {
    "id": "P-TRF-4KYJWH",
@@ -4224,7 +5498,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 65
+   "row": 87,
+   "from": "1006"
   },
   {
    "id": "P-TRF-UCFDTV",
@@ -4240,7 +5515,27 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 47
+   "row": 25,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-3LATFJ",
+   "field": "traffic",
+   "name": "스마트횡단보도 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 44,
+   "from": "1006",
+   "level": "component",
+   "parent": "지능형 교통 체계(ITS) 구축 사업"
   },
   {
    "id": "P-TRF-LRODNS",
@@ -4256,7 +5551,82 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "existing",
-   "row": 30
+   "row": 30,
+   "from": "0902"
+  },
+  {
+   "id": "P-TRF-2OSAG4",
+   "field": "traffic",
+   "name": "시설물 통합 모니터링 시스템 구축",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 41,
+   "from": "1006",
+   "level": "component",
+   "parent": "지능형 교통 체계(ITS) 구축 사업"
+  },
+  {
+   "id": "P-TRF-7GUV41",
+   "field": "traffic",
+   "name": "신호·과속 단속 장비 설치",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 74,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통사고 잦은 곳 개선사업"
+  },
+  {
+   "id": "P-TRF-DIEQ95",
+   "field": "traffic",
+   "name": "신호운영 개선",
+   "hea": "E",
+   "effect": "전적색신호시간 도입 전.후 사고건수는 20.0%, 사상자 수는 28.0% 감소",
+   "source": "박병호, 정용일, 김경환. (2012). 전적색신호시간 운영에 따른 교통사고 감소효과. 대한교통학회지, 30(2), 21-27.",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 79,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-3HR5MP",
+   "field": "traffic",
+   "name": "실시간 신호제어 시스템 구축",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 36,
+   "from": "1006",
+   "level": "component",
+   "parent": "지능형 교통 체계(ITS) 구축 사업"
   },
   {
    "id": "P-TRF-STO1VY",
@@ -4272,7 +5642,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 63
+   "row": 86,
+   "from": "1006"
   },
   {
    "id": "P-TRF-3JB4FA",
@@ -4288,7 +5659,8 @@
     "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
    },
    "group": "new",
-   "row": 44
+   "row": 23,
+   "from": "1006"
   },
   {
    "id": "P-TRF-K8CH99",
@@ -4304,13 +5676,20 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 49
+   "row": 70,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통사고 잦은 곳 개선사업",
+   "from0902": [
+    "effect",
+    "source"
+   ]
   },
   {
    "id": "P-TRF-2PNCP5",
    "field": "traffic",
    "name": "양방향 무인단속 장비 설치",
-   "hea": "E",
+   "hea": "A",
    "effect": "충돌 14~25%↓·사망중상 30~40%↓; 편익비용비 2.6~10",
    "source": "Wilson 외(2010); FHWA https://www.yna.co.kr/view/AKR20240313142000004",
    "amount": {
@@ -4319,8 +5698,9 @@
     "unit": "대",
     "reason": null
    },
-   "group": "existing",
-   "row": 33
+   "group": "new",
+   "row": 47,
+   "from": "1006"
   },
   {
    "id": "P-TRF-71RSBS",
@@ -4336,7 +5716,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 39
+   "row": 33,
+   "from": "1006"
   },
   {
    "id": "P-TRF-G68R8R",
@@ -4352,7 +5733,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 70
+   "row": 32,
+   "from": "1006"
   },
   {
    "id": "P-TRF-8RLXP6",
@@ -4368,7 +5750,33 @@
     "reason": "사례가 여러 개라 어느 값을 쓸지 확인 필요"
    },
    "group": "new",
-   "row": 54
+   "row": 8,
+   "from": "1006",
+   "level": "composite",
+   "heaMulti": "E/A",
+   "from0902": [
+    "hea",
+    "amount"
+   ]
+  },
+  {
+   "id": "P-TRF-INY3PF",
+   "field": "traffic",
+   "name": "어린이보호구역 표지판 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 16,
+   "from": "1006",
+   "level": "component",
+   "parent": "어린이 보호구역 개선사업"
   },
   {
    "id": "P-TRF-QDOAPN",
@@ -4384,7 +5792,27 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 42
+   "row": 77,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-04B4S5",
+   "field": "traffic",
+   "name": "우선신호 시스템 구축",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 42,
+   "from": "1006",
+   "level": "component",
+   "parent": "지능형 교통 체계(ITS) 구축 사업"
   },
   {
    "id": "P-TRF-2X564H",
@@ -4400,7 +5828,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 68
+   "row": 34,
+   "from": "1006"
   },
   {
    "id": "P-TRF-NUQRB5",
@@ -4415,8 +5844,12 @@
     "unit": null,
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
-   "group": "existing",
-   "row": 22
+   "group": "new",
+   "row": 30,
+   "from": "1006",
+   "from0902": [
+    "amount"
+   ]
   },
   {
    "id": "P-TRF-C236YF",
@@ -4432,7 +5865,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 71
+   "row": 90,
+   "from": "1006"
   },
   {
    "id": "P-TRF-0J3C11",
@@ -4448,7 +5882,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 62
+   "row": 85,
+   "from": "1006"
   },
   {
    "id": "P-TRF-046JRB",
@@ -4464,7 +5899,8 @@
     "reason": "금액 미기입"
    },
    "group": "existing",
-   "row": 15
+   "row": 15,
+   "from": "0902"
   },
   {
    "id": "P-TRF-69BALN",
@@ -4480,7 +5916,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 64
+   "row": 58,
+   "from": "1006"
   },
   {
    "id": "P-TRF-LENAG5",
@@ -4495,8 +5932,13 @@
     "unit": null,
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
-   "group": "existing",
-   "row": 29
+   "group": "new",
+   "row": 51,
+   "from": "1006",
+   "level": "composite",
+   "from0902": [
+    "amount"
+   ]
   },
   {
    "id": "P-TRF-D582LR",
@@ -4512,7 +5954,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 57
+   "row": 59,
+   "from": "1006"
   },
   {
    "id": "P-TRF-XFBV09",
@@ -4528,7 +5971,27 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 67
+   "row": 60,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-4LVRCC",
+   "field": "traffic",
+   "name": "제한속도 지정",
+   "hea": "A",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 7,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통정온화"
   },
   {
    "id": "P-TRF-TPLI38",
@@ -4544,7 +6007,46 @@
     "reason": "지자체 총액 등 — 격자 단가로 쓸 수 없음"
    },
    "group": "new",
-   "row": 61
+   "row": 84,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-DRZL9N",
+   "field": "traffic",
+   "name": "중앙분리대·교통섬 설치",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 63,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통사고 잦은 곳 개선사업"
+  },
+  {
+   "id": "P-TRF-BXWY69",
+   "field": "traffic",
+   "name": "지그재그 도로 및 시케인",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 6,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통정온화"
   },
   {
    "id": "P-TRF-O3JKH1",
@@ -4560,7 +6062,9 @@
     "reason": "국비·지방비 분담이라 산출 방식 확인 필요"
    },
    "group": "new",
-   "row": 56
+   "row": 35,
+   "from": "1006",
+   "level": "composite"
   },
   {
    "id": "P-TRF-7BYUKM",
@@ -4576,7 +6080,8 @@
     "reason": "범위로 적혀 있어 단가 확정 필요"
    },
    "group": "new",
-   "row": 52
+   "row": 45,
+   "from": "1006"
   },
   {
    "id": "P-TRF-KG6WHM",
@@ -4592,7 +6097,46 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 73
+   "row": 31,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-5XAKH7",
+   "field": "traffic",
+   "name": "초커(도로좁힘)",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 4,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통정온화"
+  },
+  {
+   "id": "P-TRF-LWHAYS",
+   "field": "traffic",
+   "name": "컬러포장·노면표시 정비",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 15,
+   "from": "1006",
+   "level": "component",
+   "parent": "어린이 보호구역 개선사업"
   },
   {
    "id": "P-TRF-LAMKMH",
@@ -4608,7 +6152,8 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 58
+   "row": 81,
+   "from": "1006"
   },
   {
    "id": "P-TRF-7O4QIO",
@@ -4623,8 +6168,15 @@
     "unit": null,
     "reason": "금액 미기입"
    },
-   "group": "existing",
-   "row": 11
+   "group": "new",
+   "row": 5,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통정온화",
+   "from0902": [
+    "effect",
+    "source"
+   ]
   },
   {
    "id": "P-TRF-120BJG",
@@ -4640,7 +6192,27 @@
     "reason": "금액 미기입"
    },
    "group": "new",
-   "row": 55
+   "row": 28,
+   "from": "1006"
+  },
+  {
+   "id": "P-TRF-DI24DY",
+   "field": "traffic",
+   "name": "횡단보도 위치·형태 개선",
+   "hea": "E",
+   "effect": "",
+   "source": "",
+   "amount": {
+    "text": "",
+    "won": null,
+    "unit": null,
+    "reason": "금액 미기입"
+   },
+   "group": "new",
+   "row": 64,
+   "from": "1006",
+   "level": "component",
+   "parent": "교통사고 잦은 곳 개선사업"
   }
  ]
 }

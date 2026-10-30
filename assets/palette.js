@@ -56,9 +56,13 @@ const AuriPalette = (function () {
               if (ex) {
                 ex.std = sp;
                 if (sp.hea && sp.hea !== ex.hea) { ex.heaOrig = ex.hea; ex.hea = sp.hea; }   // AURI 검토 HEA 반영
-                if (!ex.effect && card.evidence) ex.effect = card.evidence;
-                if (!ex.source && (card.sourceRef || card.caseRef)) ex.source = card.sourceRef || card.caseRef;
-                if ((!ex.amount || !ex.amount.won) && sp.amount && sp.amount.won) ex.amount = sp.amount;
+                /* ★ 10/21 표준이 기준 (2026-10-30 담당자: 표준 → 10/06 → 9/02) — 근거·출처는 표준 상세카드 글, 바탕(palette.json) 글은 *Base 로 남김.
+                   금액은 표준에 단가가 있으면 표준, 없으면(지금 210종 모두 산식만) 바탕의 금액 문구(10/06 사례 금액), 그것도 없으면 표준 산식 */
+                const sref = card.sourceRef || card.caseRef;
+                if (card.evidence && card.evidence !== ex.effect) { ex.effectBase = ex.effect; ex.effect = card.evidence; }
+                if (sref && sref !== ex.source) { ex.sourceBase = ex.source; ex.source = sref; }
+                const baseHasAmount = ex.amount && (ex.amount.won || ex.amount.text);
+                if (sp.amount && (sp.amount.won || (!baseHasAmount && sp.amount.text))) ex.amount = sp.amount;
                 return;
               }
               const p = { id: sp.id, field: sp.field, name: sp.name, hea: sp.hea, effect: card.evidence || '', source: card.sourceRef || card.caseRef || '',
@@ -134,7 +138,12 @@ const AuriPalette = (function () {
   /** 효과크기와 출처. 예산 근거 문서라 출처 표기가 중요합니다. */
   function evidence(program) {
     if (!program) return null;
-    if (!program.effect && !program.source) return null;
+    if (!program.effect && !program.source) {
+      /* 10/06 팔레트의 구성항목(예: 교통정온화 → 과속방지턱 설치)은 효과·출처가 종합사업 줄에만 있습니다 — 그 글을 종합사업 근거라고 밝혀서 씁니다 */
+      const parent = program.parent ? byName(program.parent) : null;
+      if (parent && (parent.effect || parent.source)) return { effect: '「' + parent.name + '」 종합사업 근거: ' + (parent.effect || ''), source: parent.source || '' };
+      return null;
+    }
     return { effect: program.effect || '', source: program.source || '' };
   }
 

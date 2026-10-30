@@ -1,9 +1,10 @@
 {
-  "generatedAt": "2026-10-27",
-  "rule": "구→도심형 · 시: 밀도≥1500 도심형 / 300~1500 도농복합형 / <300 농촌형 · 군: 밀도≥150 도농복합형 / <150 농촌형 · 보조표기 고령(65+≥25%) · 조사지 고밀(조사지 1ha당 3개년 출동 ≥15건)",
+  "generatedAt": "2026-10-30",
+  "version": "2차 (2026-10-30 담당자 결정)",
+  "rule": "자치구 → 도심형 · 시: 밀도 ≥ 1,500 도심형 / 그 밖 도농복합형(동 + 읍·면이 함께 있는 시, 동만 있는 태백 포함) · 군 → 농촌형 · 보조표기 고령(65+≥25%) · 조사지 고밀(조사지 1ha당 3개년 출동 ≥15건)",
   "sources": [
     "data/raw/population/202608 주민등록(시군구 합계)",
-    "data/dong/<지역>.json 법정동 경계 합산 면적",
+    "data/dong/<지역>.json 행정동 경계 합산 면적 · 행정동 이름(읍·면·동)",
     "data/stats/index.json"
   ],
   "regions": [
@@ -15,6 +16,11 @@
       "type": "도심형",
       "why": "특별·광역시 자치구",
       "tags": [],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 10
+      },
       "population": 222368,
       "households": 122242,
       "areaKm2": 12.5,
@@ -46,6 +52,11 @@
       "type": "도심형",
       "why": "특별·광역시 자치구",
       "tags": [],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 21
+      },
       "population": 419123,
       "households": 207969,
       "areaKm2": 24.5,
@@ -77,6 +88,11 @@
       "type": "도심형",
       "why": "특별·광역시 자치구",
       "tags": [],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 21
+      },
       "population": 477297,
       "households": 291443,
       "areaKm2": 29.9,
@@ -108,6 +124,11 @@
       "type": "도심형",
       "why": "특별·광역시 자치구",
       "tags": [],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 12
+      },
       "population": 101894,
       "households": 51245,
       "areaKm2": 7,
@@ -137,10 +158,15 @@
       "short": "부천시",
       "suffix": "시",
       "type": "도심형",
-      "why": "시 · 인구밀도 14145명/km²",
+      "why": "시 · 동37 · 인구밀도 14145명/km²(1,500 이상)",
       "tags": [
         "조사지 고밀"
       ],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 37
+      },
       "population": 754159,
       "households": 344209,
       "areaKm2": 53.3,
@@ -176,6 +202,11 @@
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 12
+      },
       "population": 83115,
       "households": 46290,
       "areaKm2": 9.5,
@@ -209,6 +240,11 @@
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 11
+      },
       "population": 100170,
       "households": 53125,
       "areaKm2": 14.5,
@@ -240,6 +276,11 @@
       "type": "도심형",
       "why": "특별·광역시 자치구",
       "tags": [],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 12
+      },
       "population": 202545,
       "households": 95164,
       "areaKm2": 36.3,
@@ -273,6 +314,11 @@
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 12
+      },
       "population": 191912,
       "households": 98617,
       "areaKm2": 36.5,
@@ -302,8 +348,13 @@
       "short": "목포시",
       "suffix": "시",
       "type": "도심형",
-      "why": "시 · 인구밀도 3641명/km²",
+      "why": "시 · 동23 · 인구밀도 3641명/km²(1,500 이상)",
       "tags": [],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 23
+      },
       "population": 198981,
       "households": 102492,
       "areaKm2": 54.6,
@@ -337,6 +388,11 @@
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 17
+      },
       "population": 223664,
       "households": 109931,
       "areaKm2": 61.5,
@@ -368,6 +424,11 @@
       "type": "도심형",
       "why": "특별·광역시 자치구",
       "tags": [],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 27
+      },
       "population": 416582,
       "households": 203809,
       "areaKm2": 119.8,
@@ -397,8 +458,13 @@
       "short": "세종시",
       "suffix": "시",
       "type": "도농복합형",
-      "why": "시 · 인구밀도 843명/km²",
+      "why": "시 · 동과 읍·면이 함께 있음(읍1·면9·동15) · 인구밀도 843명/km²",
       "tags": [],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 9,
+        "dong": 15
+      },
       "population": 390738,
       "households": 165930,
       "areaKm2": 463.3,
@@ -426,10 +492,15 @@
       "region": "jeju",
       "label": "제주특별자치도",
       "short": "제주도",
-      "suffix": "도",
+      "suffix": "시",
       "type": "도농복합형",
-      "why": "군 · 인구밀도 352명/km²",
+      "why": "시 · 동과 읍·면이 함께 있음(읍7·면5·동31) · 인구밀도 352명/km²",
       "tags": [],
+      "dongMix": {
+        "eup": 7,
+        "myeon": 5,
+        "dong": 31
+      },
       "population": 662681,
       "households": 317767,
       "areaKm2": 1881.9,
@@ -459,11 +530,16 @@
       "label": "경상남도 사천시",
       "short": "사천시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 267명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍1·면7·동6) · 인구밀도 267명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 7,
+        "dong": 6
+      },
       "population": 107796,
       "households": 56706,
       "areaKm2": 404.3,
@@ -492,9 +568,14 @@
       "label": "충청남도 당진시",
       "short": "당진시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 244명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍2·면9·동3) · 인구밀도 244명/km²",
       "tags": [],
+      "dongMix": {
+        "eup": 2,
+        "myeon": 9,
+        "dong": 3
+      },
       "population": 172423,
       "households": 86885,
       "areaKm2": 705.5,
@@ -523,11 +604,16 @@
       "label": "전라남도 나주시",
       "short": "나주시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 193명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍1·면12·동7) · 인구밀도 193명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 12,
+        "dong": 7
+      },
       "population": 116667,
       "households": 60226,
       "areaKm2": 605.1,
@@ -556,11 +642,16 @@
       "label": "경기도 포천시",
       "short": "포천시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 171명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍1·면11·동2) · 인구밀도 171명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 11,
+        "dong": 2
+      },
       "population": 140397,
       "households": 74510,
       "areaKm2": 822.5,
@@ -589,11 +680,16 @@
       "label": "충청북도 제천시",
       "short": "제천시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 146명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍1·면7·동9) · 인구밀도 146명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 7,
+        "dong": 9
+      },
       "population": 127898,
       "households": 67127,
       "areaKm2": 876.6,
@@ -622,11 +718,16 @@
       "label": "전북특별자치도 정읍시",
       "short": "정읍시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 145명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍1·면14·동8) · 인구밀도 145명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 14,
+        "dong": 8
+      },
       "population": 100580,
       "households": 54656,
       "areaKm2": 692.8,
@@ -655,11 +756,16 @@
       "label": "경상북도 영주시",
       "short": "영주시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 144명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍1·면9·동9) · 인구밀도 144명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 9,
+        "dong": 9
+      },
       "population": 96237,
       "households": 51335,
       "areaKm2": 670.3,
@@ -684,48 +790,20 @@
       }
     },
     {
-      "region": "seocheon",
-      "label": "충청남도 서천군",
-      "short": "서천군",
-      "suffix": "군",
-      "type": "농촌형",
-      "why": "군 · 인구밀도 126명/km²",
-      "tags": [
-        "고령"
-      ],
-      "population": 46589,
-      "households": 26045,
-      "areaKm2": 369,
-      "densityPerKm2": 126,
-      "elderlyShare": 43.9,
-      "surveyAreaHa": 73.98,
-      "incidents3y": 1396,
-      "insidePerHa": 0.3,
-      "dongCount": 14,
-      "focusTypes": [
-        "자살",
-        "감염병",
-        "교통사고"
-      ],
-      "sggCodes": [
-        "44770"
-      ],
-      "ai": {
-        "type": "농촌형",
-        "reason": "군 지역, 동 없음·고령 44%·밀도 126",
-        "confidence": "high"
-      }
-    },
-    {
       "region": "miryang",
       "label": "경상남도 밀양시",
       "short": "밀양시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 123명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍2·면9·동5) · 인구밀도 123명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 2,
+        "myeon": 9,
+        "dong": 5
+      },
       "population": 98305,
       "households": 54336,
       "areaKm2": 798,
@@ -754,11 +832,16 @@
       "label": "강원특별자치도 태백시",
       "short": "태백시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 122명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동8 · 인구밀도 122명/km² — 동만 있으나 밀도가 낮아 도농복합형(담당자 10/30)",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 0,
+        "dong": 8
+      },
       "population": 36680,
       "households": 20115,
       "areaKm2": 301.4,
@@ -787,11 +870,16 @@
       "label": "충청남도 공주시",
       "short": "공주시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 116명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍1·면9·동6) · 인구밀도 116명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 9,
+        "dong": 6
+      },
       "population": 99481,
       "households": 53970,
       "areaKm2": 859.5,
@@ -816,48 +904,20 @@
       }
     },
     {
-      "region": "namhae",
-      "label": "경상남도 남해군",
-      "short": "남해군",
-      "suffix": "군",
-      "type": "농촌형",
-      "why": "군 · 인구밀도 110명/km²",
-      "tags": [
-        "고령"
-      ],
-      "population": 41073,
-      "households": 23181,
-      "areaKm2": 372.3,
-      "densityPerKm2": 110,
-      "elderlyShare": 43.5,
-      "surveyAreaHa": 61.31,
-      "incidents3y": 1050,
-      "insidePerHa": 0.4,
-      "dongCount": 11,
-      "focusTypes": [
-        "자살",
-        "감염병",
-        "교통사고"
-      ],
-      "sggCodes": [
-        "48840"
-      ],
-      "ai": {
-        "type": "농촌형",
-        "reason": "섬 군 지역, 동 없음·고령 43.5%",
-        "confidence": "high"
-      }
-    },
-    {
       "region": "yeongcheon",
       "label": "경상북도 영천시",
       "short": "영천시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 103명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍1·면10·동5) · 인구밀도 103명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 10,
+        "dong": 5
+      },
       "population": 93605,
       "households": 53492,
       "areaKm2": 910.9,
@@ -886,11 +946,16 @@
       "label": "경상북도 안동시",
       "short": "안동시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 100명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍1·면13·동10) · 인구밀도 100명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 13,
+        "dong": 10
+      },
       "population": 151343,
       "households": 81332,
       "areaKm2": 1519.4,
@@ -919,11 +984,16 @@
       "label": "전북특별자치도 남원시",
       "short": "남원시",
       "suffix": "시",
-      "type": "농촌형",
-      "why": "시 · 인구밀도 99명/km²",
+      "type": "도농복합형",
+      "why": "시 · 동과 읍·면이 함께 있음(읍1·면15·동7) · 인구밀도 99명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 15,
+        "dong": 7
+      },
       "population": 73604,
       "households": 39851,
       "areaKm2": 746,
@@ -948,15 +1018,96 @@
       }
     },
     {
+      "region": "seocheon",
+      "label": "충청남도 서천군",
+      "short": "서천군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 읍2·면11 · 인구밀도 126명/km²",
+      "tags": [
+        "고령"
+      ],
+      "dongMix": {
+        "eup": 2,
+        "myeon": 11,
+        "dong": 0
+      },
+      "population": 46589,
+      "households": 26045,
+      "areaKm2": 369,
+      "densityPerKm2": 126,
+      "elderlyShare": 43.9,
+      "surveyAreaHa": 73.98,
+      "incidents3y": 1396,
+      "insidePerHa": 0.3,
+      "dongCount": 14,
+      "focusTypes": [
+        "자살",
+        "감염병",
+        "교통사고"
+      ],
+      "sggCodes": [
+        "44770"
+      ],
+      "ai": {
+        "type": "농촌형",
+        "reason": "군 지역, 동 없음·고령 44%·밀도 126",
+        "confidence": "high"
+      }
+    },
+    {
+      "region": "namhae",
+      "label": "경상남도 남해군",
+      "short": "남해군",
+      "suffix": "군",
+      "type": "농촌형",
+      "why": "군 · 읍1·면9 · 인구밀도 110명/km²",
+      "tags": [
+        "고령"
+      ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 9,
+        "dong": 0
+      },
+      "population": 41073,
+      "households": 23181,
+      "areaKm2": 372.3,
+      "densityPerKm2": 110,
+      "elderlyShare": 43.5,
+      "surveyAreaHa": 61.31,
+      "incidents3y": 1050,
+      "insidePerHa": 0.4,
+      "dongCount": 11,
+      "focusTypes": [
+        "자살",
+        "감염병",
+        "교통사고"
+      ],
+      "sggCodes": [
+        "48840"
+      ],
+      "ai": {
+        "type": "농촌형",
+        "reason": "섬 군 지역, 동 없음·고령 43.5%",
+        "confidence": "high"
+      }
+    },
+    {
       "region": "ongjin",
       "label": "인천광역시 옹진군",
       "short": "옹진군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 97명/km²",
+      "why": "군 · 면7 · 인구밀도 97명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 0,
+        "myeon": 7,
+        "dong": 0
+      },
       "population": 19275,
       "households": 12190,
       "areaKm2": 198.5,
@@ -986,10 +1137,15 @@
       "short": "고흥군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 72명/km²",
+      "why": "군 · 읍2·면14 · 인구밀도 72명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 2,
+        "myeon": 14,
+        "dong": 0
+      },
       "population": 59011,
       "households": 35123,
       "areaKm2": 819.7,
@@ -1019,10 +1175,15 @@
       "short": "강진군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 63명/km²",
+      "why": "군 · 읍1·면10 · 인구밀도 63명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 10,
+        "dong": 0
+      },
       "population": 31603,
       "households": 18119,
       "areaKm2": 499.6,
@@ -1052,10 +1213,15 @@
       "short": "진도군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 61명/km²",
+      "why": "군 · 읍1·면6 · 인구밀도 61명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 6,
+        "dong": 0
+      },
       "population": 27773,
       "households": 16335,
       "areaKm2": 458.6,
@@ -1085,10 +1251,15 @@
       "short": "장흥군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 55명/km²",
+      "why": "군 · 읍3·면7 · 인구밀도 55명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 3,
+        "myeon": 7,
+        "dong": 0
+      },
       "population": 33877,
       "households": 19649,
       "areaKm2": 616,
@@ -1118,10 +1289,15 @@
       "short": "함양군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 49명/km²",
+      "why": "군 · 읍1·면10 · 인구밀도 49명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 10,
+        "dong": 0
+      },
       "population": 35074,
       "households": 20193,
       "areaKm2": 717.6,
@@ -1151,10 +1327,15 @@
       "short": "장수군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 40명/km²",
+      "why": "군 · 읍1·면6 · 인구밀도 40명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 6,
+        "dong": 0
+      },
       "population": 21184,
       "households": 11959,
       "areaKm2": 528.5,
@@ -1184,10 +1365,15 @@
       "short": "홍천군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 36명/km²",
+      "why": "군 · 읍1·면9 · 인구밀도 36명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 9,
+        "dong": 0
+      },
       "population": 65817,
       "households": 35109,
       "areaKm2": 1806.2,
@@ -1217,10 +1403,15 @@
       "short": "단양군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 34명/km²",
+      "why": "군 · 읍2·면6 · 인구밀도 34명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 2,
+        "myeon": 6,
+        "dong": 0
+      },
       "population": 26481,
       "households": 15169,
       "areaKm2": 776.5,
@@ -1250,10 +1441,15 @@
       "short": "진안군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 32명/km²",
+      "why": "군 · 읍1·면10 · 인구밀도 32명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 10,
+        "dong": 0
+      },
       "population": 24930,
       "households": 14179,
       "areaKm2": 786.3,
@@ -1283,10 +1479,15 @@
       "short": "정선군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 29명/km²",
+      "why": "군 · 읍4·면5 · 인구밀도 29명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 4,
+        "myeon": 5,
+        "dong": 0
+      },
       "population": 35137,
       "households": 20489,
       "areaKm2": 1210.8,
@@ -1316,10 +1517,15 @@
       "short": "청송군",
       "suffix": "군",
       "type": "농촌형",
-      "why": "군 · 인구밀도 29명/km²",
+      "why": "군 · 읍1·면7 · 인구밀도 29명/km²",
       "tags": [
         "고령"
       ],
+      "dongMix": {
+        "eup": 1,
+        "myeon": 7,
+        "dong": 0
+      },
       "population": 24560,
       "households": 14563,
       "areaKm2": 842.7,

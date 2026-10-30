@@ -3,8 +3,15 @@
 
    실행:  node tools/build-palette.mjs   (또는 npm run palette --prefix tools)
 
-   입력   data/raw/analysis_0901/7대유형_통합_HEA_성과증명_사업팔레트_0902.xlsx
+   입력   data/raw/analysis_1006/7대유형_통합_HEA_성과증명_사업팔레트_10.06.xlsx   (바탕 — 2026-10-30 부터)
+          data/raw/analysis_0901/7대유형_통합_HEA_성과증명_사업팔레트_0902.xlsx  (10/06 에서 이름이 사라진 사업만 — 연결표가 가리킬 수 있어 남김)
    출력   assets/palette.json
+
+   ── 팔레트 우선순위 (2026-10-30 담당자 결정) ─────────────────────────
+   10/21 표준 팔레트(assets/palette-std.json)가 기준 → 거기 없는 사업·칸은 10/06 → 그래도 없으면 9/02.
+   표준 팔레트를 얹는 일은 화면(assets/palette.js)이 합니다. 이 스크립트는 그 아래 바탕(10/06 + 9/02)만 만듭니다.
+   10/06 판은 교통·화재·범죄·자살 시트가 "종합사업 + 구성항목" 꼴로 바뀌었습니다 —
+   종합형 줄은 종합사업 이름으로, 구성항목 줄은 그 이름 + parent(속한 종합사업)로 읽습니다(구성항목에는 효과·출처 칸이 비어 있음).
 
    ── 이 스크립트가 하는 일 ──────────────────────────────────────────
    · 7개 분야 시트에서 사업 목록을 읽습니다 (요약 시트는 해설이라 건너뜁니다)
@@ -29,7 +36,8 @@ import { readXlsx } from './lib/xlsx.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
-const XLSX_PATH = path.join(ROOT, 'data/raw/analysis_0901/7대유형_통합_HEA_성과증명_사업팔레트_0902.xlsx');
+const XLSX_PATH = path.join(ROOT, 'data/raw/analysis_1006/7대유형_통합_HEA_성과증명_사업팔레트_10.06.xlsx');
+const OLD_XLSX_PATH = path.join(ROOT, 'data/raw/analysis_0901/7대유형_통합_HEA_성과증명_사업팔레트_0902.xlsx');
 const OUT_PATH = path.join(ROOT, 'assets/palette.json');
 
 /* ── 시트 이름 → 앱의 분야 key ─────────────────────────────────────── */
@@ -167,82 +175,128 @@ if (!fs.existsSync(XLSX_PATH)) {
   process.exit(1);
 }
 
-const sheets = readXlsx(XLSX_PATH, { fills: true });
-const programs = [];
-const stats = [];
 const problems = [];
+const clean = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();
 
-for (const sheet of sheets) {
-  const field = FIELD_BY_SHEET[sheet.name.trim()];
-  if (!field) continue;                       // 요약 시트 등
+/** 팔레트 엑셀 한 판 → { programs, stats }.  tag 는 어느 판에서 왔는지(from) */
+function readPalette(xlsxPath, tag) {
+  const sheets = readXlsx(xlsxPath, { fills: true });
+  const programs = [];
+  const stats = [];
+  for (const sheet of sheets) {
+    const field = FIELD_BY_SHEET[sheet.name.trim()];
+    if (!field) continue;                       // 요약 시트 등
 
-  /* 열 위치는 시트마다 다릅니다 (산업재해에는 '구분' 열이 하나 더 있습니다)
-     그래서 자리가 아니라 **머리글 이름**으로 찾습니다. */
-  const head = (sheet.rows[0] || []).map((v) => String(v || '').trim());
-  const col = (prefix) => head.findIndex((h) => h.startsWith(prefix));
-  const C = {
-    name: col('세부사업'), hea: col('HEA'),
-    effect: col('효과크기'), source: col('출처'), amount: col('금액'),
-  };
-  if (C.name < 0 || C.hea < 0) {
-    problems.push(`[${sheet.name}] 머리글에서 '세부사업' 또는 'HEA' 열을 찾지 못했습니다`);
-    continue;
-  }
-
-  const found = new Map();                    // 정규화 이름 → 사업
-  let colored = 0, plain = 0, replaced = 0, dupSame = 0;
-
-  sheet.rows.forEach((row, i) => {
-    if (i === 0 || !row) return;
-    const name = String(row[C.name] || '').replace(/\s+/g, ' ').trim();
-    if (!name) return;
-
-    const fill = (sheet.fills[i] || [])[C.name];
-    /* fillId 0,1 은 '색 없음'과 회색 무늬라 실제 칠이 아닙니다 */
-    const isColored = !!(fill && fill.fillId > 1);
-    const group = (isColored === COLORED_IS_NEW) ? 'new' : 'existing';
-    if (isColored) colored++; else plain++;
-
-    const hea = String(row[C.hea] || '').trim().toUpperCase();
-    if (!['H', 'E', 'A'].includes(hea)) {
-      problems.push(`[${sheet.name}] '${name}' 의 HEA 값이 '${hea || '(빈칸)'}' 입니다`);
+    /* 열 위치는 시트마다 다릅니다 (산업재해에는 '구분' 열이 하나 더 있습니다)
+       그래서 자리가 아니라 **머리글 이름**으로 찾습니다.
+       10/06 판: 교통·범죄·자살 '개별사업·구성항목', 화재 '세부사업·구성항목' + '사업구분'(종합형·└ 구성항목·개별형) + '종합사업' */
+    const head = (sheet.rows[0] || []).map((v) => String(v || '').trim());
+    const col = (prefix) => head.findIndex((h) => h.startsWith(prefix));
+    const C = {
+      name: col('세부사업') >= 0 ? col('세부사업') : col('개별사업'), hea: col('HEA'),
+      effect: col('효과크기'), source: col('출처'), amount: col('금액'),
+      kind: col('사업구분'), parent: col('종합사업'),
+    };
+    if (C.name < 0 || C.hea < 0) {
+      problems.push(`[${tag} ${sheet.name}] 머리글에서 '세부사업'(또는 '개별사업') 또는 'HEA' 열을 찾지 못했습니다`);
+      continue;
     }
 
-    const entry = {
-      id: stableId(field, name),
-      field,
-      name,
-      hea: ['H', 'E', 'A'].includes(hea) ? hea : null,
-      effect: String(row[C.effect] || '').replace(/\s+/g, ' ').trim(),
-      source: String(row[C.source] || '').replace(/\s+/g, ' ').trim(),
-      amount: readAmount(row[C.amount]),
-      group,
-      row: i + 1,                              // 엑셀 행 번호 (되짚어 볼 때)
-    };
+    const found = new Map();                    // 정규화 이름 → 사업
+    let colored = 0, plain = 0, replaced = 0, dupSame = 0, lastComposite = '';
 
-    const key = normName(name);
-    const prev = found.get(key);
-    if (!prev) { found.set(key, entry); return; }
+    sheet.rows.forEach((row, i) => {
+      if (i === 0 || !row) return;
+      const kind = C.kind >= 0 ? clean(row[C.kind]) : '';
+      const parentCell = C.parent >= 0 ? clean(row[C.parent]) : '';
+      let name = clean(row[C.name]), level = null, parent = null, nameCol = C.name;
+      /* 종합형 — 이름이 '종합사업' 칸에만 있음 · 구성항목 — 속한 종합사업을 parent 로 */
+      if (!name && /종합형/.test(kind) && parentCell) { name = parentCell; level = 'composite'; nameCol = C.parent; lastComposite = parentCell; }
+      else if (/구성항목/.test(kind)) { level = 'component'; parent = parentCell || lastComposite || null; }
+      if (!name) return;
 
-    /* 같은 사업명이 두 번 나오면 — 신규 쪽을 남깁니다.
-       같은 그룹이면 정보가 더 채워진 쪽을 남깁니다. */
-    const filled = (e) => (e.effect ? 1 : 0) + (e.source ? 1 : 0) + (e.amount.won ? 2 : e.amount.text ? 1 : 0);
-    const takeNew = (prev.group !== 'new' && entry.group === 'new')
-                 || (prev.group === entry.group && filled(entry) > filled(prev));
-    if (takeNew) { found.set(key, entry); replaced++; } else dupSame++;
-  });
+      const fill = (sheet.fills[i] || [])[nameCol];
+      /* fillId 0,1 은 '색 없음'과 회색 무늬라 실제 칠이 아닙니다 */
+      const isColored = !!(fill && fill.fillId > 1);
+      const group = (isColored === COLORED_IS_NEW) ? 'new' : 'existing';
+      if (isColored) colored++; else plain++;
 
-  const list = [...found.values()];
-  programs.push(...list);
-  stats.push({
-    sheet: sheet.name, field,
-    rows: colored + plain, colored, plain,
-    unique: list.length, merged: replaced + dupSame,
-    hea: ['H', 'E', 'A'].map((k) => `${k}:${list.filter((p) => p.hea === k).length}`).join(' '),
-    priced: list.filter((p) => p.amount.won).length,
-    hasText: list.filter((p) => !p.amount.won && p.amount.text).length,
-  });
+      const heaRaw = String(row[C.hea] || '').trim().toUpperCase();
+      const hea = ['H', 'E', 'A'].includes(heaRaw) ? heaRaw : null;
+      /* 종합사업은 여러 채널을 묶어 'E/A'·'H/E/A' 처럼 적혀 있습니다 — 오류가 아니므로 heaMulti 로만 남김 */
+      if (!hea && !(level === 'composite' && /^[HEA](\/[HEA])+$/.test(heaRaw))) {
+        problems.push(`[${tag} ${sheet.name}] '${name}' 의 HEA 값이 '${heaRaw || '(빈칸)'}' 입니다`);
+      }
+
+      const entry = {
+        id: stableId(field, name),
+        field,
+        name,
+        hea,
+        effect: clean(row[C.effect]),
+        source: clean(row[C.source]),
+        amount: readAmount(row[C.amount]),
+        group,
+        row: i + 1,                              // 엑셀 행 번호 (되짚어 볼 때)
+        from: tag,
+      };
+      if (level) entry.level = level;            // composite 종합사업 · component 구성항목
+      if (parent) entry.parent = parent;
+      if (!hea && heaRaw) entry.heaMulti = heaRaw;
+
+      const key = normName(name);
+      const prev = found.get(key);
+      if (!prev) { found.set(key, entry); return; }
+
+      /* 같은 사업명이 두 번 나오면 — 신규 쪽을 남깁니다.
+         같은 그룹이면 정보가 더 채워진 쪽을 남깁니다. */
+      const filled = (e) => (e.effect ? 1 : 0) + (e.source ? 1 : 0) + (e.amount.won ? 2 : e.amount.text ? 1 : 0);
+      const takeNew = (prev.group !== 'new' && entry.group === 'new')
+                   || (prev.group === entry.group && filled(entry) > filled(prev));
+      if (takeNew) { found.set(key, entry); replaced++; } else dupSame++;
+    });
+
+    const list = [...found.values()];
+    programs.push(...list);
+    stats.push({
+      sheet: `${sheet.name}(${tag})`, field,
+      rows: colored + plain, colored, plain,
+      unique: list.length, merged: replaced + dupSame,
+      hea: ['H', 'E', 'A'].map((k) => `${k}:${list.filter((p) => p.hea === k).length}`).join(' '),
+      priced: list.filter((p) => p.amount.won).length,
+      hasText: list.filter((p) => !p.amount.won && p.amount.text).length,
+    });
+  }
+  return { programs, stats };
 }
+
+/* 바탕 = 10/06 · 10/06 에 이름이 없는 9/02 사업은 덧붙임(연결표 rules.js 가 옛 이름을 가리킬 수 있음 — verify-rules 가 끊어진 연결을 잡음) */
+const main = readPalette(XLSX_PATH, '1006');
+const old = fs.existsSync(OLD_XLSX_PATH) ? readPalette(OLD_XLSX_PATH, '0902') : { programs: [], stats: [] };
+/* 10/06 칸이 비어 있으면 9/02 의 같은 사업으로 채움 (순위 10/06 → 9/02). 종합사업 HEA 'E/A' 같은 묶음 표기도 한 글자 HEA 가 없는 것으로 봄 —
+   그대로 두면 9/02 에서 E 였던 교통정온화·어린이 보호구역 개선사업 등이 HEA 를 잃어 개선 이미지(E 만 그림)에서 빠짐 */
+{
+  const oldByName = new Map(old.programs.map((p) => [normName(p.name), p]));
+  for (const p of main.programs) {
+    const o = oldByName.get(normName(p.name)); if (!o) continue;
+    const from = [];
+    if (!p.hea && o.hea) { p.hea = o.hea; from.push('hea'); }
+    if (!p.effect && o.effect) { p.effect = o.effect; from.push('effect'); }
+    if (!p.source && o.source) { p.source = o.source; from.push('source'); }
+    if (!p.amount.text && o.amount.text) { p.amount = o.amount; from.push('amount'); }
+    if (from.length) p.from0902 = from;
+  }
+  const bad = new Set(main.programs.filter((p) => p.hea).map((p) => p.name));
+  for (let i = problems.length - 1; i >= 0; i--) { const m = problems[i].match(/^\[1006 [^\]]+\] '(.+)' 의 HEA/); if (m && bad.has(m[1])) problems.splice(i, 1); }   // 9/02 로 채운 HEA 경고는 지움
+}
+const inMain = new Set(main.programs.map((p) => normName(p.name)));
+const keptOld = old.programs.filter((p) => !inMain.has(normName(p.name)));
+const programs = [...main.programs, ...keptOld];
+const stats = main.stats;
+/* 9/02 → 10/06 에서 바뀐 것 (보고용) */
+const oldBy = new Map(old.programs.map((p) => [normName(p.name), p]));
+const changed = main.programs.map((p) => ({ p, o: oldBy.get(normName(p.name)) })).filter(({ p, o }) => o && (o.hea !== p.hea || o.effect !== p.effect || o.source !== p.source || o.amount.text !== p.amount.text));
+const added = main.programs.filter((p) => !oldBy.has(normName(p.name)));
 
 /* ── 결과 쓰기 ─────────────────────────────────────────────────────── */
 
@@ -254,7 +308,8 @@ for (const p of programs) {
 }
 
 const out = {
-  source: '7대유형_통합_HEA_성과증명_사업팔레트_0902.xlsx (AURI 제공)',
+  source: '7대유형_통합_HEA_성과증명_사업팔레트_10.06.xlsx (AURI 제공) + 10/06 에 없는 이름만 _0902.xlsx — 그 위에 10/21 표준 팔레트(palette-std.json)가 기준으로 얹힘(assets/palette.js)',
+  order: '10/21 표준 → 10/06 → 9/02 (2026-10-30 담당자 결정)',
   generatedAt: new Date().toISOString().slice(0, 10),
   note: '⚠️ 확정본이 아닙니다. 생활안전·감염병은 H·A 사업이 부족해 AURI가 재정리할 예정입니다.',
   hea: {
@@ -285,6 +340,8 @@ const priced = programs.filter((p) => p.amount.won).length;
 const textOnly = programs.filter((p) => !p.amount.won && p.amount.text).length;
 console.log(`\n사업 ${programs.length}종 · 단가로 쓸 수 있는 것 ${priced}종 · 금액 문구만 있는 것 ${textOnly}종 · 금액 없음 ${programs.length - priced - textOnly}종`);
 console.log(`신규 ${programs.filter((p) => p.group === 'new').length}종 / 기존 ${programs.filter((p) => p.group === 'existing').length}종`);
+console.log(`10/06 ${main.programs.length}종 (종합사업 ${main.programs.filter((p) => p.level === 'composite').length} · 구성항목 ${main.programs.filter((p) => p.level === 'component').length}) + 10/06 에 없는 9/02 이름 ${keptOld.length}종`);
+console.log(`9/02 → 10/06: 새 이름 ${added.length}종 · 같은 이름인데 HEA·효과·출처·금액 글이 바뀐 것 ${changed.length}종` + (changed.length ? ' — ' + changed.slice(0, 8).map(({ p, o }) => p.name + (o.hea !== p.hea ? `(HEA ${o.hea}→${p.hea})` : '')).join(' / ') : ''));
 console.log(`\n→ ${path.relative(ROOT, OUT_PATH)} (${Math.round(fs.statSync(OUT_PATH).size / 1024)}KB)`);
 
 if (problems.length) {

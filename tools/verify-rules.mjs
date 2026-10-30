@@ -108,7 +108,13 @@ for (const key in RX_RULES) {
 
 /* ── ④ HEA 값과 필수 개입 유형 ──────────────────────────────────── */
 for (const p of palette.programs) {
-  if (!['H', 'E', 'A'].includes(p.hea)) errors.push(`[HEA] '${p.name}' 의 HEA 값이 '${p.hea}'`);
+  if (['H', 'E', 'A'].includes(p.hea)) continue;
+  /* 2026-10-30 10/06 팔레트: 종합사업은 'E/A' 처럼 묶음 표기(heaMulti)라 한 글자 HEA 가 없을 수 있고, 원문이 빈칸인 사업도 있음.
+     연결표가 부르는 사업이면 처방·이미지(E 만 그림)가 틀어지므로 오류, 아니면 경고만 */
+  const msg = `[HEA] '${p.name}' 의 HEA 값이 '${p.hea}'${p.heaMulti ? ` (종합사업 묶음 표기 ${p.heaMulti})` : ' (원문 빈칸)'}`;
+  const nm = (s) => String(s || '').replace(/[\s·()（）〔〕[\]]/g, '');
+  if ([...used.keys()].some((n) => nm(n) === nm(p.name))) errors.push(msg + ' — 연결표가 부르는 사업');
+  else if (!p.heaMulti) warnings.push(msg + ' — 연결표는 안 부름');
 }
 for (const [field, kinds] of Object.entries(RX_REQUIRE_HEA)) {
   const rule = RX_RULES[field];
@@ -200,7 +206,7 @@ if (!existsSync(SR_PATH)) {
       covered.add(id);
     });
     (rf.projects || []).concat(rf.companions || []).forEach((p) => {
-      if (!names.has(normN(p.name))) errors.push(`[연계표] ${rf.id} 의 사업 '${p.name}' 이 팔레트(289종·표준 210종)에 없음`);
+      if (!names.has(normN(p.name))) errors.push(`[연계표] ${rf.id} 의 사업 '${p.name}' 이 팔레트(바탕 palette.json · 표준 210종)에 없음`);
     });
   });
   itemField.forEach((f, id) => { if (!covered.has(id)) warnings.push(`[연계표] 체크리스트 '${id}' 가 어느 위험요인에도 없음 — 2차 현장보고서 카드에 안 나옴`); });
