@@ -22,6 +22,7 @@ const AuriProjects = (function () {
     'auri_after_tags', 'auri_doc_html',   // 개선 이미지 번호 태그 범례 (2026-10-20)
     'auri_gen_custom',                    // 4단계 직접 입력 사업 (2026-10-27)
     'auri_narratives',                    // 2차 현장보고서 서술형 초안 (2026-10-27)
+    'auri_last_step',                     // 저장할 때 보던 단계 1~5 — 열 때 그 단계로 (2026-10-30)
   ];
   const META_KEY = 'auri_project';
 
@@ -55,6 +56,10 @@ const AuriProjects = (function () {
       const v = sessionStorage.getItem(k);
       if (v) data[k] = v;
     }
+    /* ★ 지금 보고 있는 단계(1~5)를 함께 남깁니다 — 열 때 그 단계로 (2026-10-30 담당자 "5단계까지 하고 저장했으면 5단계부터").
+       프로젝트 목록 화면(단계 0)에서 저장하면 앞서 남긴 값 그대로 */
+    const cur = Number(document.body && document.body.dataset.step);
+    if (cur >= 1 && cur <= 5) data.auri_last_step = String(cur);
     return data;
   }
 
@@ -184,6 +189,7 @@ const AuriProjects = (function () {
   function cleanValue(k, v) {
     try {
       if (k === 'auri_after_image') return IMG_RX.test(v) ? v : null;
+      if (k === 'auri_last_step') return /^[1-5]$/.test(String(v)) ? String(v) : null;
       if (k === 'auri_input_image') {
         const o = JSON.parse(v);
         if (o && !IMG_RX.test(String(o.dataUrl || ''))) o.dataUrl = '';
@@ -230,8 +236,16 @@ const AuriProjects = (function () {
       throw new Error('이 프로젝트가 브라우저 저장 공간보다 커서 열 수 없습니다. 현장 사진을 줄여 다시 저장해 주세요.');
     }
 
-    location.href = project.data.auri_diagnosis_results ? 'report.html'
-      : project.data.auri_picked_location ? 'diagnosis.html' : 'index.html';
+    /* ★ 저장할 때 보던 단계로 엽니다 (2026-10-30). 예전 프로젝트(단계 기록 없음)는 들어 있는 결과로 가늠 — 문서 글 5 · 개선 이미지 4 · 판독 3.
+       4·5단계는 리포트(3단계)를 먼저 거칩니다 — 처방은 3단계에서만 새 규칙으로 다시 계산하므로("예전 프로젝트 처방은 전부 다시 계산").
+       리포트가 계산을 마치면 auri_resume_step 을 보고 그 단계로 넘깁니다(report.html 끝) */
+    const d = project.data;
+    const hasRes = !!d.auri_diagnosis_results;
+    let last = Number(d.auri_last_step) || 0;
+    if (!last) last = !hasRes ? (d.auri_picked_location ? 2 : 1) : (d.auri_doc_html || d.auri_doc_notes || d.auri_narratives) ? 5 : d.auri_after_image ? 4 : 3;
+    if (!hasRes && last > 2) last = d.auri_picked_location ? 2 : 1;
+    if (last >= 4) sessionStorage.setItem('auri_resume_step', String(last)); else sessionStorage.removeItem('auri_resume_step');
+    location.href = last >= 3 ? 'report.html' : last === 2 ? 'diagnosis.html' : 'index.html';
     return true;
   }
 

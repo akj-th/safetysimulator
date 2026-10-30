@@ -173,7 +173,7 @@ AI 모델: 진단·재판독·의견 초안 `claude-opus-5`(adaptive thinking) �
 ## 9. 조용히 깨지는 연결 — 고칠 때 함께 고칠 곳
 
 - **번호로 맞물린 세 파일**: `server/checklist.js`(항목 번호·질문·문제 답) ↔ `assets/rules.js` `byItem`(항목 → 사업) ↔ `assets/field-check.js`(항목 → 현장 확인 범주) ↔ `assets/space-risk.json`(항목 → 위험요인). 하나만 고치면 처방에서 조용히 빠집니다 → `npm run verify-rules`.
-- **저장 칸 목록 `SAVE_KEYS` 는 두 곳**: `server/projects.js` · `assets/projects.js`. 새 `auri_*` 칸을 만들면 둘 다(안 넣으면 프로젝트 저장에서 조용히 빠짐). 지금 14개 — 10/20~27 추가: `auri_after_tags`(번호 태그) · `auri_doc_html`(수정본) · `auri_gen_custom`(직접 입력·`lastImage`) · `auri_narratives`(서술형).
+- **저장 칸 목록 `SAVE_KEYS` 는 두 곳**: `server/projects.js` · `assets/projects.js`. 새 `auri_*` 칸을 만들면 둘 다(안 넣으면 프로젝트 저장에서 조용히 빠짐). 지금 15개 — 10/20~27 추가: `auri_after_tags`(번호 태그) · `auri_doc_html`(수정본) · `auri_gen_custom`(직접 입력·`lastImage`) · `auri_narratives`(서술형) · 10/30 `auri_last_step`(저장할 때 보던 단계 — 열면 그 단계로, 4·5단계는 리포트에서 처방을 다시 계산한 뒤 `auri_resume_step` 으로 넘김).
 - **서버 화이트리스트 `ALLOW_DIRS`**(server.js): 앱에 새 폴더·확장자가 필요하면 한 줄. `data/raw/`·`server/` 는 403.
 - **지점 → 지자체는 `assets/region-bounds.js` 한 곳** — 1단계 지도·진단 안내·리포트·문서와 서버(AI 판독 중점 분야·진단 기록·프로젝트)가 같은 코드·같은 경계를 씁니다. 지자체 중심점 거리로 고르지 말 것(옹진 섬·함양·경계 근처가 틀렸던 방식, 10/28). 새 화면에서 지자체를 찾을 때도 이것으로.
 - **규칙 엔진은 3단계에서 한 번만** — 4·5단계는 `auri_prescriptions` 를 그대로 받습니다. 연구원 보정은 `auri_rx_overrides` 에 따로(덮어쓰지 않음).

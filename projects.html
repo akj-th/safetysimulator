@@ -60,7 +60,7 @@
 const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const kst = (v) => v ? new Date(v).toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' }).slice(0, 16) : '—';
-const STEP = { 1: '1 위치 선택', 2: '2 진단', 3: '3 리포트', 4: '4 시각화' };
+const STEP = { 1: '1 위치 선택', 2: '2 진단', 3: '3 리포트', 4: '4 시각화', 5: '5 진단서' };
 
 let _scope = 'mine';
 let _all = [];         // 전체 탭에서 받은 목록 (작성자 거르기용)

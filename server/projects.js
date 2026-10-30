@@ -34,6 +34,7 @@ export const SAVE_KEYS = [
   'auri_after_tags', 'auri_doc_html',   // 개선 이미지 번호 태그 범례 (2026-10-20) — assets/projects.js 와 같은 목록
   'auri_gen_custom',                    // 4단계 직접 입력 사업 (2026-10-27)
   'auri_narratives',                    // 2차 현장보고서 서술형 초안 (2026-10-27)
+  'auri_last_step',                     // 저장할 때 보던 단계 1~5 — 열 때 그 단계로 (2026-10-30)
 ];
 
 const MAX_BYTES = 25 * 1024 * 1024;   // 한 건 25MB — 서버가 받는 요청 한도(30MB) 안쪽
@@ -112,6 +113,10 @@ function partsOf(d) {
 }
 
 function stepOf(d) {
+  /* 저장할 때 보던 단계(2026-10-30) — 없으면(예전 저장분) 들어 있는 결과로 */
+  const last = Number(d.auri_last_step);
+  if (Number.isInteger(last) && last >= 1 && last <= 5) return last;
+  if (d.auri_doc_html || d.auri_doc_notes || d.auri_narratives) return 5;
   if (d.auri_after_image) return 4;
   if (d.auri_prescriptions) return 3;
   if (d.auri_diagnosis_results) return 2;

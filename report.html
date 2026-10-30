@@ -774,6 +774,15 @@ function recomputePrescriptions() {
 /* ── 페이지 시작 ───────────────────────────────────────────────── */
 
 window.addEventListener('load', async function () {
+  /* ★ 프로젝트를 저장한 단계(4·5)로 이어서 열기 (2026-10-30 담당자) — 처방을 여기서 새 규칙으로 다시 계산한 뒤 맨 끝에서 넘깁니다(assets/projects.js open) */
+  const resumeStep = Number(sessionStorage.getItem('auri_resume_step') || 0);
+  sessionStorage.removeItem('auri_resume_step');
+  if (resumeStep === 4 || resumeStep === 5) {
+    const n = document.createElement('p');
+    n.className = 'note'; n.id = 'resumeNote';
+    n.textContent = '저장한 단계(' + (resumeStep === 4 ? '04 시각화' : '05 진단서') + ')로 이어서 엽니다 — 처방을 지금 규칙으로 다시 계산하는 중입니다…';
+    const main = document.querySelector('main'); if (main) main.insertBefore(n, main.firstChild);
+  }
   const loc = sessionStorage.getItem('auri_picked_location');
   const resultsRaw = sessionStorage.getItem('auri_diagnosis_results');
 
@@ -862,6 +871,8 @@ window.addEventListener('load', async function () {
     /* 41개 대상 지자체 밖(또는 통계 파일 없음) — 앞 지점의 지자체 정보가 남아 저장 창 제목 등에 섞이지 않게 (2026-10-28) */
     sessionStorage.removeItem('auri_region_stats');
   }
+  /* 처방 계산이 끝났으면 저장한 단계로 (위 resumeStep) */
+  if (resumeStep === 4 || resumeStep === 5) location.replace(resumeStep === 4 ? 'visualize.html' : 'document.html');
 });
 </script>
 </body>
