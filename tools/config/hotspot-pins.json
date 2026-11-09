@@ -1,0 +1,324 @@
+{
+ "title": "주요 거점 글자 고정 — 렌더에서 사람이 손댄 거점은 다시 뽑아도 옛 자리·옛 글자 그대로",
+ "how": "DB(hotspot_edits · projects.hotspot_tag)는 거점을 글자(A~J)로만 기억합니다. 중점분야가 바뀌어 거점을 다시 뽑으면 글자가 다른 자리로 가서 옮긴 자리·공유 프로젝트가 엉뚱한 거점에 붙습니다. 여기 적힌 거점은 build-hotspots.mjs 가 그 글자에 이 값을 그대로 두고, 나머지 글자만 새로 뽑은 거점으로 채웁니다(고정 거점 반경 radiusM 안의 새 거점은 겹치므로 뺌). 새로 손대는 거점이 생기면 렌더 콘솔로 목록을 받아 여기에 더하세요.",
+ "source": "렌더 콘솔 hotspot_edits·공유 프로젝트 목록(2026-11-09 담당자) × 확정본 반영 전 거점(커밋 5dd6602~1 data/stats/hotspots.json)",
+ "regions": {
+  "bucheon": {
+   "A": {
+    "why": "옮김·공유 프로젝트",
+    "rank": 1,
+    "lat": 37.487364,
+    "lng": 126.781402,
+    "score": 1,
+    "parts": {
+     "suicide": 1,
+     "crime": 1,
+     "infection": 1
+    },
+    "inside": true
+   },
+   "B": {
+    "why": "옮김(옛 733m·새 633m — 옛 쪽으로)",
+    "rank": 2,
+    "lat": 37.499519,
+    "lng": 126.776843,
+    "score": 0.939,
+    "parts": {
+     "suicide": 0.92,
+     "crime": 1,
+     "infection": 0.89
+    },
+    "inside": false
+   },
+   "C": {
+    "why": "옮김·공유 프로젝트",
+    "rank": 3,
+    "lat": 37.484712,
+    "lng": 126.811372,
+    "score": 0.712,
+    "parts": {
+     "suicide": 0.68,
+     "crime": 0.51,
+     "infection": 0.95
+    },
+    "inside": false
+   },
+   "G": {
+    "why": "옮김·공유 프로젝트",
+    "rank": 7,
+    "lat": 37.481083,
+    "lng": 126.796118,
+    "score": 0.606,
+    "parts": {
+     "suicide": 0.61,
+     "crime": 0.28,
+     "infection": 0.93
+    },
+    "inside": true
+   },
+   "I": {
+    "why": "옮김",
+    "rank": 9,
+    "lat": 37.516173,
+    "lng": 126.769441,
+    "score": 0.568,
+    "parts": {
+     "suicide": 0.51,
+     "crime": 0.19,
+     "infection": 1
+    },
+    "inside": false
+   },
+   "J": {
+    "why": "옮김·공유 프로젝트",
+    "rank": 10,
+    "lat": 37.507186,
+    "lng": 126.781344,
+    "score": 0.46,
+    "parts": {
+     "suicide": 0.34,
+     "crime": 0.21,
+     "infection": 0.83
+    },
+    "inside": false
+   }
+  },
+  "sejong": {
+   "G": {
+    "why": "옮김",
+    "rank": 7,
+    "lat": 36.512215,
+    "lng": 127.262206,
+    "score": 0.665,
+    "parts": {
+     "suicide": 0.84,
+     "fire": 0.18,
+     "life": 0.97
+    },
+    "inside": false
+   }
+  },
+  "yeongcheon": {
+   "A": {
+    "why": "옮김·공유 프로젝트",
+    "rank": 1,
+    "lat": 35.97765,
+    "lng": 128.944115,
+    "score": 0.928,
+    "parts": {
+     "suicide": 1,
+     "traffic": 1,
+     "fire": 0.78
+    },
+    "inside": true
+   },
+   "B": {
+    "why": "공유 프로젝트",
+    "rank": 2,
+    "lat": 35.987387,
+    "lng": 128.954886,
+    "score": 0.687,
+    "parts": {
+     "suicide": 0.87,
+     "traffic": 0.84,
+     "fire": 0.35
+    },
+    "inside": false
+   },
+   "C": {
+    "why": "옮김",
+    "rank": 3,
+    "lat": 35.941872,
+    "lng": 128.899468,
+    "score": 0.68,
+    "parts": {
+     "suicide": 0.58,
+     "traffic": 0.46,
+     "fire": 1
+    },
+    "inside": false
+   },
+   "D": {
+    "why": "옮김",
+    "rank": 4,
+    "lat": 35.973039,
+    "lng": 128.950653,
+    "score": 0.611,
+    "parts": {
+     "suicide": 0.53,
+     "traffic": 1,
+     "fire": 0.3
+    },
+    "inside": false
+   },
+   "E": {
+    "why": "공유 프로젝트",
+    "rank": 5,
+    "lat": 35.963355,
+    "lng": 128.936559,
+    "score": 0.609,
+    "parts": {
+     "suicide": 0.67,
+     "traffic": 1,
+     "fire": 0.16
+    },
+    "inside": true
+   },
+   "F": {
+    "why": "옮김·공유 프로젝트",
+    "rank": 6,
+    "lat": 35.931515,
+    "lng": 128.870414,
+    "score": 0.511,
+    "parts": {
+     "suicide": 0.33,
+     "traffic": 1,
+     "fire": 0.2
+    },
+    "inside": false
+   }
+  },
+  "miryang": {
+   "A": {
+    "why": "옮김",
+    "rank": 1,
+    "lat": 35.498267,
+    "lng": 128.747884,
+    "score": 0.926,
+    "parts": {
+     "suicide": 1,
+     "traffic": 1,
+     "fire": 0.78
+    },
+    "inside": true
+   },
+   "E": {
+    "why": "옮김",
+    "rank": 5,
+    "lat": 35.37301,
+    "lng": 128.71602,
+    "score": 0.675,
+    "parts": {
+     "suicide": 0.63,
+     "traffic": 0.39,
+     "fire": 1
+    },
+    "inside": false
+   },
+   "G": {
+    "why": "옮김",
+    "rank": 7,
+    "lat": 35.477315,
+    "lng": 128.763404,
+    "score": 0.641,
+    "parts": {
+     "suicide": 0.49,
+     "traffic": 0.55,
+     "fire": 0.88
+    },
+    "inside": false
+   },
+   "H": {
+    "why": "옮김",
+    "rank": 8,
+    "lat": 35.393335,
+    "lng": 128.83531,
+    "score": 0.475,
+    "parts": {
+     "suicide": 0,
+     "traffic": 0.98,
+     "fire": 0.45
+    },
+    "inside": false
+   }
+  },
+  "jjunggu": {
+   "C": {
+    "why": "옮김",
+    "rank": 3,
+    "lat": 36.321029,
+    "lng": 127.408628,
+    "score": 0.601,
+    "parts": {
+     "suicide": 0.25,
+     "crime": 0.59,
+     "life": 0.96
+    },
+    "inside": false
+   }
+  },
+  "gjunggu": {
+   "D": {
+    "why": "옮김",
+    "rank": 4,
+    "lat": 35.858664,
+    "lng": 128.602224,
+    "score": 0.281,
+    "parts": {
+     "suicide": 0.48,
+     "crime": 0.03,
+     "life": 0.36
+    },
+    "inside": false
+   }
+  },
+  "hongcheon": {
+   "B": {
+    "why": "옮김",
+    "rank": 2,
+    "lat": 37.692312,
+    "lng": 127.897531,
+    "score": 0.838,
+    "parts": {
+     "suicide": 1,
+     "crime": 0.51,
+     "traffic": 1
+    },
+    "inside": true
+   },
+   "F": {
+    "why": "옮김",
+    "rank": 6,
+    "lat": 37.755854,
+    "lng": 127.951631,
+    "score": 0.324,
+    "parts": {
+     "suicide": 0.23,
+     "crime": 0,
+     "traffic": 0.74
+    },
+    "inside": false
+   }
+  },
+  "goheung": {
+   "H": {
+    "why": "옮김",
+    "rank": 8,
+    "lat": 34.533831,
+    "lng": 127.281875,
+    "score": 0.312,
+    "parts": {
+     "suicide": 0.39,
+     "fire": 0.55,
+     "traffic": 0
+    },
+    "inside": false
+   }
+  },
+  "seocheon": {
+   "C": {
+    "why": "옮김",
+    "rank": 3,
+    "lat": 36.076545,
+    "lng": 126.69348,
+    "score": 0.667,
+    "parts": {
+     "suicide": 1,
+     "infection": 0,
+     "traffic": 1
+    },
+    "inside": false
+   }
+  }
+ }
+}

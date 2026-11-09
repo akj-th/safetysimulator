@@ -181,7 +181,9 @@ for (const entry of index.regions) {
   const fromSi = si && si.regions[slug] ? setOf(si.regions[slug].focusByIndex) : null;
   const dong = readJ(`data/dong/${slug}.json`);
   const hea = dong ? setOf((dong.heaCategories || []).map((c) => c.key)) : null;
-  const hp = hot && hot.regions && hot.regions[slug] && hot.regions[slug][0] ? setOf(Object.keys(hot.regions[slug][0].parts || {})) : null;
+  /* 글자 고정 거점(hotspot-pins.json — 옛 분야로 뽑힌 자리)은 빼고 새로 뽑은 첫 거점으로 봄 (2026-11-09) */
+  const h0 = hot && hot.regions && hot.regions[slug] ? hot.regions[slug].find((h) => !h.pinned) : null;
+  const hp = h0 ? setOf(Object.keys(h0.parts || {})) : null;
   if (fromSi && stat !== fromSi) fail(`${slug}: 통계 중점분야 ${stat} ≠ 지역안전지수 ${fromSi} — npm run focus 다시`);
   const statLabels = setOf((d.focusTypes || []).map((t) => t.label));
   if (idx && statLabels !== idx) fail(`${slug}: index.json 중점분야 ${idx} ≠ 통계 ${statLabels}`);

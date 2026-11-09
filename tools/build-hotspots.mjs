@@ -29,6 +29,8 @@ const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/stats/index.json'),
 const regions = (Array.isArray(idx) ? idx : idx.regions || Object.values(idx)).filter(r => !ARGS.only || String(ARGS.only).split(',').includes(r.region));
 const inside = (p, ring) => { let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if ((yi > p[1]) !== (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi) c = !c; } return c; };
 
+const PIN_FILE = path.join(ROOT, 'tools/config/hotspot-pins.json');
+const PINS = fs.existsSync(PIN_FILE) ? (JSON.parse(fs.readFileSync(PIN_FILE, 'utf8')).regions || {}) : {};
 const outFile = path.join(ROOT, 'data/stats/hotspots.json');
 const prev = fs.existsSync(outFile) ? JSON.parse(fs.readFileSync(outFile, 'utf8')) : { regions: {} };
 const out = { generatedAt: new Date().toISOString().slice(0, 10), rule: { ...OPT, note: '중점 분야 커널밀도(강원대 TIF)를 지자체 p99 로 0~1 정규화 → 2개 분야 이상 ≥minT 인 칸의 평균(중점 분야 수로 나눔) → 반경 radiusM 안 최대값. 문턱 minScore 는 3분야 기준이라 분야가 N개면 ×3/N. 격자가 400만 칸을 넘는 지자체(옹진, 섬·바다 2만㎢)는 칸을 한도 안까지 키움(옹진 80m). 점수는 지자체 안 상대값' }, regions: ARGS.only ? prev.regions || {} : {} };
@@ -49,9 +51,24 @@ for (const r of regions) {
   if (cellM !== OPT.cellM) console.log(`  ${r.region}: 범위 ${(areaM2 / 1e6).toFixed(0)}㎢ — 격자가 커서 칸 ${OPT.cellM}m → ${cellM}m`);
   const svPath = path.join(ROOT, 'data/raw/gis_0901/최종 조사지', `${r.region}_OverlapUnion_1.shp`);
   const sv = fs.existsSync(svPath) ? readPolygons(svPath) : [];
-  out.regions[r.region] = spots.map((h, i) => { const [lng, lat] = proj4(P5186, 'EPSG:4326', [h.x, h.y]); const parts = {}; for (const [k, v] of Object.entries(h.parts)) parts[k] = v;
-    return { rank: i + 1, lat: +lat.toFixed(6), lng: +lng.toFixed(6), score: h.score, parts, inside: sv.some(s => s.rings.some(ring => inside([h.x, h.y], ring))) }; });
-  console.log(`${r.region}: 분야 ${layers.map(L => L.label).join('·')} → 거점 ${spots.length} (조사지 안 ${out.regions[r.region].filter(h => h.inside).length}) · ${((Date.now() - t0) / 1000).toFixed(0)}s`);
+  const fresh = spots.map((h) => { const [lng, lat] = proj4(P5186, 'EPSG:4326', [h.x, h.y]); const parts = {}; for (const [k, v] of Object.entries(h.parts)) parts[k] = v;
+    return { lat: +lat.toFixed(6), lng: +lng.toFixed(6), score: h.score, parts, inside: sv.some(s => s.rings.some(ring => inside([h.x, h.y], ring))) }; });
+  /* ★ 2026-11-09 글자 고정(tools/config/hotspot-pins.json) — 렌더에서 사람이 옮기거나 공유 프로젝트를 붙인 거점은 옛 자리·옛 글자 그대로.
+     DB 는 거점을 글자로만 기억해서, 다시 뽑아 글자가 바뀌면 옮긴 자리·프로젝트가 엉뚱한 거점에 붙었음(확정본 반영 때 20곳).
+     고정 거점은 그 글자(rank)에 두고, 새 거점은 점수 순으로 빈 글자를 채움 — 고정 거점 반경 radiusM 안의 새 거점은 겹치므로 뺌. 글자 = rank(화면 String.fromCharCode(64+rank)) */
+  const pins = PINS[r.region] || {};
+  const pinned = Object.entries(pins).map(([tag, p]) => ({ rank: tag.charCodeAt(0) - 64, lat: p.lat, lng: p.lng, score: p.score, parts: p.parts, inside: p.inside, pinned: true }));
+  const near = (a, b) => Math.hypot((a.lat - b.lat) * 111320, (a.lng - b.lng) * 111320 * Math.cos(a.lat * Math.PI / 180)) <= OPT.radiusM;
+  const used = new Set(pinned.map((p) => p.rank)); let next = 1;
+  const filled = [];
+  for (const h of fresh) {
+    if (pinned.some((p) => near(p, h))) continue;
+    while (used.has(next)) next++;
+    if (next > OPT.count) break;
+    filled.push({ rank: next, ...h }); used.add(next);
+  }
+  out.regions[r.region] = [...pinned, ...filled].sort((a, b) => a.rank - b.rank);
+  console.log(`${r.region}: 분야 ${layers.map(L => L.label).join('·')} → 거점 ${out.regions[r.region].length}${pinned.length ? ` (고정 ${pinned.length}: ${pinned.map((p) => String.fromCharCode(64 + p.rank)).join('')})` : ''} (조사지 안 ${out.regions[r.region].filter(h => h.inside).length}) · ${((Date.now() - t0) / 1000).toFixed(0)}s`);
 }
 fs.writeFileSync(outFile, JSON.stringify(out));
 console.log('→ data/stats/hotspots.json', (fs.statSync(outFile).size / 1024).toFixed(0) + 'KB');
