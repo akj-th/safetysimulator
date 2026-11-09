@@ -1,0 +1,626 @@
+{
+  "region": "namwon",
+  "title": "남원시 중점관리분야 맞춤형 사업 종합도",
+  "subtitle": "금동·노암동·어현동 일원  |  중점 3분야 · 범죄 · 교통사고 · 자살",
+  "sdm": "data/raw/SDM_5K/52190_namwon",
+  "survey": "data/raw/gis_0901/최종 조사지/namwon_OverlapUnion_1.shp",
+  "frame": {
+    "width": 1920,
+    "height": 1080,
+    "widthMeters": 3590,
+    "center5179": [
+      989115,
+      1711926
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "zoom": 17,
+    "note": "구역 범위 551,1065,1550,1742 에 맞춤"
+  },
+  "draft": {
+    "file": "docs/사전진단 보고서 및 지도 작업본(AURI)/261030 남원시~밀양시/32. 남원시/남원시 지도 최종.png",
+    "width": 3977,
+    "height": 2237,
+    "affine5179": {
+      "a": 1.5218749999999999,
+      "b": 0,
+      "c": 987516.093,
+      "d": 1714062.079
+    },
+    "note": "시설 이름 정합 보정 2026-10-23 — 3개 시설 일치, 이동 (1623, -449) m · 이전 값은 affine5179_prev2 · 회전 0 재정합 2026-11-09 — 건물 윤곽 겹침 15% (축척 1.5219 m/px) · 이전 값은 affine5179_prev",
+    "pptx": "docs/사전진단 보고서 및 지도 작업본(AURI)/261030 남원시~밀양시/_pptx/namwon",
+    "affine5179_prev": {
+      "a": 1.5473778722531089,
+      "b": -0.03376390528335932,
+      "c": 987757.4894007449,
+      "d": 1714258.2457988092
+    },
+    "affine5179_prev2": {
+      "a": 1.5218749999999999,
+      "b": 0,
+      "c": 985893.0515625001,
+      "d": 1714510.7078125002
+    }
+  },
+  "style": {
+    "dimOpacity": 0,
+    "surveyColor": "#2793C9",
+    "hideZoneLines": true,
+    "box": {
+      "pad": 11,
+      "fsT": 16,
+      "fsP": 11.5,
+      "fsI": 12,
+      "lh": 15.5,
+      "rowGap": 3,
+      "ic": 20
+    },
+    "v3": true
+  },
+  "risk": {
+    "enabled": true,
+    "overlapT": 0.2,
+    "builtBufferM": 40,
+    "closeM": 30,
+    "minAreaHa": 1,
+    "simplifyM": 12,
+    "maxAlpha": 0.62,
+    "alphaFullAt": 0.5,
+    "colorGamma": 0.55
+  },
+  "labels": [],
+  "zones": [
+    {
+      "id": "Z1",
+      "num": "①",
+      "type": "상업·유흥 밀집형",
+      "place": "용남시장",
+      "safety": "crime",
+      "markers": [
+        {
+          "label": "1",
+          "at": {
+            "draftPx": [
+              792.2,
+              1064.7
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              921,
+              1085.3
+            ],
+            [
+              833.9,
+              1081
+            ],
+            [
+              836,
+              1178.9
+            ],
+            [
+              919.9,
+              1180
+            ],
+            [
+              920.6,
+              1116.9
+            ],
+            [
+              921,
+              1085.3
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 60,
+        "top": 150,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "보행동선 솔라 표지병 설치",
+          "icon": "guide-mark"
+        },
+        {
+          "text": "출입구·통로 벽부등·로고젝터 설치",
+          "icon": "ground-light"
+        },
+        {
+          "text": "공영주차장 보안등 추가",
+          "icon": "led-streetlight"
+        },
+        {
+          "text": "영업 후 간판조명 점등 협조 및 전기료 지원",
+          "icon": "led-streetlight"
+        }
+      ]
+    },
+    {
+      "id": "Z2",
+      "num": "②",
+      "type": "주거생활형",
+      "place": "금하정1길 일대",
+      "safety": "crime",
+      "markers": [
+        {
+          "label": "2",
+          "at": {
+            "draftPx": [
+              652.8,
+              1470.4
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              567.5,
+              1211.4
+            ],
+            [
+              672.8,
+              1203.3
+            ],
+            [
+              689,
+              1349.2
+            ],
+            [
+              640.4,
+              1462.7
+            ],
+            [
+              559.3,
+              1470.8
+            ],
+            [
+              551.2,
+              1349.2
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 60,
+        "below": "Z1",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "금동로 보행등 추가 설치",
+          "icon": "guide-mark"
+        },
+        {
+          "text": "금하정1길 보행등 추가 설치",
+          "icon": "guide-mark"
+        },
+        {
+          "text": "진입로 솔라 표지병 설치",
+          "icon": "location-sign"
+        },
+        {
+          "text": "CCTV 조정·추가 및 통한관제센터 연계 야간 모니터링",
+          "icon": "cctv-control"
+        }
+      ]
+    },
+    {
+      "id": "Z3",
+      "num": "③",
+      "type": "관광산업 밀집형",
+      "place": "춘향테마파크·소라길·요천 수변",
+      "safety": "crime",
+      "markers": [
+        {
+          "label": "3",
+          "at": {
+            "draftPx": [
+              1191.6,
+              1446.6
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              1355.4,
+              1332.2
+            ],
+            [
+              1098.8,
+              1542.4
+            ],
+            [
+              1258,
+              1678.4
+            ],
+            [
+              1550.1,
+              1452.7
+            ],
+            [
+              1404.8,
+              1295.1
+            ],
+            [
+              1355.4,
+              1332.2
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 60,
+        "below": "Z2",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "외곽 산책로 방범 CCTV·비상벨 설치",
+          "icon": "emergency-bell"
+        },
+        {
+          "text": "외곽 산책로 위치 안내 표지판 설치",
+          "icon": "location-sign"
+        },
+        {
+          "text": "요천 수변 산책길 난간 벽부등 설치",
+          "icon": "wall-lamp"
+        },
+        {
+          "text": "축제·주말 경찰·안전요원 추가 배치, 관제 연계 모니터링",
+          "icon": "billboard"
+        }
+      ]
+    },
+    {
+      "id": "Z4",
+      "num": "④",
+      "type": "주거생활형",
+      "place": "금하정1길 8-6·28-24",
+      "safety": "suicide",
+      "markers": [
+        {
+          "label": "4",
+          "at": {
+            "draftPx": [
+              688.3,
+              1262.4
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              585.5,
+              1219.9
+            ],
+            [
+              665.2,
+              1213.8
+            ],
+            [
+              677.4,
+              1324.1
+            ],
+            [
+              640.7,
+              1409.9
+            ],
+            [
+              579.4,
+              1416
+            ],
+            [
+              573.3,
+              1324.1
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 1420,
+        "top": 150,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "우리동네돌봄단 (1인 가구 안부 확인 및 전화통화 사업)",
+          "icon": "community-watch"
+        },
+        {
+          "text": "생명존중안심마을 (고위험군 발굴 · 연계, 안전점검)",
+          "icon": "counseling"
+        },
+        {
+          "text": "생명사랑지킴이(관리사무소 종사자·입주민)",
+          "icon": "billboard"
+        },
+        {
+          "text": "고립가구 정기방문·음료배달 안부 확인",
+          "icon": "visit-check"
+        },
+        {
+          "text": "찾아가는 마을안심버스(찾아가는 정신건강 상담)",
+          "icon": "counseling"
+        }
+      ]
+    },
+    {
+      "id": "Z5",
+      "num": "⑤",
+      "type": "자연환경형",
+      "place": "양림길 14-9 인근",
+      "safety": "suicide",
+      "markers": [
+        {
+          "label": "5",
+          "at": {
+            "draftPx": [
+              1450.4,
+              1415.7
+            ]
+          }
+        }
+      ],
+      "polygons": [],
+      "box": {
+        "x": 1420,
+        "below": "Z4",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "교량·수변 비상벨·SOS 상담전화 설치",
+          "icon": "emergency-bell"
+        },
+        {
+          "text": "공중화장실·하천변·공원 정기 점검 (자살 다빈도 장소 관리)",
+          "icon": "billboard"
+        },
+        {
+          "text": "자살예방 LED 안내판 설치",
+          "icon": "location-sign"
+        }
+      ]
+    },
+    {
+      "id": "Z6",
+      "num": "⑥",
+      "type": "주요 교차로형",
+      "place": "춘향골공설시장 앞 교차로",
+      "safety": "traffic",
+      "markers": [
+        {
+          "label": "6",
+          "at": {
+            "draftPx": [
+              767.4,
+              1195.1
+            ]
+          }
+        }
+      ],
+      "polygons": [],
+      "box": {
+        "x": 1420,
+        "below": "Z5",
+        "gap": 8,
+        "w": 440
+      },
+      "items": [
+        {
+          "text": "자전거도로 노면표시·분리시설 개선, 픽토그램 설치",
+          "icon": "guide-mark"
+        },
+        {
+          "text": "시장 주변 보행·차량 혼재가로 정비",
+          "icon": "guide-mark"
+        },
+        {
+          "text": "차선 색깔 유도선 설치 사업",
+          "icon": "guide-mark"
+        }
+      ]
+    },
+    {
+      "id": "Z7",
+      "num": "⑦",
+      "type": "주요 교차로형",
+      "place": "노암동 사거리",
+      "safety": "traffic",
+      "markers": [
+        {
+          "label": "7",
+          "at": {
+            "draftPx": [
+              946.5,
+              1742
+            ]
+          }
+        }
+      ],
+      "polygons": [],
+      "box": {
+        "x": 520,
+        "bottom": 1050,
+        "w": 400
+      },
+      "items": [
+        {
+          "text": "횡단보도 위치·신호운영 개선",
+          "icon": "speaker"
+        },
+        {
+          "text": "고원식 횡단보도 설치",
+          "icon": "guide-mark"
+        },
+        {
+          "text": "배달종사자 안전모·보호장비 지원 (이륜차 운전자)",
+          "icon": "billboard"
+        }
+      ]
+    },
+    {
+      "id": "Z8",
+      "num": "⑧",
+      "type": "관광산업 밀집형",
+      "place": "광한루원 앞 요천로",
+      "safety": "traffic",
+      "markers": [
+        {
+          "label": "8",
+          "at": {
+            "draftPx": [
+              1159.2,
+              1300.6
+            ]
+          }
+        }
+      ],
+      "polygons": [
+        {
+          "draftPx": [
+            [
+              956.6,
+              1344.2
+            ],
+            [
+              1054.4,
+              1325.7
+            ],
+            [
+              1331.5,
+              1187.1
+            ],
+            [
+              1355.9,
+              1237.9
+            ],
+            [
+              1070.7,
+              1390.5
+            ],
+            [
+              972.9,
+              1427.4
+            ]
+          ]
+        }
+      ],
+      "box": {
+        "x": 940,
+        "bottom": 1050,
+        "w": 400
+      },
+      "items": [
+        {
+          "text": "스마트 보행안전시스템 설치",
+          "icon": "guide-mark"
+        },
+        {
+          "text": "바닥형 신호등 설치",
+          "icon": "speaker"
+        },
+        {
+          "text": "보행자 우선도로 표시",
+          "icon": "guide-mark"
+        },
+        {
+          "text": "교통정온화(과속방지턱·초커 설치로 차량 속도 저감)",
+          "icon": "guide-mark"
+        }
+      ]
+    }
+  ],
+  "pois": [
+    {
+      "name": "광한루원",
+      "draftPx": [
+        983.1,
+        1358.3
+      ],
+      "side": "left"
+    },
+    {
+      "name": "쌍교동성당",
+      "draftPx": [
+        1317.8,
+        1219.7
+      ]
+    },
+    {
+      "name": "용남시장",
+      "draftPx": [
+        859.9,
+        1108
+      ]
+    }
+  ],
+  "routes": [],
+  "keymap": {
+    "x": 60,
+    "y": 0,
+    "below": "Z3",
+    "gap": 8,
+    "w": 440,
+    "h": 110,
+    "name": "남원시",
+    "label": "남원시 전체 · 지도 범위"
+  },
+  "legend": [
+    {
+      "kind": "zonepoly",
+      "key": "crime",
+      "label": "사업지 구역 — 범죄"
+    },
+    {
+      "kind": "zonepoly",
+      "key": "traffic",
+      "label": "사업지 구역 — 교통사고"
+    },
+    {
+      "kind": "zonepoly",
+      "key": "suicide",
+      "label": "사업지 구역 — 자살"
+    },
+    {
+      "kind": "poi",
+      "label": "주요 시설"
+    },
+    {
+      "kind": "heat",
+      "keys": [
+        "crime",
+        "traffic",
+        "suicide"
+      ],
+      "label": "위험도 밀도 — 범죄 · 교통사고 · 자살 (낮음 → 높음)"
+    }
+  ],
+  "legendPos": {
+    "x": 1420,
+    "below": "Z6",
+    "gap": 8,
+    "w": 440,
+    "rowH": 21,
+    "fs": 12.5
+  }
+}

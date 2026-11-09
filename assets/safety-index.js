@@ -114,7 +114,8 @@ const AuriSafetyIndex = (function () {
 
   /* ── 분야 HEA 지수 (표·지도·복합지수가 같은 값을 쓰도록 한 곳에) ───────────────
        지표 0~100: H 피해집단 편중 · E_1~3 회귀분석 기여(노후·도로·시설, 동 사이 백분위) · A_1~3 반복·야간·장소
-       분야 HEA 지수 = 있는 지표의 평균. 지표가 전부 비면(표본 부족) 가중 H·E·A 평균(byField) → 119 건수 백분위 순으로 대신 */
+       분야 HEA 지수 = 있는 지표의 평균. 지표가 전부 비면(표본 부족) 가중 H·E·A 평균(byField)으로 대신, 그것도 없으면 빈칸
+       (2026-11-09 — 전에는 마지막에 119 건수 백분위로 대신했음. baseScores 참고) */
   function fieldIndexMap(dong, key) {
     const dongs = dong.dongs;
     const cat = (d) => d.byCat && d.byCat[key];
@@ -163,7 +164,9 @@ const AuriSafetyIndex = (function () {
       let sw = 0, sum = 0;
       focus.forEach((k) => {
         const m = F[k] && F[k][d.name] ? F[k][d.name].mean : null;
-        const v = m != null ? m : (d.byField[k] ? d.byField[k].pct : (d.cntPct ? d.cntPct[k] : null));
+        /* ★ 2026-11-09 담당자: 지표가 없는 칸은 비워 둠(있는 분야만으로 평균). 전에는 119 출동 건수 백분위(cntPct)로 대신했는데
+           옆 열 "119 밀도"와 같은 정보를 두 번 세는 셈이었음(10/30 설명 — 1,935칸 중 848칸이 대체값). 동 표본이 모자라 비는 것은 그대로 비움 */
+        const v = m != null ? m : (d.byField[k] ? d.byField[k].pct : null);
         d.heaF[k] = v;
         if (v != null) { sw += w[k]; sum += v * w[k]; }
       });
