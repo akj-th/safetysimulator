@@ -691,12 +691,28 @@ if (IS_V3 && !DEBUG_GRID) {
       const colOf = lay.overflow.right > 0 ? 'R' : 'L';
       const col = lay.boxes.map((b, i) => ({ b, i })).filter(o => o.b.col === colOf).sort((a, b) => b.b.y - a.b.y);
       const last = col[0]; if (!last) break;
-      last.b.y = H - 30 - last.b.h; last.b.col = 'B'; moved++;
+      /* ★ 2026-11-09 밀양: 반대쪽 열 아래에 자리가 남으면 그 열 끝으로 (바닥 가운데는 구역이 있기 쉬움) */
+      const other = colOf === 'R' ? 'L' : 'R';
+      const oc = lay.boxes.filter(b => b.col === other).sort((a, b) => b.y - a.y);
+      const oBottom = oc.length ? oc[0].y + oc[0].h : 150, oLimit = other === 'R' ? lay.keymap.y - 6 : H - 30;
+      if (oBottom + 6 + last.b.h <= oLimit) { last.b.col = other; last.b.x = other === 'L' ? 60 : W - 60 - boxW; last.b.y = oBottom + 6; }
+      else { last.b.y = H - 30 - last.b.h; last.b.col = 'B'; moved++; }
       const rest = col.slice(1); const limit = colOf === 'R' ? lay.keymap.y - 6 : H - 30;
       const bottom = rest.length ? rest[0].b.y + rest[0].b.h : 150;
       lay.overflow = bottom > limit ? { right: colOf === 'R' ? bottom - limit : 0, left: colOf === 'L' ? bottom - limit : 0 } : null;
     }
-    if (moved) { const B = lay.boxes.filter(b => b.col === 'B').sort((a, b) => a.y - b.y); if (B.length === 1) B[0].x = (W - boxW) / 2; else B.forEach((b, k) => { b.x = 520 + k * (boxW + 10); }); console.warn(); }
+    if (moved) {
+      const B = lay.boxes.filter(b => b.col === 'B').sort((a, b) => a.y - b.y);
+      if (B.length === 1) {
+        /* ★ 2026-11-09 밀양: 가운데에 내린 상자가 바로 그 자리의 ⑥ 구역을 덮어(상자 밑 구역은 잘라냄) 번호만 남았음.
+           가운데 띠(520~1410) 안 세 자리(가운데·왼쪽·오른쪽) 중 구역 꼭짓점을 가장 적게 덮는 자리로 — 자기 구역은 3배로 셈 */
+        const b = B[0], own = lay.boxes.indexOf(b);
+        const cover = (x) => zrings.reduce((acc, rings, zi) => acc + rings.flat().filter(p => p[0] >= x && p[0] <= x + boxW && p[1] >= b.y && p[1] <= b.y + b.h).length * (zi === own ? 3 : 1), 0);
+        const xs = [(W - boxW) / 2, 520, 1410 - boxW];
+        b.x = xs.map(x => ({ x, c: cover(x) })).sort((p, q) => p.c - q.c)[0].x;
+      } else B.forEach((b, k) => { b.x = 520 + k * (boxW + 10); });
+      console.warn();
+    }
     if (lay.overflow) console.warn('  ⚠ 상자 둘을 옮겨도 열이 넘칩니다 — 상자 글을 더 줄이거나 항목을 손보세요');
   }
   const CIRC = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';
