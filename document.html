@@ -599,9 +599,15 @@ function auriCh2() {
           <td style="vertical-align:top">${r && (r.summary || (r.observed && r.observed.length)) ? `<span class="tag">(사진 판독)</span> ${esc(r.summary || r.observed.join(' · '))}` : (r ? `사진 판독 ${r.level.label} 판정(${r.score}점)` : '')}</td>
           <td style="vertical-align:top">${mine.map((it) => `<div class="hea-${it.hea}" style="padding:2px 4px"><span class="hea-tag k-${it.hea}">${it.hea ? AuriPalette.heaLabel(it.hea, true) : '—'}</span> ${esc(it.name)}${it.trigger ? `<br><span style="font-size:var(--fs-cap);color:var(--g2)">근거: ${esc(it.trigger.id)} ${esc(it.trigger.note || '')}</span>` : ''}</div>`).join('')}</td>
         </tr>` : '';
-    const figLoc = fig++, figEx = fig++;
+    const figAll = fig++, figLoc = fig++, figEx = fig++;
+    /* 지자체 전체 발생 지점 (2026-11-04 정호경 요청 — "거점 주변만이 아니라 지자체 전역의 사고 발생지점") — 아래 거점 확대 지도는 그대로 */
     return `
       <h3 class="h-section">□ ${esc(f.label)} 분야${af && af.note ? ` <span class="h-sub">* ${esc(af.note)}</span>` : ''}</h3>
+      <figure class="doc-map">
+        <img id="map-all-${f.key}" alt="${esc(_data.shortLabel)} 전체 ${esc(f.label)} 발생 지점" hidden>
+        <div class="slot" id="map-all-${f.key}-wait">지도를 그리는 중입니다…</div>
+        <figcaption>[그림 ${figAll}] ${esc(_data.shortLabel)} 전체 ${esc(f.label)} 발생 지점 <span class="h-sub">119 구급출동 지점(2023~2025) · 회색 실선 지자체 경계 · 붉은 점선 복합위험지구(조사지) · 십자 진단 지점</span></figcaption>
+      </figure>
       <figure class="doc-map">
         <img id="map-${f.key}" alt="${esc(f.label)} 발생 위치도" hidden>
         <div class="slot" id="map-${f.key}-wait">지도를 그리는 중입니다…</div>
@@ -1228,10 +1234,11 @@ function fieldReport() {
    ════════════════════════════════════════════════════════════════════ */
 
 /* 지도에 찍는 분야 색 — index.html 의 INCIDENT_CATEGORIES 와 같은 값입니다.
-   지도에서 본 색과 문서에서 본 색이 달라지면 안 되므로 맞춰 둡니다. */
+   지도에서 본 색과 문서에서 본 색이 달라지면 안 되므로 맞춰 둡니다.
+   2026-11-04 정호경 요청으로 AURI 7색(화재만 갈색) — 산업재해 빨강 · 감염병 주황 · 교통사고 노랑 · 범죄 초록 · 자살 파랑 · 화재 갈색 · 생활안전 보라 */
 const MAP_COLORS = {
-  suicide: '#7B5EA7', traffic: '#2A78D6', fire: '#E34948', crime: '#E0761F',
-  life: '#1BAF7A', industrial: '#8A6D3B', infection: '#4A3AA7',
+  suicide: '#2F7FE0', traffic: '#F2D02E', fire: '#8C5A2E', crime: '#3CA84A',
+  life: '#8E44AD', industrial: '#E5322D', infection: '#F28C28',
 };
 
 /* 4장 지도가 진단 지점 둘레로 잡는 반경 (m).
@@ -1272,7 +1279,7 @@ function heatFor(key) {
   return row ? { url: 'data/heatmap/' + row.png, bounds: row.bounds } : null;
 }
 
-function mapSpecs() {
+function mapSpecs(rb) {
   if (!_incidents) return [];
   const marker = { lat: Number(_picked.lat), lng: Number(_picked.lng) };
   const out = [{
@@ -1307,6 +1314,23 @@ function mapSpecs() {
       },
     });
   });
+
+  /* 2장 분야마다 지자체 전체 발생 지점 (2026-11-04 정호경 요청). 범위·경계선 = data/stats/region-bounds.json(지점 판정과 같은 경계).
+     히트맵 대신 점 — "사고 발생지점"을 보여 달라는 요청이라. 넓은 지도라 점을 작게(pointScale) */
+  const reg = rb && rb.regions && rb.regions[_data.region];
+  if (reg && reg.bbox) {
+    const [s, w, n, e] = reg.bbox;
+    ch2Fields().forEach(function (f) {
+      out.push({
+        id: 'map-all-' + f.key, w: 1000, h: 700,
+        opts: {
+          pad: 0.03, bbox: { n: n, s: s, e: e, w: w }, outline: reg.rings || [],
+          points: catPoints(f.key), pointScale: 0.6,
+          marker: marker, boundary: _data.surveyArea && _data.surveyArea.geometry,
+        },
+      });
+    });
+  }
   return out;
 }
 
@@ -1315,7 +1339,8 @@ function mapSpecs() {
  * 타일을 받아야 해서 시간이 걸리므로 문서를 먼저 띄우고 뒤따라 채웁니다.
  */
 async function renderMaps() {
-  for (const spec of mapSpecs()) {
+  const rb = typeof AuriRegion !== 'undefined' ? await AuriRegion.load() : null;   // 지자체 전체 지도의 범위·경계선
+  for (const spec of mapSpecs(rb)) {
     const img = document.getElementById(spec.id);
     const wait = document.getElementById(spec.id + '-wait');
     if (!img) continue;

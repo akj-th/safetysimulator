@@ -9761,5 +9761,5 @@
    "sample": null
   }
  ],
- "focusSource": "지역안전지수 하위 등급 기준(자살 고정 + 하위 2분야) — data/stats/safety-index.json"
+ "focusSource": "직접 지정(AURI 「지역별(41개소) 중점관리분야 선정 결과」(2026-10-30 최종 확정본) 4. 지역별 표 — tools/config/focus-override.json) — data/stats/safety-index.json"
 }

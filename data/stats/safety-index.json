@@ -1,26 +1,62 @@
 {
- "source": "지역별 안전유형 3개 추출_강원대.xlsx (수정본 시트 · 강원대)",
- "generatedAt": "2026-10-28",
+ "source": "지역안전지수_5년.xlsx (AURI 2021~2025, 2026-10-30)",
+ "generatedAt": "2026-11-09",
  "years": [
   "2025",
-  "2024"
+  "2024",
+  "2023",
+  "2022",
+  "2021"
  ],
  "rule": {
-  "weight": "w = 등급 ÷ 5 (5등급 → 1.0). 자살은 모든 지자체 1.0 고정. 산업재해는 지수에 없어 0.6. 정렬은 2025 등급, 동률이면 2024 (2026-10-20 실무회의)",
+  "weight": "w = 5년(2021~2025) 평균 등급 ÷ 5 (5등급 → 1.0, AURI 가중치 시트와 같은 값). 자살은 모든 지자체 1.0 고정. 산업재해는 지수에 없어 0.6. 지수 규칙의 정렬은 2025 등급, 동률이면 2024 (2026-10-20 실무회의 · 11-09 5년 평균)",
   "industrialW": 0.6
  },
- "focus": null,
+ "focus": {
+  "source": "AURI 「지역별(41개소) 중점관리분야 선정 결과」(2026-10-30 최종 확정본) 4. 지역별 표",
+  "criteria": {
+   "①": "5년 연속 4·5등급 — 최근 5개년(’21~’25) 연속 하위권에 고착화된 만성적 취약 분야 (우선순위 1)",
+   "②": "5년 평균 4.0등급 이하 — ① 미충족 시, 5개년 평균 등급이 4.0등급 이하인 장기 하위권 정체 분야 (우선순위 2)",
+   "③": "최근 등급 급락(1.5등급↑) — ’21~’24년 평균 대비 ’25년 등급이 1.5등급 이상 하락한 위험 급증 분야 (우선순위 3)",
+   "④": "취약지표↓·위해지표↑ — ’25년 기준 취약 여건 대비 실제 사고·사망(위해지표)이 유독 높은 분야 (우선순위 4)",
+   "⑤": "자살 — 41개 전 지역 필수 (OECD 대비 높은 자살률의 국가적 시급성)"
+  }
+ },
  "regions": {
   "taebaek": {
    "label": "강원특별자치도 태백시",
    "grades": {
-    "2024": {
-     "traffic": 4,
-     "fire": 5,
-     "crime": 3,
+    "2021": {
+     "traffic": 2,
+     "fire": 3,
+     "crime": 2,
+     "life": 5,
+     "suicide": 4,
+     "infection": 5
+    },
+    "2022": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 2,
      "life": 4,
-     "suicide": 3,
-     "infection": 2
+     "suicide": 4,
+     "infection": 5
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 1,
+     "life": 4,
+     "suicide": 5,
+     "infection": 5
+    },
+    "2024": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 1,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
     },
     "2025": {
      "traffic": 4,
@@ -33,40 +69,48 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.8,
-    "crime": 0.2,
-    "life": 0.8,
+    "traffic": 0.72,
+    "fire": 0.76,
+    "crime": 0.28,
+    "life": 0.84,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.92,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.8,
-    "fire": 0.9,
-    "crime": 0.4,
-    "life": 0.8,
+    "traffic": 0.72,
+    "fire": 0.76,
+    "crime": 0.28,
+    "life": 0.84,
     "suicide": 1,
-    "infection": 0.6,
+    "infection": 0.92,
     "industrial": 0.6
    },
    "ranked": [
     "fire",
-    "traffic",
     "life",
     "infection",
+    "traffic",
     "crime"
    ],
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
-    "fire",
-    "traffic"
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "life": "①",
+    "suicide": "①",
+    "infection": "①"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -84,11 +128,35 @@
   "jeongseon": {
    "label": "강원특별자치도 정선군",
    "grades": {
-    "2024": {
-     "traffic": 3,
+    "2021": {
+     "traffic": 2,
      "fire": 4,
+     "crime": 5,
+     "life": 3,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2022": {
+     "traffic": 3,
+     "fire": 1,
+     "crime": 2,
+     "life": 3,
+     "suicide": 5,
+     "infection": 5
+    },
+    "2023": {
+     "traffic": 2,
+     "fire": 1,
      "crime": 3,
      "life": 3,
+     "suicide": 5,
+     "infection": 1
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 1,
+     "crime": 4,
+     "life": 4,
      "suicide": 3,
      "infection": 3
     },
@@ -103,24 +171,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.2,
-    "crime": 0.6,
-    "life": 0.8,
+    "traffic": 0.6,
+    "fire": 0.32,
+    "crime": 0.68,
+    "life": 0.68,
     "suicide": 1,
-    "infection": 0.4,
+    "infection": 0.56,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.5,
-    "crime": 0.6,
-    "life": 0.7,
+    "traffic": 0.6,
+    "fire": 0.32,
+    "crime": 0.68,
+    "life": 0.68,
     "suicide": 1,
-    "infection": 0.5,
+    "infection": 0.56,
     "industrial": 0.6
    },
    "ranked": [
@@ -133,10 +204,15 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "traffic",
+    "crime",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "②",
+    "crime": "④",
+    "life": "④"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -152,13 +228,37 @@
   "hongcheon": {
    "label": "강원특별자치도 홍천군",
    "grades": {
-    "2024": {
-     "traffic": 4,
-     "fire": 3,
+    "2021": {
+     "traffic": 3,
+     "fire": 2,
      "crime": 4,
-     "life": 1,
+     "life": 3,
+     "suicide": 4,
+     "infection": 2
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
      "suicide": 3,
-     "infection": 4
+     "infection": 2
+    },
+    "2023": {
+     "traffic": 3,
+     "fire": 5,
+     "crime": 4,
+     "life": 3,
+     "suicide": 4,
+     "infection": 2
+    },
+    "2024": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 4,
+     "life": 3,
+     "suicide": 4,
+     "infection": 2
     },
     "2025": {
      "traffic": 3,
@@ -171,40 +271,48 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.6,
-    "fire": 0.4,
-    "crime": 0.8,
+    "traffic": 0.64,
+    "fire": 0.6,
+    "crime": 0.76,
     "life": 0.6,
     "suicide": 1,
-    "infection": 0.6,
+    "infection": 0.44,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.5,
-    "crime": 0.8,
-    "life": 0.4,
+    "traffic": 0.64,
+    "fire": 0.6,
+    "crime": 0.76,
+    "life": 0.6,
     "suicide": 1,
-    "infection": 0.7,
+    "infection": 0.44,
     "industrial": 0.6
    },
    "ranked": [
     "crime",
     "traffic",
-    "infection",
     "life",
+    "infection",
     "fire"
    ],
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "crime",
-    "traffic"
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "crime": "④",
+    "suicide": "④",
+    "infection": "④"
+   },
    "lowGrades": [
     "crime",
     "suicide"
@@ -214,7 +322,7 @@
     "traffic",
     "suicide"
    ],
-   "matchesKangwon": true
+   "matchesKangwon": false
   },
   "bucheon": {
    "label": "경기도 부천시",
@@ -268,12 +376,12 @@
     "2021"
    ],
    "weights": {
-    "traffic": 0.2,
-    "fire": 0.4,
+    "traffic": 0.24,
+    "fire": 0.48,
     "crime": 1,
-    "life": 0.4,
+    "life": 0.36,
     "suicide": 1,
-    "infection": 0.6,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "score1": {
@@ -296,9 +404,14 @@
    "focusByIndex": [
     "suicide",
     "crime",
-    "infection"
+    "fire"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "crime": "①",
+    "fire": "④",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "crime"
    ],
@@ -307,16 +420,40 @@
     "infection",
     "suicide"
    ],
-   "matchesKangwon": true
+   "matchesKangwon": false
   },
   "pocheon": {
    "label": "경기도 포천시",
    "grades": {
+    "2021": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 3,
+     "life": 5,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 2,
+     "life": 5,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 3,
+     "life": 5,
+     "suicide": 4,
+     "infection": 3
+    },
     "2024": {
-     "traffic": 3,
-     "fire": 2,
-     "crime": 4,
-     "life": 3,
+     "traffic": 4,
+     "fire": 5,
+     "crime": 2,
+     "life": 5,
      "suicide": 4,
      "infection": 4
     },
@@ -331,40 +468,48 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.6,
+    "traffic": 0.8,
     "fire": 0.8,
-    "crime": 0.6,
-    "life": 0.8,
+    "crime": 0.52,
+    "life": 0.96,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.76,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.6,
-    "fire": 0.6,
-    "crime": 0.7,
-    "life": 0.7,
+    "traffic": 0.8,
+    "fire": 0.8,
+    "crime": 0.52,
+    "life": 0.96,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.76,
     "industrial": 0.6
    },
    "ranked": [
-    "infection",
-    "life",
     "fire",
-    "crime",
-    "traffic"
+    "life",
+    "infection",
+    "traffic",
+    "crime"
    ],
    "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "life"
+    "life",
+    "traffic"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "life": "①",
+    "suicide": "①",
+    "traffic": "②"
+   },
    "lowGrades": [
     "fire",
     "life",
@@ -430,12 +575,12 @@
     "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.8,
+    "traffic": 0.88,
+    "fire": 0.72,
     "crime": 0.6,
-    "life": 0.6,
+    "life": 0.64,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.84,
     "industrial": 0.6
    },
    "score1": {
@@ -458,9 +603,14 @@
    "focusByIndex": [
     "suicide",
     "traffic",
-    "fire"
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "①",
+    "infection": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -477,12 +627,36 @@
   "miryang": {
    "label": "경상남도 밀양시",
    "grades": {
+    "2021": {
+     "traffic": 3,
+     "fire": 5,
+     "crime": 2,
+     "life": 5,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 2,
+     "life": 4,
+     "suicide": 2,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
     "2024": {
      "traffic": 4,
-     "fire": 1,
-     "crime": 3,
+     "fire": 4,
+     "crime": 2,
      "life": 4,
-     "suicide": 5,
+     "suicide": 3,
      "infection": 4
     },
     "2025": {
@@ -496,22 +670,25 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 1,
-    "fire": 1,
+    "traffic": 0.8,
+    "fire": 0.92,
     "crime": 0.4,
-    "life": 0.8,
+    "life": 0.84,
     "suicide": 1,
     "infection": 0.8,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.9,
-    "fire": 0.6,
-    "crime": 0.5,
-    "life": 0.8,
+    "traffic": 0.8,
+    "fire": 0.92,
+    "crime": 0.4,
+    "life": 0.84,
     "suicide": 1,
     "infection": 0.8,
     "industrial": 0.6
@@ -526,10 +703,17 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "traffic",
-    "fire"
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "fire": "①",
+    "life": "①",
+    "infection": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -595,12 +779,12 @@
     "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.8,
-    "crime": 0.6,
-    "life": 0.6,
+    "traffic": 0.64,
+    "fire": 0.68,
+    "crime": 0.56,
+    "life": 0.64,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "score1": {
@@ -622,10 +806,15 @@
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "traffic"
+    "traffic",
+    "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "④",
+    "life": "④",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -641,13 +830,37 @@
   "hamyang": {
    "label": "경상남도 함양군",
    "grades": {
-    "2024": {
+    "2021": {
      "traffic": 3,
+     "fire": 4,
+     "crime": 2,
+     "life": 3,
+     "suicide": 2,
+     "infection": 3
+    },
+    "2022": {
+     "traffic": 4,
      "fire": 3,
+     "crime": 2,
+     "life": 4,
+     "suicide": 2,
+     "infection": 3
+    },
+    "2023": {
+     "traffic": 5,
+     "fire": 2,
      "crime": 3,
      "life": 2,
      "suicide": 3,
      "infection": 4
+    },
+    "2024": {
+     "traffic": 5,
+     "fire": 3,
+     "crime": 3,
+     "life": 3,
+     "suicide": 1,
+     "infection": 3
     },
     "2025": {
      "traffic": 5,
@@ -660,31 +873,34 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 1,
-    "fire": 0.4,
-    "crime": 0.6,
-    "life": 0.8,
+    "traffic": 0.88,
+    "fire": 0.56,
+    "crime": 0.52,
+    "life": 0.64,
     "suicide": 1,
-    "infection": 0.6,
+    "infection": 0.64,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.8,
-    "fire": 0.5,
-    "crime": 0.6,
-    "life": 0.6,
+    "traffic": 0.88,
+    "fire": 0.56,
+    "crime": 0.52,
+    "life": 0.64,
     "suicide": 1,
-    "infection": 0.7,
+    "infection": 0.64,
     "industrial": 0.6
    },
    "ranked": [
     "traffic",
     "life",
-    "infection",
     "crime",
+    "infection",
     "fire"
    ],
    "tieBreak": "2025",
@@ -693,7 +909,12 @@
     "traffic",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "②",
+    "life": "④",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "life"
@@ -708,13 +929,37 @@
   "andong": {
    "label": "경상북도 안동시",
    "grades": {
-    "2024": {
-     "traffic": 2,
-     "fire": 3,
+    "2021": {
+     "traffic": 4,
+     "fire": 4,
      "crime": 4,
      "life": 4,
      "suicide": 4,
+     "infection": 5
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 2,
+     "life": 4,
+     "suicide": 3,
      "infection": 4
+    },
+    "2023": {
+     "traffic": 5,
+     "fire": 3,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 5
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 5
     },
     "2025": {
      "traffic": 4,
@@ -727,40 +972,50 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.2,
-    "crime": 0.4,
+    "traffic": 0.84,
+    "fire": 0.48,
+    "crime": 0.48,
     "life": 0.8,
     "suicide": 1,
-    "infection": 1,
+    "infection": 0.96,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.6,
-    "fire": 0.4,
-    "crime": 0.6,
+    "traffic": 0.84,
+    "fire": 0.48,
+    "crime": 0.48,
     "life": 0.8,
     "suicide": 1,
-    "infection": 0.9,
+    "infection": 0.96,
     "industrial": 0.6
    },
    "ranked": [
     "infection",
-    "life",
     "traffic",
+    "life",
     "crime",
     "fire"
    ],
-   "tieBreak": "2024",
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "life"
+    "traffic",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "①",
+    "life": "①",
+    "infection": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -826,11 +1081,11 @@
    ],
    "weights": {
     "traffic": 1,
-    "fire": 1,
-    "crime": 0.4,
-    "life": 1,
+    "fire": 0.96,
+    "crime": 0.44,
+    "life": 0.88,
     "suicide": 1,
-    "infection": 1,
+    "infection": 0.92,
     "industrial": 0.6
    },
    "score1": {
@@ -853,9 +1108,18 @@
    "focusByIndex": [
     "suicide",
     "traffic",
-    "fire"
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "①",
+    "fire": "①",
+    "life": "①",
+    "suicide": "①",
+    "infection": "①"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -873,13 +1137,37 @@
   "cheongsong": {
    "label": "경상북도 청송군",
    "grades": {
-    "2024": {
-     "traffic": 1,
+    "2021": {
+     "traffic": 4,
      "fire": 2,
-     "crime": 5,
-     "life": 2,
+     "crime": 4,
+     "life": 3,
      "suicide": 2,
-     "infection": 3
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 5,
+     "fire": 2,
+     "crime": 2,
+     "life": 3,
+     "suicide": 2,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 2,
+     "life": 4,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 2,
+     "life": 4,
+     "suicide": 1,
+     "infection": 4
     },
     "2025": {
      "traffic": 5,
@@ -892,40 +1180,48 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 1,
-    "fire": 0.4,
-    "crime": 0.6,
-    "life": 1,
+    "traffic": 0.84,
+    "fire": 0.48,
+    "crime": 0.52,
+    "life": 0.76,
     "suicide": 1,
-    "infection": 1,
+    "infection": 0.84,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.6,
-    "fire": 0.4,
-    "crime": 0.8,
-    "life": 0.7,
+    "traffic": 0.84,
+    "fire": 0.48,
+    "crime": 0.52,
+    "life": 0.76,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.84,
     "industrial": 0.6
    },
    "ranked": [
-    "infection",
-    "life",
     "traffic",
+    "life",
+    "infection",
     "crime",
     "fire"
    ],
-   "tieBreak": "2024",
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "infection",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "infection": "①",
+    "life": "③",
+    "suicide": "③"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -942,12 +1238,36 @@
   "yeongju": {
    "label": "경상북도 영주시",
    "grades": {
-    "2024": {
+    "2021": {
      "traffic": 4,
+     "fire": 4,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 2,
+     "life": 4,
+     "suicide": 5,
+     "infection": 3
+    },
+    "2023": {
+     "traffic": 5,
+     "fire": 2,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2024": {
+     "traffic": 5,
      "fire": 5,
      "crime": 2,
-     "life": 5,
-     "suicide": 4,
+     "life": 4,
+     "suicide": 3,
      "infection": 4
     },
     "2025": {
@@ -961,24 +1281,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 1,
-    "fire": 0.8,
+    "traffic": 0.92,
+    "fire": 0.68,
     "crime": 0.4,
     "life": 0.8,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.76,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.9,
-    "fire": 0.9,
+    "traffic": 0.92,
+    "fire": 0.68,
     "crime": 0.4,
-    "life": 0.9,
+    "life": 0.8,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.76,
     "industrial": 0.6
    },
    "ranked": [
@@ -988,13 +1311,18 @@
     "infection",
     "crime"
    ],
-   "tieBreak": "order",
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
     "traffic",
-    "fire"
+    "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "①",
+    "life": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -1012,12 +1340,36 @@
   "bukgu": {
    "label": "광주광역시 북구",
    "grades": {
+    "2021": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 2,
+     "infection": 3
+    },
+    "2022": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 4,
+     "life": 3,
+     "suicide": 4,
+     "infection": 2
+    },
+    "2023": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 3
+    },
     "2024": {
      "traffic": 3,
-     "fire": 4,
-     "crime": 1,
-     "life": 4,
-     "suicide": 5,
+     "fire": 3,
+     "crime": 3,
+     "life": 2,
+     "suicide": 3,
      "infection": 4
     },
     "2025": {
@@ -1031,40 +1383,46 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.6,
-    "fire": 0.6,
-    "crime": 0.6,
-    "life": 0.8,
+    "traffic": 0.64,
+    "fire": 0.56,
+    "crime": 0.64,
+    "life": 0.6,
     "suicide": 1,
-    "infection": 1,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.6,
-    "fire": 0.7,
-    "crime": 0.4,
-    "life": 0.8,
+    "traffic": 0.64,
+    "fire": 0.56,
+    "crime": 0.64,
+    "life": 0.6,
     "suicide": 1,
-    "infection": 0.9,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "ranked": [
     "infection",
     "life",
-    "fire",
     "traffic",
+    "fire",
     "crime"
    ],
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "life"
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "infection": "③",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "life",
     "suicide",
@@ -1080,11 +1438,35 @@
   "gjunggu": {
    "label": "대구광역시 중구",
    "grades": {
+    "2021": {
+     "traffic": 5,
+     "fire": 3,
+     "crime": 5,
+     "life": 5,
+     "suicide": 4,
+     "infection": 5
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 5,
+     "life": 5,
+     "suicide": 2,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 3,
+     "fire": 5,
+     "crime": 5,
+     "life": 4,
+     "suicide": 3,
+     "infection": 2
+    },
     "2024": {
      "traffic": 4,
-     "fire": 1,
-     "crime": 4,
-     "life": 4,
+     "fire": 2,
+     "crime": 5,
+     "life": 5,
      "suicide": 3,
      "infection": 3
     },
@@ -1099,24 +1481,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.6,
-    "fire": 0.4,
+    "traffic": 0.76,
+    "fire": 0.64,
     "crime": 1,
-    "life": 0.8,
+    "life": 0.92,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.72,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.3,
-    "crime": 0.9,
-    "life": 0.8,
+    "traffic": 0.76,
+    "fire": 0.64,
+    "crime": 1,
+    "life": 0.92,
     "suicide": 1,
-    "infection": 0.7,
+    "infection": 0.72,
     "industrial": 0.6
    },
    "ranked": [
@@ -1132,7 +1517,12 @@
     "crime",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "crime": "①",
+    "life": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "crime",
     "life",
@@ -1149,13 +1539,37 @@
   "jjunggu": {
    "label": "대전광역시 중구",
    "grades": {
-    "2024": {
+    "2021": {
      "traffic": 3,
-     "fire": 2,
+     "fire": 3,
      "crime": 4,
-     "life": 3,
+     "life": 4,
+     "suicide": 5,
+     "infection": 3
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 3,
+     "life": 4,
      "suicide": 4,
-     "infection": 2
+     "infection": 3
+    },
+    "2023": {
+     "traffic": 3,
+     "fire": 3,
+     "crime": 4,
+     "life": 4,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2024": {
+     "traffic": 2,
+     "fire": 3,
+     "crime": 4,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
     },
     "2025": {
      "traffic": 3,
@@ -1168,40 +1582,48 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
     "traffic": 0.6,
-    "fire": 0.8,
-    "crime": 0.8,
+    "fire": 0.64,
+    "crime": 0.76,
     "life": 0.8,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.72,
     "industrial": 0.6
    },
    "score1": {
     "traffic": 0.6,
-    "fire": 0.6,
-    "crime": 0.8,
-    "life": 0.7,
+    "fire": 0.64,
+    "crime": 0.76,
+    "life": 0.8,
     "suicide": 1,
-    "infection": 0.6,
+    "infection": 0.72,
     "industrial": 0.6
    },
    "ranked": [
     "crime",
     "life",
-    "fire",
     "infection",
+    "fire",
     "traffic"
    ],
-   "tieBreak": "2024",
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
-    "crime",
-    "life"
+    "life",
+    "traffic"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "life": "①",
+    "traffic": "④",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "fire",
     "crime",
@@ -1219,12 +1641,36 @@
   "donggu": {
    "label": "부산광역시 동구",
    "grades": {
-    "2024": {
+    "2021": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 5,
+     "life": 5,
+     "suicide": 5,
+     "infection": 5
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 5,
+     "life": 4,
+     "suicide": 5,
+     "infection": 5
+    },
+    "2023": {
      "traffic": 4,
      "fire": 4,
-     "crime": 2,
+     "crime": 4,
      "life": 3,
      "suicide": 5,
+     "infection": 5
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 4,
+     "life": 1,
+     "suicide": 3,
      "infection": 4
     },
     "2025": {
@@ -1238,40 +1684,50 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
     "traffic": 0.8,
-    "fire": 1,
-    "crime": 1,
-    "life": 0.6,
+    "fire": 0.88,
+    "crime": 0.92,
+    "life": 0.64,
     "suicide": 1,
-    "infection": 1,
+    "infection": 0.96,
     "industrial": 0.6
    },
    "score1": {
     "traffic": 0.8,
-    "fire": 0.9,
-    "crime": 0.7,
-    "life": 0.6,
+    "fire": 0.88,
+    "crime": 0.92,
+    "life": 0.64,
     "suicide": 1,
-    "infection": 0.9,
+    "infection": 0.96,
     "industrial": 0.6
    },
    "ranked": [
-    "fire",
-    "infection",
     "crime",
+    "infection",
+    "fire",
     "traffic",
     "life"
    ],
    "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
-    "fire",
+    "traffic",
+    "crime",
     "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "①",
+    "crime": "①",
+    "infection": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -1288,13 +1744,37 @@
   "yeongdogu": {
    "label": "부산광역시 영도구",
    "grades": {
-    "2024": {
+    "2021": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 3,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 3,
+     "fire": 5,
+     "crime": 2,
+     "life": 2,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2023": {
      "traffic": 3,
      "fire": 3,
-     "crime": 2,
-     "life": 3,
+     "crime": 3,
+     "life": 2,
      "suicide": 4,
-     "infection": 3
+     "infection": 5
+    },
+    "2024": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 3,
+     "life": 2,
+     "suicide": 4,
+     "infection": 5
     },
     "2025": {
      "traffic": 4,
@@ -1307,40 +1787,48 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.6,
-    "crime": 0.6,
-    "life": 0.8,
+    "traffic": 0.64,
+    "fire": 0.68,
+    "crime": 0.56,
+    "life": 0.56,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.88,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.6,
-    "crime": 0.5,
-    "life": 0.7,
+    "traffic": 0.64,
+    "fire": 0.68,
+    "crime": 0.56,
+    "life": 0.56,
     "suicide": 1,
-    "infection": 0.7,
+    "infection": 0.88,
     "industrial": 0.6
    },
    "ranked": [
+    "infection",
     "traffic",
     "life",
-    "infection",
     "fire",
     "crime"
    ],
-   "tieBreak": "order",
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
-    "traffic",
+    "crime",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "crime": "①",
+    "suicide": "①",
+    "life": "③"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -1357,13 +1845,37 @@
   "sasanggu": {
    "label": "부산광역시 사상구",
    "grades": {
-    "2024": {
+    "2021": {
      "traffic": 4,
      "fire": 3,
-     "crime": 3,
+     "crime": 4,
      "life": 4,
      "suicide": 4,
      "infection": 3
+    },
+    "2022": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 4,
+     "life": 4,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2023": {
+     "traffic": 3,
+     "fire": 5,
+     "crime": 4,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2024": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 4,
+     "life": 3,
+     "suicide": 4,
+     "infection": 4
     },
     "2025": {
      "traffic": 3,
@@ -1376,24 +1888,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.6,
-    "fire": 0.4,
+    "traffic": 0.64,
+    "fire": 0.64,
     "crime": 0.8,
-    "life": 0.6,
+    "life": 0.72,
     "suicide": 1,
-    "infection": 1,
+    "infection": 0.76,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.5,
-    "crime": 0.7,
-    "life": 0.7,
+    "traffic": 0.64,
+    "fire": 0.64,
+    "crime": 0.8,
+    "life": 0.72,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.76,
     "industrial": 0.6
    },
    "ranked": [
@@ -1406,10 +1921,15 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "crime"
+    "crime",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "crime": "①",
+    "suicide": "①",
+    "infection": "③"
+   },
    "lowGrades": [
     "crime",
     "suicide",
@@ -1425,12 +1945,36 @@
   "gwanak": {
    "label": "서울특별시 관악구",
    "grades": {
-    "2024": {
-     "traffic": 5,
-     "fire": 4,
-     "crime": 2,
-     "life": 5,
+    "2021": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 3,
+     "life": 3,
      "suicide": 4,
+     "infection": 3
+    },
+    "2022": {
+     "traffic": 3,
+     "fire": 3,
+     "crime": 3,
+     "life": 3,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 3,
+     "infection": 2
+    },
+    "2024": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 3,
      "infection": 3
     },
     "2025": {
@@ -1444,22 +1988,25 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.6,
-    "crime": 0.8,
+    "traffic": 0.68,
+    "fire": 0.64,
+    "crime": 0.64,
     "life": 0.6,
     "suicide": 1,
     "infection": 0.6,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.9,
-    "fire": 0.7,
-    "crime": 0.6,
-    "life": 0.8,
+    "traffic": 0.68,
+    "fire": 0.64,
+    "crime": 0.64,
+    "life": 0.6,
     "suicide": 1,
     "infection": 0.6,
     "industrial": 0.6
@@ -1467,17 +2014,22 @@
    "ranked": [
     "traffic",
     "crime",
-    "life",
     "fire",
+    "life",
     "infection"
    ],
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "traffic",
-    "crime"
+    "crime",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "crime": "④",
+    "infection": "④",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "crime"
@@ -1492,13 +2044,37 @@
   "geumcheon": {
    "label": "서울특별시 금천구",
    "grades": {
-    "2024": {
-     "traffic": 3,
+    "2021": {
+     "traffic": 4,
      "fire": 4,
-     "crime": 3,
+     "crime": 4,
      "life": 3,
      "suicide": 4,
      "infection": 3
+    },
+    "2022": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 4,
+     "life": 3,
+     "suicide": 3,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 4,
+     "life": 3,
+     "suicide": 3,
+     "infection": 3
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 3,
+     "life": 4,
+     "suicide": 3,
+     "infection": 2
     },
     "2025": {
      "traffic": 4,
@@ -1511,40 +2087,48 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.8,
-    "crime": 0.6,
-    "life": 0.6,
+    "traffic": 0.84,
+    "fire": 0.84,
+    "crime": 0.72,
+    "life": 0.64,
     "suicide": 1,
-    "infection": 0.4,
+    "infection": 0.56,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.8,
-    "crime": 0.6,
-    "life": 0.6,
+    "traffic": 0.84,
+    "fire": 0.84,
+    "crime": 0.72,
+    "life": 0.64,
     "suicide": 1,
-    "infection": 0.5,
+    "infection": 0.56,
     "industrial": 0.6
    },
    "ranked": [
     "fire",
     "traffic",
-    "crime",
     "life",
+    "crime",
     "infection"
    ],
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "fire",
-    "traffic"
+    "traffic",
+    "fire"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "①",
+    "fire": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -1560,13 +2144,37 @@
   "sejong": {
    "label": "세종특별자치시",
    "grades": {
+    "2021": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 1,
+     "life": 5,
+     "suicide": 1,
+     "infection": 1
+    },
+    "2022": {
+     "traffic": 3,
+     "fire": 1,
+     "crime": 1,
+     "life": 4,
+     "suicide": 1,
+     "infection": 1
+    },
+    "2023": {
+     "traffic": 5,
+     "fire": 3,
+     "crime": 1,
+     "life": 5,
+     "suicide": 2,
+     "infection": 1
+    },
     "2024": {
      "traffic": 4,
-     "fire": 5,
-     "crime": 2,
+     "fire": 1,
+     "crime": 1,
      "life": 5,
-     "suicide": 3,
-     "infection": 4
+     "suicide": 1,
+     "infection": 3
     },
     "2025": {
      "traffic": 3,
@@ -1579,29 +2187,32 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.6,
-    "fire": 0.8,
+    "traffic": 0.72,
+    "fire": 0.52,
     "crime": 0.2,
-    "life": 0.8,
+    "life": 0.92,
     "suicide": 1,
-    "infection": 0.2,
+    "infection": 0.28,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.9,
-    "crime": 0.3,
-    "life": 0.9,
+    "traffic": 0.72,
+    "fire": 0.52,
+    "crime": 0.2,
+    "life": 0.92,
     "suicide": 1,
-    "infection": 0.5,
+    "infection": 0.28,
     "industrial": 0.6
    },
    "ranked": [
-    "fire",
     "life",
+    "fire",
     "traffic",
     "infection",
     "crime"
@@ -1609,10 +2220,15 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "fire",
-    "life"
+    "life",
+    "fire"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "life": "①",
+    "fire": "③",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "fire",
     "life"
@@ -1627,13 +2243,37 @@
   "ujunggu": {
    "label": "울산광역시 중구",
    "grades": {
-    "2024": {
-     "traffic": 5,
-     "fire": 3,
-     "crime": 1,
-     "life": 5,
-     "suicide": 2,
+    "2021": {
+     "traffic": 2,
+     "fire": 4,
+     "crime": 2,
+     "life": 2,
+     "suicide": 3,
      "infection": 4
+    },
+    "2022": {
+     "traffic": 2,
+     "fire": 2,
+     "crime": 2,
+     "life": 3,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2023": {
+     "traffic": 2,
+     "fire": 2,
+     "crime": 1,
+     "life": 4,
+     "suicide": 3,
+     "infection": 2
+    },
+    "2024": {
+     "traffic": 2,
+     "fire": 1,
+     "crime": 1,
+     "life": 4,
+     "suicide": 4,
+     "infection": 3
     },
     "2025": {
      "traffic": 2,
@@ -1646,40 +2286,46 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
     "traffic": 0.4,
-    "fire": 0.2,
-    "crime": 0.2,
-    "life": 0.4,
+    "fire": 0.4,
+    "crime": 0.28,
+    "life": 0.6,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.64,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
+    "traffic": 0.4,
     "fire": 0.4,
-    "crime": 0.2,
-    "life": 0.7,
+    "crime": 0.28,
+    "life": 0.6,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.64,
     "industrial": 0.6
    },
    "ranked": [
     "infection",
-    "traffic",
     "life",
+    "traffic",
     "fire",
     "crime"
    ],
-   "tieBreak": "order",
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
-    "infection",
     "traffic"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "④",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "suicide",
     "infection"
@@ -1694,13 +2340,37 @@
   "ongjin": {
    "label": "인천광역시 옹진군",
    "grades": {
-    "2024": {
-     "traffic": 4,
-     "fire": 5,
+    "2021": {
+     "traffic": 1,
+     "fire": 2,
      "crime": 1,
      "life": 5,
+     "suicide": 2,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 1,
+     "fire": 3,
+     "crime": 3,
+     "life": 5,
+     "suicide": 2,
+     "infection": 2
+    },
+    "2023": {
+     "traffic": 2,
+     "fire": 2,
+     "crime": 2,
+     "life": 4,
      "suicide": 1,
      "infection": 1
+    },
+    "2024": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 2,
+     "life": 3,
+     "suicide": 5,
+     "infection": 3
     },
     "2025": {
      "traffic": 4,
@@ -1713,31 +2383,34 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.6,
+    "traffic": 0.44,
+    "fire": 0.48,
     "crime": 0.4,
-    "life": 0.6,
+    "life": 0.8,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.56,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.8,
-    "fire": 0.8,
-    "crime": 0.3,
+    "traffic": 0.44,
+    "fire": 0.48,
+    "crime": 0.4,
     "life": 0.8,
     "suicide": 1,
-    "infection": 0.5,
+    "infection": 0.56,
     "industrial": 0.6
    },
    "ranked": [
     "traffic",
     "infection",
-    "fire",
     "life",
+    "fire",
     "crime"
    ],
    "tieBreak": "2025",
@@ -1746,7 +2419,12 @@
     "traffic",
     "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "③",
+    "infection": "③",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "infection"
@@ -1761,13 +2439,37 @@
   "michuhol": {
    "label": "인천광역시 미추홀구",
    "grades": {
-    "2024": {
-     "traffic": 5,
+    "2021": {
+     "traffic": 2,
      "fire": 4,
-     "crime": 1,
+     "crime": 4,
      "life": 4,
      "suicide": 4,
-     "infection": 3
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 1,
+     "crime": 4,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 5,
+     "fire": 1,
+     "crime": 4,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 1,
+     "crime": 3,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
     },
     "2025": {
      "traffic": 4,
@@ -1780,24 +2482,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.4,
-    "crime": 0.8,
-    "life": 1,
+    "traffic": 0.76,
+    "fire": 0.36,
+    "crime": 0.76,
+    "life": 0.84,
     "suicide": 1,
     "infection": 0.8,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.9,
-    "fire": 0.6,
-    "crime": 0.5,
-    "life": 0.9,
+    "traffic": 0.76,
+    "fire": 0.36,
+    "crime": 0.76,
+    "life": 0.84,
     "suicide": 1,
-    "infection": 0.7,
+    "infection": 0.8,
     "industrial": 0.6
    },
    "ranked": [
@@ -1807,13 +2512,18 @@
     "crime",
     "fire"
    ],
-   "tieBreak": "2024",
+   "tieBreak": "order",
    "focusByIndex": [
     "suicide",
     "life",
-    "traffic"
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "life": "①",
+    "suicide": "①",
+    "infection": "①"
+   },
    "lowGrades": [
     "traffic",
     "crime",
@@ -1831,13 +2541,37 @@
   "gangjin": {
    "label": "전라남도 강진군",
    "grades": {
+    "2021": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 4,
+     "life": 3,
+     "suicide": 3,
+     "infection": 3
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 3,
+     "life": 3,
+     "suicide": 5,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 3,
+     "fire": 3,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 5
+    },
     "2024": {
      "traffic": 4,
-     "fire": 5,
-     "crime": 2,
-     "life": 4,
-     "suicide": 4,
-     "infection": 4
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 2,
+     "infection": 5
     },
     "2025": {
      "traffic": 4,
@@ -1850,31 +2584,34 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.4,
-    "crime": 0.6,
+    "traffic": 0.72,
+    "fire": 0.52,
+    "crime": 0.64,
     "life": 0.6,
     "suicide": 1,
-    "infection": 1,
+    "infection": 0.88,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.8,
-    "fire": 0.7,
-    "crime": 0.5,
-    "life": 0.7,
+    "traffic": 0.72,
+    "fire": 0.52,
+    "crime": 0.64,
+    "life": 0.6,
     "suicide": 1,
-    "infection": 0.9,
+    "infection": 0.88,
     "industrial": 0.6
    },
    "ranked": [
     "infection",
     "traffic",
-    "life",
     "crime",
+    "life",
     "fire"
    ],
    "tieBreak": "2025",
@@ -1883,7 +2620,12 @@
     "infection",
     "traffic"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "infection": "②",
+    "traffic": "④",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "suicide",
@@ -1899,6 +2641,30 @@
   "mokpo": {
    "label": "전라남도 목포시",
    "grades": {
+    "2021": {
+     "traffic": 3,
+     "fire": 2,
+     "crime": 5,
+     "life": 3,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 3,
+     "fire": 3,
+     "crime": 5,
+     "life": 3,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2023": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 5,
+     "life": 3,
+     "suicide": 4,
+     "infection": 4
+    },
     "2024": {
      "traffic": 2,
      "fire": 4,
@@ -1918,24 +2684,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.6,
-    "fire": 0.6,
+    "traffic": 0.56,
+    "fire": 0.64,
     "crime": 1,
     "life": 0.6,
     "suicide": 1,
-    "infection": 0.6,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.5,
-    "fire": 0.7,
+    "traffic": 0.56,
+    "fire": 0.64,
     "crime": 1,
     "life": 0.6,
     "suicide": 1,
-    "infection": 0.6,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "ranked": [
@@ -1948,10 +2717,13 @@
    "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
-    "crime",
-    "fire"
+    "crime"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "crime": "①",
+    "suicide": "①"
+   },
    "lowGrades": [
     "crime",
     "suicide"
@@ -1961,18 +2733,42 @@
     "fire",
     "suicide"
    ],
-   "matchesKangwon": true
+   "matchesKangwon": false
   },
   "naju": {
    "label": "전라남도 나주시",
    "grades": {
-    "2024": {
+    "2021": {
      "traffic": 4,
      "fire": 4,
-     "crime": 3,
-     "life": 3,
-     "suicide": 2,
-     "infection": 5
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 1,
+     "life": 4,
+     "suicide": 3,
+     "infection": 3
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
     },
     "2025": {
      "traffic": 4,
@@ -1985,40 +2781,50 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
     "traffic": 0.8,
-    "fire": 0.8,
-    "crime": 0.4,
+    "fire": 0.88,
+    "crime": 0.36,
     "life": 0.8,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "score1": {
     "traffic": 0.8,
-    "fire": 0.8,
-    "crime": 0.5,
-    "life": 0.7,
+    "fire": 0.88,
+    "crime": 0.36,
+    "life": 0.8,
     "suicide": 1,
-    "infection": 0.9,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "ranked": [
-    "infection",
-    "traffic",
     "fire",
+    "traffic",
     "life",
+    "infection",
     "crime"
    ],
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "traffic"
+    "traffic",
+    "fire",
+    "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "①",
+    "fire": "①",
+    "life": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2036,6 +2842,30 @@
   "jangheung": {
    "label": "전라남도 장흥군",
    "grades": {
+    "2021": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 4,
+     "life": 3,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 2,
+     "life": 3,
+     "suicide": 5,
+     "infection": 3
+    },
+    "2023": {
+     "traffic": 2,
+     "fire": 5,
+     "crime": 2,
+     "life": 3,
+     "suicide": 4,
+     "infection": 5
+    },
     "2024": {
      "traffic": 3,
      "fire": 4,
@@ -2055,24 +2885,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 1,
-    "crime": 0.4,
+    "traffic": 0.72,
+    "fire": 0.84,
+    "crime": 0.48,
     "life": 0.6,
     "suicide": 1,
-    "infection": 1,
+    "infection": 0.84,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.9,
-    "crime": 0.4,
+    "traffic": 0.72,
+    "fire": 0.84,
+    "crime": 0.48,
     "life": 0.6,
     "suicide": 1,
-    "infection": 0.9,
+    "infection": 0.84,
     "industrial": 0.6
    },
    "ranked": [
@@ -2088,7 +2921,12 @@
     "fire",
     "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "fire": "②",
+    "infection": "②",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2104,13 +2942,37 @@
   "jindo": {
    "label": "전라남도 진도군",
    "grades": {
-    "2024": {
+    "2021": {
      "traffic": 4,
      "fire": 4,
      "crime": 3,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 3,
+     "fire": 5,
+     "crime": 3,
      "life": 3,
      "suicide": 4,
-     "infection": 5
+     "infection": 3
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 3,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 4,
+     "life": 3,
+     "suicide": 3,
+     "infection": 4
     },
     "2025": {
      "traffic": 3,
@@ -2123,24 +2985,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.6,
-    "fire": 0.8,
-    "crime": 0.6,
-    "life": 0.6,
+    "traffic": 0.72,
+    "fire": 0.84,
+    "crime": 0.64,
+    "life": 0.68,
     "suicide": 1,
-    "infection": 1,
+    "infection": 0.8,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.8,
-    "crime": 0.6,
-    "life": 0.6,
+    "traffic": 0.72,
+    "fire": 0.84,
+    "crime": 0.64,
+    "life": 0.68,
     "suicide": 1,
-    "infection": 1,
+    "infection": 0.8,
     "industrial": 0.6
    },
    "ranked": [
@@ -2153,10 +3018,15 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "infection",
-    "fire"
+    "fire",
+    "traffic"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "fire": "②",
+    "traffic": "④",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "fire",
     "suicide",
@@ -2172,13 +3042,37 @@
   "goheung": {
    "label": "전라남도 고흥군",
    "grades": {
-    "2024": {
+    "2021": {
      "traffic": 4,
      "fire": 5,
-     "crime": 4,
+     "crime": 3,
+     "life": 2,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
      "life": 3,
      "suicide": 3,
-     "infection": 4
+     "infection": 5
+    },
+    "2023": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 3,
+     "infection": 5
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 3,
+     "suicide": 4,
+     "infection": 5
     },
     "2025": {
      "traffic": 4,
@@ -2191,30 +3085,33 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.8,
+    "traffic": 0.76,
+    "fire": 0.84,
     "crime": 0.6,
-    "life": 0.6,
+    "life": 0.56,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.92,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.8,
-    "fire": 0.9,
-    "crime": 0.7,
-    "life": 0.6,
+    "traffic": 0.76,
+    "fire": 0.84,
+    "crime": 0.6,
+    "life": 0.56,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.92,
     "industrial": 0.6
    },
    "ranked": [
-    "fire",
-    "traffic",
     "infection",
+    "traffic",
+    "fire",
     "crime",
     "life"
    ],
@@ -2222,9 +3119,14 @@
    "focusByIndex": [
     "suicide",
     "fire",
-    "traffic"
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "fire": "①",
+    "infection": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2240,11 +3142,35 @@
   "jeongeup": {
    "label": "전북특별자치도 정읍시",
    "grades": {
-    "2024": {
-     "traffic": 5,
+    "2021": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    },
+    "2022": {
+     "traffic": 4,
      "fire": 5,
      "crime": 2,
-     "life": 4,
+     "life": 5,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 2,
+     "life": 5,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 2,
+     "life": 5,
      "suicide": 3,
      "infection": 4
     },
@@ -2259,29 +3185,32 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 1,
-    "fire": 1,
-    "crime": 0.4,
-    "life": 0.8,
+    "traffic": 0.88,
+    "fire": 0.92,
+    "crime": 0.44,
+    "life": 0.92,
     "suicide": 1,
     "infection": 0.8,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 1,
-    "fire": 1,
-    "crime": 0.4,
-    "life": 0.8,
+    "traffic": 0.88,
+    "fire": 0.92,
+    "crime": 0.44,
+    "life": 0.92,
     "suicide": 1,
     "infection": 0.8,
     "industrial": 0.6
    },
    "ranked": [
-    "traffic",
     "fire",
+    "traffic",
     "life",
     "infection",
     "crime"
@@ -2290,9 +3219,18 @@
    "focusByIndex": [
     "suicide",
     "traffic",
-    "fire"
+    "fire",
+    "life",
+    "infection"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "①",
+    "fire": "①",
+    "life": "①",
+    "infection": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2310,13 +3248,37 @@
   "jinan": {
    "label": "전북특별자치도 진안군",
    "grades": {
-    "2024": {
+    "2021": {
      "traffic": 5,
+     "fire": 3,
+     "crime": 1,
+     "life": 3,
+     "suicide": 1,
+     "infection": 2
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 1,
+     "life": 3,
+     "suicide": 2,
+     "infection": 2
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 1,
+     "crime": 1,
+     "life": 3,
+     "suicide": 1,
+     "infection": 4
+    },
+    "2024": {
+     "traffic": 4,
      "fire": 5,
-     "crime": 2,
+     "crime": 1,
      "life": 5,
-     "suicide": 4,
-     "infection": 5
+     "suicide": 1,
+     "infection": 1
     },
     "2025": {
      "traffic": 3,
@@ -2329,24 +3291,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.6,
-    "fire": 0.8,
+    "traffic": 0.8,
+    "fire": 0.64,
     "crime": 0.2,
-    "life": 1,
+    "life": 0.76,
     "suicide": 1,
-    "infection": 0.6,
+    "infection": 0.48,
     "industrial": 0.6
    },
    "score1": {
     "traffic": 0.8,
-    "fire": 0.9,
-    "crime": 0.3,
-    "life": 1,
+    "fire": 0.64,
+    "crime": 0.2,
+    "life": 0.76,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.48,
     "industrial": 0.6
    },
    "ranked": [
@@ -2359,10 +3324,15 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "life",
-    "fire"
+    "traffic",
+    "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "②",
+    "life": "③",
+    "suicide": "③"
+   },
    "lowGrades": [
     "fire",
     "life"
@@ -2377,13 +3347,37 @@
   "namwon": {
    "label": "전북특별자치도 남원시",
    "grades": {
-    "2024": {
+    "2021": {
      "traffic": 4,
-     "fire": 2,
+     "fire": 5,
      "crime": 2,
      "life": 4,
+     "suicide": 3,
+     "infection": 3
+    },
+    "2022": {
+     "traffic": 5,
+     "fire": 5,
+     "crime": 1,
+     "life": 4,
      "suicide": 4,
-     "infection": 5
+     "infection": 3
+    },
+    "2023": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 1,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2024": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 1,
+     "life": 4,
+     "suicide": 4,
+     "infection": 3
     },
     "2025": {
      "traffic": 5,
@@ -2396,40 +3390,50 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 1,
-    "fire": 1,
-    "crime": 0.2,
+    "traffic": 0.96,
+    "fire": 0.92,
+    "crime": 0.24,
     "life": 0.8,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.9,
-    "fire": 0.7,
-    "crime": 0.3,
+    "traffic": 0.96,
+    "fire": 0.92,
+    "crime": 0.24,
     "life": 0.8,
     "suicide": 1,
-    "infection": 0.9,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "ranked": [
     "traffic",
     "fire",
-    "infection",
     "life",
+    "infection",
     "crime"
    ],
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
     "traffic",
-    "fire"
+    "fire",
+    "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "①",
+    "fire": "①",
+    "life": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2447,12 +3451,36 @@
   "jangsu": {
    "label": "전북특별자치도 장수군",
    "grades": {
-    "2024": {
-     "traffic": 4,
-     "fire": 2,
-     "crime": 2,
+    "2021": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 1,
      "life": 4,
-     "suicide": 1,
+     "suicide": 3,
+     "infection": 3
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 1,
+     "crime": 1,
+     "life": 5,
+     "suicide": 2,
+     "infection": 2
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 1,
+     "life": 5,
+     "suicide": 2,
+     "infection": 2
+    },
+    "2024": {
+     "traffic": 5,
+     "fire": 3,
+     "crime": 1,
+     "life": 5,
+     "suicide": 2,
      "infection": 4
     },
     "2025": {
@@ -2466,24 +3494,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
     "traffic": 0.8,
     "fire": 0.6,
     "crime": 0.2,
-    "life": 0.8,
+    "life": 0.92,
     "suicide": 1,
-    "infection": 0.2,
+    "infection": 0.48,
     "industrial": 0.6
    },
    "score1": {
     "traffic": 0.8,
-    "fire": 0.5,
-    "crime": 0.3,
-    "life": 0.8,
+    "fire": 0.6,
+    "crime": 0.2,
+    "life": 0.92,
     "suicide": 1,
-    "infection": 0.5,
+    "infection": 0.48,
     "industrial": 0.6
    },
    "ranked": [
@@ -2496,10 +3527,15 @@
    "tieBreak": "2025",
    "focusByIndex": [
     "suicide",
-    "traffic",
-    "life"
+    "life",
+    "traffic"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "life": "①",
+    "traffic": "②",
+    "suicide": "③"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -2515,13 +3551,37 @@
   "jeju": {
    "label": "제주특별자치도",
    "grades": {
-    "2024": {
-     "traffic": 5,
-     "fire": 4,
-     "crime": 3,
-     "life": 3,
+    "2021": {
+     "traffic": 3,
+     "fire": 5,
+     "crime": 5,
+     "life": 5,
      "suicide": 4,
-     "infection": 4
+     "infection": 3
+    },
+    "2022": {
+     "traffic": 2,
+     "fire": 2,
+     "crime": 5,
+     "life": 5,
+     "suicide": 2,
+     "infection": 1
+    },
+    "2023": {
+     "traffic": 2,
+     "fire": 2,
+     "crime": 5,
+     "life": 5,
+     "suicide": 3,
+     "infection": 2
+    },
+    "2024": {
+     "traffic": 2,
+     "fire": 2,
+     "crime": 5,
+     "life": 5,
+     "suicide": 3,
+     "infection": 3
     },
     "2025": {
      "traffic": 2,
@@ -2534,32 +3594,35 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.4,
-    "fire": 0.4,
+    "traffic": 0.44,
+    "fire": 0.52,
     "crime": 1,
     "life": 1,
     "suicide": 1,
-    "infection": 0.4,
+    "infection": 0.44,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.6,
-    "crime": 0.8,
-    "life": 0.8,
+    "traffic": 0.44,
+    "fire": 0.52,
+    "crime": 1,
+    "life": 1,
     "suicide": 1,
-    "infection": 0.6,
+    "infection": 0.44,
     "industrial": 0.6
    },
    "ranked": [
     "crime",
     "life",
+    "infection",
     "traffic",
-    "fire",
-    "infection"
+    "fire"
    ],
    "tieBreak": "2025",
    "focusByIndex": [
@@ -2567,7 +3630,12 @@
     "crime",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "crime": "①",
+    "life": "①",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "crime",
     "life",
@@ -2583,13 +3651,37 @@
   "gongju": {
    "label": "충청남도 공주시",
    "grades": {
-    "2024": {
+    "2021": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 2,
+     "life": 5,
+     "suicide": 5,
+     "infection": 5
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 2,
+     "life": 5,
+     "suicide": 4,
+     "infection": 5
+    },
+    "2023": {
      "traffic": 4,
      "fire": 4,
      "crime": 2,
-     "life": 4,
-     "suicide": 3,
-     "infection": 4
+     "life": 5,
+     "suicide": 5,
+     "infection": 5
+    },
+    "2024": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 2,
+     "life": 5,
+     "suicide": 4,
+     "infection": 3
     },
     "2025": {
      "traffic": 5,
@@ -2602,24 +3694,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 1,
-    "fire": 0.6,
-    "crime": 0.2,
+    "traffic": 0.92,
+    "fire": 0.72,
+    "crime": 0.36,
     "life": 1,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.88,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.9,
-    "fire": 0.7,
-    "crime": 0.3,
-    "life": 0.9,
+    "traffic": 0.92,
+    "fire": 0.72,
+    "crime": 0.36,
+    "life": 1,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.88,
     "industrial": 0.6
    },
    "ranked": [
@@ -2635,7 +3730,12 @@
     "traffic",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "①",
+    "life": "①",
+    "suicide": "①"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -2652,12 +3752,36 @@
   "dangjin": {
    "label": "충청남도 당진시",
    "grades": {
-    "2024": {
+    "2021": {
+     "traffic": 5,
+     "fire": 4,
+     "crime": 3,
+     "life": 4,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2022": {
      "traffic": 5,
      "fire": 3,
      "crime": 3,
-     "life": 3,
-     "suicide": 1,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 5,
+     "fire": 3,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 3
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 3,
+     "crime": 3,
+     "life": 4,
+     "suicide": 4,
      "infection": 3
     },
     "2025": {
@@ -2671,24 +3795,27 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 1,
-    "fire": 0.6,
-    "crime": 0.4,
+    "traffic": 0.96,
+    "fire": 0.64,
+    "crime": 0.52,
     "life": 0.8,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 1,
-    "fire": 0.6,
-    "crime": 0.5,
-    "life": 0.7,
+    "traffic": 0.96,
+    "fire": 0.64,
+    "crime": 0.52,
+    "life": 0.8,
     "suicide": 1,
-    "infection": 0.7,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "ranked": [
@@ -2698,13 +3825,18 @@
     "fire",
     "crime"
    ],
-   "tieBreak": "order",
+   "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
     "traffic",
     "life"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "traffic": "①",
+    "life": "①",
+    "suicide": "①"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -2721,13 +3853,37 @@
   "seocheon": {
    "label": "충청남도 서천군",
    "grades": {
+    "2021": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 3,
+     "life": 4,
+     "suicide": 5,
+     "infection": 3
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 3,
+     "life": 4,
+     "suicide": 4,
+     "infection": 4
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 2,
+     "crime": 4,
+     "life": 3,
+     "suicide": 5,
+     "infection": 3
+    },
     "2024": {
      "traffic": 3,
-     "fire": 3,
+     "fire": 4,
      "crime": 3,
-     "life": 2,
-     "suicide": 3,
-     "infection": 4
+     "life": 3,
+     "suicide": 4,
+     "infection": 3
     },
     "2025": {
      "traffic": 4,
@@ -2740,40 +3896,48 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 0.8,
-    "fire": 0.8,
-    "crime": 0.6,
-    "life": 0.6,
+    "traffic": 0.76,
+    "fire": 0.56,
+    "crime": 0.64,
+    "life": 0.68,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.7,
-    "fire": 0.7,
-    "crime": 0.6,
-    "life": 0.5,
+    "traffic": 0.76,
+    "fire": 0.56,
+    "crime": 0.64,
+    "life": 0.68,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "ranked": [
-    "infection",
-    "traffic",
     "fire",
+    "traffic",
+    "infection",
     "crime",
     "life"
    ],
    "tieBreak": "order",
    "focusByIndex": [
     "suicide",
-    "infection",
+    "fire",
     "traffic"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "②",
+    "fire": "③",
+    "traffic": "④"
+   },
    "lowGrades": [
     "traffic",
     "fire",
@@ -2790,12 +3954,36 @@
   "danyang": {
    "label": "충청북도 단양군",
    "grades": {
-    "2024": {
-     "traffic": 4,
+    "2021": {
+     "traffic": 3,
      "fire": 1,
-     "crime": 1,
+     "crime": 4,
+     "life": 5,
+     "suicide": 4,
+     "infection": 5
+    },
+    "2022": {
+     "traffic": 3,
+     "fire": 5,
+     "crime": 3,
+     "life": 4,
+     "suicide": 5,
+     "infection": 2
+    },
+    "2023": {
+     "traffic": 3,
+     "fire": 4,
+     "crime": 2,
      "life": 5,
      "suicide": 1,
+     "infection": 3
+    },
+    "2024": {
+     "traffic": 3,
+     "fire": 3,
+     "crime": 2,
+     "life": 3,
+     "suicide": 4,
      "infection": 3
     },
     "2025": {
@@ -2809,29 +3997,32 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
-    "traffic": 1,
-    "fire": 0.4,
-    "crime": 0.4,
-    "life": 1,
+    "traffic": 0.68,
+    "fire": 0.6,
+    "crime": 0.52,
+    "life": 0.88,
     "suicide": 1,
-    "infection": 0.8,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.9,
-    "fire": 0.3,
-    "crime": 0.3,
-    "life": 1,
+    "traffic": 0.68,
+    "fire": 0.6,
+    "crime": 0.52,
+    "life": 0.88,
     "suicide": 1,
-    "infection": 0.7,
+    "infection": 0.68,
     "industrial": 0.6
    },
    "ranked": [
-    "life",
     "traffic",
+    "life",
     "infection",
     "fire",
     "crime"
@@ -2842,7 +4033,12 @@
     "life",
     "traffic"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "life": "②",
+    "traffic": "③",
+    "suicide": "⑤"
+   },
    "lowGrades": [
     "traffic",
     "life",
@@ -2858,13 +4054,37 @@
   "jecheon": {
    "label": "충청북도 제천시",
    "grades": {
-    "2024": {
-     "traffic": 2,
-     "fire": 2,
-     "crime": 5,
-     "life": 5,
-     "suicide": 3,
+    "2021": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 2,
+     "life": 4,
+     "suicide": 4,
+     "infection": 5
+    },
+    "2022": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 3,
+     "life": 4,
+     "suicide": 5,
      "infection": 3
+    },
+    "2023": {
+     "traffic": 4,
+     "fire": 5,
+     "crime": 2,
+     "life": 4,
+     "suicide": 5,
+     "infection": 4
+    },
+    "2024": {
+     "traffic": 4,
+     "fire": 4,
+     "crime": 2,
+     "life": 3,
+     "suicide": 5,
+     "infection": 4
     },
     "2025": {
      "traffic": 4,
@@ -2877,40 +4097,48 @@
    },
    "years": [
     "2025",
-    "2024"
+    "2024",
+    "2023",
+    "2022",
+    "2021"
    ],
    "weights": {
     "traffic": 0.8,
-    "fire": 0.6,
-    "crime": 0.4,
-    "life": 0.8,
+    "fire": 0.8,
+    "crime": 0.44,
+    "life": 0.76,
     "suicide": 1,
     "infection": 0.8,
     "industrial": 0.6
    },
    "score1": {
-    "traffic": 0.6,
-    "fire": 0.5,
-    "crime": 0.7,
-    "life": 0.9,
+    "traffic": 0.8,
+    "fire": 0.8,
+    "crime": 0.44,
+    "life": 0.76,
     "suicide": 1,
-    "infection": 0.7,
+    "infection": 0.8,
     "industrial": 0.6
    },
    "ranked": [
-    "life",
-    "infection",
     "traffic",
+    "infection",
+    "life",
     "fire",
     "crime"
    ],
    "tieBreak": "2024",
    "focusByIndex": [
     "suicide",
-    "life",
-    "infection"
+    "traffic",
+    "fire"
    ],
-   "focusSource": "index",
+   "focusSource": "override",
+   "focusType": {
+    "suicide": "①",
+    "traffic": "②",
+    "fire": "②"
+   },
    "lowGrades": [
     "traffic",
     "life",

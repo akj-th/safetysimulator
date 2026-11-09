@@ -1,13 +1,17 @@
 /* ════════════════════════════════════════════════════════════════════
    지역안전지수 등급 → 가중치 (2026-10-20 실무회의 ★)
-     입력  data/raw/analysis_0901/지역별 안전유형 3개 추출_강원대.xlsx  (수정본 시트: 2025·2024 등급 6분야 + 강원대 확정 3분야)
+     입력  data/raw/safety_index_1030/지역안전지수_5년.xlsx  ★ 2026-11-09 — AURI 가 중점관리분야 선정에 쓴 2021~2025 등급(41곳 6분야, 10/30 정호경 회신)
+           (없으면 예전처럼 data/raw/analysis_0901/지역별 안전유형 3개 추출_강원대.xlsx 수정본 시트의 2025·2024 + AURI 보고서 전체본 4곳 표)
+           ⚠ 강원대 엑셀의 2024 열은 행이 밀려 있었음(41곳 중 35곳이 다른 지자체 값 — 2025·2021~2023 은 일치). 5개년 표가 있으면 그것만 씀
      출력  data/stats/safety-index.json
    회의 결정
      · 가중치 자료는 무조건 지역안전지수. 1~5 등급(5 = 가장 나쁨)을 0~1 로 환산해 HEA 에 곱함
      · 자살은 모든 지자체 고정(최하위 등급 취급 = 1.0). 나머지는 실제 등급 그대로
-     · 기준 연도 최근 2개년(2025·2024). 2025 로 정렬, 동률이면 2024
+     · 기준 연도 최근 2개년(2025·2024). 2025 로 정렬, 동률이면 2024 (지수 규칙 — 중점분야를 직접 지정하지 않은 곳만)
      · 산업재해는 지역안전지수에 없는 분야 → 중간값(3등급 = 0.6)으로 두고 noIndex 표시
    환산: w = 등급 ÷ 5 (1등급 0.2 … 5등급 1.0). 0 이 나오면 그 분야가 통째로 사라지므로 (등급−1)/4 는 쓰지 않음.
+   ★ 2026-11-09 가중치 등급 = 5년 평균 (AURI 「지역안전지수_5년.xlsx」 가중치 시트와 같은 값 — 10/21 담당자 "5개년 등급 × 가중치").
+     전에는 2025 등급 하나. 5개년 표가 없으면 예전대로 2025(없으면 2024)
    실행:  node tools/build-safety-index.mjs
    ════════════════════════════════════════════════════════════════════ */
 import fs from 'node:fs';
@@ -17,6 +21,9 @@ import { readXlsx } from './lib/xlsx.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'data/raw/analysis_0901/지역별 안전유형 3개 추출_강원대.xlsx');
+const FIVE_SRC = path.join(ROOT, 'data/raw/safety_index_1030/지역안전지수_5년.xlsx');
+const FIVE_YEARS = ['2021', '2022', '2023', '2024', '2025'];
+const FIVE_COLS = ['traffic', 'fire', 'crime', 'life', 'suicide', 'infection'];   // 시트 열 순서 — 분야마다 2021~2025 다섯 칸
 const OUT = path.join(ROOT, 'data/stats/safety-index.json');
 const FIELDS = ['traffic', 'fire', 'crime', 'life', 'suicide', 'infection'];
 const LABEL = { traffic: '교통사고', fire: '화재', crime: '범죄', life: '생활안전', suicide: '자살', infection: '감염병', industrial: '산업재해' };
@@ -29,12 +36,13 @@ const AURI_DIR = path.join(ROOT, 'data/stats/auri-reports');
 /* ★ 중점관리분야 직접 지정 (2026-10-27, 10/26 회의 "3개로 고정하지 않음") — tools/config/focus-override.json.
    적힌 지자체만 규칙 대신 그 목록을 씁니다(개수 제한 없음). AURI 중점관리분야 최종본이 오면 41곳 모두 표 1-3 그대로
    (2026-10-28 송부본을 넣었다가 주무관 회의에서 다시 수정 예정이라 같은 날 뺌 — 목록은 커밋 11f3c82).
-   꼴 둘 — 분야 목록 [...] 또는 AURI 표 1-3 그대로 { 필수:[...], A:[...], B:[...], C:[...] } (순서 = 필수 → A → B → C).
-   표 꼴이면 분야마다 유형(A 장기 지속 취약 · B 최근 반복 취약 · C 최근 급격 악화)을 focusType 에 남깁니다 */
+   꼴 셋 — 분야 목록 [...] · 10/28 송부본 { 필수:[...], A:[...], B:[...], C:[...] } · ★ 10/30 확정본 { ①:[...], ②:[...], ③:[...], ④:[...], ⑤:[...] }
+   (①5년 연속 4·5등급 ②5년 평균 4.0 이하 ③’25 1.5등급↑ 급락 ④취약↓·위해↑ ⑤자살). 표 꼴이면 분야마다 기준을 focusType 에 남깁니다.
+   순서 = 자살 맨 앞(어느 칸에 있든) → 칸 순서 */
 const OVERRIDE_FILE = path.join(ROOT, 'tools/config/focus-override.json');
 const OVERRIDE_CFG = fs.existsSync(OVERRIDE_FILE) ? JSON.parse(fs.readFileSync(OVERRIDE_FILE, 'utf8')) : {};
 const OVERRIDE = OVERRIDE_CFG.regions || {};
-const TYPE_KEYS = ['필수', 'A', 'B', 'C'];
+const TYPE_KEYS = ['필수', 'A', 'B', 'C', '①', '②', '③', '④', '⑤'];
 function overrideFor(slug) {
   const v = OVERRIDE[slug];
   const pairs = Array.isArray(v) ? v.map((x) => [x, null])
@@ -45,6 +53,7 @@ function overrideFor(slug) {
   if (bad.length) console.warn('⚠ focus-override', slug, '— 모르는 분야:', bad.join(', '));
   const keys = [], types = {};
   for (const [x, t] of pairs) { const k = keyOf(x); if (!k || keys.includes(k)) continue; keys.push(k); if (t) types[k] = t; }
+  if (keys.includes('suicide')) keys.splice(0, keys.length, 'suicide', ...keys.filter((k) => k !== 'suicide'));   // 자살 맨 앞 (확정본은 ①에 적힌 곳도 있음)
   return keys.length ? { keys, types: Object.keys(types).length ? types : null } : null;
 }
 function auriYearGrades(slug) {
@@ -76,18 +85,46 @@ function slugOf(sido, name) {
   const n = name.replace(/^\*/, '').trim();
   const cand = regions.filter(r => r.label.endsWith(n.replace(/^(광주|대구|대전|울산)\s*/, '')) || (n === '세종시' && r.region === 'sejong') || (n === '제주도' && r.region === 'jeju'));
   if (cand.length === 1) return cand[0].region;
-  const sidoKey = sido.replace(/특별자치도|특별자치시|광역시|특별시|도$/g, '');
+  const sidoKey = sido.trim().replace(/특별자치도|특별자치시|광역시|특별시|도$/g, '');   // trim — 5개년 표의 "울산광역시 " 처럼 끝에 빈칸
   const c2 = cand.filter(r => r.label.startsWith(sidoKey));
   return c2.length ? c2[0].region : null;
 }
+
+/* ★ 5개년 등급표 (2026-11-09) — { slug: { '2021': {분야: 등급}, … '2025': {…} } }. 시도 칸은 첫 줄에만 있어 이어 받습니다.
+   41곳 밖(춘천·천안·군산)은 건너뜁니다 */
+function readFive() {
+  if (!fs.existsSync(FIVE_SRC)) return null;
+  const sh = Object.values(readXlsx(FIVE_SRC)).find(s => s.name === '지역안전지수');
+  if (!sh) { console.warn('⚠ 5개년 표에 「지역안전지수」 시트가 없음'); return null; }
+  const out = {}; let sido = '';
+  for (const r of (sh.rows || sh).slice(2)) {
+    if (r[0] && String(r[0]).trim()) sido = String(r[0]).trim();
+    if (!r[1] || !String(r[1]).trim()) continue;
+    const slug = slugOf(sido, String(r[1]));
+    if (!slug) { console.log(`  5개년 표: ${sido} ${r[1]} — 41곳 밖, 건너뜀`); continue; }
+    if (out[slug]) console.warn('⚠ 5개년 표에 같은 지자체가 두 번:', slug);
+    const g = {};
+    FIVE_YEARS.forEach((y, yi) => { g[y] = {}; FIVE_COLS.forEach((f, fi) => {
+      const v = Number(String(r[2 + fi * 5 + yi] ?? '').trim());
+      g[y][f] = Number.isInteger(v) && v >= 1 && v <= 5 ? v : null;
+      if (g[y][f] == null) console.warn(`⚠ 5개년 표 ${slug} ${y} ${f} 등급이 1~5 가 아님: ${r[2 + fi * 5 + yi]}`);
+    }); });
+    out[slug] = g;
+  }
+  return out;
+}
+const FIVE = readFive();
+if (FIVE) console.log(`5개년 등급표 ${path.relative(ROOT, FIVE_SRC)} — ${Object.keys(FIVE).length}곳`);
 
 const wb = readXlsx(SRC);
 /* "수정본" 시트를 이름으로 고릅니다 (2026-10-27 점검 — 전에는 머리글만 보고 첫 시트 "원본"을 읽었음. 지금은 등급 칸 차이 0건) */
 const isGradeSheet = (s) => (s.rows || s)[3] && String((s.rows || s)[3][0]).includes('광역권');
 const sheet = Object.values(wb).find(s => s.name === '수정본' && isGradeSheet(s)) || Object.values(wb).find(isGradeSheet);
 const rows = (sheet.rows || sheet);
-const out = { source: path.basename(SRC) + ' (수정본 시트 · 강원대)', generatedAt: new Date().toISOString().slice(0, 10), years: YEARS,
-  rule: { weight: 'w = 등급 ÷ 5 (5등급 → 1.0). 자살은 모든 지자체 1.0 고정. 산업재해는 지수에 없어 ' + INDUSTRIAL_W + '. 정렬은 2025 등급, 동률이면 2024 (2026-10-20 실무회의)', industrialW: INDUSTRIAL_W },
+const out = { source: FIVE ? path.basename(FIVE_SRC) + ' (AURI 2021~2025, 2026-10-30)' : path.basename(SRC) + ' (수정본 시트 · 강원대)', generatedAt: new Date().toISOString().slice(0, 10),
+  years: FIVE ? FIVE_YEARS.slice().reverse() : YEARS,
+  rule: { weight: FIVE ? 'w = 5년(2021~2025) 평균 등급 ÷ 5 (5등급 → 1.0, AURI 가중치 시트와 같은 값). 자살은 모든 지자체 1.0 고정. 산업재해는 지수에 없어 ' + INDUSTRIAL_W + '. 지수 규칙의 정렬은 2025 등급, 동률이면 2024 (2026-10-20 실무회의 · 11-09 5년 평균)'
+    : 'w = 등급 ÷ 5 (5등급 → 1.0). 자살은 모든 지자체 1.0 고정. 산업재해는 지수에 없어 ' + INDUSTRIAL_W + '. 정렬은 2025 등급, 동률이면 2024 (2026-10-20 실무회의)', industrialW: INDUSTRIAL_W },
   /* 중점 분야를 직접 지정했으면 그 출처와 기준(AURI 표 1-1) — 화면이 근거를 보일 때 씁니다 */
   focus: OVERRIDE_CFG.source ? { source: OVERRIDE_CFG.source, criteria: OVERRIDE_CFG.criteria || null } : null,
   regions: {} };
@@ -98,10 +135,20 @@ for (const r of rows.slice(4)) {
   if (!slug) { console.warn('⚠ 지자체 못 찾음:', r[1], r[2]); continue; }
   /* 등급은 1~5 만 받습니다 — 빈칸이 숫자 0 이 되어 가중치 0 이 되는 것을 막음 (2026-10-27 점검) */
   const gradeOf = (v, y, f) => { const n = Number(String(v ?? '').trim()); if (Number.isInteger(n) && n >= 1 && n <= 5) return n; if (String(v ?? '').trim()) console.warn(`⚠ ${r[2]} ${y} ${f} 등급 값이 1~5 가 아님: ${v}`); return null; };
-  const grades = {}; YEARS.forEach(y => { grades[y] = {}; FIELDS.forEach((f, i) => { grades[y][f] = gradeOf(r[YEAR_COL[y] + i], y, f); }); });
+  let grades = {}; YEARS.forEach(y => { grades[y] = {}; FIELDS.forEach((f, i) => { grades[y][f] = gradeOf(r[YEAR_COL[y] + i], y, f); }); });
   const extra = auriYearGrades(slug);
   /* AURI 보고서 표가 있으면 그 값이 우선 — 엑셀의 2024 열은 네 곳 모두 AURI 표와 달랐고(2025 열은 전부 일치) 어느 판인지 확인 안 됨 */
   if (extra) for (const [y, g] of Object.entries(extra)) { if (!grades[y]) grades[y] = {}; FIELDS.forEach(f => { if (g[f] != null) grades[y][f] = g[f]; }); }
+  /* ★ 5개년 표가 있으면 그것만 씁니다(2026-11-09). 2025 는 엑셀, 2021~2023 은 보고서 표와 대조해 다르면 알립니다(2024 는 엑셀 행 밀림이라 대조 안 함) */
+  if (FIVE && FIVE[slug]) {
+    const diff = [];
+    for (const y of ['2025', '2023', '2022', '2021']) for (const f of FIELDS) {
+      const a = grades[y] && grades[y][f], b = FIVE[slug][y][f];
+      if (a != null && b != null && a !== b) diff.push(`${y} ${LABEL[f]} ${a}→${b}`);
+    }
+    if (diff.length) console.warn(`⚠ ${slug}: 5개년 표가 예전 값과 다름 — ${diff.join(', ')}`);
+    grades = FIVE[slug];
+  } else if (FIVE) console.warn(`⚠ ${slug}: 5개년 표에 없음 — 예전 값(엑셀 2025·2024)을 씁니다`);
   const g25 = grades[YEARS[0]], g24 = grades[YEARS[1]];
   /* ★ 정규점수(1) — 있는 연도 등급 평균 ÷ 5 (2026-10-21 담당자: 5개년 등급 × 가중치). 자살 1.0 고정 */
   const allYears = Object.keys(grades).sort().reverse();
@@ -109,7 +156,9 @@ for (const r of rows.slice(4)) {
   const _reg = regions.find(x => x.region === slug);
   const kangwon = (_reg.focusTypesKangwon || _reg.focusTypes || []).map(s => KO2KEY[String(s || '').trim()]).filter(Boolean);   // 2026-10-22: focusTypes 가 지수 기준으로 바뀌어 강원대 원본은 focusTypesKangwon   // 강원대 확정 3분야는 index.json 의 focusTypes(검증된 값)
   const grade = (f) => Number.isFinite(g25[f]) ? g25[f] : g24[f];
-  const weights = {}; FIELDS.forEach(f => { weights[f] = f === 'suicide' ? 1 : +(grade(f) / 5).toFixed(2); });
+  /* 가중치 등급 — 5개년 표가 있으면 5년 평균(AURI 가중치 시트), 없으면 2025(없으면 2024) */
+  const wGrade = (f) => { if (!(FIVE && FIVE[slug])) return grade(f); const gs = FIVE_YEARS.map(y => grades[y][f]).filter(Number.isFinite); return gs.length ? gs.reduce((a, b) => a + b, 0) / gs.length : grade(f); };
+  const weights = {}; FIELDS.forEach(f => { weights[f] = f === 'suicide' ? 1 : +(wGrade(f) / 5).toFixed(2); });
   weights.industrial = INDUSTRIAL_W;
   /* 하위 등급 분야 순위 — 자살 제외하고 2025 ↓, 2024 ↓, 분야 순 */
   const gv = (g, f) => (Number.isFinite(g[f]) ? g[f] : 0);
@@ -133,7 +182,7 @@ for (const r of rows.slice(4)) {
     tieBreak,                     // 하위 2위와 3위를 가른 것 — '2025' 등급 · '2024' 등급(2025 동률) · 'order' 분야 순서(둘 다 동률)
     focusByIndex,                 // 중점 분야 — focus-override.json 에 적힌 지자체는 그 목록(AURI 중점관리분야), 없으면 자살 + 하위 2개. 이름은 예전 그대로
     focusSource: forced ? 'override' : 'index',
-    ...(forced && forced.types ? { focusType: forced.types } : {}),   // 분야 → 필수·A·B·C (AURI 표 1-3)
+    ...(forced && forced.types ? { focusType: forced.types } : {}),   // 분야 → 선정 기준 ①~⑤ (10/30 확정본) · 필수·A·B·C (10/28 송부본)
     lowGrades,                    // 4·5등급인 분야
     kangwonFocus: kangwon,        // 강원대 공간분석 기반 확정 3분야
     matchesKangwon: same,
@@ -148,4 +197,4 @@ console.log(`중점 분야 — 직접 지정 ${nForced}곳${OVERRIDE_CFG.source 
 if (n - nForced) console.log(`하위 2·3위를 가른 것 — 2025 등급 ${tb('2025').length}곳 · 2025 동률→2024 ${tb('2024').length}곳(${tb('2024').join(',')}) · 둘 다 동률→분야 순서 ${tb('order').length}곳(${tb('order').join(',')})`);
 console.log(`지역안전지수 → ${path.relative(ROOT, OUT)} · 지자체 ${n}곳 (엑셀 ${matched}) · 지수 기준 3분야 = 강원대 확정 3분야 인 곳 ${agree}곳`);
 console.log('5개년 등급이 있는 곳:', Object.values(out.regions).filter(r => r.years.length > 2).map(r => r.label + '(' + r.years.join('·') + ')').join(', ') || '없음');
-for (const [s, r] of Object.entries(out.regions)) console.log(`  ${s.padEnd(11)} 2025 ${FIELDS.map(f => r.grades[2025][f]).join('')} → 중점 ${r.focusByIndex.map(f => LABEL[f] + (r.focusType && /^[ABC]$/.test(r.focusType[f]) ? '(' + r.focusType[f] + ')' : '')).join('·')} | 강원대 ${r.kangwonFocus.map(f => LABEL[f]).join('·')} ${r.matchesKangwon ? '✓' : ''}`);
+for (const [s, r] of Object.entries(out.regions)) console.log(`  ${s.padEnd(11)} 2025 ${FIELDS.map(f => r.grades[2025][f]).join('')} → 중점 ${r.focusByIndex.map(f => LABEL[f] + (r.focusType && /^[ABC①②③④]$/.test(r.focusType[f]) ? '(' + r.focusType[f] + ')' : '')).join('·')} | 강원대 ${r.kangwonFocus.map(f => LABEL[f]).join('·')} ${r.matchesKangwon ? '✓' : ''}`);

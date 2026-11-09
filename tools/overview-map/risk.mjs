@@ -35,7 +35,7 @@ export const AURI_COLORS = {
   traffic:    { label: '교통사고', rgb: [0xF2, 0xD0, 0x2E] },   // 노랑
   crime:      { label: '범죄',     rgb: [0x3C, 0xA8, 0x4A] },   // 초록
   suicide:    { label: '자살',     rgb: [0x2F, 0x7F, 0xE0] },   // 파랑
-  fire:       { label: '화재',     rgb: [0x1F, 0x2E, 0x7A] },   // 남색
+  fire:       { label: '화재',     rgb: [0x8C, 0x5A, 0x2E] },   // 갈색 (2026-11-04 정호경 요청 — 전엔 남색 1F2E7A. 이미 만든 종합도 SVG·JPG 는 다시 그리기 전까지 남색)
   life:       { label: '생활안전', rgb: [0x8E, 0x44, 0xAD] },   // 보라
 };
 const FOLDER = { traffic: '교통사고_최종', fire: '화재', crime: '범죄', life: '생활안전', industrial: '산업재해', suicide: '자살', infection: '감염병' };

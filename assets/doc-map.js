@@ -47,6 +47,13 @@ const AuriDocMap = (function () {
     return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
   }
 
+  /** 밝은 색인가 — 노랑 점에 테두리를 두를지 (index.html isLightColor 와 같은 기준) */
+  function isLight(hex) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return false;
+    const n = parseInt(m[1], 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.68;
+  }
+
   /** 경위도 여러 개를 감싸는 범위 */
   function bounds(coords) {
     let n = -90, s = 90, e = -180, w = 180;
@@ -98,6 +105,9 @@ const AuriDocMap = (function () {
    *   base      배경 타일을 받을지 (기본 true)
    *   pad       가장자리 여백 비율
    *   focus     {lat, lng, radiusM} — 경계 대신 이 반경에 맞춤
+   *   bbox      {n, s, e, w} — 이 범위에 맞춤 (지자체 전체 지도, 2026-11-04 정호경 요청)
+   *   outline   [[위도, 경도, 위도, 경도, …], …] — 지자체 경계 고리(region-bounds.json rings). 회색 실선
+   *   pointScale 점 크기 배율 (기본 1 — 지자체 전체처럼 넓은 지도는 작게)
    *
    * 돌려주는 값: { dataUrl, zoom, attribution, baseOk }
    */
@@ -113,7 +123,9 @@ const AuriDocMap = (function () {
     /* ① 어디를 그릴지 정합니다 */
     const ring = o.boundary && o.boundary.coordinates ? o.boundary.coordinates[0] : null;
     let b;
-    if (o.focus) {
+    if (o.bbox) {
+      b = { n: o.bbox.n, s: o.bbox.s, e: o.bbox.e, w: o.bbox.w };
+    } else if (o.focus) {
       /* 반경(m) → 위경도. 위도 1도 ≈ 111,320m */
       const dLat = o.focus.radiusM / 111320;
       const dLng = o.focus.radiusM / (111320 * Math.cos(o.focus.lat * Math.PI / 180));
@@ -174,6 +186,21 @@ const AuriDocMap = (function () {
       }
     }
 
+    /* ③-0 지자체 경계 — 회색 실선 (섬이 많은 옹진·진도는 고리가 여럿) */
+    if (o.outline && o.outline.length) {
+      ctx.beginPath();
+      o.outline.forEach(function (g) {
+        for (let i = 0; i + 1 < g.length; i += 2) {
+          const X = px(g[i + 1]), Y = py(g[i]);
+          if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+        }
+        ctx.closePath();
+      });
+      ctx.strokeStyle = 'rgba(51,51,51,.75)';
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+    }
+
     /* ③ 조사지 경계 */
     if (ring) {
       ctx.beginPath();
@@ -191,16 +218,18 @@ const AuriDocMap = (function () {
       ctx.setLineDash([]);
     }
 
-    /* ④ 사고 지점 — 건수가 많을수록 큽니다 */
+    /* ④ 사고 지점 — 건수가 많을수록 큽니다. 밝은 색(노랑)은 배경에 묻혀 어두운 테두리를 두릅니다 */
+    const ps = o.pointScale || 1;
     (o.points || []).forEach(function (p) {
       const X = px(p.lng), Y = py(p.lat);
       if (X < -20 || X > W + 20 || Y < -20 || Y > H + 20) return;
-      const r = Math.min(6, 1.9 + Math.sqrt(p.weight || 1) * 1.1);
+      const r = Math.min(6, 1.9 + Math.sqrt(p.weight || 1) * 1.1) * ps;
       ctx.beginPath();
       ctx.arc(X, Y, r, 0, Math.PI * 2);
       ctx.fillStyle = p.color || '#666666';
       ctx.globalAlpha = 0.78;
       ctx.fill();
+      if (isLight(p.color)) { ctx.strokeStyle = 'rgba(90,70,0,.8)'; ctx.lineWidth = 0.8; ctx.stroke(); }
       ctx.globalAlpha = 1;
     });
 
@@ -249,7 +278,7 @@ const AuriDocMap = (function () {
   function drawScale(ctx, W, H, z, lat) {
     /* 이 확대 단계에서 1픽셀이 몇 m 인가 */
     const mPerPx = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, z);
-    const nice = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+    const nice = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];   // 10·20km — 지자체 전체 지도
     let m = nice[0];
     for (const v of nice) { if (v / mPerPx <= W * 0.28) m = v; }
     const w = m / mPerPx;

@@ -87,10 +87,10 @@ const FOLDER = {
 /* 지도 레이어 점 색과 같은 색을 씁니다 (index.html 의 INCIDENT_CATEGORIES).
    히트맵과 점이 같은 분야인데 색이 다르면 무엇이 무엇인지 알 수 없습니다. */
 /* 2026-10-20: 종합도 SVG(overview-map/risk.mjs AURI_COLORS)와 같은 AURI 7색 — 사전진단서 분야별 지도와 종합도가 같은 색이어야 합니다.
-   (지도 화면 index.html 의 점 색과는 다릅니다) */
+   2026-11-04: 지도 화면(index.html)·문서 점 색도 이 7색으로 맞춤(정호경 요청) · 화재만 남색 → 갈색 */
 const COLOR = {
   industrial: [0xE5, 0x32, 0x2D], infection: [0xF2, 0x8C, 0x28], traffic: [0xF2, 0xD0, 0x2E],
-  crime: [0x3C, 0xA8, 0x4A], suicide: [0x2F, 0x7F, 0xE0], fire: [0x1F, 0x2E, 0x7A], life: [0x8E, 0x44, 0xAD],
+  crime: [0x3C, 0xA8, 0x4A], suicide: [0x2F, 0x7F, 0xE0], fire: [0x8C, 0x5A, 0x2E], life: [0x8E, 0x44, 0xAD],
 };
 
 const EPSG5186 = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';

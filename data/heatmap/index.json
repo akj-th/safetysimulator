@@ -1,6 +1,6 @@
 {
  "source": "강원대 QGIS 커널밀도 분석 결과 (AURI 제공) — 밀도값은 재계산하지 않고 그대로 사용",
- "generatedAt": "2026-10-28",
+ "generatedAt": "2026-11-09",
  "resolutionM": 40,
  "topQuantile": 0.99,
  "maxAlpha": 0.62,
@@ -9,6 +9,25 @@
   "andong": {
    "label": "경상북도 안동시",
    "layers": {
+    "traffic": {
+     "png": "andong_traffic.png",
+     "bounds": {
+      "sw": [
+       36.294172,
+       128.434191
+      ],
+      "ne": [
+       36.828147,
+       128.9937
+      ]
+     },
+     "size": [
+      1279,
+      1460
+     ],
+     "top": 0.38,
+     "max": 1
+    },
     "crime": {
      "png": "andong_crime.png",
      "bounds": {
@@ -90,6 +109,25 @@
   "bucheon": {
    "label": "경기도 부천시",
    "layers": {
+    "fire": {
+     "png": "bucheon_fire.png",
+     "bounds": {
+      "sw": [
+       37.458391,
+       126.741314
+      ],
+      "ne": [
+       37.554182,
+       126.833649
+      ]
+     },
+     "size": [
+      204,
+      267
+     ],
+     "top": 54.1,
+     "max": 79.18
+    },
     "crime": {
      "png": "bucheon_crime.png",
      "bounds": {
@@ -170,25 +208,6 @@
      ],
      "top": 72.55,
      "max": 117.11
-    },
-    "life": {
-     "png": "bukgu_life.png",
-     "bounds": {
-      "sw": [
-       35.121289,
-       126.834796
-      ],
-      "ne": [
-       35.258364,
-       127.02223
-      ]
-     },
-     "size": [
-      427,
-      381
-     ],
-     "top": 189.85,
-     "max": 258.69
     },
     "suicide": {
      "png": "bukgu_suicide.png",
@@ -495,6 +514,25 @@
   "donggu": {
    "label": "부산광역시 동구",
    "layers": {
+    "traffic": {
+     "png": "donggu_traffic.png",
+     "bounds": {
+      "sw": [
+       35.108252,
+       129.024992
+      ],
+      "ne": [
+       35.146424,
+       129.0655
+      ]
+     },
+     "size": [
+      95,
+      104
+     ],
+     "top": 0.97,
+     "max": 1
+    },
     "fire": {
      "png": "donggu_fire.png",
      "bounds": {
@@ -932,6 +970,25 @@
      ],
      "top": 9.52,
      "max": 23.04
+    },
+    "infection": {
+     "png": "goheung_infection.png",
+     "bounds": {
+      "sw": [
+       34.316633,
+       127.082554
+      ],
+      "ne": [
+       34.82822,
+       127.545756
+      ]
+     },
+     "size": [
+      1067,
+      1416
+     ],
+     "top": 4.64,
+     "max": 4.99
     }
    }
   },
@@ -1038,25 +1095,6 @@
   "gwanak": {
    "label": "서울특별시 관악구",
    "layers": {
-    "traffic": {
-     "png": "gwanak_traffic.png",
-     "bounds": {
-      "sw": [
-       37.435727,
-       126.898922
-      ],
-      "ne": [
-       37.495061,
-       126.988605
-      ]
-     },
-     "size": [
-      199,
-      165
-     ],
-     "top": 0.95,
-     "max": 1
-    },
     "fire": {
      "png": "gwanak_fire.png",
      "bounds": {
@@ -1113,6 +1151,25 @@
      ],
      "top": 68.04,
      "max": 103.3
+    },
+    "infection": {
+     "png": "gwanak_infection.png",
+     "bounds": {
+      "sw": [
+       37.435727,
+       126.898922
+      ],
+      "ne": [
+       37.495061,
+       126.988605
+      ]
+     },
+     "size": [
+      199,
+      165
+     ],
+     "top": 12.35,
+     "max": 15.14
     }
    }
   },
@@ -1256,6 +1313,25 @@
      ],
      "top": 12.53,
      "max": 30.41
+    },
+    "infection": {
+     "png": "hongcheon_infection.png",
+     "bounds": {
+      "sw": [
+       37.544709,
+       127.537425
+      ],
+      "ne": [
+       37.948795,
+       128.582069
+      ]
+     },
+     "size": [
+      2315,
+      1096
+     ],
+     "top": 3.72,
+     "max": 3.81
     }
    }
   },
@@ -1424,6 +1500,44 @@
   "jecheon": {
    "label": "충청북도 제천시",
    "layers": {
+    "traffic": {
+     "png": "jecheon_traffic.png",
+     "bounds": {
+      "sw": [
+       36.810492,
+       127.921994
+      ],
+      "ne": [
+       37.258799,
+       128.326285
+      ]
+     },
+     "size": [
+      914,
+      1234
+     ],
+     "top": 0.63,
+     "max": 1
+    },
+    "fire": {
+     "png": "jecheon_fire.png",
+     "bounds": {
+      "sw": [
+       36.810492,
+       127.921994
+      ],
+      "ne": [
+       37.258799,
+       128.326285
+      ]
+     },
+     "size": [
+      914,
+      1234
+     ],
+     "top": 7.55,
+     "max": 14.18
+    },
     "crime": {
      "png": "jecheon_crime.png",
      "bounds": {
@@ -1480,25 +1594,6 @@
      ],
      "top": 18.49,
      "max": 29.11
-    },
-    "infection": {
-     "png": "jecheon_infection.png",
-     "bounds": {
-      "sw": [
-       36.810492,
-       127.921994
-      ],
-      "ne": [
-       37.258799,
-       128.326285
-      ]
-     },
-     "size": [
-      914,
-      1234
-     ],
-     "top": 3.72,
-     "max": 3.81
     }
    }
   },
@@ -1643,6 +1738,25 @@
      "top": 41.07,
      "max": 56.5
     },
+    "life": {
+     "png": "jeongeup_life.png",
+     "bounds": {
+      "sw": [
+       35.461134,
+       126.714886
+      ],
+      "ne": [
+       35.75873,
+       127.116829
+      ]
+     },
+     "size": [
+      910,
+      827
+     ],
+     "top": 8.08,
+     "max": 12.57
+    },
     "suicide": {
      "png": "jeongeup_suicide.png",
      "bounds": {
@@ -1661,6 +1775,25 @@
      ],
      "top": 22.38,
      "max": 41.4
+    },
+    "infection": {
+     "png": "jeongeup_infection.png",
+     "bounds": {
+      "sw": [
+       35.461134,
+       126.714886
+      ],
+      "ne": [
+       35.75873,
+       127.116829
+      ]
+     },
+     "size": [
+      910,
+      827
+     ],
+     "top": 3.73,
+     "max": 3.81
     }
    }
   },
@@ -1748,8 +1881,8 @@
   "jinan": {
    "label": "전북특별자치도 진안군",
    "layers": {
-    "fire": {
-     "png": "jinan_fire.png",
+    "traffic": {
+     "png": "jinan_traffic.png",
      "bounds": {
       "sw": [
        35.61794,
@@ -1764,8 +1897,8 @@
       812,
       1140
      ],
-     "top": 6.76,
-     "max": 7.62
+     "top": 0.26,
+     "max": 1
     },
     "crime": {
      "png": "jinan_crime.png",
@@ -1848,6 +1981,25 @@
   "jindo": {
    "label": "전라남도 진도군",
    "layers": {
+    "traffic": {
+     "png": "jindo_traffic.png",
+     "bounds": {
+      "sw": [
+       34.143728,
+       125.795167
+      ],
+      "ne": [
+       34.589324,
+       126.38776
+      ]
+     },
+     "size": [
+      1352,
+      1248
+     ],
+     "top": 0.24,
+     "max": 1
+    },
     "fire": {
      "png": "jindo_fire.png",
      "bounds": {
@@ -1923,31 +2075,31 @@
      ],
      "top": 6.51,
      "max": 11.34
-    },
-    "infection": {
-     "png": "jindo_infection.png",
-     "bounds": {
-      "sw": [
-       34.143728,
-       125.795167
-      ],
-      "ne": [
-       34.589324,
-       126.38776
-      ]
-     },
-     "size": [
-      1352,
-      1248
-     ],
-     "top": 3.74,
-     "max": 3.8
     }
    }
   },
   "jjunggu": {
    "label": "대전광역시 중구",
    "layers": {
+    "traffic": {
+     "png": "jjunggu_traffic.png",
+     "bounds": {
+      "sw": [
+       36.206984,
+       127.367837
+      ],
+      "ne": [
+       36.349775,
+       127.458574
+      ]
+     },
+     "size": [
+      206,
+      396
+     ],
+     "top": 0.85,
+     "max": 1
+    },
     "fire": {
      "png": "jjunggu_fire.png",
      "bounds": {
@@ -1966,25 +2118,6 @@
      ],
      "top": 31.13,
      "max": 48.7
-    },
-    "crime": {
-     "png": "jjunggu_crime.png",
-     "bounds": {
-      "sw": [
-       36.206984,
-       127.367837
-      ],
-      "ne": [
-       36.349775,
-       127.458574
-      ]
-     },
-     "size": [
-      206,
-      396
-     ],
-     "top": 70.34,
-     "max": 89.19
     },
     "life": {
      "png": "jjunggu_life.png",
@@ -2048,25 +2181,6 @@
   "michuhol": {
    "label": "인천광역시 미추홀구",
    "layers": {
-    "traffic": {
-     "png": "michuhol_traffic.png",
-     "bounds": {
-      "sw": [
-       37.430188,
-       126.628832
-      ],
-      "ne": [
-       37.483949,
-       126.702989
-      ]
-     },
-     "size": [
-      164,
-      150
-     ],
-     "top": 0.94,
-     "max": 1
-    },
     "fire": {
      "png": "michuhol_fire.png",
      "bounds": {
@@ -2142,6 +2256,25 @@
      ],
      "top": 65.09,
      "max": 81.23
+    },
+    "infection": {
+     "png": "michuhol_infection.png",
+     "bounds": {
+      "sw": [
+       37.430188,
+       126.628832
+      ],
+      "ne": [
+       37.483949,
+       126.702989
+      ]
+     },
+     "size": [
+      164,
+      150
+     ],
+     "top": 7.97,
+     "max": 10.04
     }
    }
   },
@@ -2205,6 +2338,25 @@
      "top": 38.13,
      "max": 58.47
     },
+    "life": {
+     "png": "miryang_life.png",
+     "bounds": {
+      "sw": [
+       35.341531,
+       128.574166
+      ],
+      "ne": [
+       35.645526,
+       129.018192
+      ]
+     },
+     "size": [
+      1023,
+      825
+     ],
+     "top": 6.91,
+     "max": 11.44
+    },
     "suicide": {
      "png": "miryang_suicide.png",
      "bounds": {
@@ -2223,6 +2375,25 @@
      ],
      "top": 12.75,
      "max": 26.97
+    },
+    "infection": {
+     "png": "miryang_infection.png",
+     "bounds": {
+      "sw": [
+       35.341531,
+       128.574166
+      ],
+      "ne": [
+       35.645526,
+       129.018192
+      ]
+     },
+     "size": [
+      1023,
+      825
+     ],
+     "top": 3.73,
+     "max": 3.81
     }
    }
   },
@@ -2348,6 +2519,25 @@
      "top": 20.65,
      "max": 33.8
     },
+    "life": {
+     "png": "naju_life.png",
+     "bounds": {
+      "sw": [
+       34.868052,
+       126.512161
+      ],
+      "ne": [
+       35.114362,
+       126.899468
+      ]
+     },
+     "size": [
+      882,
+      686
+     ],
+     "top": 7.05,
+     "max": 14.83
+    },
     "suicide": {
      "png": "naju_suicide.png",
      "bounds": {
@@ -2366,25 +2556,6 @@
      ],
      "top": 13.12,
      "max": 24.11
-    },
-    "infection": {
-     "png": "naju_infection.png",
-     "bounds": {
-      "sw": [
-       34.868052,
-       126.512161
-      ],
-      "ne": [
-       35.114362,
-       126.899468
-      ]
-     },
-     "size": [
-      882,
-      686
-     ],
-     "top": 6.6,
-     "max": 7.62
     }
    }
   },
@@ -2466,25 +2637,6 @@
      ],
      "top": 7.12,
      "max": 8.26
-    },
-    "infection": {
-     "png": "namhae_infection.png",
-     "bounds": {
-      "sw": [
-       34.501751,
-       127.807931
-      ],
-      "ne": [
-       34.947533,
-       128.111741
-      ]
-     },
-     "size": [
-      708,
-      1230
-     ],
-     "top": 3.82,
-     "max": 3.93
     }
    }
   },
@@ -2547,6 +2699,25 @@
      ],
      "top": 48.34,
      "max": 111.36
+    },
+    "life": {
+     "png": "namwon_life.png",
+     "bounds": {
+      "sw": [
+       35.301197,
+       127.184434
+      ],
+      "ne": [
+       35.561336,
+       127.672884
+      ]
+     },
+     "size": [
+      1112,
+      717
+     ],
+     "top": 10.5,
+     "max": 14.03
     },
     "suicide": {
      "png": "namwon_suicide.png",
@@ -2653,6 +2824,25 @@
   "pocheon": {
    "label": "경기도 포천시",
    "layers": {
+    "traffic": {
+     "png": "pocheon_traffic.png",
+     "bounds": {
+      "sw": [
+       37.746203,
+       127.090047
+      ],
+      "ne": [
+       38.188466,
+       127.445101
+      ]
+     },
+     "size": [
+      784,
+      1225
+     ],
+     "top": 0.46,
+     "max": 1
+    },
     "crime": {
      "png": "pocheon_crime.png",
      "bounds": {
@@ -2709,25 +2899,6 @@
      ],
      "top": 12.8,
      "max": 19.07
-    },
-    "infection": {
-     "png": "pocheon_infection.png",
-     "bounds": {
-      "sw": [
-       37.746203,
-       127.090047
-      ],
-      "ne": [
-       38.188466,
-       127.445101
-      ]
-     },
-     "size": [
-      784,
-      1225
-     ],
-     "top": 3.73,
-     "max": 3.81
     }
    }
   },
@@ -2752,25 +2923,6 @@
      ],
      "top": 0.59,
      "max": 1
-    },
-    "fire": {
-     "png": "sacheon_fire.png",
-     "bounds": {
-      "sw": [
-       34.885086,
-       127.87912
-      ],
-      "ne": [
-       35.16013,
-       128.182019
-      ]
-     },
-     "size": [
-      699,
-      756
-     ],
-     "top": 11.39,
-     "max": 20.8
     },
     "crime": {
      "png": "sacheon_crime.png",
@@ -3034,6 +3186,25 @@
      "top": 0.29,
      "max": 1
     },
+    "fire": {
+     "png": "seocheon_fire.png",
+     "bounds": {
+      "sw": [
+       35.991566,
+       126.468173
+      ],
+      "ne": [
+       36.191787,
+       126.871189
+      ]
+     },
+     "size": [
+      906,
+      559
+     ],
+     "top": 6.81,
+     "max": 7.62
+    },
     "crime": {
      "png": "seocheon_crime.png",
      "bounds": {
@@ -3090,50 +3261,12 @@
      ],
      "top": 8.74,
      "max": 12.8
-    },
-    "infection": {
-     "png": "seocheon_infection.png",
-     "bounds": {
-      "sw": [
-       35.991566,
-       126.468173
-      ],
-      "ne": [
-       36.191787,
-       126.871189
-      ]
-     },
-     "size": [
-      906,
-      559
-     ],
-     "top": 3.74,
-     "max": 3.81
     }
    }
   },
   "taebaek": {
    "label": "강원특별자치도 태백시",
    "layers": {
-    "traffic": {
-     "png": "taebaek_traffic.png",
-     "bounds": {
-      "sw": [
-       37.058224,
-       128.873066
-      ],
-      "ne": [
-       37.34779,
-       129.094456
-      ]
-     },
-     "size": [
-      509,
-      794
-     ],
-     "top": 0.47,
-     "max": 1
-    },
     "fire": {
      "png": "taebaek_fire.png",
      "bounds": {
@@ -3152,6 +3285,25 @@
      ],
      "top": 7.47,
      "max": 10.28
+    },
+    "life": {
+     "png": "taebaek_life.png",
+     "bounds": {
+      "sw": [
+       37.058224,
+       128.873066
+      ],
+      "ne": [
+       37.34779,
+       129.094456
+      ]
+     },
+     "size": [
+      509,
+      794
+     ],
+     "top": 6.84,
+     "max": 8.34
     },
     "industrial": {
      "png": "taebaek_industrial.png",
@@ -3190,6 +3342,25 @@
      ],
      "top": 11.66,
      "max": 20.58
+    },
+    "infection": {
+     "png": "taebaek_infection.png",
+     "bounds": {
+      "sw": [
+       37.058224,
+       128.873066
+      ],
+      "ne": [
+       37.34779,
+       129.094456
+      ]
+     },
+     "size": [
+      509,
+      794
+     ],
+     "top": 4.99,
+     "max": 5.26
     }
    }
   },
@@ -3271,25 +3442,6 @@
      ],
      "top": 38.1,
      "max": 43.72
-    },
-    "infection": {
-     "png": "ujunggu_infection.png",
-     "bounds": {
-      "sw": [
-       35.543797,
-       129.252889
-      ],
-      "ne": [
-       35.600589,
-       129.353168
-      ]
-     },
-     "size": [
-      231,
-      153
-     ],
-     "top": 6.75,
-     "max": 7.61
     }
    }
   },
@@ -3353,6 +3505,25 @@
      "top": 41.09,
      "max": 64.95
     },
+    "life": {
+     "png": "yeongcheon_life.png",
+     "bounds": {
+      "sw": [
+       35.826676,
+       128.697809
+      ],
+      "ne": [
+       36.187966,
+       129.145173
+      ]
+     },
+     "size": [
+      1029,
+      983
+     ],
+     "top": 7.03,
+     "max": 13.47
+    },
     "suicide": {
      "png": "yeongcheon_suicide.png",
      "bounds": {
@@ -3371,31 +3542,31 @@
      ],
      "top": 17.46,
      "max": 32.34
+    },
+    "infection": {
+     "png": "yeongcheon_infection.png",
+     "bounds": {
+      "sw": [
+       35.826676,
+       128.697809
+      ],
+      "ne": [
+       36.187966,
+       129.145173
+      ]
+     },
+     "size": [
+      1029,
+      983
+     ],
+     "top": 5.36,
+     "max": 7.61
     }
    }
   },
   "yeongdogu": {
    "label": "부산광역시 영도구",
    "layers": {
-    "traffic": {
-     "png": "yeongdogu_traffic.png",
-     "bounds": {
-      "sw": [
-       35.036502,
-       129.03126
-      ],
-      "ne": [
-       35.104163,
-       129.104198
-      ]
-     },
-     "size": [
-      171,
-      185
-     ],
-     "top": 0.96,
-     "max": 1
-    },
     "crime": {
      "png": "yeongdogu_crime.png",
      "bounds": {
@@ -3496,25 +3667,6 @@
      "top": 0.47,
      "max": 1
     },
-    "fire": {
-     "png": "yeongju_fire.png",
-     "bounds": {
-      "sw": [
-       36.695156,
-       128.427553
-      ],
-      "ne": [
-       37.068607,
-       128.743747
-      ]
-     },
-     "size": [
-      722,
-      1025
-     ],
-     "top": 10.25,
-     "max": 15.21
-    },
     "crime": {
      "png": "yeongju_crime.png",
      "bounds": {
@@ -3533,6 +3685,25 @@
      ],
      "top": 44.69,
      "max": 68.81
+    },
+    "life": {
+     "png": "yeongju_life.png",
+     "bounds": {
+      "sw": [
+       36.695156,
+       128.427553
+      ],
+      "ne": [
+       37.068607,
+       128.743747
+      ]
+     },
+     "size": [
+      722,
+      1025
+     ],
+     "top": 7.16,
+     "max": 9.58
     },
     "suicide": {
      "png": "yeongju_suicide.png",
