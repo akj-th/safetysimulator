@@ -187,6 +187,9 @@ const AuriDocMap = (function () {
         const hb = o.heat.bounds;
         const X0 = px(hb.sw[1]), X1 = px(hb.ne[1]), Y0 = py(hb.ne[0]), Y1 = py(hb.sw[0]);
         ctx.globalAlpha = o.heat.opacity == null ? 1 : o.heat.opacity;
+        /* heatSpread(px): 지자체 전체처럼 넓은 지도에서 시가지에 몰린 밀도가 손톱만 하게 줄어 안 보여, 흐리게 퍼뜨려 두 번 겹침
+           (넓게 볼 때 밀도를 넓은 반경으로 잡는 것과 같은 효과 — 2026-11-10 담당자 "전체 지도는 히트맵만") */
+        if (o.heatSpread) { ctx.filter = `blur(${o.heatSpread}px)`; ctx.drawImage(img, X0, Y0, X1 - X0, Y1 - Y0); ctx.drawImage(img, X0, Y0, X1 - X0, Y1 - Y0); ctx.filter = 'none'; }
         ctx.drawImage(img, X0, Y0, X1 - X0, Y1 - Y0);
         ctx.globalAlpha = 1;
         heatOk = true;
@@ -215,8 +218,7 @@ const AuriDocMap = (function () {
       ctx.beginPath();
       pts.forEach(function (p, i) { if (i === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]); });
       ctx.closePath();
-      ctx.fillStyle = 'rgba(216,61,100,.07)';
-      ctx.fill();
+      /* 안쪽 옅은 빨강 칠은 뺌 — 히트맵 색을 가림 (2026-11-10 담당자). 점선만 */
       ctx.strokeStyle = '#D83D64';
       ctx.lineWidth = 2;
       ctx.setLineDash([7, 4]);
@@ -224,8 +226,7 @@ const AuriDocMap = (function () {
       ctx.setLineDash([]);
     }
 
-    /* ④ 사고 지점 — 건수가 많을수록 큽니다. 밝은 색(노랑)은 배경에 묻혀 어두운 테두리를 두릅니다.
-       pointHalo: 히트맵 위에 점을 얹을 때 흰 테두리로 점을 띄웁니다(지자체 전체 지도, 2026-11-10) */
+    /* ④ 사고 지점 — 건수가 많을수록 큽니다. 테두리는 없음(2026-11-10 담당자) — 밝은 색(노랑)만 덜 투명하게 */
     const ps = o.pointScale || 1;
     (o.points || []).forEach(function (p) {
       const X = px(p.lng), Y = py(p.lat);
@@ -234,10 +235,8 @@ const AuriDocMap = (function () {
       ctx.beginPath();
       ctx.arc(X, Y, r, 0, Math.PI * 2);
       ctx.fillStyle = p.color || '#666666';
-      ctx.globalAlpha = o.pointHalo ? 0.92 : 0.78;
+      ctx.globalAlpha = isLight(p.color) ? 0.97 : 0.8;
       ctx.fill();
-      if (isLight(p.color)) { ctx.strokeStyle = 'rgba(90,70,0,.8)'; ctx.lineWidth = 0.8; ctx.stroke(); }
-      else if (o.pointHalo) { ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.stroke(); }
       ctx.globalAlpha = 1;
     });
 

@@ -606,7 +606,7 @@ function auriCh2() {
       <figure class="doc-map">
         <img id="map-all-${f.key}" alt="${esc(_data.shortLabel)} 전체 ${esc(f.label)} 발생 지점" hidden>
         <div class="slot" id="map-all-${f.key}-wait">지도를 그리는 중입니다…</div>
-        <figcaption>[그림 ${figAll}] ${esc(_data.shortLabel)} 전체 ${esc(f.label)} 발생 지점 <span class="h-sub">${heatFor(f.key) ? "강원대 커널밀도 히트맵 + " : ""}119 구급출동 지점(2023~2025) · 회색 실선 지자체 경계 · 붉은 점선 복합위험지구(조사지) · 분홍 점 진단 지점</span></figcaption>
+        <figcaption>[그림 ${figAll}] ${esc(_data.shortLabel)} 전체 ${esc(f.label)} 발생 지점 <span class="h-sub">${heatFor(f.key) ? "강원대 커널밀도 히트맵(그 분야만, 지자체 안 상대값)" : "119 구급출동 지점(2023~2025)"} · 회색 실선 지자체 경계 · 붉은 점선 복합위험지구(조사지) · 분홍 점 진단 지점</span></figcaption>
       </figure>
       <figure class="doc-map">
         <img id="map-${f.key}" alt="${esc(f.label)} 발생 위치도" hidden>
@@ -1237,8 +1237,8 @@ function fieldReport() {
    지도에서 본 색과 문서에서 본 색이 달라지면 안 되므로 맞춰 둡니다.
    2026-11-04 정호경 요청으로 AURI 7색(화재만 갈색) — 산업재해 빨강 · 감염병 주황 · 교통사고 노랑 · 범죄 초록 · 자살 파랑 · 화재 갈색 · 생활안전 보라 */
 const MAP_COLORS = {
-  suicide: '#2F7FE0', traffic: '#F2D02E', fire: '#8C5A2E', crime: '#3CA84A',
-  life: '#8E44AD', industrial: '#E5322D', infection: '#F28C28',
+  suicide: '#2878CF', traffic: '#ECC322', fire: '#83461B', crime: '#2B9C5D',
+  life: '#A04BC4', industrial: '#D8304A', infection: '#F0842A',   // 11/10 톤 다듬음
 };
 
 /* 4장 지도가 진단 지점 둘레로 잡는 반경 (m).
@@ -1317,7 +1317,8 @@ function mapSpecs(rb) {
 
   /* 2장 분야마다 지자체 전체 발생 지점 (2026-11-04 정호경 요청). 범위·경계선 = data/stats/region-bounds.json(지점 판정과 같은 경계).
      ★ 11/10 담당자 "가독성이 떨어짐": 점만으로는 흩어진 작은 점이라 분포가 안 읽혀, 그 분야 밀도 히트맵(강원대 커널밀도 — 확대 지도와 같은 것)을
-       바탕에 깔고 "사고 발생지점"(요청 그대로) 점은 조금 키워 흰 테두리로 띄움. 히트맵이 없는 분야는 점만 */
+       바탕에 깔고 "사고 발생지점"(요청 그대로) 점은 조금 키워 흰 테두리로 띄움. 히트맵이 없는 분야는 점만.
+     ★ 같은 날 담당자 "히트맵만 사용" — 확대 지도와 같게 히트맵만(점은 히트맵이 없는 분야만). 지자체 밖 흐리게는 그대로 */
   const reg = rb && rb.regions && rb.regions[_data.region];
   if (reg && reg.bbox) {
     const [s, w, n, e] = reg.bbox;
@@ -1326,8 +1327,8 @@ function mapSpecs(rb) {
         id: 'map-all-' + f.key, w: 1000, h: 700,
         opts: {
           pad: 0.03, bbox: { n: n, s: s, e: e, w: w }, outline: reg.rings || [],
-          heat: heatFor(f.key), baseFade: 0.5, outsideFade: 0.6,
-          points: catPoints(f.key), pointScale: 1.05, pointHalo: true,
+          heat: heatFor(f.key), heatSpread: 6, baseFade: 0.5, outsideFade: 0.6,
+          points: heatFor(f.key) ? [] : catPoints(f.key), pointScale: 1.05,   // 11/10 담당자: 히트맵만 — 히트맵이 없는 분야만 점
           marker: marker, boundary: _data.surveyArea && _data.surveyArea.geometry,
         },
       });

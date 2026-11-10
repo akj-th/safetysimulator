@@ -30,13 +30,13 @@ import { encodePng } from '../lib/png.mjs';
 
 /* AURI 7색 (정호경 연구원 답변 2026-10-06) */
 export const AURI_COLORS = {
-  industrial: { label: '산업재해', rgb: [0xE5, 0x32, 0x2D] },   // 빨강
-  infection:  { label: '감염병',   rgb: [0xF2, 0x8C, 0x28] },   // 주황
-  traffic:    { label: '교통사고', rgb: [0xF2, 0xD0, 0x2E] },   // 노랑
-  crime:      { label: '범죄',     rgb: [0x3C, 0xA8, 0x4A] },   // 초록
-  suicide:    { label: '자살',     rgb: [0x2F, 0x7F, 0xE0] },   // 파랑
-  fire:       { label: '화재',     rgb: [0x8C, 0x5A, 0x2E] },   // 갈색 (2026-11-04 정호경 요청 — 전엔 남색 1F2E7A. 이미 만든 종합도 SVG·JPG 는 다시 그리기 전까지 남색)
-  life:       { label: '생활안전', rgb: [0x8E, 0x44, 0xAD] },   // 보라
+  industrial: { label: '산업재해', rgb: [0xD8, 0x30, 0x4A] },   // 빨강(진홍) — 11/10 톤 다듬음
+  infection:  { label: '감염병',   rgb: [0xF0, 0x84, 0x2A] },   // 주황
+  traffic:    { label: '교통사고', rgb: [0xEC, 0xC3, 0x22] },   // 노랑
+  crime:      { label: '범죄',     rgb: [0x2B, 0x9C, 0x5D] },   // 초록
+  suicide:    { label: '자살',     rgb: [0x28, 0x78, 0xCF] },   // 파랑
+  fire:       { label: '화재',     rgb: [0x83, 0x46, 0x1B] },   // 갈색 (2026-11-04 정호경 요청 — 전엔 남색 1F2E7A. 이미 만든 종합도 SVG·JPG 는 다시 그리기 전까지 남색)
+  life:       { label: '생활안전', rgb: [0xA0, 0x4B, 0xC4] },   // 보라
 };
 const FOLDER = { traffic: '교통사고_최종', fire: '화재', crime: '범죄', life: '생활안전', industrial: '산업재해', suicide: '자살', infection: '감염병' };
 

@@ -55,7 +55,8 @@
   .focus-head .lab{font-size:var(--fs-cap); font-weight:700; letter-spacing:.15em; color:var(--contrast)}
   .focus-head .d{font-size:var(--fs-sm); color:var(--g3)}
   .focus-list{display:grid; grid-template-columns:repeat(3,1fr); gap:0 26px}
-  @media(max-width:720px){.focus-list{grid-template-columns:1fr}}
+  .focus-list.c2{grid-template-columns:repeat(2,1fr)}   /* 분야 2·4개는 두 칸씩(1/2 · 3/4) — 2026-11-10 담당자. 5개는 3+2 그대로 */
+  @media(max-width:720px){.focus-list, .focus-list.c2{grid-template-columns:1fr}}
   .focus-item{padding:10px 0; border-top:1px solid var(--g1)}
   .focus-item .n{font-size:var(--fs-body); font-weight:700; color:var(--k)}
   .focus-item .n .no{color:var(--contrast); margin-right:8px}
@@ -678,6 +679,7 @@ async function showFocus(picked) {
     }
     if (!region || !region.focusTypes || !region.focusTypes.length) return;   // 41곳 밖이면 안내 없음
     document.getElementById('focusTitle').textContent = `${region.short || region.label} 중점 안전분야`;
+    document.getElementById('focusList').classList.toggle('c2', region.focusTypes.length === 2 || region.focusTypes.length === 4);
     document.getElementById('focusList').innerHTML = region.focusTypes.map(function (label, i) {
       const key = keyOf[label];
       return `<div class="focus-item"><div class="n"><span class="no">${i + 1}</span>${label}</div>` +

@@ -51,11 +51,11 @@ const WGS = 'EPSG:4326';
 const C = {
   main: '#D83D64', contrast: '#2793C9', navy: '#1E2A44', ink: '#1F2A33',
   sea: '#DCE8F0', land: '#E9ECEE',
-  road: '#666666', roadLine: '#666666', building: '#999999', buildingIn: '#666666', buildingLine: '#666666', buildingInLine: '#333333',
+  road: '#A8A8A8', roadLine: '#A8A8A8', building: '#C9C9C9', buildingIn: '#666666', buildingLine: '#A3A3A3', buildingInLine: '#333333',   // 11/10 담당자 '지도가 너무 어둡다' — 도로 #666→#A8A8A8 · 건물 #999→#C9C9C9 · 테두리 #666→#A3A3A3
   water: '#8FBFDD', farm: '#BFC9BC', umd: '#2B3A48', sgg: '#101820',
   dim: '#13233A', box: '#FFFFFF', text: '#1F2A33', sub: '#5A6670', line: '#333333',
 };
-const SAT = { saturate: 0.14, slope: 0.60, intercept: 0.47 };   // 채도 아주 낮게 (담당자 2026-10-06)   // 위성영상 채도 낮추고 밝게
+const SAT = { saturate: 0.14, slope: 0.36, intercept: 0.64 };   // 11/10 밝게(전 slope 0.60 · intercept 0.47) —   // 채도 아주 낮게 (담당자 2026-10-06)   // 위성영상 채도 낮추고 밝게
 
 /* ════════════════════════════════════════════════════════════════════ */
 const regionId = process.argv[2];

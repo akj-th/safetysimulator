@@ -1,6 +1,6 @@
 {
  "source": "강원대 QGIS 커널밀도 분석 결과 (AURI 제공) — 밀도값은 재계산하지 않고 그대로 사용",
- "generatedAt": "2026-11-09",
+ "generatedAt": "2026-11-10",
  "resolutionM": 40,
  "topQuantile": 0.99,
  "maxAlpha": 0.62,

@@ -320,18 +320,20 @@ const START_FALLBACK = { lat: 36.5044, lng: 127.2589 };
    원본 → 집계 변환은 tools/build-stats.mjs 가 담당합니다(npm run build).
    ★ 분야 색 = AURI 7색 (2026-11-04 정호경 요청: 자살·감염병이 둘 다 보라라 구분이 어려웠음) —
      산업재해 빨강 · 감염병 주황 · 교통사고 노랑 · 범죄 초록 · 자살 파랑 · 화재 갈색 · 생활안전 보라.
-     문서 지도(document.html MAP_COLORS) · 히트맵(tools/build-heatmap.mjs COLOR) · 종합도(tools/overview-map/risk.mjs AURI_COLORS)와 같은 값. */
+     문서 지도(document.html MAP_COLORS) · 히트맵(tools/build-heatmap.mjs COLOR) · 종합도(tools/overview-map/risk.mjs AURI_COLORS) · 종합도 오버레이(OVERVIEW_COLORS)와 같은 값.
+   ★ 2026-11-10 담당자 "조금 더 예쁜 조합으로" — 색 이름은 그대로 두고 톤을 다듬음(dataviz 검증기: 정상 시력 구분 ΔE ≥ 15 · 채도 통과.
+     빨강·주황·노랑·갈색·초록이 함께라 색약 구분은 완전히 안 됨 → 범례·글로 보완). 노랑은 아주 약간 진하게. */
 const INCIDENT_CATEGORIES = [
-  { key: 'suicide',    color: '#2F7FE0' },   // 파랑
-  { key: 'traffic',    color: '#F2D02E' },   // 노랑 — 밝아서 점에 테두리를 두름(isLightColor)
-  { key: 'fire',       color: '#8C5A2E' },   // 갈색
-  { key: 'crime',      color: '#3CA84A' },   // 초록
-  { key: 'life',       color: '#8E44AD' },   // 보라
-  { key: 'industrial', color: '#E5322D' },   // 빨강
-  { key: 'infection',  color: '#F28C28' },   // 주황
+  { key: 'suicide',    color: '#2878CF' },   // 파랑
+  { key: 'traffic',    color: '#ECC322' },   // 노랑 — 밝아서 점을 덜 투명하게(isLightColor)
+  { key: 'fire',       color: '#83461B' },   // 갈색
+  { key: 'crime',      color: '#2B9C5D' },   // 초록
+  { key: 'life',       color: '#A04BC4' },   // 보라
+  { key: 'industrial', color: '#D8304A' },   // 빨강(진홍)
+  { key: 'infection',  color: '#F0842A' },   // 주황
 ];
 
-/* 밝은 색(노랑)은 밝은 지도 위에서 묻히므로 점에 어두운 테두리를 두릅니다 */
+/* 밝은 색(노랑)은 밝은 지도 위에서 묻히므로 점을 덜 투명하게 그립니다(테두리는 담당자 11/10 "빼자") */
 function isLightColor(hex) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return false;
   const n = parseInt(m[1], 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
@@ -413,7 +415,7 @@ function defineIncidentLayer() {
      그 외에는 분야 레이어로, 한 칸에 쌓인 건수로 그립니다. */
   IncidentLayer = function (points, color, graded) {
     this.color = color;
-    this.edge = isLightColor(color) ? 'rgba(90,70,0,.75)' : null;   // 노랑 점 테두리
+    this.light = isLightColor(color);   // 노랑 — 덜 투명하게(테두리 대신, 11/10)
     this.pts = points;
     this.coords = points.map(function (p) { return new naver.maps.LatLng(p[0], p[1]); });
     this.canvas = null;
@@ -480,13 +482,12 @@ function defineIncidentLayer() {
            제곱근을 쓰면 건수가 커져도 원이 지나치게 불어나지 않습니다. */
         const n = p[2];
         r = base * (1 + Math.min(1.9, Math.sqrt(n - 1) * 0.6));
-        ctx.globalAlpha = Math.min(0.88, alpha + Math.min(0.32, (n - 1) * 0.07));
+        ctx.globalAlpha = Math.min(this.light ? 1 : 0.88, alpha + Math.min(0.32, (n - 1) * 0.07) + (this.light ? 0.3 : 0));
       }
 
       ctx.beginPath();
       ctx.arc(o.x - origin.x, o.y - origin.y, r, 0, Math.PI * 2);
       ctx.fill();
-      if (this.edge) { ctx.strokeStyle = this.edge; ctx.lineWidth = 0.9; ctx.stroke(); }
     }
     ctx.globalAlpha = 1;
   };
@@ -696,11 +697,11 @@ function iwX(k) {
 }
 
 /* 화재만 남색(#232391) → 갈색 (2026-11-04 정호경 요청 — 분야 색을 한 벌로). 종합도 그림(JPG)은 다시 그리기 전까지 남색 */
-const OVERVIEW_COLORS = { industrial: '#E03C3C', infection: '#F28C28', traffic: '#F0C828', crime: '#3CA84A', suicide: '#2F7FE0', fire: '#8C5A2E', life: '#9650C8' };
+const OVERVIEW_COLORS = { industrial: '#D8304A', infection: '#F0842A', traffic: '#ECC322', crime: '#2B9C5D', suicide: '#2878CF', fire: '#83461B', life: '#A04BC4' };   // 11/10 다듬은 7색과 같게
 let _ov = { data: null, row: null, shapes: [], info: null };
 
 function buildOverviewRow(host) {
-  _ov.row = makeLayerRow('맞춤형 사업 종합도', '#3CA84A', '사업지 구역·번호·시설 · 누르면 사업 내용');
+  _ov.row = makeLayerRow('맞춤형 사업 종합도', '#2B9C5D', '사업지 구역·번호·시설 · 누르면 사업 내용');
   _ov.row.title = 'AURI 사전분석 보고서의 종합도(사업지 구역·시설)를 지도에 얹은 것입니다.\n구역 색은 안전사고 유형, 번호는 종합도의 사업지 번호와 같습니다.';
   _ov.row.hidden = !_ov.data;
   _ov.row.addEventListener('click', toggleOverview);
