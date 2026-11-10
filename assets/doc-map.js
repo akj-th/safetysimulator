@@ -164,11 +164,18 @@ const AuriDocMap = (function () {
         baseOk = true;
         ctx.drawImage(img, (jobs[i].x - cx) * TILE + W / 2, (jobs[i].y - cy) * TILE + H / 2);
       });
-      /* 배경 위에 그리면 선이 묻혀 흰 막을 아주 옅게 덮습니다 */
+      /* 배경 위에 그리면 선이 묻혀 흰 막을 아주 옅게 덮습니다 (baseFade — 넓은 지도는 더 옅게) */
       if (baseOk) {
-        ctx.fillStyle = 'rgba(255,255,255,.32)';
+        ctx.fillStyle = `rgba(255,255,255,${o.baseFade == null ? 0.32 : o.baseFade})`;
         ctx.fillRect(0, 0, W, H);
       }
+    }
+    /* ②-0 지자체 밖을 하얗게 흐리게 — 시선을 경계 안으로 (outsideFade, 지자체 전체 지도 2026-11-10) */
+    if (o.outline && o.outline.length && o.outsideFade) {
+      ctx.beginPath(); ctx.rect(0, 0, W, H);
+      o.outline.forEach(function (g) { for (let i = 0; i + 1 < g.length; i += 2) { const X = px(g[i + 1]), Y = py(g[i]); if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y); } ctx.closePath(); });
+      ctx.fillStyle = `rgba(255,255,255,${o.outsideFade})`;
+      ctx.fill('evenodd');
     }
 
     /* ②-1 밀도 히트맵 (강원대 커널밀도 PNG, data/heatmap) — 한 분야만. 2026-10-20 담당자: 격자 점보다 히트맵이 잘 보임.
@@ -201,13 +208,12 @@ const AuriDocMap = (function () {
       ctx.stroke();
     }
 
-    /* ③ 조사지 경계 */
+    /* ③ 조사지 경계 — 원본이 격자 칸을 합친 것이라 계단 모양. 칸 반쯤(25m) 단순화한 뒤 모서리를 두 번 깎아 부드럽게 (2026-11-10 담당자) */
     if (ring) {
+      const mpp = 156543.03392 * Math.cos(yToLat(cy, z) * Math.PI / 180) / Math.pow(2, z);
+      const pts = smoothRing(simplifyRing(ring.map((c) => [px(c[0]), py(c[1])]), Math.max(1.5, 25 / mpp)), 2);
       ctx.beginPath();
-      ring.forEach(function (c, i) {
-        const X = px(c[0]), Y = py(c[1]);
-        if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
-      });
+      pts.forEach(function (p, i) { if (i === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]); });
       ctx.closePath();
       ctx.fillStyle = 'rgba(216,61,100,.07)';
       ctx.fill();
@@ -218,7 +224,8 @@ const AuriDocMap = (function () {
       ctx.setLineDash([]);
     }
 
-    /* ④ 사고 지점 — 건수가 많을수록 큽니다. 밝은 색(노랑)은 배경에 묻혀 어두운 테두리를 두릅니다 */
+    /* ④ 사고 지점 — 건수가 많을수록 큽니다. 밝은 색(노랑)은 배경에 묻혀 어두운 테두리를 두릅니다.
+       pointHalo: 히트맵 위에 점을 얹을 때 흰 테두리로 점을 띄웁니다(지자체 전체 지도, 2026-11-10) */
     const ps = o.pointScale || 1;
     (o.points || []).forEach(function (p) {
       const X = px(p.lng), Y = py(p.lat);
@@ -227,40 +234,38 @@ const AuriDocMap = (function () {
       ctx.beginPath();
       ctx.arc(X, Y, r, 0, Math.PI * 2);
       ctx.fillStyle = p.color || '#666666';
-      ctx.globalAlpha = 0.78;
+      ctx.globalAlpha = o.pointHalo ? 0.92 : 0.78;
       ctx.fill();
       if (isLight(p.color)) { ctx.strokeStyle = 'rgba(90,70,0,.8)'; ctx.lineWidth = 0.8; ctx.stroke(); }
+      else if (o.pointHalo) { ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.stroke(); }
       ctx.globalAlpha = 1;
     });
 
-    /* ⑤ 진단 지점 — 십자 + 원 (점들과 확실히 구분되게) */
+    /* ⑤ 진단 지점 — 분홍 점 + 흰 테두리 (2026-11-10 담당자: 십자 표시가 어색함). 색은 앱 메인색 */
     if (o.marker) {
       const X = px(o.marker.lng), Y = py(o.marker.lat);
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(X, Y, 9, 0, Math.PI * 2);
-      ctx.moveTo(X - 15, Y); ctx.lineTo(X - 11, Y);
-      ctx.moveTo(X + 11, Y); ctx.lineTo(X + 15, Y);
-      ctx.moveTo(X, Y - 15); ctx.lineTo(X, Y - 11);
-      ctx.moveTo(X, Y + 11); ctx.lineTo(X, Y + 15);
-      ctx.stroke();
-      ctx.fillStyle = '#FFFFFF';
-      ctx.beginPath(); ctx.arc(X, Y, 3.4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(X, Y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFFFF'; ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.beginPath(); ctx.arc(X, Y, 5.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#D83D64'; ctx.fill();
     }
 
-    /* ⑥ 축척 막대 — 문서에 실리는 지도라 거리 기준이 있어야 합니다 */
-    drawScale(ctx, W, H, z, yToLat(cy, z));
+    /* 글자 크기는 그림 폭에 비례 — 문서에서는 모든 지도가 같은 폭으로 실려, 760px 그림의 11px 글자가 1000px 그림보다 커 보였음 (2026-11-10) */
+    const k = W / 1000;
 
-    /* ⑦ 출처 — 브이월드 이용 조건입니다 */
+    /* ⑥ 축척 막대 — 문서에 실리는 지도라 거리 기준이 있어야 합니다 */
+    drawScale(ctx, W, H, z, yToLat(cy, z), k);
+
+    /* ⑦ 출처 — 브이월드 이용 조건입니다. 배경 상자 없이 흰 테두리 글자로 (2026-11-10 담당자) */
     const attr = baseOk ? '배경: 국토교통부 브이월드' : '배경 없음 (경계·지점만 표시)';
-    ctx.font = '11px Pretendard, sans-serif';
+    ctx.font = (11 * k).toFixed(1) + 'px Pretendard, sans-serif';
     const tw = ctx.measureText(attr).width;
-    ctx.fillStyle = 'rgba(255,255,255,.82)';
-    ctx.fillRect(W - tw - 12, H - 18, tw + 12, 18);
-    ctx.fillStyle = '#666666';
     ctx.textAlign = 'left';
-    ctx.fillText(attr, W - tw - 6, H - 5);
+    ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3 * k;
+    ctx.strokeText(attr, W - tw - 8 * k, H - 7 * k);
+    ctx.fillStyle = '#666666';
+    ctx.fillText(attr, W - tw - 8 * k, H - 7 * k);
 
     return {
       dataUrl: canvas.toDataURL('image/png'),
@@ -275,24 +280,62 @@ const AuriDocMap = (function () {
     };
   }
 
-  function drawScale(ctx, W, H, z, lat) {
+  function drawScale(ctx, W, H, z, lat, k) {
+    k = k || 1;
     /* 이 확대 단계에서 1픽셀이 몇 m 인가 */
     const mPerPx = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, z);
     const nice = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];   // 10·20km — 지자체 전체 지도
     let m = nice[0];
     for (const v of nice) { if (v / mPerPx <= W * 0.28) m = v; }
     const w = m / mPerPx;
-    const x = 12, y = H - 12;
+    const x = 12 * k, y = H - 12 * k;
 
     ctx.strokeStyle = '#333333';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2 * k;
     ctx.beginPath();
-    ctx.moveTo(x, y - 5); ctx.lineTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y - 5);
+    ctx.moveTo(x, y - 5 * k); ctx.lineTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y - 5 * k);
     ctx.stroke();
-    ctx.font = '11px Pretendard, sans-serif';
+    ctx.font = (11 * k).toFixed(1) + 'px Pretendard, sans-serif';
     ctx.fillStyle = '#333333';
     ctx.textAlign = 'left';
-    ctx.fillText(m >= 1000 ? (m / 1000) + 'km' : m + 'm', x + w + 5, y);
+    ctx.fillText(m >= 1000 ? (m / 1000) + 'km' : m + 'm', x + w + 5 * k, y);
+  }
+
+  /* 점 줄이기(더글러스–포커) — tol 픽셀보다 덜 튀어나온 점은 뺌. 닫힌 고리 [[x,y],…] 는 첫 점에서 가장 먼 점으로 둘로 나눠 각각 줄임 */
+  function simplifyLine(pts, tol) {
+    if (pts.length < 3) return pts;
+    const keep = new Uint8Array(pts.length); keep[0] = keep[pts.length - 1] = 1;
+    const stack = [[0, pts.length - 1]];
+    while (stack.length) {
+      const [a, b] = stack.pop(); let best = -1, bi = -1;
+      const [x1, y1] = pts[a], [x2, y2] = pts[b], dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1;
+      for (let i = a + 1; i < b; i++) { const d = Math.abs(dy * pts[i][0] - dx * pts[i][1] + x2 * y1 - y2 * x1) / L; if (d > best) { best = d; bi = i; } }
+      if (best > tol) { keep[bi] = 1; stack.push([a, bi], [bi, b]); }
+    }
+    return pts.filter((_, i) => keep[i]);
+  }
+  function simplifyRing(pts, tol) {
+    const p = pts.slice();
+    if (p.length > 1 && p[0][0] === p[p.length - 1][0] && p[0][1] === p[p.length - 1][1]) p.pop();
+    if (p.length < 5) return p;
+    let far = 0, fd = -1;
+    p.forEach((q, i) => { const d = Math.hypot(q[0] - p[0][0], q[1] - p[0][1]); if (d > fd) { fd = d; far = i; } });
+    const a = simplifyLine(p.slice(0, far + 1), tol), b = simplifyLine(p.slice(far).concat([p[0]]), tol);
+    const out = a.concat(b.slice(1, -1));
+    return out.length >= 3 ? out : p;
+  }
+  /* 모서리 깎기(차이킨) — 한 번에 각 변을 1/4·3/4 지점으로 바꿔 둥글게. 닫힌 고리 */
+  function smoothRing(pts, times) {
+    let p = pts;
+    for (let t = 0; t < times; t++) {
+      const q = [];
+      for (let i = 0; i < p.length; i++) {
+        const a = p[i], b = p[(i + 1) % p.length];
+        q.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+      }
+      p = q;
+    }
+    return p;
   }
 
   /**

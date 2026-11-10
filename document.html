@@ -606,7 +606,7 @@ function auriCh2() {
       <figure class="doc-map">
         <img id="map-all-${f.key}" alt="${esc(_data.shortLabel)} 전체 ${esc(f.label)} 발생 지점" hidden>
         <div class="slot" id="map-all-${f.key}-wait">지도를 그리는 중입니다…</div>
-        <figcaption>[그림 ${figAll}] ${esc(_data.shortLabel)} 전체 ${esc(f.label)} 발생 지점 <span class="h-sub">119 구급출동 지점(2023~2025) · 회색 실선 지자체 경계 · 붉은 점선 복합위험지구(조사지) · 십자 진단 지점</span></figcaption>
+        <figcaption>[그림 ${figAll}] ${esc(_data.shortLabel)} 전체 ${esc(f.label)} 발생 지점 <span class="h-sub">${heatFor(f.key) ? "강원대 커널밀도 히트맵 + " : ""}119 구급출동 지점(2023~2025) · 회색 실선 지자체 경계 · 붉은 점선 복합위험지구(조사지) · 분홍 점 진단 지점</span></figcaption>
       </figure>
       <figure class="doc-map">
         <img id="map-${f.key}" alt="${esc(f.label)} 발생 위치도" hidden>
@@ -1316,7 +1316,8 @@ function mapSpecs(rb) {
   });
 
   /* 2장 분야마다 지자체 전체 발생 지점 (2026-11-04 정호경 요청). 범위·경계선 = data/stats/region-bounds.json(지점 판정과 같은 경계).
-     히트맵 대신 점 — "사고 발생지점"을 보여 달라는 요청이라. 넓은 지도라 점을 작게(pointScale) */
+     ★ 11/10 담당자 "가독성이 떨어짐": 점만으로는 흩어진 작은 점이라 분포가 안 읽혀, 그 분야 밀도 히트맵(강원대 커널밀도 — 확대 지도와 같은 것)을
+       바탕에 깔고 "사고 발생지점"(요청 그대로) 점은 조금 키워 흰 테두리로 띄움. 히트맵이 없는 분야는 점만 */
   const reg = rb && rb.regions && rb.regions[_data.region];
   if (reg && reg.bbox) {
     const [s, w, n, e] = reg.bbox;
@@ -1325,7 +1326,8 @@ function mapSpecs(rb) {
         id: 'map-all-' + f.key, w: 1000, h: 700,
         opts: {
           pad: 0.03, bbox: { n: n, s: s, e: e, w: w }, outline: reg.rings || [],
-          points: catPoints(f.key), pointScale: 0.6,
+          heat: heatFor(f.key), baseFade: 0.5, outsideFade: 0.6,
+          points: catPoints(f.key), pointScale: 1.05, pointHalo: true,
           marker: marker, boundary: _data.surveyArea && _data.surveyArea.geometry,
         },
       });
@@ -1362,7 +1364,7 @@ async function renderMaps() {
         const c = _data.categories[k];
         return '<span><i style="background:' + (MAP_COLORS[k] || '#666') + '"></i>'
              + (c ? c.label : k) + '</span>';
-      }).join('') + '<span><i style="background:#000"></i>진단 지점</span>';
+      }).join('') + '<span><i style="background:#D83D64"></i>진단 지점</span>';
     }
   }
 }
@@ -1445,7 +1447,7 @@ async function openMapPick(photoId) {
   wrap.innerHTML =
     '<div class="pick-box">' +
       '<div class="hd"><b>사진을 찍은 곳을 지도에서 눌러 주세요</b>' +
-        '<span>붉은 점선은 조사지 경계, 십자 표시는 진단 지점입니다.</span></div>' +
+        '<span>붉은 점선은 조사지 경계, 분홍 점은 진단 지점입니다.</span></div>' +
       '<canvas id="pickCanvas" width="900" height="560"></canvas>' +
       '<div class="ft">' +
         '<span id="pickHint" style="flex:1; font-size:var(--fs-cap); color:var(--g2); align-self:center"></span>' +
