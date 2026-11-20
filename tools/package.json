@@ -28,9 +28,11 @@
     "focus": "node build-safety-index.mjs && node apply-focus-index.mjs",
     "focus-all": "node build-safety-index.mjs && node apply-focus-index.mjs && node --max-old-space-size=8192 build-dong-hea.mjs && node build-field-survey.mjs && node build-hotspots.mjs",
     "zones": "node build-zone-stats.mjs",
-    "safety-detail": "node build-safety-detail.mjs"
+    "safety-detail": "node build-safety-detail.mjs",
+    "palette-220": "node build-palette-220.mjs"
   },
   "dependencies": {
+    "pdfjs-dist": "^4.10.38",
     "proj4": "^2.21.0"
   }
 }
