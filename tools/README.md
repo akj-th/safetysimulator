@@ -27,6 +27,9 @@
 | `build-hwpx-templates.mjs` | — | 한글 내려받기 틀 → `data/hwpx/`(그림만 축소한 AURI 원본) |
 | `export-space-risk.mjs` | `space-risk-export` | 연계표(`assets/space-risk.json`) → 엑셀 1개 + CSV 2개(AURI 검토용) |
 | `batch-generate.mjs` | `batch-generate` | 작업표 CSV → 켜 둔 로컬 서버로 개선 이미지 일괄 생성(`--go` 없으면 시험 실행) |
+| `build-zone-stats.mjs` | `zones` | AURI 복합위험지구·세부 구역 SHP(`config/zones.json`) → `data/stats/zones/<지역>.json`(구역별 119 특성, 주소 없음) + `output/zones/` 지번 목록(전달용). 시험: `node build-zone-stats.mjs <지역> --zones=<shp> [--district=<shp>] --out=<폴더>` |
+| `build-safety-detail.mjs` | `safety-detail` | 지역안전지수 핵심지표 엑셀(11/18) + 119 통계 → `data/stats/safety-detail.json`(지표 배수 · 발생률 · 장소·60세 이상 평균). 같은 자료 시트 자동 제외 · 생활안전 쏠린 곳은 평균에서 뺌 |
+| `build-palette-220.mjs` | `palette-220` | 맞춤형 사업팔레트 PDF(11/18, 189쪽) → `assets/palette-220.json`(220종 · 카드 · 참고 단가) |
 
 ## 점검
 
