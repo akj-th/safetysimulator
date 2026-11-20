@@ -64,6 +64,35 @@ for (const f of files) {
   }
   out.regions[slug] = { file: f, years };
 }
+/* ★ 119 구급출동 발생률 — 결과보고서 표 1-2·1-3 "인구 10만명당 · 동일유형 평균 대비" (AURI 예시안 산식)
+   발생률 = ’23~’25 출동 합 ÷ 3 ÷ 주민등록인구 × 10만. 인구 = 지역안전지수 2024 산출 시트의 주민등록인구수
+   (AURI 는 "’23년 말 주민등록인구" — 관악 범죄 39.8 vs 이 인구로 40.0, 0.5% 차).
+   동일유형 = 41개 대상지 중 같은 행정 유형(자치구 · 시 · 군)의 발생률 평균. 출동 건수 = data/stats/regions/<slug>.json */
+const adminType = (label) => /(특별시|광역시) .+구$/.test(label) ? '자치구' : /군$/.test(label) ? '군' : '시';
+const RATE_FIELDS = ['traffic', 'fire', 'crime', 'life', 'suicide', 'infection', 'industrial'];
+const rates = {};
+for (const [slug, r] of Object.entries(out.regions)) {
+  const reg = regions.find((x) => x.region === slug);
+  const popRow = (r.years['2024'] || r.years['2025'] || []).find((x) => x.name === '주민등록인구수');
+  const pop = popRow ? popRow.raw : null;
+  const st = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/stats/regions', slug + '.json'), 'utf8'));
+  const f = {};
+  for (const k of RATE_FIELDS) {
+    const c = st.categories && st.categories[k]; const years = c && c.region ? c.region.years || {} : {};
+    const total = ['2023', '2024', '2025'].reduce((s, y) => s + (years[y] || 0), 0);
+    f[k] = { years, total, perYear: +(total / 3).toFixed(1), rate: pop ? +(total / 3 / pop * 1e5).toFixed(2) : null };
+  }
+  rates[slug] = { label: reg ? reg.label : slug, type: adminType(reg ? reg.label : ''), pop, fields: f };
+}
+/* AURI 예시안은 "동일유형(자치구 9개)" — 우리 자치구는 10곳. 관악 대조로 광주 북구를 뺀 평균이 가장 가까움(범죄 0.75·산재 0.39 일치,
+   생활안전 0.88 vs 0.94 — 광주 북구 생활안전 출동이 유난히 많아 평균을 끌어올림). 평균에서만 빼고 북구 자신은 자치구 평균과 비교.
+   ⚠ AURI 확인 필요(2026-11-20) */
+const AVG_EXCLUDE = ['bukgu'];
+const typeAvg = {};
+for (const t of ['자치구', '시', '군']) { const rs = Object.entries(rates).filter(([s, x]) => x.type === t && !AVG_EXCLUDE.includes(s)).map(([, x]) => x); typeAvg[t] = { n: rs.length, fields: Object.fromEntries(RATE_FIELDS.map((k) => { const v = rs.map((x) => x.fields[k].rate).filter((v) => v != null); return [k, v.length ? +(v.reduce((a, b) => a + b, 0) / v.length).toFixed(2) : null]; })) }; }
+for (const r of Object.values(rates)) for (const k of RATE_FIELDS) { const a = typeAvg[r.type].fields[k]; r.fields[k].typeAvg = a; r.fields[k].ratio = a && r.fields[k].rate != null ? +(r.fields[k].rate / a).toFixed(2) : null; }
+out.rates = { rule: '발생률 = ’23~’25 119 구급출동 합 ÷ 3 ÷ 주민등록인구(지역안전지수 2024 산출) × 10만 · ratio = 41개 대상지 중 같은 유형(자치구·시·군) 평균 대비 · 평균에서 뺀 곳 ' + AVG_EXCLUDE.join(','), avgExclude: AVG_EXCLUDE, typeAvg, regions: rates };
+
 /* 용량을 줄이려 줄을 배열로 (열 이름은 cols) — 화면은 AuriSafetyDetail 같은 읽기 함수로 객체로 되돌림 */
 const COLS = ['field', 'kind', 'name', 'base', 'unit', 'value', 'avgType', 'avgSido', 'avgNation', 'raw', 'ratio', 'badHigh', 'weak'];
 const packed = { ...out, cols: COLS, regions: Object.fromEntries(Object.entries(out.regions).map(([k, r]) => [k, { file: r.file, years: Object.fromEntries(Object.entries(r.years).map(([y, list]) => [y, list.map((o) => COLS.map((c) => o[c]))])) }])) };
