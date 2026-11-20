@@ -1,0 +1,5 @@
+{
+  "title": "복합위험지구 · 세부 구역 바운더리 — AURI 가 선정·전달한 것 (tools/build-zone-stats.mjs 가 읽음)",
+  "how": "regions 에 지자체 열쇠(slug)마다 { source, zones: 구역 SHP 경로, nameField: 구역 이름 칸, names: { 칸 값: 보고서 표기 }, district: 복합위험지구 SHP(없으면 구역 합) } 를 적고 tools/ 에서 npm run zones. 결과 data/stats/zones/<slug>.json(주소 없음) · 연구진 전달용 반복 지번 CSV output/zones/(커밋 안 됨). SHP 원본은 data/raw/ 아래 받은 날 폴더에.",
+  "regions": {}
+}
