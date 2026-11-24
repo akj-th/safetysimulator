@@ -13,7 +13,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import proj4 from 'proj4';
 import { readXlsx } from './lib/xlsx.mjs';
+import { hjdGroups, pickGroups, makeAssigner } from './lib/hjd.mjs';
+import { readDeaths, summarizeDeaths, DEATH_YEARS } from './lib/suicide-deaths.mjs';
+const EPSG5186 = '+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'data/raw/safety_index_detail_1118/지역안전지수 지표 분석 관련 자료/안전진단 시스템 자료/안전지수 지표');
@@ -130,8 +134,39 @@ for (const t of ['자치구', '시', '군']) {
     age60: Object.fromEntries(RATE_FIELDS.map((k) => { const m = mean(rs.map((x) => x.fields[k].age60).filter((v) => v != null)); return [k, m == null ? null : +m.toFixed(1)]; })) };
 }
 for (const r of Object.values(rates)) for (const k of RATE_FIELDS) { const a = typeAvg[r.type].fields[k]; r.fields[k].typeAvg = a; r.fields[k].ratio = a && r.fields[k].rate != null ? +(r.fields[k].rate / a).toFixed(2) : null; }
+
+/* ★ 자살 사망지점(’22~’24, AURI 2026-11-23) — 결과보고서 표 1-3·1-4 자살 줄 "사망 93·115·127명 · 인구 10만명당 23.0명 · 0.84배"
+   사망률 = ’22~’24 합 ÷ 3 ÷ 인구(위와 같은 인구) × 10만
+   기준 = 진단리포트 ’25 동일유형 시군구평균 = 핵심지표 '자살 사망자수'(인구 만명당) 같은 유형 평균 × 10 (예시안 주석 2)
+          유형마다 한 값이라(시 3.0812 …) ’25 시트를 비운 곳(남원·목포·홍천)은 같은 유형 다른 지자체 값 — 남원 33.0명 ÷ 30.8 = 1.07배(예시안 1.07배)
+   장소 비율 · 사망이 많은 행정동 2곳 합("수성동·내장상동 51.4% 집중") · 같은 건물 반복은 개소 수만(건물명은 웹에 안 남김) */
+const toGrid = proj4('WGS84', EPSG5186);
+const hjd = hjdGroups(path.join(ROOT, 'data/raw/admin_boundary_hjd'));
+const deathAvg = (s, y) => { const l = out.regions[s] && out.regions[s].years[y]; const r = l && l.find((o) => o.field === 'suicide' && o.name === '자살 사망자수'); return r ? r.avgType : null; };
+const typeRef = {};
+for (const [s, r] of Object.entries(rates)) { const a = deathAvg(s, '2025'); if (a != null) { const m = (typeRef[r.type] ||= {}); m[a] = (m[a] || 0) + 1; } }
+const refOf = (s) => { const own = deathAvg(s, '2025'); if (own != null) return [own, '’25 핵심지표']; const top = Object.entries(typeRef[rates[s].type] || {}).sort((a, b) => b[1] - a[1])[0]; return top ? [+top[0], '’25 같은 유형 다른 지자체'] : [null, null]; };
+const deathMiss = [];
+for (const [slug, r] of Object.entries(rates)) {
+  const list = readDeaths(ROOT, slug); if (!list) { deathMiss.push(slug); continue; }
+  const d = summarizeDeaths(list);
+  const total = DEATH_YEARS.reduce((s, y) => s + d.years[y], 0);
+  const rate = r.pop ? +(total / 3 / r.pop * 1e5).toFixed(1) : null;
+  const [ref, refSource] = refOf(slug);
+  /* 행정동 — 사망 지점이 떨어지는 시군구 묶음의 행정동 경계(build-stats 와 같은 방식) */
+  const pts = list.filter((x) => isFinite(x.lng) && isFinite(x.lat)).map((x) => toGrid.forward([x.lng, x.lat]));
+  const byName = {}; for (const { g } of pickGroups(hjd, pts)) for (const [nm, shs] of Object.entries(g.byName)) (byName[nm] ||= []).push(...shs);
+  const assign = Object.keys(byName).length ? makeAssigner(byName) : null;
+  const dc = {}; if (assign) pts.forEach(([x, y]) => { const nm = assign(x, y); if (nm) dc[nm] = (dc[nm] || 0) + 1; });
+  const dongs = Object.entries(dc).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([nm, v]) => [nm, +(v / d.n * 100).toFixed(1), v]);
+  r.suicideDeath = { years: d.years, total, perYear: +(total / 3).toFixed(1), rate, ref: ref == null ? null : +(ref * 10).toFixed(2), refSource,
+    ratio: rate != null && ref ? +(rate / (ref * 10)).toFixed(2) : null, place: d.place, outdoor: d.outdoor, repeat: d.repeat, dongs,
+    top2: dongs.length >= 2 ? { names: dongs.slice(0, 2).map((x) => x[0]), share: +((dongs[0][2] + dongs[1][2]) / d.n * 100).toFixed(1) } : null };
+}
 out.rates = { rule: '발생률 = ’23~’25 119 구급출동 합 ÷ 3 ÷ 주민등록인구(지역안전지수 2024 산출) × 10만 · ratio = 41개 대상지 중 같은 유형(자치구·시·군) 평균 대비 · 평균에서 뺀 곳 ' + AVG_EXCLUDE.join(',') +
-  ' · place = 장소(묶음)별 비율(%) · age60 = 연령 확인 출동 중 60세 이상 비율(%) · typeAvg.place·age60 = 같은 유형 평균', avgExclude: AVG_EXCLUDE, typeAvg, regions: rates };
+  ' · place = 장소(묶음)별 비율(%) · age60 = 연령 확인 출동 중 60세 이상 비율(%) · typeAvg.place·age60 = 같은 유형 평균' +
+  ' · suicideDeath = 자살 사망지점(’22~’24, AURI 2026-11-23): rate = 합 ÷ 3 ÷ 인구 × 10만, ref = 핵심지표 자살 사망자수 ’25 같은 유형 평균(만명당) × 10, ratio = rate ÷ ref, dongs = 행정동 [이름, %, 명], repeat = 같은 건물 2명 이상(개소·명, 이름 없음)',
+  avgExclude: AVG_EXCLUDE, typeAvg, regions: rates };
 
 /* 용량을 줄이려 줄을 배열로 (열 이름은 cols) — 화면은 AuriSafetyDetail 같은 읽기 함수로 객체로 되돌림 */
 const COLS = ['field', 'kind', 'name', 'base', 'unit', 'value', 'avgType', 'avgSido', 'avgNation', 'raw', 'ratio', 'badHigh', 'weak'];
@@ -142,3 +177,8 @@ console.log(`세부지표 → ${path.relative(ROOT, OUT)} · 지자체 ${n}/${fi
 if (excluded.length) console.log('⚠ 같은 자료라 비운 시트(AURI 원본 확인 필요): ' + excluded.map((e) => `${e.region} ${e.year}(= ${e.sameAs.join('·')}${e.kept ? ', ' + e.kept + ' 것으로 봄' : ''})`).join(' / '));
 console.log('동일유형 평균에서 뺀 곳: ' + AVG_EXCLUDE.join(', ') + ' · 자치구 ' + typeAvg['자치구'].n + ' · 시 ' + typeAvg['시'].n + ' · 군 ' + typeAvg['군'].n);
 const g = out.regions.gwanak; if (g) { const k = g.years['2025'].find((x) => x.name === '경찰관서수'); console.log('대조: 관악 2025 경찰관서수 ratio', k && k.ratio, '(AURI 표 1-4 0.50배)'); }
+const sd = (s) => { const x = rates[s] && rates[s].suicideDeath; return x ? `${s} 사망 ${DEATH_YEARS.map((y) => x.years[y]).join('·')}명 ${x.rate}명/10만 ${x.ratio}배 주택 ${(x.place.find((p) => p[0] === '주택') || [])[1]}% ${x.top2 ? x.top2.names.join('·') + ' ' + x.top2.share + '%' : ''}` : s + ' 없음'; };
+console.log('자살 사망지점 ' + Object.values(rates).filter((r) => r.suicideDeath).length + '곳' + (deathMiss.length ? ' · 파일 없음 ' + deathMiss.join(',') : '') + ' — 대조(AURI 예시안):');
+console.log('  ' + sd('gwanak') + '   ← 관악 93·115·127명 23.0명 0.84배 주택 68.1% 대학동·신림동 17.6%');
+console.log('  ' + sd('jeongeup') + '   ← 정읍 21·22·31명 23.8명 0.77배 주택 71.6% 수성동·내장상동 51.4%');
+console.log('  ' + sd('namwon') + '   ← 남원 16·28·32명 33.0명 1.07배');

@@ -4,8 +4,10 @@
    장마다 채우는 방법
      요약 · 1장  자료로 자동 — 지역안전지수 5개년 등급(safety-index.json) · 세부지표(safety-detail.json) ·
                 119 출동 연도별·인구 10만명당·동일유형 평균 대비(safety-detail.json rates) · 문장은 규칙으로 조립
-     2장        공통 문구(report-common.json) + AURI 그림(분포도·중첩도) 자리 + 후보지 비교표(바운더리를 받으면)
-     3장        구역별 사고 특성(data/stats/zones/<지역>.json — tools/build-zone-stats.mjs) · 종합도 · 현장사진·개선 후 시뮬레이션
+     2장        공통 문구(report-common.json) + AURI 그림(분포도·중첩도) 자리 + 선정 문장(지구 안 비율) + 후보지 비교표(바운더리를 받으면)
+     3장        복합위험지구 사고 특성(data/stats/zones/<지역>.json — tools/build-zone-stats.mjs, AURI 최종 경계 41곳 11/23) ·
+                표 3-2 구역별은 세부 구역 SHP 를 받으면 · 종합도 · 현장사진·개선 후 시뮬레이션
+     자살       사망지점(’22~’24, AURI 11/23) — 표 1-2·1-3·1-4(safety-detail.json rates.regions.<slug>.suicideDeath) · 표 3-1(zones deaths)
      4·5장      AURI 자료를 받으면 채움(5.1 유관사업은 AURI 작성 표)
      붙임       지역안전지수 산출지표 분석(safety-detail.json)
    AI 가 숫자·사업을 정하지 않습니다 — 표의 숫자는 모두 자료에서, 문장은 규칙으로 조립(설계 원칙 3번).
@@ -57,6 +59,28 @@ const AuriResultReport = (function () {
     return `※ 지역안전지수 핵심지표: AURI 제공 원자료 중 ${ex.map((e) => '’' + e.year.slice(2)).join('·')}년 시트가 다른 지자체 자료와 같아 비워 둠(원자료 확인 중)${y ? ` — ’${y.slice(2)}년 자료로 표시` : ' — 지표 배수는 원자료를 받으면 채워짐'}`;
   }
   const rateOf = (region) => (_detail && _detail.rates && _detail.rates.regions[region]) || null;
+  /* 자살 사망지점(’22~’24, AURI 11/23) — build-safety-detail.mjs rates.regions.<slug>.suicideDeath */
+  const deathOf = (region) => { const r = rateOf(region); return r && r.suicideDeath && r.suicideDeath.total ? r.suicideDeath : null; };
+  /* 사망 진단 문장 — 예시안 "사망률 동일유형 시군구평균 하회(0.84배), 주택 내 사망 68.1%, 대학동·신림동 17.6% 집중" */
+  function deathDiag(d) {
+    if (d.total < 10) return [`자살 사망 3개년 ${nf(d.total)}명으로 지점 분석 한계`];
+    const home = (d.place || []).find((p) => p[0] === '주택');
+    return [d.ratio == null ? null : `사망률 동일유형 시군구평균 ${d.ratio >= 1 ? '상회' : '하회'}(${ratio(d.ratio)})`,
+      home ? `주택 내 사망 ${pct1(home[1])}` : null,
+      d.top2 ? `${d.top2.names.join('·')} ${pct1(d.top2.share)} 집중` : null].filter(Boolean);
+  }
+  /* 지자체 단위 이름 — "구 전체의 34.4%" */
+  const unitOf = (label) => /구$/.test(label) ? '구' : /군$/.test(label) ? '군' : '시';
+  /* 복합위험지구 안에 모인 중점분야 비율 — 예시안 2.3 "범죄 사고가 구 전체의 34.4%, 감염병 출동 19.7%, 자살 사망 15.4%가 집중" */
+  function districtShares(z, focus) {
+    return focus.map((k) => {
+      if (k === 'suicide' && z.district.deaths && z.district.deaths.n) return `자살 사망 ${pct1(z.district.deaths.share)}`;
+      const c = z.district.categories[k]; return c && c.n ? `${L[k]} ${pct1(c.share)}` : null;
+    }).filter(Boolean);
+  }
+  const districtLabel = (z) => z.district.name || z.district.place || '복합위험지구';
+  /* 비율이 모두 10% 미만이면 "집중" 대신 "발생" (장수 천천면 교통 3.1% 등 — 지구가 산재·다른 분야로 잡힌 곳) */
+  const concentrated = (z, focus) => focus.some((k) => { const v = k === 'suicide' && z.district.deaths && z.district.deaths.n ? z.district.deaths.share : (z.district.categories[k] || {}).share; return v >= 10; });
   const typeAvgOf = (region) => { const r = rateOf(region); return r && _detail.rates.typeAvg ? _detail.rates.typeAvg[r.type] || null : null; };
   /* 표 머리 "(자치구 평균 대비)" / "(전국 시 지역 평균 대비)" — 핵심지표의 같은 유형 평균(예시안 표기) */
   const indicatorBase = (type) => type === '자치구' ? '자치구 평균 대비' : type ? `전국 ${type} 지역 평균 대비` : '동일유형 평균 대비';
@@ -126,7 +150,7 @@ const AuriResultReport = (function () {
       ${si ? `<p class="bullet"><span class="tag">(중점관리분야)</span> 지역안전지수 하위 등급과 기초통계 추세를 종합하여 ${esc(short)}${josa(short, '은', '는')} ${esc(list.join(', '))} ${focus.length}개 분야를 중점관리분야로 선정</p>
       ${focus.includes('suicide') ? '<p class="note-under">* OECD 대비 높은 자살률의 국가적 시급성을 감안해 41개 전 지역 필수 산정</p>' : ''}` : ''}
       <h3 class="h-section">2. 복합위험지구 구역별 위험요인 및 맞춤형 사업</h3>
-      ${z ? `<p class="bullet"><span class="tag">(복합위험지구)</span> ‘${esc(z.district.name)}’${z.district.areaKm2 ? `(약 ${nf(z.district.areaKm2, 1)}㎢)` : ''} · 사업구역 ${z.zones.length}곳 — 구역별 사고 특성은 본문 3.1</p>` : wait('복합위험지구 위치·구역별 위험요인 — AURI 복합위험지구·세부 구역 바운더리를 받으면 채워집니다')}
+      ${z ? `<p class="bullet"><span class="tag">(복합위험지구)</span> ${esc(districtLabel(z))}${z.district.areaKm2 ? `(약 ${nf(z.district.areaKm2, 1)}㎢)` : ''}${districtShares(z, focus).length ? `에 ${esc(unitOf(ctx.label))} 전체의 ${esc(districtShares(z, focus).join(', '))} ${concentrated(z, focus) ? '집중' : '발생'}` : ''}${z.zones.length ? ` · 사업구역 ${z.zones.length}곳` : ''} — 사고 특성은 본문 3.1</p>` : wait('복합위험지구 위치·구역별 위험요인 — AURI 복합위험지구 바운더리를 받으면 채워집니다')}
       ${wait('<표 1> 복합위험지구 맞춤형 사업 요약표(대상 구역·핵심 위험요인·사업·소요 예산) — 3.2 사업 구성을 확정하면 채워집니다')}`);
   }
 
@@ -151,22 +175,31 @@ const AuriResultReport = (function () {
       const kiTxt = ki ? `${ki.name} ${ratio(ki.ratio)}` : '';
       let text;
       if (k === 'industrial') text = `’26년 신규 도입(등급 미산출), 구급 출동 연평균 ${nf(f && f.perYear)}건(${typeName} 평균의 ${ratio(f && f.ratio)})`;
-      else if (k === 'suicide') text = `전 지역 공통 필수 선정${kiTxt ? ', ' + kiTxt : ''}`;
+      else if (k === 'suicide') { const d = deathOf(region); text = `전 지역 공통 필수 선정${d && d.ratio != null ? `, 자살 사망률 동일유형 평균의 ${ratio(d.ratio)}` : kiTxt ? ', ' + kiTxt : ''}`; }
       else if (sel) text = `${CRIT_SHORT[ft[k]] || '중점관리분야'}${kiTxt ? ', ' + kiTxt : ''}`;
       else text = '선정기준 미충족' + (!ki ? '' : ki.weak && sev(ki) >= Math.log(1.5) ? `, 단 ${kiTxt}로 관찰 필요` : `, ${kiTxt}`);
       return `<tr${sel ? ' class="rr-focus"' : ''}><th>${L[k]}</th>${k === 'industrial' ? '<td>-</td><td>-</td><td>-</td><td>-</td><td>신규</td>' : g.map((v) => `<td class="rr-n">${v == null ? '-' : v}</td>`).join('')}<td>${esc(text)}</td><td>${condition(si, k)}</td></tr>`;
     }).join('');
     /* 표 1-3 — 중점관리분야만 */
+    const death = deathOf(region);
     const rows13 = focus.map((k) => {
       const f = rate ? rate.fields[k] : null; if (!f) return '';
       const y = f.years || {}; const chg = change(y['2023'] || 0, y['2025'] || 0);
+      /* 자살 — 사망지점(’22~’24) + 119 자해·자살시도(’23~’25) 한 줄 (예시안 "사망 93명 | 사망 115명 (시도 30건) | … | 시도 35건") */
+      if (k === 'suicide' && death) {
+        const dy = death.years, at = (yy) => y[yy] || 0;
+        const cell = (yy) => [dy[yy] != null ? `사망 ${nf(dy[yy])}명` : null, yy >= '2023' ? (dy[yy] != null ? `(시도 ${nf(at(yy))}건)` : `시도 ${nf(at(yy))}건`) : null].filter(Boolean).join('<br>');
+        return `<tr><th>${L[k]}<br><span class="rr-sub-l">(사망/시도)</span></th>${['2022', '2023', '2024', '2025'].map((yy) => `<td class="rr-n">${cell(yy)}</td>`).join('')}
+          <td class="rr-n">사망 ${chgTxt(change(dy['2022'], dy['2024']))}<br><span class="rr-sub-l">(’22→’24)</span><br>(시도 ${chgTxt(chg)})</td><td class="rr-n">사망 ${nf(death.rate, 1)}명</td><td class="rr-n">${ratio(death.ratio)}<sup>2)</sup></td>
+          <td>${esc(deathDiag(death).join(', '))}</td></tr>`;
+      }
       const nb = notable(region, k);
       const diag = f.total < 10 ? `구급 출동 3개년 ${nf(f.total)}건으로 지점 분석 한계`
         : f.ratio == null ? '' : f.ratio >= 1
         ? `구급 발생률이 ${typeName} 평균의 ${ratio(f.ratio)}로 높아 공식통계 기반 선정 근거와 일치`
         : `구급 발생률은 ${typeName} 평균 이하(${ratio(f.ratio)})로 공식통계 기반 선정 근거와 차이, 현장 검증 필요`;
-      /* 예시안의 ’22년·분석 자료원 열은 뺌 — 119 자료는 ’23~’25 뿐이고(’22 는 자살 사망지점 자료용), 자료원은 아래 주석에 */
-      return `<tr><th>${L[k]}<br><span class="rr-sub-l">(${SUB13[k] || '구급 출동'})</span></th>${['2023', '2024', '2025'].map((yy) => `<td class="rr-n">${nf(y[yy] || 0)}건</td>`).join('')}
+      /* 예시안의 분석 자료원 열은 뺌(아래 주석에) · ’22 열은 자살 사망지점용 — 119 는 ’23~’25 뿐이라 "-" */
+      return `<tr><th>${L[k]}<br><span class="rr-sub-l">(${SUB13[k] || '구급 출동'})</span></th><td class="rr-n">-</td>${['2023', '2024', '2025'].map((yy) => `<td class="rr-n">${nf(y[yy] || 0)}건</td>`).join('')}
         <td class="rr-n">${chgTxt(chg)}</td><td class="rr-n">${nf(f.rate, 1)}건</td><td class="rr-n">${ratio(f.ratio)}<sup>1)</sup></td>
         <td>${esc(diag)}${nb.length ? '; ' + esc(nb.join(', ')) : ''}</td></tr>`;
     }).join('');
@@ -175,7 +208,15 @@ const AuriResultReport = (function () {
       const f = rate ? rate.fields[k] : null; const y = f ? f.years || {} : {};
       const gradeTxt = k === 'suicide' ? '등급과 무관한 공통 필수 선정 (OECD 대비 높은 자살률)' : CRIT_LONG[ft[k]] || '중점관리분야';
       const facts = [];
-      if (f) {
+      /* 자살 — 예시안 "자살 사망 ’22년 93명 → ’24년 127명(+36.6%), 자해·자살시도 출동 ’23년 30건 → ’25년 35건 / 사망 335명 중 주택 68.1%로 주거지 중심, 대학동·신림동(17.6%) 집중, 산·하천·교량 12.5%" */
+      if (k === 'suicide' && death) {
+        const dy = death.years;
+        facts.push(`자살 사망 ’22년 ${nf(dy['2022'])}명 → ’24년 ${nf(dy['2024'])}명(${chgTxt(change(dy['2022'], dy['2024']))}), 인구 10만명당 ${nf(death.rate, 1)}명(동일유형 평균의 ${ratio(death.ratio)})` + (f ? `, 자해·자살시도 출동 ’23년 ${nf(y['2023'] || 0)}건 → ’25년 ${nf(y['2025'] || 0)}건` : ''));
+        if (death.total < 10) facts.push(`자살 사망 3개년 ${nf(death.total)}명으로 지점 분석 한계`);
+        else { const home = (death.place || []).find((p) => p[0] === '주택');
+          facts.push([`사망 ${nf(death.total)}명 중 ${home ? `주택 ${pct1(home[1])}` : `${death.place[0][0]} ${pct1(death.place[0][1])}`}`, death.top2 ? `${death.top2.names.join('·')}(${pct1(death.top2.share)}) 집중` : null,
+            death.outdoor && death.outdoor.share >= 5 ? `산·하천·교량 ${pct1(death.outdoor.share)}` : null].filter(Boolean).join(', ')); }
+      } else if (f) {
         facts.push(`119 ${k === 'suicide' ? '자해·자살시도' : L[k]} 출동 ’23년 ${nf(y['2023'] || 0)}건 → ’25년 ${nf(y['2025'] || 0)}건(${chgTxt(change(y['2023'] || 0, y['2025'] || 0))}), 인구 10만명당 ${nf(f.rate, 1)}건(${typeName} 평균의 ${ratio(f.ratio)})`);
         const nb = notable(region, k);
         if (f.total < 10) facts.push(`구급 출동 3개년 ${nf(f.total)}건으로 지점 분석 한계`);
@@ -200,8 +241,8 @@ const AuriResultReport = (function () {
       <h3 class="h-section">1.3 안전사고 발생 규모 및 추세 분석</h3>
       <p class="bullet">실제 지역 내에서 안전사고 데이터를 분석하여, 등급의 착시를 보정하고 인명피해가 집중·증가하는 분야를 검증</p>
       <table class="tight rr-t"><caption>&lt;표 1-3&gt; 지역안전지수 취약 분야의 연도별 119사고 출동 건수 추이 및 시군구 평균 대비 비교</caption>
-        <thead><tr><th style="width:13%">취약분야</th><th>’23년</th><th>’24년</th><th>’25년</th><th>증감률<br>(’23→’25)</th><th>인구 10만명당<br>(연평균)</th><th>${esc(typeName)}<br>평균대비</th><th>핵심 위험 진단 결과</th></tr></thead><tbody>${rows13}</tbody></table>
-      <p class="note-under">※ 자료원: 소방청 119 구급활동자료(’23~’25), 분야별 구급출동 · 1) (구급출동) ’23~’25년 합계 ÷ 3 ÷ 주민등록인구(지역안전지수 산출 인구) × 10만, 41개 대상지 중 동일유형(${esc(typeName)} ${_detail && _detail.rates && _detail.rates.typeAvg[typeName] ? _detail.rates.typeAvg[typeName].n + '개' : ''}) 평균 대비 · 장소·연령 괄호 안 평균 = 같은 유형 평균 · 자살은 119 자해·자살시도 출동 기준(자살 사망지점 자료 미반영)</p>
+        <thead><tr><th style="width:11%">취약분야</th><th>’22년</th><th>’23년</th><th>’24년</th><th>’25년</th><th>증감률<br>(’23→’25)</th><th>인구 10만명당<br>(연평균)</th><th>${esc(typeName)}<br>평균대비</th><th>핵심 위험 진단 결과</th></tr></thead><tbody>${rows13}</tbody></table>
+      <p class="note-under">※ 자료원: 소방청 119 구급활동자료(’23~’25), 분야별 구급출동${death ? ' · 자살 사망지점 자료(’22~’24)' : ''} · 1) (구급출동) ’23~’25년 합계 ÷ 3 ÷ 주민등록인구(지역안전지수 산출 인구) × 10만, 41개 대상지 중 동일유형(${esc(typeName)} ${_detail && _detail.rates && _detail.rates.typeAvg[typeName] ? _detail.rates.typeAvg[typeName].n + '개' : ''}) 평균 대비 · 장소·연령 괄호 안 평균 = 같은 유형 평균${death ? ' · 2) (자살) 사망은 자살 사망지점 자료(’22~’24년) 합계 ÷ 3 ÷ 같은 인구 × 10만, 진단리포트 ’25년 동일유형 시군구평균(인구 만명당 × 10) 대비 / 시도는 119 자해·자살시도 출동(’23~’25년)' : ' · 자살은 119 자해·자살시도 출동 기준'}</p>
       <h3 class="h-section">1.4 중점관리분야 최종 선정</h3>
       <p class="bullet">지역안전지수 등급 추이와 실제 사고 데이터 검증을 종합하여 ${esc(name)}${josa(name, '은', '는')} ${focus.map((k) => L[k]).join(', ')} ${focus.length}개 분야를 중점관리분야로 최종 선정</p>
       <table class="tight rr-t"><caption>&lt;표 1-4&gt; 중점관리분야 최종 선정 근거 및 핵심 취약성 요약표</caption>
@@ -218,33 +259,58 @@ const AuriResultReport = (function () {
       <h3 class="h-section">2.2 복합위험지구 후보지 도출</h3>
       ${wait('<그림 2-1> 안전유형별 위험지역 분포 · <그림 2-2> 중첩도 — AURI(강원대) 그림을 받으면 실립니다')}
       <h3 class="h-section">2.3 후보지역 비교 검토 및 최종 대상지 선정</h3>
-      ${wait('<표 2-1> 후보지역 종합 비교 검토표 — AURI 후보지 바운더리를 받으면 후보지별 사고 건수·특성이 자동으로 채워집니다')}`);
+      ${wait('<표 2-1> 후보지역 종합 비교 검토표 — AURI 후보지 바운더리를 받으면 후보지별 사고 건수·특성이 자동으로 채워집니다')}
+      ${selectSentence(ctx)}`);
+  }
+  /* 2.3 선정 문장 — 예시안 "3개 중점분야(범죄·자살·감염병)가 모두 중첩되고 범죄 사고가 구 전체의 34.4%, 감염병 출동 19.7%, 자살 사망 15.4%가 집중되어 … 복합위험지구로 선정" */
+  function selectSentence(ctx) {
+    const z = _zones; if (!z) return '';
+    const focus = focusOrder(ctx.si);
+    const inside = focus.filter((k) => k === 'suicide' ? (z.district.deaths && z.district.deaths.n) || (z.district.categories.suicide && z.district.categories.suicide.n) : z.district.categories[k] && z.district.categories[k].n);
+    const shares = districtShares(z, focus);
+    const nm = `${focus.length}개 중점분야(${focus.map((k) => L[k]).join('·')})`;
+    const overlap = inside.length === focus.length ? `${nm}가 모두 중첩되고` : `${nm} 중 ${inside.length}개(${inside.map((k) => L[k]).join('·')})가 중첩되고`;
+    return `<p class="bullet rr-sub">${esc(overlap)} ${esc(unitOf(ctx.label))} 전체 대비 ${esc(shares.join(', '))}${shares.length ? josa(shares[shares.length - 1], '이', '가') : ''} ${concentrated(z, focus) ? '집중되어' : '발생하여'}, ‘${esc(districtLabel(z))}’${z.district.areaKm2 ? `(약 ${nf(z.district.areaKm2, 1)}㎢)` : ''}${josa(districtLabel(z), '을', '를')} 복합위험지구로 선정</p>
+      <p class="note-under">※ 복합위험지구 경계: AURI 최종안(${esc(z.source || '')}) · 비율 = 복합위험지구 안 119 구급출동(’23~’25)·자살 사망(’22~’24) ÷ ${esc(ctx.label)} 전체${z.district.name ? '' : ' · 지구 이름은 걸친 행정동(면적 20% 이상)으로 적음'}</p>`;
   }
 
   /* ── 3장 ───────────────────────────────────────────────────────── */
-  function zoneFacts(c) {
-    if (!c) return null;
-    const ageTop = Object.entries(c.age.buckets || {}).sort((a, b) => b[1][1] - a[1][1])[0];
-    return {
-      count: `${nf(c.n)}명${c.events !== c.n ? `(${nf(c.events)}건)` : ''} (${c.share}%)`,
-      person: [c.sex.male != null ? `남성 ${nf(c.sex.maleN)}명(${c.sex.male}%)` : null, ageTop ? `${ageTop[0].replace('-', '~')}세 ${ageTop[1][1]}명(${ageTop[1][0]}%)` : null].filter(Boolean).join(' · '),
+  function zoneFacts(c, d) {
+    if (!c && !(d && d.n)) return null;
+    const ageTop = c ? Object.entries(c.age.buckets || {}).sort((a, b) => b[1][1] - a[1][1])[0] : null;
+    const f = c ? {
+      count: `${nf(c.n)}명${c.events !== c.n ? `(${nf(c.events)}건)` : ''} (${pct1(c.share)})`,
+      person: [c.sex.male != null ? `남성 ${nf(c.sex.maleN)}명(${c.sex.male}%)` : null, ageTop ? `${ageTop[0] === '80+' ? '80세 이상' : ageTop[0].replace('-', '~') + '세'} ${ageTop[1][1]}명(${ageTop[1][0]}%)` : null].filter(Boolean).join(' · '),
       time: [c.hour.n ? `22~05시 ${nf(c.hour.nightN)}건(${c.hour.night2205}%)` : null, c.weekday.n ? `금~일 ${nf(c.weekday.friSunN)}건(${c.weekday.friSun}%)` : null].filter(Boolean).join(' · '),
       place: [(c.place.top || []).slice(0, 3).map((p) => `${p[0]} ${p[2]}명`).join('·'), c.repeat && c.repeat.spots2 ? `같은 지번 2회 이상 ${c.repeat.spots2}곳(최대 ${c.repeat.maxAtOneSpot}명)` : null].filter(Boolean).join(' · '),
+    } : { count: '', person: '', time: '', place: '' };
+    if (!(d && d.n)) return f;
+    /* 자살 — 사망지점(’22~’24) + 출동(자해·자살시도). 예시안 "사망 22명 (29.7%) 시도 6건 (26.1%)" · "사망 ’22년 8명, ’23년 8명, ’24년 6명" · "22명 모두 주택 내부 …"
+       같은 건물·단지 반복은 개소 수만(건물명은 연구진 전달용 파일에) */
+    const dPlace = d.place.slice(0, 3).map((p) => `${p[0]} ${p[2]}명`).join('·');
+    return {
+      count: `사망 ${nf(d.n)}명 (${pct1(d.share)})${c ? ` · 시도 ${nf(c.n)}건 (${pct1(c.share)})` : ''}`,
+      person: c && f.person ? `(시도) ${f.person}` : '(사망지점 자료에 연령·성별 없음)',
+      time: [`사망 ${['2022', '2023', '2024'].map((y) => `’${y.slice(2)} ${nf(d.years[y] || 0)}명`).join('·')}`, c && f.time ? `(시도) ${f.time}` : null].filter(Boolean).join(' · '),
+      place: [`(사망) ${dPlace}${d.repeat && d.repeat.spots ? ` · 같은 건물·단지 2명 이상 ${d.repeat.spots}곳(최대 ${d.repeat.max}명)` : ''}`, c && f.place ? `(시도) ${f.place}` : null].filter(Boolean).join(' · '),
     };
   }
+  const zfacts = (cats, deaths, k) => zoneFacts(cats[k], k === 'suicide' ? deaths : null);
   function ch3(ctx) {
     const focus = focusOrder(ctx.si);
     const z = _zones;
     let t31 = wait('<표 3-1> 복합위험지구 내 중점관리분야별 사고 데이터 핵심 특성 — AURI 복합위험지구 바운더리를 받으면 채워집니다');
-    let t32 = wait('<표 3-2> 사업구역별 위험요인 총괄표 — AURI 세부 구역 바운더리를 받으면 채워집니다');
+    let t32 = wait('<표 3-2> 사업구역별 위험요인 총괄표 — AURI 세부 구역(구역 ❶❷ · 단일 ①) 바운더리를 받으면 채워집니다');
     if (z) {
+      const tot = z.regionTotals || {};
+      const totTxt = focus.map((k) => k === 'suicide' ? [tot.suicideDeath ? `자살 사망 ${nf(tot.suicideDeath.n)}명` : null, tot.suicide ? `자살 시도 ${nf(tot.suicide.n)}건` : null].filter(Boolean).join('·') : tot[k] ? `${L[k]} ${nf(tot[k].n)}명` : null).filter(Boolean).join(', ');
       t31 = `<table class="tight rr-t"><caption>&lt;표 3-1&gt; 복합위험지구 내 중점관리분야별 사고 데이터 핵심 특성</caption>
-        <thead><tr><th>분야</th><th>사고발생건수 (${esc(ctx.label)} 내 비율)</th><th>인적 특성 (연령대·성별)</th><th>시간 특성 (시간대·요일)</th><th>장소 및 원인 특성 (주요 발생장소·반복성)</th></tr></thead>
-        <tbody>${focus.map((k) => { const f = zoneFacts(z.district.categories[k]); return `<tr><th>${L[k]}</th>${f ? `<td>${esc(f.count)}</td><td>${esc(f.person)}</td><td>${esc(f.time)}</td><td>${esc(f.place)}</td>` : '<td colspan="4">복합위험지구 안 출동 없음</td>'}</tr>`; }).join('')}</tbody></table>
-        <p class="note-under">※ 119 구급활동자료(’23~’25) · 명 = 출동 기록(환자) 수, 괄호 건 = 같은 일시·장소 묶음 · 비율 = ${esc(ctx.label)} 전체 대비 · 자살은 자해·자살시도 출동</p>`;
-      t32 = `<table class="tight rr-t"><caption>&lt;표 3-2&gt; 복합위험지구 내 사업구역별 위험요인 총괄표</caption>
+        <thead><tr><th style="width:9%">분야</th><th style="width:17%">사고발생건수 (${esc(ctx.label)} 내 비율)</th><th>인적 특성 (연령대·성별)</th><th>시간 특성 (시간대·요일)</th><th>장소 및 원인 특성 (주요 발생장소·반복성)</th></tr></thead>
+        <tbody>${focus.map((k) => { const f = zfacts(z.district.categories, z.district.deaths, k); return `<tr><th>${L[k]}</th>${f ? `<td>${esc(f.count)}</td><td>${esc(f.person)}</td><td>${esc(f.time)}</td><td>${esc(f.place)}</td>` : '<td colspan="4">복합위험지구 안 출동 없음</td>'}</tr>`; }).join('')}</tbody></table>
+        <p class="note-under">※ 119 구급활동자료(’23~’25)${z.district.deaths ? ', (자살 사망) 자살 사망지점 자료(’22~’24)' : ''} · 명 = 출동 기록(환자) 수, 괄호 건 = 같은 일시·장소 묶음 · 자살 시도 = 119 자해·자살시도 출동 · 비율 = ${esc(ctx.label)} 전체 대비${totTxt ? `(${esc(totTxt)})` : ''}</p>`;
+      if (z.zones.length) t32 = `<table class="tight rr-t"><caption>&lt;표 3-2&gt; 복합위험지구 내 사업구역별 위험요인 총괄표</caption>
         <thead><tr><th style="width:20%">구역명</th><th>중점관리분야별 사고 특성</th><th style="width:24%">연계 사업</th></tr></thead>
-        <tbody>${z.zones.map((zz) => `<tr><th class="rr-wrap">${esc(zz.name)}${zz.areaKm2 ? `<br><span class="h-sub">약 ${nf(zz.areaKm2, 2)}㎢</span>` : ''}</th><td>${focus.map((k) => { const f = zoneFacts(zz.categories[k]); return f ? `<b>[${L[k]}]</b> ${esc(f.count)} · ${esc(f.time)} · ${esc(f.place)}` : ''; }).filter(Boolean).join('<br>') || '중점관리분야 출동 없음'}</td><td><span class="rr-sub-l">3.2 사업 구성 후</span></td></tr>`).join('')}</tbody></table>
+        <tbody>${z.zones.map((zz) => `<tr><th class="rr-wrap">${esc(zz.name)}${zz.areaKm2 ? `<br><span class="h-sub">약 ${nf(zz.areaKm2, 2)}㎢</span>` : ''}</th><td>${focus.map((k) => { const f = zfacts(zz.categories, zz.deaths, k); return f ? `<b>[${L[k]}]</b> ${esc(f.count)} · ${esc(f.time)} · ${esc(f.place)}` : ''; }).filter(Boolean).join('<br>') || '중점관리분야 출동 없음'}</td><td><span class="rr-sub-l">3.2 사업 구성 후</span></td></tr>`).join('')}</tbody></table>
         <p class="note-under">※ 지번·업소 단위 반복 지점은 개인정보 원칙상 화면에 싣지 않고 연구진 전달용 파일(구역별 반복 지번 목록)로 드립니다</p>`;
     }
     const before = ctx.beforeUrl, after = ctx.afterUrl;

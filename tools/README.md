@@ -27,8 +27,8 @@
 | `build-hwpx-templates.mjs` | — | 한글 내려받기 틀 → `data/hwpx/`(그림만 축소한 AURI 원본) |
 | `export-space-risk.mjs` | `space-risk-export` | 연계표(`assets/space-risk.json`) → 엑셀 1개 + CSV 2개(AURI 검토용) |
 | `batch-generate.mjs` | `batch-generate` | 작업표 CSV → 켜 둔 로컬 서버로 개선 이미지 일괄 생성(`--go` 없으면 시험 실행) |
-| `build-zone-stats.mjs` | `zones` | AURI 복합위험지구·세부 구역 SHP(`config/zones.json`) → `data/stats/zones/<지역>.json`(구역별 119 특성, 주소 없음) + `output/zones/` 지번 목록(전달용). 시험: `node build-zone-stats.mjs <지역> --zones=<shp> [--district=<shp>] --out=<폴더>` |
-| `build-safety-detail.mjs` | `safety-detail` | 지역안전지수 핵심지표 엑셀(11/18) + 119 통계 → `data/stats/safety-detail.json`(지표 배수 · 발생률 · 장소·60세 이상 평균). 같은 자료 시트 자동 제외 · 생활안전 쏠린 곳은 평균에서 뺌 |
+| `build-zone-stats.mjs` | `zones` | AURI 복합위험지구·세부 구역 SHP(`config/zones.json`) → `data/stats/zones/<지역>.json`(지구·구역별 119 특성 + 자살 사망, 주소·건물명 없음) + `output/zones/` 지번·반복 건물 목록(전달용). 11/24 AURI 최종 지구 41곳을 `district` 로 — 세부 구역(`zones`)은 SHP 를 받으면. 시험: `node build-zone-stats.mjs <지역> --zones=<shp> [--district=<shp>] --out=<폴더>` |
+| `build-safety-detail.mjs` | `safety-detail` | 지역안전지수 핵심지표 엑셀(11/18) + 119 통계 → `data/stats/safety-detail.json`(지표 배수 · 발생률 · 장소·60세 이상 평균 · 자살 사망지점 사망률 `suicideDeath`). 같은 자료 시트 자동 제외 · 생활안전 쏠린 곳은 평균에서 뺌 |
 | `build-palette-220.mjs` | `palette-220` | 맞춤형 사업팔레트 PDF(11/18, 189쪽) → `assets/palette-220.json`(220종 · 카드 · 참고 단가) |
 
 ## 점검
@@ -47,6 +47,7 @@
 | `incidents.mjs` | 119 CSV 열기 — 파일 이름 · 화재 결합 · A_type · 반복 임계값 한 곳 |
 | `regions.mjs` | 지자체 매칭표(119 · 조사지 SHP · 강원대 엑셀) + **원본 바로잡은 곳**(되돌리지 말 것) |
 | `hjd.mjs` | 행정동 경계(vuski geojson) 묶음·시군구 고르기·좌표 → 동 |
+| `suicide-deaths.mjs` | 자살 사망지점(’22~’24, AURI 11/23) 읽기 · 연도·장소 집계 · 같은 건물 반복(개소 수만 — 건물명은 output/ 전달용에만) |
 | `csv.mjs` · `xlsx.mjs` · `xlsx-write.mjs` · `shapefile.mjs` · `geotiff.mjs` · `png.mjs` · `hwpx.mjs` · `zonal.mjs` | 파일 읽기·쓰기(라이브러리 없이) · TIF → 동 평균 |
 
 ## 종합도 (`overview-map/`) — 자세히 [notes/09_종합도-히트맵.md](../notes/09_종합도-히트맵.md)
