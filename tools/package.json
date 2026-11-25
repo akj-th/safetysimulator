@@ -29,7 +29,10 @@
     "focus-all": "node build-safety-index.mjs && node apply-focus-index.mjs && node --max-old-space-size=8192 build-dong-hea.mjs && node build-field-survey.mjs && node build-hotspots.mjs",
     "zones": "node build-zone-stats.mjs",
     "safety-detail": "node build-safety-detail.mjs",
-    "palette-220": "node build-palette-220.mjs"
+    "palette-220": "node build-palette-220.mjs",
+    "palette-v4": "node build-palette-v4.mjs",
+    "ppt-zones": "node build-ppt-zones.mjs",
+    "council": "node build-council.mjs"
   },
   "dependencies": {
     "pdfjs-dist": "^4.10.38",

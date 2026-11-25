@@ -25,7 +25,7 @@ const AuriResultReport = (function () {
   /* 119 발생장(묶음) → 예시안 표기 */
   const PLACE_NAME = { 집: '주거지(집)', '바다/강/산/논밭': '산·하천·논밭', 일차산업장: '농·축산 등 일차산업장', 도로외교통지역: '도로 외 교통지역', '오락/문화시설': '오락·문화시설', '공장/산업/건설시설': '공장·산업·건설시설', '학교/교육시설': '학교·교육시설' };
   const SUB13 = { crime: '폭력·상해 등', suicide: '자해·자살시도' };
-  let _detail = null, _common = null, _zones = null;
+  let _detail = null, _common = null, _zones = null, _council = null, _palette = null;
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const nf = (v, d = 0) => v == null ? '-' : Number(v).toLocaleString('ko-KR', { maximumFractionDigits: d, minimumFractionDigits: d });
   const ratio = (v) => v == null ? '-' : Number(v).toFixed(2) + '배';
@@ -39,10 +39,12 @@ const AuriResultReport = (function () {
 
   async function getJson(url) { try { const r = await fetch(url, { cache: 'no-store' }); return r.ok ? await r.json() : null; } catch (e) { return null; } }
   async function load(region) {
-    [_detail, _common, _zones] = await Promise.all([
+    [_detail, _common, _zones, _council, _palette] = await Promise.all([
       _detail || getJson('data/stats/safety-detail.json'),
       _common || getJson('assets/report-common.json'),
       getJson('data/stats/zones/' + region + '.json'),     // 없으면 null — AURI 바운더리를 받은 지자체만
+      getJson('data/stats/council/' + region + '.json'),   // 1차 지역협의체 의견(이음 3.2 파트, build-council.mjs) — 24곳
+      _palette || getJson('assets/palette-v4.json'),        // 7대 안전유형 맞춤형 사업팔레트 v4(’26.11.24, 280개 단위사업 — build-palette-v4.mjs)
     ]);
   }
   /* 세부지표 줄(배열) → 객체 */
@@ -259,8 +261,49 @@ const AuriResultReport = (function () {
       <h3 class="h-section">2.2 복합위험지구 후보지 도출</h3>
       ${wait('<그림 2-1> 안전유형별 위험지역 분포 · <그림 2-2> 중첩도 — AURI(강원대) 그림을 받으면 실립니다')}
       <h3 class="h-section">2.3 후보지역 비교 검토 및 최종 대상지 선정</h3>
-      ${wait('<표 2-1> 후보지역 종합 비교 검토표 — AURI 후보지 바운더리를 받으면 후보지별 사고 건수·특성이 자동으로 채워집니다')}
-      ${selectSentence(ctx)}`);
+      ${selectSentence(ctx)}
+      ${table21(ctx)}`);
+  }
+  /* 후보지 ②③ — AURI 4장 후보지 위치도 PPT 도형(build-ppt-zones → build-zone-stats candidates) */
+  const candsOf = () => (_zones && _zones.candidates) || [];
+  const areaTxt = (o) => o.areaNote ? `약 ${nf(o.areaNote, 1)}㎢` : o.areaKm2 ? `약 ${nf(o.areaKm2, 1)}㎢` : '';
+  /* 중점분야가 지구·후보지 안에 있는지(자살은 사망 또는 시도) */
+  const hasField = (o, k) => k === 'suicide' ? !!((o.deaths && o.deaths.n) || (o.categories.suicide && o.categories.suicide.n)) : !!(o.categories[k] && o.categories[k].n);
+  function overlapTxt(o, focus) {
+    const ins = focus.filter((k) => hasField(o, k));
+    return ins.length === focus.length ? `${focus.length}개 중점분야 모두 중첩<br>(${focus.map((k) => L[k]).join('+')})` : `${focus.length}개 중 ${ins.length}개 중첩<br>(${ins.map((k) => L[k]).join('+') || '없음'})`;
+  }
+  /* 중점분야 사고 건수 — 예시안 "• 감염병: 14건 (관악구 전체 71건 중)" */
+  function countLines(o, focus, label) {
+    const tot = (_zones && _zones.regionTotals) || {};
+    return focus.map((k) => {
+      if (k === 'suicide') {
+        const d = o.deaths, c = o.categories.suicide;
+        return `• 자살: 사망 ${nf(d ? d.n : 0)}명${tot.suicideDeath ? ` (전체 ${nf(tot.suicideDeath.n)}명 중)` : ''} · 시도 ${nf(c ? c.n : 0)}건${tot.suicide ? ` (전체 ${nf(tot.suicide.n)}건 중)` : ''}`;
+      }
+      const c = o.categories[k];
+      return `• ${L[k]}: ${nf(c ? c.n : 0)}${k === 'crime' ? '명' : '건'} (${esc(String(label).split(' ').pop())} 전체 ${nf(tot[k] ? tot[k].n : 0)}${k === 'crime' ? '명' : '건'} 중)`;
+    }).join('<br>');
+  }
+  function density(o, focus) {
+    const n = focus.reduce((s, k) => s + (k === 'suicide' ? ((o.deaths && o.deaths.n) || 0) + ((o.categories.suicide && o.categories.suicide.n) || 0) : (o.categories[k] && o.categories[k].n) || 0), 0);
+    const a = o.areaKm2 || o.areaNote;
+    return `${nf(n)}건${a ? ` · ㎢당 ${nf(n / a, 1)}건` : ''}`;
+  }
+  function table21(ctx) {
+    const z = _zones, cs = candsOf();
+    if (!z || !cs.length) return wait('<표 2-1> 후보지역 종합 비교 검토표 — AURI 후보지 위치도(PPT 도형)를 좌표로 옮기면 후보지별 사고 건수가 자동으로 채워집니다');
+    const focus = focusOrder(ctx.si);
+    const cols = [{ head: `① (최종 선정)<br>${esc(districtLabel(z))}`, o: { ...z.district, areaNote: null } }, ...cs.map((c) => ({ head: esc(c.name), o: { ...c, place: c.name.slice(1).trim() } }))];   // 후보지 위치 = AURI 가 붙인 이름
+    const row = (h, f) => `<tr><th>${h}</th>${cols.map((c) => `<td>${f(c.o)}</td>`).join('')}</tr>`;
+    return `<table class="tight rr-t"><caption>&lt;표 2-1&gt; 복합위험지구 후보지역(①~${'①②③④⑤'[cs.length]}) 종합 비교 검토표</caption>
+      <thead><tr><th style="width:13%">구분</th>${cols.map((c) => `<th>${c.head}</th>`).join('')}</tr></thead>
+      <tbody>${row('위치 및 면적', (o) => `${esc(o.place || '-')}${areaTxt(o) ? ` (${areaTxt(o)})` : ''}`)}
+        ${row('중점관리분야', (o) => overlapTxt(o, focus))}
+        ${row('중점분야 사고 건수', (o) => countLines(o, focus, ctx.label))}
+        ${row('중점분야 사고 합계·밀도', (o) => density(o, focus))}
+        ${row('주요 공간·위험 특성', () => '<span class="rr-sub-l">연구진 작성</span>')}</tbody></table>
+      <p class="note-under">※ 후보지 경계: AURI 4장 후보지 위치도(PPT 도형, 이예린 ’26.11.23)를 지도 좌표로 옮겨 집계(손으로 그린 선이라 경계 부근 수 건 차이 가능) · 위치 = 면적 20% 이상 걸친 행정동 · 119 구급출동(’23~’25)·자살 사망(’22~’24) · 자살 시도 = 119 자해·자살시도 출동 · 나머지 후보지는 본문 4장</p>`;
   }
   /* 2.3 선정 문장 — 예시안 "3개 중점분야(범죄·자살·감염병)가 모두 중첩되고 범죄 사고가 구 전체의 34.4%, 감염병 출동 19.7%, 자살 사망 15.4%가 집중되어 … 복합위험지구로 선정" */
   function selectSentence(ctx) {
@@ -280,7 +323,7 @@ const AuriResultReport = (function () {
     const ageTop = c ? Object.entries(c.age.buckets || {}).sort((a, b) => b[1][1] - a[1][1])[0] : null;
     const f = c ? {
       count: `${nf(c.n)}명${c.events !== c.n ? `(${nf(c.events)}건)` : ''} (${pct1(c.share)})`,
-      person: [c.sex.male != null ? `남성 ${nf(c.sex.maleN)}명(${c.sex.male}%)` : null, ageTop ? `${ageTop[0] === '80+' ? '80세 이상' : ageTop[0].replace('-', '~') + '세'} ${ageTop[1][1]}명(${ageTop[1][0]}%)` : null].filter(Boolean).join(' · '),
+      person: [c.sex.male != null && c.sex.n ? (c.sex.male >= 50 ? `남성 ${nf(c.sex.maleN)}명(${c.sex.male}%)` : `여성 ${nf(c.sex.n - c.sex.maleN)}명(${+(100 - c.sex.male).toFixed(1)}%)`) : null, ageTop ? `${ageTop[0] === '80+' ? '80세 이상' : ageTop[0].replace('-', '~') + '세'} ${ageTop[1][1]}명(${ageTop[1][0]}%)` : null].filter(Boolean).join(' · '),
       time: [c.hour.n ? `22~05시 ${nf(c.hour.nightN)}건(${c.hour.night2205}%)` : null, c.weekday.n ? `금~일 ${nf(c.weekday.friSunN)}건(${c.weekday.friSun}%)` : null].filter(Boolean).join(' · '),
       place: [(c.place.top || []).slice(0, 3).map((p) => `${p[0]} ${p[2]}명`).join('·'), c.repeat && c.repeat.spots2 ? `같은 지번 2회 이상 ${c.repeat.spots2}곳(최대 ${c.repeat.maxAtOneSpot}명)` : null].filter(Boolean).join(' · '),
     } : { count: '', person: '', time: '', place: '' };
@@ -296,6 +339,72 @@ const AuriResultReport = (function () {
     };
   }
   const zfacts = (cats, deaths, k) => zoneFacts(cats[k], k === 'suicide' ? deaths : null);
+  /* 지역협의체가 중점관리분야 밖에서 추가로 요청한 분야(표의 "(현장 추가)" 줄·사전질의서) — AURI 11/24: 건수 집계·현황 분석은 중점분야 기준, 추가 분야는 사업에만 */
+  const extraFields = () => (_council && _council.extraFieldKeys) || [];
+  /* 구역 사업 분야 = 구역 안에 사고가 있는 중점관리분야 + 지역협의체 추가 요청 분야 */
+  const zoneFields = (zz, focus) => focus.filter((k) => hasField(zz, k)).concat(extraFields().filter((k) => !focus.includes(k)));
+  /* 3.2 — 1차 지역협의체 의견수렴 및 현장조사 결과(이음 작성 2차 사전진단서 3.2 파트 그대로, build-council.mjs) */
+  function council32(ctx) {
+    const c = _council;
+    if (!c) return `<h3 class="h-section">3.2 1차 지역협의체 의견수렴 및 현장조사 결과</h3>${wait('지역협의체 의견수렴 결과 — 이음 2차 사전진단서(3.2 파트)를 받은 24곳만 실립니다')}`;
+    const cell = (arr) => (arr || []).map((t) => `<div>${esc(/^[•※\-(]/.test(t) ? t : '• ' + t)}</div>`).join('');
+    const ex = extraFields().filter((k) => !(c.focus || []).includes(k));
+    return `<h3 class="h-section">3.2 1차 지역협의체 의견수렴 및 현장조사 결과</h3>
+      ${(c.intro || []).map((t) => `<p class="bullet${/^-/.test(t) ? ' rr-sub' : ''}">${esc(t.replace(/^[-○]\s*/, ''))}</p>`).join('')}
+      <table class="tight rr-t"><caption>&lt;표 3-3&gt; 지역협의체 의견수렴 및 현장 위험요인 발굴 결과</caption>
+        <thead><tr><th style="width:10%">구분</th><th style="width:12%">참여 주체</th><th style="width:28%">사전 데이터 분석 내용</th><th>현장조사 및 인터뷰를 통해 추가 발굴·확인된 핵심 위험요인</th></tr></thead>
+        <tbody>${c.table.rows.map((r) => `<tr><th class="rr-wrap">${esc(r.fieldLabel)}</th><td>${esc(r.who || '')}</td><td>${cell(r.data)}</td><td>${cell(r.found)}</td></tr>`).join('')}</tbody></table>
+      ${ex.length ? `<p class="bullet"><span class="tag">(추가 요청 분야)</span> 지역협의체가 중점관리분야 외에 ${esc(ex.map((k) => L[k]).join('·'))} 관리를 요청 → 3.3 구역별 맞춤형 사업에 해당 분야 사업을 함께 담음(사고 건수 집계·현황 분석은 중점관리분야 기준)</p>` : ''}
+      <p class="note-under">※ 자료: 「2차 사전진단서(3.2 파트)」(이음 작성, AURI ’26.11.24 송부) 원문 그대로 · 지역협의체는 1차 현장조사 당시 조사지를 기준으로 진행되어, 최종 복합위험지구와 위치가 다른 의견은 분야만 사업에 반영</p>`;
+  }
+  /* 3.3 — 구역마다 장소별 위험요인(데이터) · 사업 분야 · 사업 후보(사업팔레트 v4) */
+  function zones33(ctx) {
+    const z = _zones, focus = focusOrder(ctx.si);
+    if (!z || !z.zones.length) return wait('구역별 맞춤형 사업 — AURI 사업구역 위치도(PPT 도형)를 좌표로 옮기면 구역별로 채워집니다');
+    const ex = extraFields().filter((k) => !focus.includes(k));
+    return z.zones.map((zz, i) => {
+      const ins = focus.filter((k) => hasField(zz, k)), fields = zoneFields(zz, focus);
+      const risk = ins.map((k) => { const f = zfacts(zz.categories, zz.deaths, k); return f ? `<p class="bullet rr-sub">[${L[k]}] ${esc([f.count, f.time, f.place].filter(Boolean).join(' · '))}</p>` : ''; }).join('');
+      return `<p class="bullet"><span class="tag">[${esc(zz.name.replace(/^구역\s*/, '구역 '))}]</span> ※ ${esc(ins.map((k) => L[k]).join('×') || '중점관리분야 사고 없음')}${ex.length ? ` + 지역협의체 추가 ${esc(ex.map((k) => L[k]).join('·'))}` : ''}${zz.areaKm2 ? ` · 약 ${nf(zz.areaKm2, 2)}㎢` : ''}</p>
+        <p class="bullet rr-sub"><span class="tag">(장소별 위험요인 — 데이터)</span></p>${risk || '<p class="bullet rr-sub">구역 안 중점관리분야 사고 없음</p>'}
+        ${projectTable(zz, fields, i + 1)}`;
+    }).join('') + `<p class="note-under">※ 사업구역 경계: AURI 사업구역 위치도(PPT 도형, 이예린 ’26.11.24)를 지도 좌표로 옮겨 집계 · 사업 후보 = 7대 안전유형 맞춤형 사업팔레트 v4(’26.11.24) 중 구역 분야·공간유형에 맞는 단위사업(규칙으로 고름 — 최종 사업·물량은 연구진 선정)</p>`;
+  }
+  /* 구역 사업 후보표 — 사업팔레트 v4(_palette). 고르는 규칙(AI 아님):
+       분야 = 구역 안에 사고가 있는 중점관리분야 + 지역협의체 추가 요청 분야
+       공간유형 = AURI 사업구역 유형(PPT "① 주거생활형(…)")이 팔레트 카드 공간유형에 들어 있는 단위사업 — 없으면 지역관리·네트워크형
+       순서 = 확인 사례 단가가 있는 사업 먼저, 그다음 팔레트 코드 순 · 분야마다 3개까지 싣고 나머지는 "외 N종" — 사업 선정·물량은 연구진 */
+  const SPACE_ALIAS = { '산업시설형': '산업·사업장형' };
+  const won = (v) => v >= 1e8 ? `${+(v / 1e8).toFixed(1)}억` : `${Math.round(v / 1e4).toLocaleString('ko-KR')}만`;
+  const wonRange = (r) => !r ? '-' : r.min === r.max ? won(r.min) + ' 원' : `${won(r.min)}~${won(r.max)} 원`;
+  const PER_FIELD = 3;
+  function pickProjects(field, type) {
+    const items = ((_palette && _palette.items) || []).filter((it) => it.field === field);
+    const want = SPACE_ALIAS[type] || type;
+    let list = want ? items.filter((it) => (it.spaceTypes || []).includes(want)) : [];
+    let basis = want ? `공간유형 ${want}` : '';
+    if (!list.length) { list = items.filter((it) => (it.spaceTypes || []).includes('지역관리·네트워크형')); basis = '지역관리·네트워크형'; }
+    list = list.slice().sort((a, b) => (b.confirmed ? 1 : 0) - (a.confirmed ? 1 : 0) || a.code.localeCompare(b.code));
+    return { shown: list.slice(0, PER_FIELD), rest: list.length - Math.min(list.length, PER_FIELD), basis };
+  }
+  function projectTable(zz, fields, n) {
+    if (!_palette || !_palette.items) return wait('구역별 사업 후보(사업코드·사업명·단가) — 사업팔레트 v4 를 불러오지 못했습니다');
+    const ex = extraFields();
+    const rows = [], rest = [];
+    for (const k of fields) {
+      const p = pickProjects(k, zz.type);
+      if (p.rest) rest.push(`${L[k]} ${p.rest}종`);
+      p.shown.forEach((it, j) => {
+        const c1 = (it.cases || [])[0];
+        rows.push(`<tr>${j === 0 ? `<th rowspan="${p.shown.length}" class="rr-wrap">${L[k]}${ex.includes(k) ? '<br><span class="h-sub">지역협의체 요청</span>' : ''}</th>` : ''}<td style="white-space:nowrap">${esc(it.code)}</td><td class="rr-wrap">${esc(it.name)}${it.confirmed ? '' : ' <span class="h-sub">(단가 추정)</span>'}</td><td>${esc([it.spaceUnit, it.kind].filter(Boolean).join(' · '))}</td><td class="rr-n">${esc(it.unitCostText || '-')}</td><td class="rr-n">${esc(wonRange(it.totals && it.totals['1']))}${c1 && c1.label ? `<br><span class="h-sub">${esc(c1.label)}</span>` : ''}</td><td></td><td></td></tr>`);
+      });
+      if (!p.shown.length) rows.push(`<tr><th>${L[k]}</th><td colspan="7">팔레트에 맞는 단위사업 없음</td></tr>`);
+    }
+    return `<table class="tight rr-t" style="table-layout:fixed"><caption>&lt;표 3-${3 + n}&gt; ${esc(zz.name)} 맞춤형 사업 후보(사업팔레트 v4)</caption>
+      <thead><tr><th style="width:10%">분야</th><th style="width:10%">사업코드</th><th>단위사업</th><th style="width:9%">공간단위·구분</th><th style="width:15%">설치 단가</th><th style="width:18%">① 기본 여건 사업비(예시 물량)</th><th style="width:6%">물량</th><th style="width:7%">사업비</th></tr></thead>
+      <tbody>${rows.join('')}</tbody></table>
+      <p class="note-under">※ 공간유형 ${esc(SPACE_ALIAS[zz.type] || zz.type || '-')} 기준 · 분야마다 확인 사례 단가가 있는 사업 먼저 3개${rest.length ? ` — 같은 조건의 다른 후보: ${esc(rest.join(', '))}` : ''} · 물량·사업비는 연구진 선정 뒤 기입 · 설치 단가 = 카드 단가(확인 사례 또는 추정) · ① 기본 여건 = 카드의 예시 물량 총사업비(선행·부대 포함, ②·③ 여건은 카드 참고)</p>`;
+  }
   function ch3(ctx) {
     const focus = focusOrder(ctx.si);
     const z = _zones;
@@ -310,7 +419,7 @@ const AuriResultReport = (function () {
         <p class="note-under">※ 119 구급활동자료(’23~’25)${z.district.deaths ? ', (자살 사망) 자살 사망지점 자료(’22~’24)' : ''} · 명 = 출동 기록(환자) 수, 괄호 건 = 같은 일시·장소 묶음 · 자살 시도 = 119 자해·자살시도 출동 · 비율 = ${esc(ctx.label)} 전체 대비${totTxt ? `(${esc(totTxt)})` : ''}</p>`;
       if (z.zones.length) t32 = `<table class="tight rr-t"><caption>&lt;표 3-2&gt; 복합위험지구 내 사업구역별 위험요인 총괄표</caption>
         <thead><tr><th style="width:20%">구역명</th><th>중점관리분야별 사고 특성</th><th style="width:24%">연계 사업</th></tr></thead>
-        <tbody>${z.zones.map((zz) => `<tr><th class="rr-wrap">${esc(zz.name)}${zz.areaKm2 ? `<br><span class="h-sub">약 ${nf(zz.areaKm2, 2)}㎢</span>` : ''}</th><td>${focus.map((k) => { const f = zfacts(zz.categories, zz.deaths, k); return f ? `<b>[${L[k]}]</b> ${esc(f.count)} · ${esc(f.time)} · ${esc(f.place)}` : ''; }).filter(Boolean).join('<br>') || '중점관리분야 출동 없음'}</td><td><span class="rr-sub-l">3.2 사업 구성 후</span></td></tr>`).join('')}</tbody></table>
+        <tbody>${z.zones.map((zz) => `<tr><th class="rr-wrap">${esc(zz.name)}${zz.areaKm2 ? `<br><span class="h-sub">약 ${nf(zz.areaKm2, 2)}㎢</span>` : ''}</th><td>${focus.map((k) => { const f = zfacts(zz.categories, zz.deaths, k); return f ? `<b>[${L[k]}]</b> ${esc(f.count)} · ${esc(f.time)} · ${esc(f.place)}` : ''; }).filter(Boolean).join('<br>') || '중점관리분야 출동 없음'}</td><td>${esc(zoneFields(zz, focus).map((k) => L[k]).join('·'))}<br><span class="rr-sub-l">사업 후보 3.3</span></td></tr>`).join('')}</tbody></table>
         <p class="note-under">※ 지번·업소 단위 반복 지점은 개인정보 원칙상 화면에 싣지 않고 연구진 전달용 파일(구역별 반복 지번 목록)로 드립니다</p>`;
     }
     const before = ctx.beforeUrl, after = ctx.afterUrl;
@@ -318,15 +427,38 @@ const AuriResultReport = (function () {
       <h3 class="h-section">3.1 복합위험지구 사고 데이터 분석</h3>
       ${wait('<그림 3-1> 복합위험지구 사고지점 상세 지도 — AURI 지도그림을 받으면 실립니다')}
       ${t31}${t32}
-      <h3 class="h-section">3.2 구역별 위험요인 진단 및 맞춤형 안전개선사업</h3>
-      ${wait('구역별 맞춤형 사업표(사업코드·사업내용·단가×물량) — 220개 사업팔레트 기준 후보 제안·물량 입력 화면을 붙이는 중입니다')}
+      ${council32(ctx)}
+      <h3 class="h-section">3.3 구역별 위험요인 진단 및 맞춤형 안전개선사업</h3>
+      ${zones33(ctx)}
       ${before || after ? `<div class="ba-stack">${before ? `<figure><img src="${esc(before)}" alt="현장사진"><figcaption>현장사진 (진단 지점)</figcaption></figure>` : ''}${after ? `<figure><img src="${esc(after)}" alt="개선 후 시뮬레이션"><figcaption>개선 후 시뮬레이션</figcaption></figure><div class="ba-disclaimer">${esc(typeof AURI_AI_DISCLAIMER !== 'undefined' ? AURI_AI_DISCLAIMER : '')}</div>` : ''}</div>` : ''}
-      <h3 class="h-section">3.3 복합위험지구 맞춤형 안전개선사업 종합도 및 총괄 산출근거표</h3>
+      <h3 class="h-section">3.4 복합위험지구 맞춤형 안전개선사업 종합도 및 총괄 산출근거표</h3>
       <figure class="doc-map" style="margin:0"><img src="data/overview/${esc(ctx.region)}.jpg" alt="${esc(ctx.label)} 맞춤형 사업 종합도" style="width:100%;display:block"><figcaption>맞춤형 사업 종합도 <span class="h-sub">AURI 사전분석 종합도 기준 — 3장 사업을 확정하면 다시 그림</span></figcaption></figure>`);
   }
 
+  /* 4장 — 후보지마다 관리분야 · 데이터 특성 · 위험요인 도출표(예시안 4.1 꼴). 로드뷰 사진·사진 판독 줄은 연구진이 고른 사진을 받으면 */
+  function ch4(ctx) {
+    const cs = candsOf(), focus = focusOrder(ctx.si), tot = (_zones && _zones.regionTotals) || {}, unit = unitOf(ctx.label);
+    if (!cs.length) return wait('후보지 ②·③ 위험요인 도출표·맞춤형 사업 — AURI 후보지 위치도(PPT 도형)를 좌표로 옮기면 3장과 같은 방식으로 채웁니다');
+    return cs.map((c, i) => {
+      const ins = focus.filter((k) => hasField(c, k));
+      const lines = ins.map((k) => {
+        const f = zfacts(c.categories, c.deaths, k);
+        if (!f) return '';
+        const whole = k === 'suicide' ? [tot.suicideDeath ? `자살 사망은 ${unit} 전체 ${nf(tot.suicideDeath.n)}명 중 ${nf(c.deaths ? c.deaths.n : 0)}명` : null, tot.suicide && c.categories.suicide ? `시도 출동은 ${nf(tot.suicide.n)}건 중 ${nf(c.categories.suicide.n)}건` : null].filter(Boolean).join(', ')
+          : `${L[k]} ${k === 'crime' ? '부상자는' : '출동은'} ${unit} 전체 ${nf(tot[k] ? tot[k].n : 0)}${k === 'crime' ? '명' : '건'} 중 ${f.count}`;
+        return `<p class="bullet rr-sub">${esc(whole)}${[f.time, f.place].filter(Boolean).length ? ` · ${esc([f.time, f.place].filter(Boolean).join(' · '))}` : ''}</p>`;
+      }).join('');
+      const rows = ins.map((k) => { const f = zfacts(c.categories, c.deaths, k); return f ? `<tr><td><b>(${L[k]} - ${k === 'suicide' ? '사망·구급' : '119구급'})</b> ${esc(f.count)}${f.person ? ' · ' + esc(f.person) : ''}${f.time ? ' · ' + esc(f.time) : ''}${f.place ? ' · ' + esc(f.place) : ''}</td></tr>` : ''; }).join('');
+      return `<h3 class="h-section">4.${i + 1} [후보지 ${esc(c.name.slice(0, 1))}] ${esc(c.name.slice(1).trim())}(${esc(areaTxt(c))})</h3>
+        <p class="bullet"><span class="tag">(관리분야)</span> ${esc(ins.map((k) => L[k]).join('×') || '중점관리분야 사고 없음')}</p>
+        <p class="bullet"><span class="tag">(데이터 특성)</span> 후보지 안 중점관리분야 사고${c.place ? ` — 걸친 행정동 ${esc(c.place.replace(/ 일원$/, ''))}` : ''}</p>${lines}
+        ${wait(`<그림 4-${i + 1}> 로드뷰 기반 현장 사진 — 연구진이 고른 사진을 넣으면 실립니다`)}
+        <table class="tight rr-t"><caption>&lt;표 4-${i + 1}&gt; 위험요인 도출표(${esc(c.name.slice(1).trim())})</caption>
+          <thead><tr><th>사고 지점 데이터 분석 결과(119 구급·자살사망)</th></tr></thead><tbody>${rows || '<tr><td>중점관리분야 사고 없음</td></tr>'}</tbody></table>`;
+    }).join('') + `<p class="note-under">※ 후보지 경계: AURI 4장 후보지 위치도(PPT 도형)를 지도 좌표로 옮겨 집계 · 비율 = ${esc(ctx.label)} 전체 대비 · 후보지 맞춤형 사업은 3장 사업 구성을 확정한 뒤 같은 방식으로</p>`;
+  }
   function ch45(ctx) {
-    return chapter('4. 복합위험지구 외 ‘위험지구’ 분석 결과', wait('후보지 ②·③ 위험요인 도출표·맞춤형 사업 — AURI 후보지 자료를 받으면 3장과 같은 방식으로 채웁니다'))
+    return chapter('4. 복합위험지구 외 ‘위험지구’ 분석 결과', ch4(ctx))
       + chapter('5. 복합위험지구 사업추진을 위한 지방정부 거버넌스', `
         <h3 class="h-section">5.1 기존 안전관리계획·유관 사업 검토</h3>${wait('<표 5-1> — AURI 작성 표를 받아 그대로 싣습니다')}
         <h3 class="h-section">5.2 부서 간 협업 거버넌스(TF)</h3>${wait('<표 5-2> — 5.1 표를 받으면 협업TF 작업가이드(산출지표 매핑) 기준으로 초안을 만듭니다')}`);

@@ -1,6 +1,6 @@
 {
   "title": "복합위험지구 · 세부 구역 바운더리 — AURI 가 선정·전달한 것 (tools/build-zone-stats.mjs 가 읽음)",
-  "how": "regions 에 지자체 열쇠(slug)마다 { source, zones: 구역 SHP 경로, nameField: 구역 이름 칸, names: { 칸 값: 보고서 표기 }, district: 복합위험지구 SHP(없으면 구역 합) } 를 적고 tools/ 에서 npm run zones. 결과 data/stats/zones/<slug>.json(주소 없음) · 연구진 전달용 반복 지번 CSV output/zones/(커밋 안 됨). SHP 원본은 data/raw/ 아래 받은 날 폴더에. ★ 2026-11-24: 41곳 district = AURI 최종 복합위험지구(이예린 11/23, 파일 날짜 11/12). 세부 구역 SHP 를 받으면 그 지자체에 zones·nameField·names 를 더하면 됨(파일 이름 ≠ 열쇠 5곳: busan_donggu=donggu · daegu_junggu=gjunggu · daejeon_junggu=jjunggu · ulsan_junggu=ujunggu · yeongdo=yeongdogu).",
+  "how": "regions 에 지자체 열쇠(slug)마다 { source, zones: 구역 SHP 경로, nameField: 구역 이름 칸, names: { 칸 값: 보고서 표기 }, district: 복합위험지구 SHP(없으면 구역 합) } 를 적고 tools/ 에서 npm run zones. 결과 data/stats/zones/<slug>.json(주소 없음) · 연구진 전달용 반복 지번 CSV output/zones/(커밋 안 됨). SHP 원본은 data/raw/ 아래 받은 날 폴더에. ★ 2026-11-24: 41곳 district = AURI 최종 복합위험지구(이예린 11/23, 파일 날짜 11/12). 세부 구역 SHP 를 받으면 그 지자체에 zones·nameField·names 를 더하면 됨(파일 이름 ≠ 열쇠 5곳: busan_donggu=donggu · daegu_junggu=gjunggu · daejeon_junggu=jjunggu · ulsan_junggu=ujunggu · yeongdo=yeongdogu). ★ 2026-11-25: 세부 구역·후보지는 AURI 가 PPT 도형으로만 그림(SHP 없음, 이예린 11/24) → tools/build-ppt-zones.mjs 가 도형을 좌표로 옮겨 data/raw/사업구역_ppt/<slug>.geojson 을 만들고, 여기 pptZones 에 그 경로를 적으면 구역(zones)·후보지(candidates)를 함께 집계.",
   "regions": {
     "andong": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -44,7 +44,8 @@
     },
     "goheung": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/goheung_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/goheung_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/goheung.geojson"
     },
     "gongju": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -108,7 +109,8 @@
     },
     "mokpo": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/mokpo_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/mokpo_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/mokpo.geojson"
     },
     "naju": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",

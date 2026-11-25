@@ -78,6 +78,19 @@ function readZones(shp, nameField, names) {
   });
   return { zones, crs, field, file: path.relative(ROOT, full) };
 }
+/* PPT 도형에서 뽑은 구역·후보지(build-ppt-zones.mjs → data/raw/사업구역_ppt/<slug>.geojson, EPSG:5186) — kind 'zone' | 'candidate' */
+function readPptZones(file, kind) {
+  const full = path.resolve(ROOT, file);
+  if (!fs.existsSync(full)) throw new Error('PPT 구역 파일 없음(먼저 node tools/build-ppt-zones.mjs): ' + full);
+  const gj = JSON.parse(fs.readFileSync(full, 'utf8'));
+  const zones = gj.features.filter((ft) => ft.properties.kind === kind).sort((a, b) => (a.properties.no || 99) - (b.properties.no || 99)).map((ft, i) => {
+    const p = ft.properties, rings = ft.geometry.coordinates;
+    const bbox = rings.flat().reduce((b, [x, y]) => [Math.min(b[0], x), Math.min(b[1], y), Math.max(b[2], x), Math.max(b[3], y)], [Infinity, Infinity, -Infinity, -Infinity]);
+    const mark = kind === 'zone' ? '①②③④⑤'[(p.no || i + 1) - 1] : '①②③④⑤'[(p.no || i + 2) - 1];
+    return { id: String(p.no || i + 1), no: p.no || null, name: kind === 'zone' ? `구역 ${mark} ${p.name}` : `${mark} ${p.name}`, type: p.type || null, place: p.place || null, areaNote: p.areaNote || null, shape: { rings, bbox }, areaKm2: p.areaKm2 };
+  });
+  return { zones, crs: 5186, field: 'PPT 도형', file: path.relative(ROOT, full), meta: gj.meta || null };
+}
 
 /* ── 누적기 (build-stats 와 같은 꼴 + 요일·월·사건 수) ───────────────── */
 const AGE_BUCKETS = ['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80+'];
@@ -182,30 +195,36 @@ function runRegion(slug, cfg) {
   if (!REGIONS[slug]) throw new Error('모르는 지자체: ' + slug);
   const D = cfg.district ? readZones(cfg.district, cfg.districtNameField, null) : null;
   /* 세부 구역(❶❷·단일①) SHP 가 아직 없으면 지구만 — 표 3-1 은 지구, 표 3-2 는 구역 SHP 를 받으면 */
-  const Z = cfg.zones ? readZones(cfg.zones, cfg.nameField, cfg.names) : { zones: [], crs: D ? D.crs : 5186, field: null, file: null };
+  const Z = cfg.zones ? readZones(cfg.zones, cfg.nameField, cfg.names) : cfg.pptZones ? readPptZones(cfg.pptZones, 'zone') : { zones: [], crs: D ? D.crs : 5186, field: null, file: null };
+  /* 4장 후보지(②③) — PPT 도형(EPSG:5186) */
+  const C = cfg.pptZones ? readPptZones(cfg.pptZones, 'candidate') : { zones: [] };
+  const projC = proj4(WGS84, CRS[5186]);
   if (!D && !Z.zones.length) throw new Error(slug + ': district 나 zones 중 하나는 있어야 함');
   const proj = proj4(WGS84, CRS[Z.crs]);
   const projD = D ? proj4(WGS84, CRS[D.crs]) : null;
   const rows = loadRows()[slug] || [];
-  const regionAcc = {}, districtAcc = {}, zoneAcc = Z.zones.map(() => ({}));
+  const regionAcc = {}, districtAcc = {}, zoneAcc = Z.zones.map(() => ({})), candAcc = C.zones.map(() => ({}));
   const inShapes = (x, y, s) => inBBox(x, y, s.bbox) && pointInShape(x, y, s);
   const where = (lng, lat) => {
     const [x, y] = Z.crs === 4326 ? [lng, lat] : proj.forward([lng, lat]);
     const zi = Z.zones.map((z, i) => (inShapes(x, y, z.shape) ? i : -1)).filter((i) => i >= 0);
     let inD = zi.length > 0;
     if (D) { const [dx, dy] = D.crs === 4326 ? [lng, lat] : projD.forward([lng, lat]); inD = D.zones.some((z) => inShapes(dx, dy, z.shape)); }
-    return { zi, inD };
+    let ci = [];
+    if (C.zones.length) { const [cx, cy] = projC.forward([lng, lat]); ci = C.zones.map((z, i) => (inShapes(cx, cy, z.shape) ? i : -1)).filter((i) => i >= 0); }
+    return { zi, inD, ci };
   };
   for (const row of rows) {
     (regionAcc[row.cat] ||= newAcc()); add(regionAcc[row.cat], row);
-    const { zi, inD } = where(row.lng, row.lat);
+    const { zi, inD, ci } = where(row.lng, row.lat);
     zi.forEach((i) => { (zoneAcc[i][row.cat] ||= newAcc()); add(zoneAcc[i][row.cat], row); });
+    ci.forEach((i) => { (candAcc[i][row.cat] ||= newAcc()); add(candAcc[i][row.cat], row); });
     if (inD) { (districtAcc[row.cat] ||= newAcc()); add(districtAcc[row.cat], row); }
   }
   /* 자살 사망지점(’22~’24) — 지구·구역 안 사망 수·연도·장소·같은 건물 반복(개소 수만). 건물명·지번은 output/ CSV 에만 */
   const deaths = readDeaths(ROOT, slug) || [];
-  const dIn = { district: [], zones: Z.zones.map(() => []) };
-  for (const d of deaths) { if (!isFinite(d.lng) || !isFinite(d.lat)) continue; const { zi, inD } = where(d.lng, d.lat); if (inD) dIn.district.push(d); zi.forEach((i) => dIn.zones[i].push(d)); }
+  const dIn = { district: [], zones: Z.zones.map(() => []), cands: C.zones.map(() => []) };
+  for (const d of deaths) { if (!isFinite(d.lng) || !isFinite(d.lat)) continue; const { zi, inD, ci } = where(d.lng, d.lat); if (inD) dIn.district.push(d); zi.forEach((i) => dIn.zones[i].push(d)); ci.forEach((i) => dIn.cands[i].push(d)); }
   const deathOut = (list) => (deaths.length ? summarizeDeaths(list, deaths.length) : null);
   const regionN = Object.fromEntries(Object.entries(regionAcc).map(([k, a]) => [k, a.n]));
   const cats = (accs) => Object.fromEntries(CATEGORY_ORDER.filter((k) => accs[k]).map((k) => [k, exportAcc(accs[k], regionN[k], k)]));
@@ -220,7 +239,10 @@ function runRegion(slug, cfg) {
       ...(deaths.length ? { suicideDeath: { n: deaths.length, years: summarizeDeaths(deaths).years } } : {}) },
     district: { name: cfg.districtName || null, place: cover ? cover.place : null, dongs: cover ? cover.dongs : null,
       areaKm2: D ? +D.zones.reduce((s, z) => s + (z.areaKm2 || 0), 0).toFixed(3) : null, categories: cats(districtAcc), deaths: deathOut(dIn.district) },
-    zones: Z.zones.map((z, i) => ({ id: z.id, name: z.name, areaKm2: z.areaKm2, categories: cats(zoneAcc[i]), deaths: deathOut(dIn.zones[i]) })),
+    zones: Z.zones.map((z, i) => ({ id: z.id, name: z.name, type: z.type || null, place: z.place || null, areaKm2: z.areaKm2, categories: cats(zoneAcc[i]), deaths: deathOut(dIn.zones[i]) })),
+    /* 4장 후보지 ②③ — 걸친 행정동·건수(지자체 전체 대비) */
+    candidates: C.zones.map((z, i) => { const cv = dongCover([z.shape], 5186); return { id: z.id, no: z.no, name: z.name, areaKm2: z.areaKm2, areaNote: z.areaNote, place: cv ? cv.place : null, dongs: cv ? cv.dongs : null, categories: cats(candAcc[i]), deaths: deathOut(dIn.cands[i]) }; }),
+    ppt: Z.meta || C.meta || null,
   };
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const outFile = path.join(OUT_DIR, slug + '.json');
@@ -235,11 +257,13 @@ function runRegion(slug, cfg) {
   };
   emit(cfg.districtName || '복합위험지구', districtAcc, dIn.district);
   Z.zones.forEach((z, i) => emit(z.name, zoneAcc[i], dIn.zones[i]));
+  C.zones.forEach((z, i) => emit('후보지 ' + z.name, candAcc[i], dIn.cands[i]));
   const privFile = path.join(PRIVATE_DIR, `${slug}_구역별_반복지번.csv`);
   fs.writeFileSync(privFile, '﻿' + lines.join('\r\n'));
   const dd = out.district;
   console.log(`${slug}: 지구 ${D ? (dd.areaKm2 + '㎢ ' + (dd.place || '')) : '-'} · 구역 ${Z.zones.length} · 출동 ${rows.length} · 사망 ${deaths.length} → ${path.relative(ROOT, outFile)} · 지번 목록 ${lines.length - 1}줄`);
   console.log(`  지구  ${Object.entries(dd.categories).map(([k, v]) => `${CATEGORY_LABEL[k]} ${v.n}(${v.share}%)`).join(' · ') || '출동 없음'}${dd.deaths ? ` · 자살 사망 ${dd.deaths.n}(${dd.deaths.share}%)` : ''}`);
+  for (const z of out.candidates) console.log(`  후보지 ${String(z.name).slice(0, 26).padEnd(26)} ${z.areaKm2}㎢ · ${Object.entries(z.categories).map(([k, v]) => `${CATEGORY_LABEL[k]} ${v.n}(${v.share}%)`).join(' · ') || '출동 없음'}${z.deaths && z.deaths.n ? ` · 자살 사망 ${z.deaths.n}` : ''}`);
   for (const z of out.zones) console.log(`  ${String(z.name).slice(0, 30).padEnd(30)} ${Object.entries(z.categories).map(([k, v]) => `${CATEGORY_LABEL[k]} ${v.n}(${v.share}%)`).join(' · ') || '출동 없음'}${z.deaths && z.deaths.n ? ` · 자살 사망 ${z.deaths.n}` : ''}`);
   return out;
 }
