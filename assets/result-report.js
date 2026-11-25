@@ -296,14 +296,16 @@ const AuriResultReport = (function () {
     const focus = focusOrder(ctx.si);
     const cols = [{ head: `① (최종 선정)<br>${esc(districtLabel(z))}`, o: { ...z.district, areaNote: null } }, ...cs.map((c) => ({ head: esc(c.name), o: { ...c, place: c.name.slice(1).trim() } }))];   // 후보지 위치 = AURI 가 붙인 이름
     const row = (h, f) => `<tr><th>${h}</th>${cols.map((c) => `<td>${f(c.o)}</td>`).join('')}</tr>`;
+    /* PPT 도형이 바다 위에 놓인 후보지(옹진 ②, build-zone-stats warn) — 0건으로 보이지 않게 */
+    const chk = (f) => (o) => o.warn ? '<span class="rr-sub-l">위치 확인 중(AURI)</span>' : f(o);
     return `<table class="tight rr-t"><caption>&lt;표 2-1&gt; 복합위험지구 후보지역(①~${'①②③④⑤'[cs.length]}) 종합 비교 검토표</caption>
       <thead><tr><th style="width:13%">구분</th>${cols.map((c) => `<th>${c.head}</th>`).join('')}</tr></thead>
       <tbody>${row('위치 및 면적', (o) => `${esc(o.place || '-')}${areaTxt(o) ? ` (${areaTxt(o)})` : ''}`)}
-        ${row('중점관리분야', (o) => overlapTxt(o, focus))}
-        ${row('중점분야 사고 건수', (o) => countLines(o, focus, ctx.label))}
-        ${row('중점분야 사고 합계·밀도', (o) => density(o, focus))}
+        ${row('중점관리분야', chk((o) => overlapTxt(o, focus)))}
+        ${row('중점분야 사고 건수', chk((o) => countLines(o, focus, ctx.label)))}
+        ${row('중점분야 사고 합계·밀도', chk((o) => density(o, focus)))}
         ${row('주요 공간·위험 특성', () => '<span class="rr-sub-l">연구진 작성</span>')}</tbody></table>
-      <p class="note-under">※ 후보지 경계: AURI 4장 후보지 위치도(PPT 도형, 이예린 ’26.11.23)를 지도 좌표로 옮겨 집계(손으로 그린 선이라 경계 부근 수 건 차이 가능) · 위치 = 면적 20% 이상 걸친 행정동 · 119 구급출동(’23~’25)·자살 사망(’22~’24) · 자살 시도 = 119 자해·자살시도 출동 · 나머지 후보지는 본문 4장</p>`;
+      <p class="note-under">※ 후보지 경계: AURI 4장 후보지 위치도(PPT 도형, 이예린 ’26.11.23)를 지도 좌표로 옮겨 집계(PPT 도형이라 경계 부근 수 건 차이 가능) · 위치 = 면적 20% 이상 걸친 행정동 · 119 구급출동(’23~’25)·자살 사망(’22~’24) · 자살 시도 = 119 자해·자살시도 출동 · 나머지 후보지는 본문 4장</p>`;
   }
   /* 2.3 선정 문장 — 예시안 "3개 중점분야(범죄·자살·감염병)가 모두 중첩되고 범죄 사고가 구 전체의 34.4%, 감염병 출동 19.7%, 자살 사망 15.4%가 집중되어 … 복합위험지구로 선정" */
   function selectSentence(ctx) {
@@ -440,6 +442,8 @@ const AuriResultReport = (function () {
     const cs = candsOf(), focus = focusOrder(ctx.si), tot = (_zones && _zones.regionTotals) || {}, unit = unitOf(ctx.label);
     if (!cs.length) return wait('후보지 ②·③ 위험요인 도출표·맞춤형 사업 — AURI 후보지 위치도(PPT 도형)를 좌표로 옮기면 3장과 같은 방식으로 채웁니다');
     return cs.map((c, i) => {
+      if (c.warn) return `<h3 class="h-section">4.${i + 1} [후보지 ${esc(c.name.slice(0, 1))}] ${esc(c.name.slice(1).trim())}(${esc(areaTxt(c))})</h3>
+        ${wait('후보지 위치 확인 중 — 위치도 PPT 의 후보지 도형이 섬(행정동 경계) 밖 바다 위에 놓여 있어 AURI 에 위치를 확인하고 있습니다. 확인되면 다른 후보지와 같은 방식으로 채웁니다')}`;
       const ins = focus.filter((k) => hasField(c, k));
       const lines = ins.map((k) => {
         const f = zfacts(c.categories, c.deaths, k);

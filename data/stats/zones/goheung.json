@@ -3470,6 +3470,8 @@
      100
     ]
    ],
+   "land": 100,
+   "warn": null,
    "categories": {
     "traffic": {
      "n": 80,
@@ -4788,6 +4790,8 @@
      35.8
     ]
    ],
+   "land": 35.8,
+   "warn": null,
    "categories": {
     "traffic": {
      "n": 4,

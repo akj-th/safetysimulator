@@ -2,11 +2,11 @@
  "region": "ongjin",
  "label": "인천광역시 옹진군",
  "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
- "generatedAt": "2026-11-24",
+ "generatedAt": "2026-11-25",
  "basis": "119 구급출동(2023~2025) · 명 = 출동 기록(환자) 수 · 건 = 같은 신고일·시각(분)·지번 한 사건 · 비율(share) = 지자체 전체 대비 · 22~05시 = 22시~04시대 · 금~일 · 반복 지점 = 같은 지번 임계 이상(분야별 REPEAT_THRESHOLD, spots2 = 2회 이상) · topDongs 는 원자료 동(법정동) 이름 · deaths = 자살 사망지점(’22~’24, AURI 2026-11-23) — share = 지자체 전체 사망 대비, repeat = 같은 건물(또는 지번) 2명 이상 개소·명(이름 없음) · district.place = 지구가 20% 이상 걸친 행정동(면적) + 일원",
  "files": {
-  "zones": null,
-  "nameField": null,
+  "zones": "data\\raw\\사업구역_ppt\\ongjin.geojson",
+  "nameField": "PPT 도형",
   "district": "data\\raw\\복합위험지구_1123\\ongjin_MR_Zone.shp",
   "crs": 5186
  },
@@ -787,5 +787,32 @@
    }
   }
  },
- "zones": []
+ "zones": [],
+ "candidates": [
+  {
+   "id": "2",
+   "no": 2,
+   "name": "② 북도면 신도리 일원",
+   "areaKm2": 1.877,
+   "areaNote": 1.8,
+   "place": null,
+   "dongs": null,
+   "land": 0,
+   "warn": "PPT 도형이 행정동 경계 밖에 놓임(육지 0%) — AURI 위치 확인 필요",
+   "categories": {},
+   "deaths": null
+  }
+ ],
+ "ppt": {
+  "candidates": {
+   "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx",
+   "slide": 17,
+   "mPerPx": 69.026,
+   "rotationDeg": -0.004,
+   "residualM": {
+    "district": 0,
+    "bounds": 0
+   }
+  }
+ }
 }

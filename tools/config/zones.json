@@ -4,23 +4,28 @@
   "regions": {
     "andong": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/andong_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/andong_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/andong.geojson"
     },
     "bucheon": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/bucheon_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/bucheon_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/bucheon.geojson"
     },
     "bukgu": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/bukgu_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/bukgu_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/bukgu.geojson"
     },
     "cheongsong": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/cheongsong_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/cheongsong_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/cheongsong.geojson"
     },
     "dangjin": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/dangjin_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/dangjin_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/dangjin.geojson"
     },
     "danyang": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -28,7 +33,8 @@
     },
     "donggu": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/busan_donggu_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/busan_donggu_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/donggu.geojson"
     },
     "gangjin": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -49,7 +55,8 @@
     },
     "gongju": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/gongju_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/gongju_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/gongju.geojson"
     },
     "gwanak": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -57,11 +64,13 @@
     },
     "hamyang": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/hamyang_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/hamyang_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/hamyang.geojson"
     },
     "hongcheon": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/hongcheon_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/hongcheon_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/hongcheon.geojson"
     },
     "jangheung": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -85,7 +94,8 @@
     },
     "jeongseon": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/jeongseon_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/jeongseon_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/jeongseon.geojson"
     },
     "jinan": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -93,7 +103,8 @@
     },
     "jindo": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/jindo_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/jindo_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/jindo.geojson"
     },
     "jjunggu": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -101,7 +112,8 @@
     },
     "michuhol": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/michuhol_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/michuhol_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/michuhol.geojson"
     },
     "miryang": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -118,7 +130,8 @@
     },
     "namhae": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/namhae_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/namhae_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/namhae.geojson"
     },
     "namwon": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -126,15 +139,18 @@
     },
     "ongjin": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/ongjin_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/ongjin_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/ongjin.geojson"
     },
     "pocheon": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/pocheon_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/pocheon_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/pocheon.geojson"
     },
     "sacheon": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/sacheon_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/sacheon_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/sacheon.geojson"
     },
     "sasanggu": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -142,15 +158,18 @@
     },
     "sejong": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/sejong_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/sejong_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/sejong.geojson"
     },
     "seocheon": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/seocheon_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/seocheon_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/seocheon.geojson"
     },
     "taebaek": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/taebaek_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/taebaek_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/taebaek.geojson"
     },
     "ujunggu": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
@@ -158,15 +177,18 @@
     },
     "yeongcheon": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/yeongcheon_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/yeongcheon_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/yeongcheon.geojson"
     },
     "yeongdogu": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/yeongdo_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/yeongdo_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/yeongdogu.geojson"
     },
     "yeongju": {
       "source": "AURI 이예린 2026-11-23 「1112_중점관리분야_복합위험지구」",
-      "district": "data/raw/복합위험지구_1123/yeongju_MR_Zone.shp"
+      "district": "data/raw/복합위험지구_1123/yeongju_MR_Zone.shp",
+      "pptZones": "data/raw/사업구역_ppt/yeongju.geojson"
     }
   }
 }

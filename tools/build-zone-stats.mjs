@@ -188,7 +188,9 @@ function dongCover(shapes, crs) {
   pts.forEach(([x, y]) => { const nm = assign(x, y); if (nm) c[nm] = (c[nm] || 0) + 1; });
   const dongs = Object.entries(c).sort((a, b) => b[1] - a[1]).map(([nm, v]) => [nm, +(v / pts.length * 100).toFixed(1)]);
   const main = dongs.filter((d) => d[1] >= 20).slice(0, 3);
-  return { dongs: dongs.slice(0, 6), place: (main.length ? main : dongs.slice(0, 1)).map((d) => d[0]).join(' · ') + ' 일원' };
+  /* land = 도형 안 표본 중 행정동(육지) 안 비율 — PPT 도형이 바다 위에 놓였는지(옹진 11/25) 확인용 */
+  const land = +(Object.values(c).reduce((s, v) => s + v, 0) / pts.length * 100).toFixed(1);
+  return { dongs: dongs.slice(0, 6), land, place: dongs.length ? (main.length ? main : dongs.slice(0, 1)).map((d) => d[0]).join(' · ') + ' 일원' : null };
 }
 
 function runRegion(slug, cfg) {
@@ -241,7 +243,10 @@ function runRegion(slug, cfg) {
       areaKm2: D ? +D.zones.reduce((s, z) => s + (z.areaKm2 || 0), 0).toFixed(3) : null, categories: cats(districtAcc), deaths: deathOut(dIn.district) },
     zones: Z.zones.map((z, i) => ({ id: z.id, name: z.name, type: z.type || null, place: z.place || null, areaKm2: z.areaKm2, categories: cats(zoneAcc[i]), deaths: deathOut(dIn.zones[i]) })),
     /* 4장 후보지 ②③ — 걸친 행정동·건수(지자체 전체 대비) */
-    candidates: C.zones.map((z, i) => { const cv = dongCover([z.shape], 5186); return { id: z.id, no: z.no, name: z.name, areaKm2: z.areaKm2, areaNote: z.areaNote, place: cv ? cv.place : null, dongs: cv ? cv.dongs : null, categories: cats(candAcc[i]), deaths: deathOut(dIn.cands[i]) }; }),
+    candidates: C.zones.map((z, i) => { const cv = dongCover([z.shape], 5186);
+      /* 도형이 거의 다 행정동 밖(바다)이면 PPT 도형 위치가 어긋난 것(옹진 0%) — 건수를 싣지 않고 확인 요청. 해안 마을은 바다를 넉넉히 그려 30%대도 있음(고흥 ③ 35.8%, 제자리) */
+      const warn = !cv || cv.land < 10 ? `PPT 도형이 행정동 경계 밖에 놓임(육지 ${cv ? cv.land : 0}%) — AURI 위치 확인 필요` : null;
+      return { id: z.id, no: z.no, name: z.name, areaKm2: z.areaKm2, areaNote: z.areaNote, place: cv ? cv.place : null, dongs: cv ? cv.dongs : null, land: cv ? cv.land : 0, warn, categories: warn ? {} : cats(candAcc[i]), deaths: warn ? null : deathOut(dIn.cands[i]) }; }),
     ppt: Z.meta || C.meta || null,
   };
   fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -263,7 +268,7 @@ function runRegion(slug, cfg) {
   const dd = out.district;
   console.log(`${slug}: 지구 ${D ? (dd.areaKm2 + '㎢ ' + (dd.place || '')) : '-'} · 구역 ${Z.zones.length} · 출동 ${rows.length} · 사망 ${deaths.length} → ${path.relative(ROOT, outFile)} · 지번 목록 ${lines.length - 1}줄`);
   console.log(`  지구  ${Object.entries(dd.categories).map(([k, v]) => `${CATEGORY_LABEL[k]} ${v.n}(${v.share}%)`).join(' · ') || '출동 없음'}${dd.deaths ? ` · 자살 사망 ${dd.deaths.n}(${dd.deaths.share}%)` : ''}`);
-  for (const z of out.candidates) console.log(`  후보지 ${String(z.name).slice(0, 26).padEnd(26)} ${z.areaKm2}㎢ · ${Object.entries(z.categories).map(([k, v]) => `${CATEGORY_LABEL[k]} ${v.n}(${v.share}%)`).join(' · ') || '출동 없음'}${z.deaths && z.deaths.n ? ` · 자살 사망 ${z.deaths.n}` : ''}`);
+  for (const z of out.candidates) console.log(`  후보지 ${String(z.name).slice(0, 26).padEnd(26)} ${z.areaKm2}㎢ · 육지 ${z.land}% · ${z.warn ? '⚠ ' + z.warn : ''}${Object.entries(z.categories).map(([k, v]) => `${CATEGORY_LABEL[k]} ${v.n}(${v.share}%)`).join(' · ') || '출동 없음'}${z.deaths && z.deaths.n ? ` · 자살 사망 ${z.deaths.n}` : ''}`);
   for (const z of out.zones) console.log(`  ${String(z.name).slice(0, 30).padEnd(30)} ${Object.entries(z.categories).map(([k, v]) => `${CATEGORY_LABEL[k]} ${v.n}(${v.share}%)`).join(' · ') || '출동 없음'}${z.deaths && z.deaths.n ? ` · 자살 사망 ${z.deaths.n}` : ''}`);
   return out;
 }

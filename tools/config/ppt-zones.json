@@ -3,12 +3,130 @@
  "how": "regions.<slug>.zones = 세부 사업구역(구역 ①②) 위치도, candidates = 4장 후보지(②③) 위치도. pptx 경로와 (선택) slide 번호 — 없으면 지자체 이름으로 슬라이드를 찾음. 결과 data/raw/사업구역_ppt/<slug>.geojson 을 build-zone-stats 가 읽음(zones.json 의 pptZones). 2026-11-25 이예린 11/24 회신: 세부 구역·후보지는 PPT 에서 직접 그린 도형이고 SHP 없음.",
  "regions": {
   "goheung": {
-   "zones": { "pptx": "docs/02_수신자료/20261124_AURI_이예린_고흥목포_사업구역위치도.pptx" },
-   "candidates": { "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx" }
+   "zones": {
+    "pptx": "docs/02_수신자료/20261124_AURI_이예린_고흥목포_사업구역위치도.pptx"
+   },
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
   },
   "mokpo": {
-   "zones": { "pptx": "docs/02_수신자료/20261124_AURI_이예린_고흥목포_사업구역위치도.pptx" },
-   "candidates": { "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx" }
+   "zones": {
+    "pptx": "docs/02_수신자료/20261124_AURI_이예린_고흥목포_사업구역위치도.pptx"
+   },
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "gongju": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "bukgu": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "namhae": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "dangjin": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "donggu": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "yeongdogu": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "bucheon": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "sacheon": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "seocheon": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "sejong": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "andong": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "yeongju": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "yeongcheon": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "michuhol": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "ongjin": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "jeongseon": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "jindo": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "cheongsong": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "taebaek": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "pocheon": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "hamyang": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
+  },
+  "hongcheon": {
+   "candidates": {
+    "pptx": "docs/02_수신자료/20261123_AURI_이예린_4장후보지위치도_24개지역_최종.pptx"
+   }
   }
  }
 }

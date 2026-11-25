@@ -219,7 +219,8 @@ function extract(slug, kind, spec) {
   const picOf = (p) => pics.filter((q) => q.img === imgPath && p[0] >= q.xf.x && p[0] <= q.xf.x + q.xf.cx && p[1] >= q.xf.y && p[1] <= q.xf.y + q.xf.cy);
   const emuToPx = (q, [X, Y]) => [img.width * (q.crop.l + (X - q.xf.x) / q.xf.cx * (1 - q.crop.l - q.crop.r)), img.height * (q.crop.t + (Y - q.xf.y) / q.xf.cy * (1 - q.crop.t - q.crop.b))];
   const pxPerEmu = (q) => img.width * (1 - q.crop.l - q.crop.r) / q.xf.cx;
-  const free = sl.shapes.filter((s) => s.kind === 'sp' && s.custom && s.pts && s.pts.length >= 4 && s.xf.cx > 150000 && s.xf.cy > 150000)
+  /* 자유형 도형 — 작은 장식은 빼되, 섬 지역(옹진 1px = 69m)처럼 지도 축척이 커서 작게 그려진 후보지는 꼭짓점 수로 살림 */
+  const free = sl.shapes.filter((s) => s.kind === 'sp' && s.custom && s.pts && s.pts.length >= 4 && ((s.xf.cx > 150000 && s.xf.cy > 150000) || s.pts.length >= 20))
     .map((s) => { const c = [s.xf.x + s.xf.cx / 2, s.xf.y + s.xf.cy / 2]; const q = picOf(c).sort((a, b) => pxPerEmu(b) - pxPerEmu(a))[0]; return q ? { ...s, pic: q, res: pxPerEmu(q) } : null; }).filter(Boolean);
   /* 번호표(①②… 원·네모 안 숫자) — 도형마다 가장 가까운 번호 */
   const markers = sl.shapes.filter((s) => s.kind === 'sp' && !s.custom && s.xf && s.texts.length === 1 && /^[1-9]$/.test(s.texts[0])).map((s) => ({ no: +s.texts[0], c: [s.xf.x + s.xf.cx / 2, s.xf.y + s.xf.cy / 2], name: s.name }));
@@ -257,7 +258,7 @@ function extract(slug, kind, spec) {
     const m = raw ? raw.replace(/^[①②③④⑤❶❷❸❹❺]\s*/, '') : '';
     const area = ringArea(ring) / 1e6;
     const note = (m.match(/\(약\s*([\d.]+)\s*㎢\)/) || [])[1];
-    const label = m.replace(/^후보지\s*:\s*/, '').replace(/\s*\(약\s*[\d.]+\s*㎢\)\s*/, ' ').replace(/\s+/g, ' ').trim();
+    const label = m.replace(/^후보지\s*:\s*/, '').replace(/\s*\(약\s*[\d.]+\s*㎢\)\s*/, ' ').replace(/\s*\(수정\)\s*/g, ' ').replace(/\s+/g, ' ').trim();   // 공주 "(수정)" = AURI 작업 표시
     const typed = label.match(/^(.+?형)\s*\((.+)\)$/);   // "상업·유흥 밀집형(평화광장 일대)"
     return { no: isNaN(+no) ? null : +no, raw, label, type: typed ? typed[1] : null, place: typed ? typed[2] : null, ring, areaKm2: +area.toFixed(3), areaNote: note ? +note : null, shape: g.f.name, line: g.f.line, pxRes: +(g.f.res * 1e5).toFixed(2) };
   });
